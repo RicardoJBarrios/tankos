@@ -34,4 +34,12 @@ describe('appRoutes', () => {
       'aquariums/new',
     );
   });
+
+  it('defines the List My Aquariums child route', () => {
+    const privateRoute = appRoutes.find((route) => route.path === 'app');
+
+    expect(privateRoute?.children?.map((route) => route.path)).toContain(
+      'aquariums',
+    );
+  });
 });

@@ -16,6 +16,14 @@ export const appRoutes: Route[] = [
       ),
     children: [
       {
+        path: 'aquariums',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./aquariums/ui/list-my-aquariums-page').then(
+            ({ ListMyAquariumsPage }) => ListMyAquariumsPage,
+          ),
+      },
+      {
         path: 'aquariums/new',
         loadComponent: () =>
           import('./aquariums/ui/establish-aquarium-page').then(

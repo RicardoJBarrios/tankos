@@ -2,8 +2,17 @@ import { Aquarium } from '../domain/aquarium';
 import { AquariumId } from '../domain/aquarium-id';
 import { AquariumName } from '../domain/aquarium-name';
 
+export interface AquariumListItem {
+  readonly id: AquariumId;
+  readonly name: AquariumName;
+}
+
 export interface KeeperSession {
   requireAuthenticatedKeeper(): Promise<{ readonly id: string }>;
+}
+
+export interface AquariumReader {
+  listOwned(ownerKeeperId: string): Promise<readonly AquariumListItem[]>;
 }
 
 export interface EstablishAquariumInput {
