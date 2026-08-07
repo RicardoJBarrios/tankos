@@ -5,6 +5,5 @@ import { RouterModule } from '@angular/router';
   imports: [RouterModule],
   selector: 'veril-root',
   templateUrl: './app.html',
-  styleUrl: './app.css',
 })
 export class App {}

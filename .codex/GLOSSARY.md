@@ -1,0 +1,183 @@
+# Ubiquitous Language
+
+This glossary is the canonical vocabulary for code, documentation, ADRs, Issues
+and Pull Requests. Prefer these terms and document any deliberate synonym.
+
+## Core concepts
+
+### Aquarium
+
+A manageable marine-aquarium care system. It is the aggregate root and relates
+care information, supporting systems, Equipment and Livestock. It does not imply
+a user, a single physical vessel, a SaaS tenant, one Aquarium or many Aquariums.
+
+### Display
+
+A physical, observable water-and-life area related to an Aquarium. Whether it
+needs identity, lifecycle or a separate representation is use-case-dependent.
+
+### System
+
+A coherent physical, biological or technical arrangement that supports an
+Aquarium. It is not automatically an aggregate, a hierarchy or a storage model.
+
+### Livestock
+
+Living organisms kept in an Aquarium, including fish, coral and other organisms.
+
+### Fish
+
+A livestock category representing a fish specimen or group. The final grouping
+and identification model is not yet defined.
+
+### Coral
+
+A livestock category representing coral. The final taxonomy and fragment model
+are not yet defined.
+
+### Equipment
+
+A physical or logical device used by an Aquarium or System, such as lighting,
+pumps, probes or controllers. Its ownership, sharing and lifecycle remain
+use-case-dependent.
+
+## Observations and operations
+
+### Measurement
+
+A recorded value of a Parameter at a point in time. The correction, provenance,
+quality and historical-retention semantics are not yet accepted domain rules.
+
+### Observation
+
+A qualitative or quantitative account of an observed subject or condition. A
+Measurement is a quantitative Observation. It becomes a Fact only when an
+accepted use case records it durably as evidence; a transient perception or UI
+input is not a Fact by itself.
+
+### Fact
+
+A durable, immutable and attributable claim accepted by the system as evidence
+of something recorded or that occurred. A Fact retains its provenance and time
+of occurrence or recording; when both are known, both are retained. It is
+evidence about an Aquarium, not a guarantee of its complete state. A correction
+is a new Fact that refers to the earlier evidence; it does not overwrite it.
+
+### Parameter
+
+A measurable property such as temperature, salinity, pH or nitrate.
+
+### Sensor
+
+A device or input that produces measurements. Sensor calibration and provenance
+rules remain to be defined.
+
+### Controller
+
+A device or service that reads inputs or changes equipment state. Automation
+authority and safety rules remain to be defined.
+
+### Maintenance
+
+Work performed to inspect, clean, repair or preserve an Aquarium, System or
+Equipment item.
+
+### Care Work
+
+An umbrella term for intentional care activity, potentially including a Task,
+Maintenance, Water Change or Feeding. It does not establish that those concepts
+share an entity, lifecycle or history model.
+
+### Water Change
+
+A term for care work involving aquarium water replacement. Whether it is a
+distinct Event, a Maintenance subtype or another concept is still to be defined.
+
+### Feeding
+
+An event or routine describing food provided to Livestock.
+
+### Task
+
+A planned piece of work. Its completion, cancellation, recurrence and history
+semantics are not yet defined.
+
+### Reminder
+
+A scheduled or recurring prompt associated with a Task or maintenance intention.
+
+### Alert
+
+A signal that a condition requires attention. Alert severity, acknowledgement and
+resolution semantics remain to be defined.
+
+### Rule
+
+A declared condition or constraint used to evaluate data or operations. Rules
+may be business rules, Security Rules or automation rules; qualify the term when
+the context could be ambiguous.
+
+### Automation
+
+A process that evaluates a Rule and performs or recommends an action. Safety,
+authorization and audit requirements must be defined before implementation.
+
+### Log
+
+An operational record of an action or system event. A Log is not automatically a
+domain Event and must not replace domain history without an explicit decision.
+
+### Event
+
+A Fact whose occurrence has independent domain meaning. An Event is not a
+second generic record beside its Fact: it is that Fact's domain classification.
+Whether a particular care activity establishes an Event must be decided by an
+accepted use case.
+
+### Interpretation
+
+A human or derived assessment of Facts, Observations or Events. It must remain
+attributable and must not overwrite, replace or silently alter source evidence
+or state causal certainty without support.
+
+### Knowledge
+
+Curated, attributable understanding used to inform care, such as a documented
+procedure or source reference. It may be informed by evidence, but is neither
+an Aquarium Fact nor an Event by default.
+
+### AquariumId
+
+The opaque, stable identifier of an Aquarium. It is not a user-facing name,
+slug or Firestore-specific type.
+
+### AquariumName
+
+The identifying label supplied when an Aquarium is established. For the first
+slice it must be non-empty after trimming surrounding whitespace; no length,
+uniqueness or naming taxonomy is accepted yet.
+
+### Timeline
+
+An ordered read model of relevant Facts, Events, Measurements, Observations and
+other accepted history for an Aquarium. It is not an independent source of truth.
+
+### Active Context
+
+The application-level scope from which a person views or operates on an
+Aquarium. It is not an Entity, Aggregate, authorization rule or persistence
+model.
+
+### Inspection
+
+A deliberate review of an Aquarium, Equipment item, Livestock or condition.
+Inspection outcome and follow-up rules remain to be defined.
+
+## Vocabulary rules
+
+- Use `Aquarium`, not an unqualified synonym such as `tank`, in technical names.
+- Use `Livestock` for the domain concept and `Fish` or `Coral` for categories;
+  aggregate boundaries are not yet accepted.
+- Use `Measurement` for a recorded value and `Observation` for a note.
+- Use `Event` only for a domain occurrence with historical meaning.
+- Qualify ambiguous terms such as `Rule`, `System` and `Log` by context.

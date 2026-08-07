@@ -1,0 +1,12 @@
+allowBuilds:
+  '@firebase/util': set this to true or false
+  '@parcel/watcher': true
+  '@swc/core': true
+  esbuild: true
+  less: false
+  lmdb: true
+  msgpackr-extract: true
+  nx: true
+  protobufjs: set this to true or false
+  re2: set this to true or false
+  unrs-resolver: true

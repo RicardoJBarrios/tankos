@@ -1,19 +1,13 @@
-import { TestBed } from '@angular/core/testing';
+import { Spectator, createComponentFactory } from '@ngneat/spectator/vitest';
 import { App } from './app';
 
 describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [App],
-    }).compileComponents();
-  });
+  const createComponent = createComponentFactory(App);
 
-  it('should render title', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain(
-      'Welcome veril',
-    );
+  it('should provide the root router outlet', async () => {
+    const spectator: Spectator<App> = createComponent();
+    await spectator.fixture.whenStable();
+
+    expect(spectator.query('router-outlet')).toBeTruthy();
   });
 });

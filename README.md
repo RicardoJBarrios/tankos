@@ -1,19 +1,19 @@
 # Veril
 
-Aplicación web Angular gestionada con Nx.
+Angular web application managed with Nx.
 
-## Desarrollo
+## Development
 
-Instala las dependencias y arranca la aplicación:
+Install dependencies and start the application:
 
 ```bash
 pnpm install
 pnpm nx serve veril
 ```
 
-La aplicación estará disponible en `http://localhost:4200`.
+The application is available at `http://localhost:4200`.
 
-## Comandos útiles
+## Useful commands
 
 ```bash
 pnpm nx build veril
@@ -22,4 +22,6 @@ pnpm nx lint veril
 pnpm nx graph
 ```
 
-El código de la aplicación está en `apps/veril`.
+Application source code lives under `apps/veril`.
+
+Project guidance starts at [`.codex/AGENT.md`](.codex/AGENT.md).

@@ -4,7 +4,7 @@
   "projectType": "application",
   "prefix": "veril",
   "sourceRoot": "apps/veril/src",
-  "tags": [],
+  "tags": ["scope:app", "type:app"],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
@@ -14,13 +14,20 @@
         "outputPath": "dist/apps/veril",
         "browser": "apps/veril/src/main.ts",
         "tsConfig": "apps/veril/tsconfig.app.json",
+        "polyfills": ["zone.js"],
         "assets": [
           {
             "glob": "**/*",
             "input": "apps/veril/public"
           }
         ],
-        "styles": ["apps/veril/src/styles.css"]
+        "styles": [
+          "apps/veril/src/material-theme.scss",
+          "apps/veril/src/styles.css"
+        ],
+        "server": "apps/veril/src/main.server.ts",
+        "ssr": true,
+        "outputMode": "static"
       },
       "configurations": {
         "production": {
@@ -36,7 +43,8 @@
               "maximumError": "8kb"
             }
           ],
-          "outputHashing": "all"
+          "outputHashing": "all",
+          "serviceWorker": "apps/veril/ngsw-config.json"
         },
         "development": {
           "optimization": false,
@@ -64,6 +72,9 @@
     "test": {
       "executor": "@angular/build:unit-test",
       "options": {
+        "buildTarget": "veril:build:development",
+        "tsConfig": "apps/veril/tsconfig.spec.json",
+        "runner": "vitest",
         "watch": false
       }
     },
