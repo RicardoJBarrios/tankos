@@ -206,8 +206,8 @@ Implement the smallest complete private write in this order:
 3. `AquariumId`, `AquariumName` and the minimal Aquarium domain model.
 4. `EstablishAquarium` application use case, repository port and expected
    failures.
-5. Zod DTO/schema plus Firebase/AngularFire repository adapter, including the
-   atomic one-Aquarium claim.
+5. Zod DTO/schema plus Firebase/AngularFire repository adapter, including a new
+   opaque Aquarium identity and owner association.
 6. Scoped Signal Store and Angular form/UI in the existing application.
 7. Domain/application, adapter, Rules and Angular tests, then focused final
    validation.
@@ -219,13 +219,14 @@ projection, offline queue or public model for this slice.
 
 The actor is an authenticated keeper. The resulting root is private, and only
 the authorized keeper may access it in this slice. Client guards improve
-navigation only; Firestore Rules are authoritative. A duplicate establishment
-must be rejected server-side as well as represented safely in the UI.
+navigation only; Firestore Rules are authoritative. Each new Aquarium must be
+owned by its authenticated creator and remain independently addressable.
 
 Required tests are: domain tests for `AquariumId`/`AquariumName` and creation
-rules; application tests for authentication, duplicate and infrastructure
-failures; Zod DTO tests; Emulator Suite repository-adapter tests; Firestore
-Security Rules tests for unauthenticated, owner and duplicate paths; and
+rules; application tests for authentication and infrastructure failures; Zod
+DTO tests; Emulator Suite repository-adapter tests; Firestore Security Rules
+tests for unauthenticated, owner, second-owner and independent multiple-Aquarium
+paths; and
 Spectator form/component tests. Playwright is deferred: introduce it when a
 cross-route or browser-only journey cannot be demonstrated by these layers.
 

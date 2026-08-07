@@ -15,31 +15,35 @@ manageable care system. It does not imply a user, a SaaS tenancy, one Aquarium,
 multiple Aquariums or a particular storage model.
 
 The first Aquarium created in this project will be named **Veril**. That is the
-name of one domain instance, not a redefinition of the product or domain. An
-initial product release may impose `Maximum Aquariums = 1`; that is a temporary
-product constraint, never a domain, language, architecture or persistence rule.
+name of one domain instance, not a redefinition of the product or domain. The
+first experience may begin with that real Aquarium, while the domain supports
+independent Aquariums without a product-level maximum.
 
 Public presentation and private operation are different application capabilities
 over the same Aquarium. They do not create separate models, domains or sources
 of truth.
 
+For the MVP, Firebase Anonymous Auth may provide the authenticated application
+identity used by the first private flow. It is not a domain identity model;
+linking, recovery and durable human identity are deferred.
+
 ## Core concepts
 
-| Concept | Definition and responsibility | Classification | Status |
-| --- | --- | --- | --- |
-| Aquarium | The managed care system to which care, records, life and supporting systems are related. It is the aggregate root and the center of meaning. | Aggregate root; Entity | accepted |
-| Display | A physical, observable water-and-life area related to an Aquarium. | Entity only if a use case needs identity or lifecycle; otherwise descriptive concept | hypothesis |
-| System | A coherent set of physical, biological or technical elements that supports an Aquarium. It is not automatically an aggregate or a database hierarchy. | Domain concept; possible Entity only when needed | hypothesis |
-| Equipment | A device or item that supports, observes or acts on an Aquarium or System. It is not a controller authority, sensor record or automation by itself. | Entity only when identity/lifecycle is needed | hypothesis |
-| Livestock | Organisms cared for in relation to an Aquarium. Individual/group identity, association and lifecycle are unresolved. | Entity only when a use case needs it | hypothesis |
-| Measurement | A quantitative Observation of a Parameter at a time. | Recorded evidence; possible Entity only when identity/correction requires it | candidate |
-| Observation | A qualitative or quantitative account of an observed subject or condition. | Recorded evidence; possible Entity only when identity/correction requires it | candidate |
-| Fact | Durable, immutable, attributable evidence accepted by the system. It retains provenance and occurrence or recording time; it does not claim complete certainty about Aquarium state. | Conceptual evidence category | accepted |
-| Event | A Fact whose occurrence has independent domain meaning in an accepted use case. It classifies that Fact; it is not a second generic record. | Domain occurrence; not every Fact becomes an Event | candidate per event |
-| Interpretation | A human or derived assessment of Facts, Observations or Events. | Derived assessment; never replaces source evidence | accepted distinction |
-| Knowledge | Curated, attributable understanding used to inform care, such as a documented procedure or source reference. It is not automatically a rule, Fact or Event. | Documentary/reference concept | accepted distinction |
-| Timeline | A chronological read model that helps review evidence and relevant occurrences for an Aquarium. | Read Model | accepted concept |
-| Active Context | The application scope from which a person views or operates on an Aquarium. | Application context; not a domain model element | accepted |
+| Concept        | Definition and responsibility                                                                                                                                                        | Classification                                                                       | Status               |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | -------------------- |
+| Aquarium       | The managed care system to which care, records, life and supporting systems are related. It is the aggregate root and the center of meaning.                                         | Aggregate root; Entity                                                               | accepted             |
+| Display        | A physical, observable water-and-life area related to an Aquarium.                                                                                                                   | Entity only if a use case needs identity or lifecycle; otherwise descriptive concept | hypothesis           |
+| System         | A coherent set of physical, biological or technical elements that supports an Aquarium. It is not automatically an aggregate or a database hierarchy.                                | Domain concept; possible Entity only when needed                                     | hypothesis           |
+| Equipment      | A device or item that supports, observes or acts on an Aquarium or System. It is not a controller authority, sensor record or automation by itself.                                  | Entity only when identity/lifecycle is needed                                        | hypothesis           |
+| Livestock      | Organisms cared for in relation to an Aquarium. Individual/group identity, association and lifecycle are unresolved.                                                                 | Entity only when a use case needs it                                                 | hypothesis           |
+| Measurement    | A quantitative Observation of a Parameter at a time.                                                                                                                                 | Recorded evidence; possible Entity only when identity/correction requires it         | candidate            |
+| Observation    | A qualitative or quantitative account of an observed subject or condition.                                                                                                           | Recorded evidence; possible Entity only when identity/correction requires it         | candidate            |
+| Fact           | Durable, immutable, attributable evidence accepted by the system. It retains provenance and occurrence or recording time; it does not claim complete certainty about Aquarium state. | Conceptual evidence category                                                         | accepted             |
+| Event          | A Fact whose occurrence has independent domain meaning in an accepted use case. It classifies that Fact; it is not a second generic record.                                          | Domain occurrence; not every Fact becomes an Event                                   | candidate per event  |
+| Interpretation | A human or derived assessment of Facts, Observations or Events.                                                                                                                      | Derived assessment; never replaces source evidence                                   | accepted distinction |
+| Knowledge      | Curated, attributable understanding used to inform care, such as a documented procedure or source reference. It is not automatically a rule, Fact or Event.                          | Documentary/reference concept                                                        | accepted distinction |
+| Timeline       | A chronological read model that helps review evidence and relevant occurrences for an Aquarium.                                                                                      | Read Model                                                                           | accepted concept     |
+| Active Context | The application scope from which a person views or operates on an Aquarium.                                                                                                          | Application context; not a domain model element                                      | accepted             |
 
 ## Relationship model
 
@@ -62,13 +66,13 @@ ownership or persistence representation in Veril.
 
 ## Evidence, history and truth
 
-| Category | Role | Source of truth? | Timeline treatment |
-| --- | --- | --- | --- |
-| Facts | Durable, immutable, attributed evidence about a recorded value, action or state. Provenance and occurrence or recording time are mandatory; preserve both when distinct and known. | Yes, within the accepted retention/correction policy. | Included when relevant. |
-| Observations | Perceived, measured or reported evidence; Measurements are quantitative Observations. They become Facts only when an accepted use case records them durably. | Yes only as accepted durable records of what was observed or measured, not as infallible state. | Included when relevant. |
-| Events | Domain-significant Facts. Every Domain Event is itself a Fact, rather than an automatic additional Fact record. | Yes, when an accepted specification defines the occurrence. | Included when relevant. |
-| Interpretations | Explicit assessment, hypothesis or derived explanation. | No; it is traceable to evidence but does not replace it. | May be shown only when clearly labelled and attributable. |
-| Knowledge | General or curated understanding that informs action. | No for an individual Aquarium's history. | Not a historical item by default; it may be cited as context. |
+| Category        | Role                                                                                                                                                                               | Source of truth?                                                                                | Timeline treatment                                            |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Facts           | Durable, immutable, attributed evidence about a recorded value, action or state. Provenance and occurrence or recording time are mandatory; preserve both when distinct and known. | Yes, within the accepted retention/correction policy.                                           | Included when relevant.                                       |
+| Observations    | Perceived, measured or reported evidence; Measurements are quantitative Observations. They become Facts only when an accepted use case records them durably.                       | Yes only as accepted durable records of what was observed or measured, not as infallible state. | Included when relevant.                                       |
+| Events          | Domain-significant Facts. Every Domain Event is itself a Fact, rather than an automatic additional Fact record.                                                                    | Yes, when an accepted specification defines the occurrence.                                     | Included when relevant.                                       |
+| Interpretations | Explicit assessment, hypothesis or derived explanation.                                                                                                                            | No; it is traceable to evidence but does not replace it.                                        | May be shown only when clearly labelled and attributable.     |
+| Knowledge       | General or curated understanding that informs action.                                                                                                                              | No for an individual Aquarium's history.                                                        | Not a historical item by default; it may be cited as context. |
 
 This preserves the useful care loop evidenced by the external corpus: observe or
 measure, record an intervention, then evaluate the result. It does not justify
@@ -131,8 +135,8 @@ Display, System, Equipment item, Livestock subject, period or view.
 
 It is **not** an Entity, Aggregate, authorization decision, persistence model,
 Firestore document or domain rule. It changes what is in view, not what the
-Aquarium is or who is allowed to act. The initial `Maximum Aquariums = 1`
-constraint may make selection trivial, but does not change this definition.
+Aquarium is or who is allowed to act. With multiple Aquariums, selection remains
+an application concern and does not change this definition.
 
 ## Classification boundaries
 
@@ -174,6 +178,7 @@ The actor is an authenticated keeper and the new Aquarium is private by default.
 The successful establishment creates one durable Fact classified as the
 `AquariumEstablished` Domain Event. It is online-required.
 
-`Maximum Aquariums = 1` applies only to the current product version. It neither
-changes the aggregate root nor decides future cardinality, collaboration,
-equipment, Livestock, automation, offline mutation policy or Firestore shape.
+The first product version may contain only the first real Aquarium in its initial
+experience, but that is not a domain cardinality rule and does not decide
+collaboration, equipment, Livestock, automation, offline mutation policy or
+Firestore shape.

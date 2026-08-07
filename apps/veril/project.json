@@ -75,7 +75,8 @@
         "buildTarget": "veril:build:development",
         "tsConfig": "apps/veril/tsconfig.spec.json",
         "runner": "vitest",
-        "watch": false
+        "watch": false,
+        "exclude": ["**/*.integration.spec.ts"]
       }
     },
     "serve-static": {

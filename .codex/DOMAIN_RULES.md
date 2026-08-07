@@ -3,10 +3,17 @@
 This document describes business truths, not architecture or implementation.
 Rules are classified to avoid turning assumptions into code prematurely.
 
+## Keeper and Aquarium cardinality
+
+- A keeper may own or manage zero, one or many independent Aquariums.
+- Each Aquarium is an independent aggregate root.
+- In the first version, each Aquarium has one owning keeper; collaboration,
+  memberships and roles are deferred.
+
 ## Accepted rules for Establish an Aquarium
 
-- An authenticated keeper may establish one private Aquarium while the current
-  product constraint `Maximum Aquariums = 1` is active.
+- An authenticated keeper may establish any number of independent private
+  Aquariums. Each Aquarium has one owning keeper in this first version.
 - Establishment requires only an Aquarium name. It creates no Display, System,
   Equipment, Livestock or public representation.
 - An Aquarium name is non-empty after surrounding whitespace is trimmed; no
@@ -15,8 +22,8 @@ Rules are classified to avoid turning assumptions into code prematurely.
   `AquariumEstablished`. Later name or visibility changes do not rewrite that
   occurrence.
 - `AquariumEstablished` occurs exactly once per Aquarium lifecycle, only after
-  the root is successfully established. A failed or duplicate attempt creates
-  no event; retry mechanics do not create a second committed occurrence.
+  the root is successfully established. A failed attempt creates no event;
+  retries create a second event only when they establish a distinct Aquarium.
 - Establishment is online-required. These rules apply only to this use case and
   do not decide future ownership, cardinality or offline policy.
 

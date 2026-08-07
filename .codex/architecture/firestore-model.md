@@ -46,22 +46,21 @@ are consequences of accepted use cases, aggregate boundaries and query needs.
 
 ## Establish an Aquarium: minimum persistence contract
 
-This accepted slice requires only the durable reconstruction of one private
-Aquarium: its `AquariumId`, `AquariumName`, authorized keeper identity, and the
-attribution and time of its establishment. `AquariumEstablished` is represented
-by that immutable establishment evidence; no generic event store, Timeline
-projection or future-domain collection is needed.
+This accepted slice requires only the durable reconstruction of a private
+Aquarium: its `AquariumId`, `AquariumName`, owning keeper identity, and the
+attribution and time of its establishment. Each successful establishment gets a
+new independent identity. `AquariumEstablished` is represented by that
+immutable establishment evidence; no generic event store, Timeline projection
+or future-domain collection is needed.
 
-The initial `Maximum Aquariums = 1` constraint must be protected from concurrent
-creates. The implementation must atomically claim the one allowed Aquarium for
-the authenticated keeper and persist the root in the same online transaction;
-it must not infer uniqueness from a client-side list or a collection count. The
-exact collection and document paths may be chosen during implementation, but
-they must support that atomic claim, root reconstruction and the one required
-read: identify whether the authenticated keeper already has the claim.
+The implementation must create the new Aquarium with an opaque UUID v4 and
+associate it with the authenticated keeper. No keeper-level uniqueness claim,
+global name uniqueness or count-based reservation is required. The exact
+collection and document paths may be chosen during implementation, but they
+must support reconstruction and owner-scoped access.
 
-Security Rules must make the root private by default, allow the authorized
-keeper's required read/write path, reject unauthenticated access and prevent a
-second claim. A persistence schema version is not required for this first DTO
+Security Rules must make the root private by default, allow an authenticated
+keeper to create and read each root they own, reject unauthenticated access and
+prevent arbitrary ownership changes. A persistence schema version is not required for this first DTO
 because there is no prior persisted shape to migrate; add one only with the
 first compatibility need.

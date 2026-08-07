@@ -4,9 +4,10 @@ These journeys describe outcomes, not screens, technical flows or commitments.
 
 ## Accepted: Establish an Aquarium
 
-An authenticated keeper establishes one private Aquarium with a name, receives a
-clear confirmation and can later return to it as the context for care. Public
-presentation, sharing, Display/System setup and recovery behavior are deferred.
+An authenticated keeper establishes a new private Aquarium with a name, receives
+a clear confirmation and can later return to it as the context for care. Public
+presentation, sharing, Aquarium selection UX, Display/System setup and recovery
+behavior are deferred.
 
 ## Record a Parameter
 

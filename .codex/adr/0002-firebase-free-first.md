@@ -24,6 +24,16 @@ synthetic fixtures are versioned and tested against emulators.
 AngularFire remains the preferred Angular integration when a stable compatible
 release exists; otherwise use the modular Firebase SDK behind the same boundary.
 
+For the MVP `Establish an Aquarium` path, Firebase Anonymous Auth is accepted as
+the minimal authenticated-keeper mechanism. It is an application delivery
+choice, not a domain identity model; account linking, recovery and durable
+human identity are deferred. The current implementation is emulator-backed and
+fails closed outside a configured development environment.
+
+This slice uses the modular Firebase SDK rather than adding AngularFire-specific
+integration because it needs only Auth and Firestore client APIs and keeps those
+dependencies behind the existing infrastructure adapters.
+
 ## Consequences
 
 - Local and integration work does not consume production quotas.

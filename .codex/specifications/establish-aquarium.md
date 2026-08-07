@@ -12,8 +12,13 @@ return to for later care records.
 
 ## Preconditions
 
-The keeper is authenticated. The current product version has no Aquarium yet.
-`Maximum Aquariums = 1` is an initial product constraint, not a domain rule.
+The keeper is authenticated. The new Aquarium receives an independent identity
+and is not required to be the keeper's first Aquarium.
+
+For the MVP, Firebase Anonymous Auth is an accepted way to satisfy the
+authenticated-keeper boundary. It is an application identity mechanism, not a
+domain identity model; account linking, recovery and durable human identity are
+deferred.
 
 ## Main flow
 
@@ -29,8 +34,8 @@ Aquariums without changing the domain model.
 
 ## Expected errors
 
-The name is empty after trimming surrounding whitespace; the keeper is not
-authenticated; or an Aquarium already exists under the current product limit.
+The name is empty after trimming surrounding whitespace or the keeper is not
+authenticated.
 
 ## Domain events
 
@@ -43,23 +48,31 @@ of historical records, but does not alter what occurred.
 
 ## Acceptance criteria
 
-- The authenticated keeper can establish one private Aquarium using only a name.
+- The authenticated keeper can establish multiple independent private Aquariums,
+  each using only a name.
 - The resulting Aquarium can be identified as the context for subsequent care.
 - No Display, System, Equipment, Livestock, technical configuration or public
   information is required or created.
-- A second establishment attempt is rejected while `Maximum Aquariums = 1` is
-  active.
+- A second establishment by the same keeper creates a distinct Aquarium and does
+  not alter the first one.
 - Successful establishment produces an attributable durable Fact and the
   `AquariumEstablished` Domain Event; they are one occurrence, not two records.
 - The use case is online-required; it does not promise offline creation.
 
+## Validation scope
+
+The slice is validated by focused domain and application tests, an Angular
+component test, a Firebase SDK repository-adapter integration test against the
+Auth and Firestore emulators, and Security Rules integration tests. Browser E2E
+remains deferred because this use case is a single component interaction.
+
 ## Definition of Ready assessment
 
-| Mandatory criterion | Result | Evidence |
-| --- | --- | --- |
-| Accepted status, actor and value | Ready | Title, Actor and Objective. |
-| Scope, preconditions, outcome and failures | Ready | Main flow, Variants and Expected errors. |
-| Terminology, rules and invariants | Ready | `Aquarium`, `AquariumId`, `AquariumName`, one private Aquarium and `AquariumEstablished` are defined in the glossary and domain rules. |
-| Persistence, authorization and offline class | Ready | Private authenticated persistence, transactionally enforced product limit and `online-required` are defined in architecture policies. |
-| ADRs, architecture and validation path | Ready | ADR-0002, ADR-0006 and ADR-0007 plus the target architecture define the required boundaries and tests. |
-| Non-blocking questions | Ready | Collaboration, public presentation, deletion policy and offline creation are explicitly deferred. |
+| Mandatory criterion                          | Result | Evidence                                                                                                                                        |
+| -------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Accepted status, actor and value             | Ready  | Title, Actor and Objective.                                                                                                                     |
+| Scope, preconditions, outcome and failures   | Ready  | Main flow, Variants and Expected errors.                                                                                                        |
+| Terminology, rules and invariants            | Ready  | `Aquarium`, `AquariumId`, `AquariumName`, independent private Aquariums and `AquariumEstablished` are defined in the glossary and domain rules. |
+| Persistence, authorization and offline class | Ready  | Private authenticated persistence, owner association and `online-required` are defined in architecture policies.                                |
+| ADRs, architecture and validation path       | Ready  | ADR-0002, ADR-0006 and ADR-0007 plus the target architecture define the required boundaries and tests.                                          |
+| Non-blocking questions                       | Ready  | Collaboration, public presentation, deletion policy and offline creation are explicitly deferred.                                               |

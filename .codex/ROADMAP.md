@@ -14,7 +14,7 @@ Expected ADRs: only changes to the accepted baseline or tooling policy.
 
 ## 2. Establish an Aquarium
 
-Implement the accepted first use case: an authenticated keeper establishes one
+Implement the accepted first use case: an authenticated keeper establishes a new
 private, durable Aquarium with a name. The slice requires Authentication,
 Firestore, Emulator Suite, Security Rules, fail-closed configuration and focused
 unit/integration tests. It does not require public presentation, domain offline,

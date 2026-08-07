@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { expect, it } from 'vitest';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { appRoutes } from './app.routes';
@@ -24,5 +25,13 @@ describe('appRoutes', () => {
     await expect(
       harness.navigateByUrl('/app', PrivateShell),
     ).resolves.toBeTruthy();
+  });
+
+  it('defines the Establish Aquarium child route', () => {
+    const privateRoute = appRoutes.find((route) => route.path === 'app');
+
+    expect(privateRoute?.children?.map((route) => route.path)).toContain(
+      'aquariums/new',
+    );
   });
 });

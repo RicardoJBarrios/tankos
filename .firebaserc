@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "demo-veril",
+    "production": "veril-dd4e1"
+  }
+}

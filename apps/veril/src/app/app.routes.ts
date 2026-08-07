@@ -14,6 +14,15 @@ export const appRoutes: Route[] = [
       import('./shells/private-shell/private-shell').then(
         ({ PrivateShell }) => PrivateShell,
       ),
+    children: [
+      {
+        path: 'aquariums/new',
+        loadComponent: () =>
+          import('./aquariums/ui/establish-aquarium-page').then(
+            ({ EstablishAquariumPage }) => EstablishAquariumPage,
+          ),
+      },
+    ],
   },
   { path: '**', redirectTo: '' },
 ];

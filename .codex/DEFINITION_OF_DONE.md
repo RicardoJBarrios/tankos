@@ -18,6 +18,10 @@ ceremony or test layers that cannot reveal a relevant failure.
 - External data is validated with Zod and mapped at the boundary.
 - When Firebase is used, access is behind ports/adapters, authorization is
   enforced by Rules, adapters are validated, and no secret is exposed.
+- For `Establish an Aquarium`, adapter validation means executing
+  `FirestoreAquariumRepository` through the Firebase SDK against the Auth and
+  Firestore emulators and verifying persisted behavior; Rules tests cover
+  authorization separately.
 
 ## Tests and quality
 

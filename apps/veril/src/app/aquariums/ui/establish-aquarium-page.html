@@ -1,0 +1,26 @@
+<section aria-labelledby="establish-aquarium-title">
+  <h1 id="establish-aquarium-title">Establecer acuario</h1>
+
+  @if (state() === 'success') {
+  <p role="status">Acuario «{{ aquariumName() }}» creado correctamente.</p>
+  } @else {
+  <p>Define el acuario que quieres cuidar y gestionar.</p>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <label for="aquarium-name">Nombre del acuario</label>
+    <input id="aquarium-name" type="text" formControlName="name" />
+
+    @if (form.controls.name.touched && form.controls.name.invalid) {
+    <p id="aquarium-name-error" role="alert">
+      Introduce un nombre para el acuario.
+    </p>
+    }
+
+    <button type="submit" [disabled]="state() === 'saving'">
+      {{ state() === 'saving' ? 'Guardando…' : 'Crear acuario' }}
+    </button>
+  </form>
+  } @if (state() === 'error') {
+  <p role="alert">{{ errorMessage() }}</p>
+  }
+</section>
