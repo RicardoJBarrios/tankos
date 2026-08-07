@@ -1,7 +1,9 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AquariumListItem } from '../application/aquarium-ports';
+import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ListMyAquariums } from '../application/list-my-aquariums';
+import { SelectAquarium } from '../application/select-aquarium';
 import { aquariumIdFrom } from '../domain/aquarium-id';
 import { AquariumName } from '../domain/aquarium-name';
 import { ListMyAquariumsPage } from './list-my-aquariums-page';
@@ -13,14 +15,22 @@ const aquarium = (id: string, name: string): AquariumListItem => ({
 
 describe('ListMyAquariumsPage', () => {
   const execute = vi.fn();
+  const selectAquarium = vi.fn();
   const createComponent = createComponentFactory({
     component: ListMyAquariumsPage,
+    providers: [ActiveAquariumContext],
     overrideComponents: [
       [
         ListMyAquariumsPage,
         {
           set: {
-            providers: [{ provide: ListMyAquariums, useValue: { execute } }],
+            providers: [
+              { provide: ListMyAquariums, useValue: { execute } },
+              {
+                provide: SelectAquarium,
+                useValue: { execute: selectAquarium },
+              },
+            ],
           },
         },
       ],
@@ -29,6 +39,7 @@ describe('ListMyAquariumsPage', () => {
 
   beforeEach(() => {
     execute.mockReset();
+    selectAquarium.mockReset();
   });
 
   it('renders loading state accessibly', () => {
@@ -65,9 +76,31 @@ describe('ListMyAquariumsPage', () => {
     spectator.detectChanges();
 
     expect(
-      spectator.queryAll('li').map((element) => element.textContent),
+      spectator.queryAll('li').map((element) => element.textContent?.trim()),
     ).toEqual(['Veril', 'Acuario auxiliar']);
     expect(spectator.queryAll('a')).toHaveLength(0);
+  });
+
+  it('selects an Aquarium from the list', async () => {
+    execute.mockResolvedValue([
+      aquarium('123e4567-e89b-42d3-a456-426614174000', 'Veril'),
+    ]);
+    const spectator: Spectator<ListMyAquariumsPage> = createComponent();
+    selectAquarium.mockImplementation(async (id) => {
+      spectator.inject(ActiveAquariumContext).select(id);
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    spectator.detectChanges();
+
+    await spectator.click('button');
+    spectator.detectChanges();
+
+    expect(selectAquarium).toHaveBeenCalledWith(
+      '123e4567-e89b-42d3-a456-426614174000',
+    );
+    expect(spectator.query('button')?.getAttribute('aria-pressed')).toBe(
+      'true',
+    );
   });
 
   it('renders a failure state', async () => {

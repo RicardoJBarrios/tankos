@@ -8,10 +8,27 @@
   } @else if (state() === 'empty') {
   <p>No has establecido ningún acuario todavía.</p>
   <a href="/app/aquariums/new">Establecer acuario</a>
-  } @else {
+  } @else { @if (selectionState() === 'loading') {
+  <p role="status" aria-live="polite">Seleccionando acuario…</p>
+  } @else if (selectionState() === 'failure') {
+  <p role="alert">
+    No se ha podido seleccionar el acuario. Inténtalo de nuevo.
+  </p>
+  }
   <ul aria-label="Acuarios disponibles">
     @for (aquarium of aquariums(); track aquarium.id) {
-    <li>{{ aquarium.name.value }}</li>
+    <li>
+      <button
+        type="button"
+        [attr.aria-pressed]="activeAquariumId() === aquarium.id"
+        (click)="select(aquarium)"
+      >
+        {{ aquarium.name.value }}
+      </button>
+      @if (activeAquariumId() === aquarium.id) {
+      <span aria-label="Acuario seleccionado"> (seleccionado)</span>
+      }
+    </li>
     }
   </ul>
   }

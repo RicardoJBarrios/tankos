@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {
   Timestamp,
   collection,
+  documentId,
   doc,
   getDocs,
   query,
@@ -82,5 +83,35 @@ export class FirestoreAquariumRepository
           left.item.id.localeCompare(right.item.id),
       )
       .map(({ item }) => item);
+  }
+
+  async getOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumListItem['id'],
+  ): Promise<AquariumListItem | null> {
+    const { firestore } = getFirebaseClient();
+    const snapshots = await getDocs(
+      query(
+        collection(firestore, 'aquariums'),
+        where('ownerId', '==', ownerKeeperId),
+        where(documentId(), '==', aquariumId),
+      ),
+    );
+
+    const snapshot = snapshots.docs[0];
+    if (!snapshot) {
+      return null;
+    }
+
+    const dto = parseAquariumDocument(snapshot.data());
+
+    if (dto.ownerId !== ownerKeeperId) {
+      throw new Error('Aquarium is not owned by the keeper');
+    }
+
+    return {
+      id: aquariumIdFrom(snapshot.id),
+      name: AquariumName.create(dto.name),
+    };
   }
 }

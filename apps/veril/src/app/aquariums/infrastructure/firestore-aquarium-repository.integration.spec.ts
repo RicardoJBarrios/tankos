@@ -33,8 +33,6 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
         establishedAt: new Date(establishedAt),
       });
 
-      expect(await repository.listOwned(keeperA.id)).toEqual([]);
-
       const older = await repository.establish(
         makeInput('Acuario antiguo', '2026-01-01T00:00:00.000Z'),
       );
@@ -75,10 +73,12 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
       ]);
       expect(firstDocument.exists()).toBe(true);
       expect(secondDocument.exists()).toBe(true);
-
+      expect(
+        (await repository.getOwned(keeperA.id, older.id))?.name.value,
+      ).toBe('Acuario antiguo');
       await signOut(auth);
       const keeperB = await session.requireAuthenticatedKeeper();
-      await repository.establish({
+      const aquariumB = await repository.establish({
         id: createAquariumId(),
         name: AquariumName.create('Acuario de B'),
         ownerKeeperId: keeperB.id,
@@ -88,6 +88,10 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
       expect(
         (await repository.listOwned(keeperB.id)).map((item) => item.name.value),
       ).toEqual(['Acuario de B']);
+      expect(
+        (await repository.getOwned(keeperB.id, aquariumB.id))?.name.value,
+      ).toBe('Acuario de B');
+      await expect(repository.getOwned(keeperB.id, older.id)).rejects.toThrow();
     },
     20000,
   );

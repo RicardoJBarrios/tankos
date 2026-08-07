@@ -164,7 +164,6 @@ Browser E2E, Signal Store and offline tests are not required for this slice.
 
 ## Deferred decisions
 
-- Accessing one listed Aquarium and establishing Active Context.
 - Collaboration and memberships.
 - Account linking and recovery for Anonymous Auth.
 - Offline listing, cache and synchronization policy.

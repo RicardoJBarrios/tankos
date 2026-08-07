@@ -58,7 +58,7 @@ unhappen.
 
 | Query | Information need | Status |
 | --- | --- | --- |
-| Identify Aquarium contexts | Select the care context to work in. | candidate |
+| Identify Aquarium contexts | Select the care context to work in. | accepted; application query and state transition |
 | Consult Parameter history | Interpret recorded values over time. | candidate |
 | Consult planned care work | Understand what care is intended. | candidate |
 | Consult care history | Review relevant past information. | candidate |

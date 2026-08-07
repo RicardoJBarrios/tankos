@@ -15,7 +15,10 @@ const item = (id: string, name: string): AquariumListItem => ({
 
 describe('ListMyAquariums', () => {
   it('returns an empty list for an authenticated keeper with no Aquariums', async () => {
-    const reader: AquariumReader = { listOwned: vi.fn().mockResolvedValue([]) };
+    const reader: AquariumReader = {
+      listOwned: vi.fn().mockResolvedValue([]),
+      getOwned: vi.fn(),
+    };
     const session: KeeperSession = {
       requireAuthenticatedKeeper: vi.fn().mockResolvedValue({ id: 'keeper-a' }),
     };
@@ -32,6 +35,7 @@ describe('ListMyAquariums', () => {
     ];
     const reader: AquariumReader = {
       listOwned: vi.fn().mockResolvedValue(expected),
+      getOwned: vi.fn(),
     };
     const session: KeeperSession = {
       requireAuthenticatedKeeper: vi.fn().mockResolvedValue({ id: 'keeper-a' }),
@@ -44,7 +48,7 @@ describe('ListMyAquariums', () => {
   });
 
   it('propagates authentication failure without querying the reader', async () => {
-    const reader: AquariumReader = { listOwned: vi.fn() };
+    const reader: AquariumReader = { listOwned: vi.fn(), getOwned: vi.fn() };
     const failure = new Error('Authentication unavailable');
     const session: KeeperSession = {
       requireAuthenticatedKeeper: vi.fn().mockRejectedValue(failure),
@@ -60,6 +64,7 @@ describe('ListMyAquariums', () => {
     const failure = new Error('Firestore unavailable');
     const reader: AquariumReader = {
       listOwned: vi.fn().mockRejectedValue(failure),
+      getOwned: vi.fn(),
     };
     const session: KeeperSession = {
       requireAuthenticatedKeeper: vi.fn().mockResolvedValue({ id: 'keeper-a' }),

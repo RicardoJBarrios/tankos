@@ -13,6 +13,10 @@ export interface KeeperSession {
 
 export interface AquariumReader {
   listOwned(ownerKeeperId: string): Promise<readonly AquariumListItem[]>;
+  getOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+  ): Promise<AquariumListItem | null>;
 }
 
 export interface EstablishAquariumInput {

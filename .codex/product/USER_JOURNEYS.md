@@ -6,8 +6,16 @@ These journeys describe outcomes, not screens, technical flows or commitments.
 
 An authenticated keeper establishes a new private Aquarium with a name, receives
 a clear confirmation and can later return to it as the context for care. Public
-presentation, sharing, Aquarium selection UX, Display/System setup and recovery
-behavior are deferred.
+presentation, sharing, Display/System setup and recovery behavior are deferred;
+the selection and Active Context behavior is defined by `Select an Aquarium`.
+
+## Accepted: Select an Aquarium
+
+After listing their private Aquariums, an authenticated keeper selects one and
+enters it as the current care context. The selection is application state for
+the current tab, does not change the Aquarium and does not yet render a
+Dashboard or care feature. Missing or unauthorized Aquariums remain
+unavailable.
 
 ## Record a Parameter
 
