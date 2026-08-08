@@ -3,6 +3,8 @@ import { aquariumIdFrom } from '../domain/aquarium';
 import { ActiveAquariumContext } from './active-aquarium-context';
 import { ActiveAquariumContextStorage } from './active-aquarium-context-storage';
 import {
+  CareWorkListItem,
+  CareWorkReader,
   KeeperSession,
   MeasurementListItem,
   TimelineMeasurementReader,
@@ -23,6 +25,9 @@ function setup() {
   const measurementReader: TimelineMeasurementReader = {
     listRecentOwned: vi.fn(),
   };
+  const careWorkReader: CareWorkReader = {
+    listRecentOwned: vi.fn(),
+  };
   const keeperSession: KeeperSession = {
     requireAuthenticatedKeeper: vi.fn().mockResolvedValue({ id: 'keeper-a' }),
   };
@@ -37,11 +42,13 @@ function setup() {
   return {
     observationReader,
     measurementReader,
+    careWorkReader,
     keeperSession,
     context,
     review: new ReviewRecentTimeline(
       observationReader,
       measurementReader,
+      careWorkReader,
       keeperSession,
       context,
     ),
@@ -68,10 +75,26 @@ const measurement = (
   provenance: 'manual',
 });
 
+const careWork = (
+  id: string,
+  performedAt: string,
+  recordedAt = performedAt,
+): CareWorkListItem => ({
+  id: id as CareWorkListItem['id'],
+  description: `Cuidado ${id}`,
+  performedAt: new Date(performedAt),
+  recordedAt: new Date(recordedAt),
+});
+
 describe('ReviewRecentTimeline', () => {
   it('requires authentication and Active Context before reading either source', async () => {
-    const { review, keeperSession, observationReader, measurementReader } =
-      setup();
+    const {
+      review,
+      keeperSession,
+      observationReader,
+      measurementReader,
+      careWorkReader,
+    } = setup();
     vi.mocked(keeperSession.requireAuthenticatedKeeper).mockRejectedValue(
       new Error('Authentication unavailable'),
     );
@@ -81,10 +104,17 @@ describe('ReviewRecentTimeline', () => {
     );
     expect(observationReader.listRecentOwned).not.toHaveBeenCalled();
     expect(measurementReader.listRecentOwned).not.toHaveBeenCalled();
+    expect(careWorkReader.listRecentOwned).not.toHaveBeenCalled();
   });
 
   it('does not query without an active Aquarium', async () => {
-    const { review, context, observationReader, measurementReader } = setup();
+    const {
+      review,
+      context,
+      observationReader,
+      measurementReader,
+      careWorkReader,
+    } = setup();
     context.clear();
 
     await expect(review.execute()).rejects.toThrow(
@@ -92,18 +122,22 @@ describe('ReviewRecentTimeline', () => {
     );
     expect(observationReader.listRecentOwned).not.toHaveBeenCalled();
     expect(measurementReader.listRecentOwned).not.toHaveBeenCalled();
+    expect(careWorkReader.listRecentOwned).not.toHaveBeenCalled();
   });
 
   it('returns an empty result when both sources are empty', async () => {
-    const { review, observationReader, measurementReader } = setup();
+    const { review, observationReader, measurementReader, careWorkReader } =
+      setup();
     vi.mocked(observationReader.listRecentOwned).mockResolvedValue([]);
     vi.mocked(measurementReader.listRecentOwned).mockResolvedValue([]);
+    vi.mocked(careWorkReader.listRecentOwned).mockResolvedValue([]);
 
     await expect(review.execute()).resolves.toEqual([]);
   });
 
   it('merges observations and measurements using the canonical order', async () => {
-    const { review, observationReader, measurementReader } = setup();
+    const { review, observationReader, measurementReader, careWorkReader } =
+      setup();
     const sameTime = '2026-08-08T10:00:00.000Z';
     vi.mocked(observationReader.listRecentOwned).mockResolvedValue([
       observation('123e4567-e89b-42d3-a456-426614174002', sameTime),
@@ -111,18 +145,23 @@ describe('ReviewRecentTimeline', () => {
     vi.mocked(measurementReader.listRecentOwned).mockResolvedValue([
       measurement('123e4567-e89b-42d3-a456-426614174001', sameTime),
     ]);
+    vi.mocked(careWorkReader.listRecentOwned).mockResolvedValue([
+      careWork('123e4567-e89b-42d3-a456-426614174003', sameTime),
+    ]);
 
     const items = await review.execute();
 
     expect(items.map((item) => item.kind)).toEqual([
       'measurement',
       'observation',
+      'care-work',
     ]);
     expect(items[0]).toMatchObject({ effectiveAt: new Date(sameTime) });
   });
 
   it('uses source identifiers as the final tie-breaker within each source type', async () => {
-    const { review, observationReader, measurementReader } = setup();
+    const { review, observationReader, measurementReader, careWorkReader } =
+      setup();
     const sameTime = '2026-08-08T10:00:00.000Z';
     vi.mocked(observationReader.listRecentOwned).mockResolvedValue([
       observation('123e4567-e89b-42d3-a456-426614174002', sameTime),
@@ -132,23 +171,57 @@ describe('ReviewRecentTimeline', () => {
       measurement('123e4567-e89b-42d3-a456-426614174004', sameTime),
       measurement('123e4567-e89b-42d3-a456-426614174003', sameTime),
     ]);
+    vi.mocked(careWorkReader.listRecentOwned).mockResolvedValue([
+      careWork('123e4567-e89b-42d3-a456-426614174003', sameTime),
+      careWork('123e4567-e89b-42d3-a456-426614174002', sameTime),
+    ]);
 
     const items = await review.execute();
 
     expect(
       items.map((item) =>
-        item.kind === 'measurement' ? item.measurementId : item.observationId,
+        item.kind === 'measurement'
+          ? item.measurementId
+          : item.kind === 'observation'
+            ? item.observationId
+            : item.careWorkId,
       ),
     ).toEqual([
       '123e4567-e89b-42d3-a456-426614174003',
       '123e4567-e89b-42d3-a456-426614174004',
       '123e4567-e89b-42d3-a456-426614174001',
       '123e4567-e89b-42d3-a456-426614174002',
+      '123e4567-e89b-42d3-a456-426614174002',
+      '123e4567-e89b-42d3-a456-426614174003',
     ]);
   });
 
+  it('uses Care Work performedAt as effective time', async () => {
+    const { review, observationReader, measurementReader, careWorkReader } =
+      setup();
+    vi.mocked(observationReader.listRecentOwned).mockResolvedValue([]);
+    vi.mocked(measurementReader.listRecentOwned).mockResolvedValue([]);
+    vi.mocked(careWorkReader.listRecentOwned).mockResolvedValue([
+      careWork(
+        '123e4567-e89b-42d3-a456-426614174005',
+        '2026-08-08T08:00:00.000Z',
+        '2026-08-08T10:00:00.000Z',
+      ),
+    ]);
+
+    const [item] = await review.execute();
+
+    expect(item).toMatchObject({
+      kind: 'care-work',
+      effectiveAt: new Date('2026-08-08T08:00:00.000Z'),
+      performedAt: new Date('2026-08-08T08:00:00.000Z'),
+      recordedAt: new Date('2026-08-08T10:00:00.000Z'),
+    });
+  });
+
   it('uses Measurement measuredAt as effective time and keeps recordedAt as a tie-breaker', async () => {
-    const { review, observationReader, measurementReader } = setup();
+    const { review, observationReader, measurementReader, careWorkReader } =
+      setup();
     vi.mocked(observationReader.listRecentOwned).mockResolvedValue([
       observation(
         '123e4567-e89b-42d3-a456-426614174002',
@@ -162,6 +235,7 @@ describe('ReviewRecentTimeline', () => {
         '2026-08-08T10:05:00.000Z',
       ),
     ]);
+    vi.mocked(careWorkReader.listRecentOwned).mockResolvedValue([]);
 
     const items = await review.execute();
 
@@ -172,7 +246,8 @@ describe('ReviewRecentTimeline', () => {
   });
 
   it('returns the global top bound when one source has more than the limit', async () => {
-    const { review, observationReader, measurementReader } = setup();
+    const { review, observationReader, measurementReader, careWorkReader } =
+      setup();
     const observations = Array.from(
       { length: RECENT_TIMELINE_LIMIT + 5 },
       (_, index) =>
@@ -195,6 +270,7 @@ describe('ReviewRecentTimeline', () => {
     vi.mocked(measurementReader.listRecentOwned).mockResolvedValue(
       measurements,
     );
+    vi.mocked(careWorkReader.listRecentOwned).mockResolvedValue([]);
 
     const items = await review.execute();
 
@@ -204,11 +280,13 @@ describe('ReviewRecentTimeline', () => {
   });
 
   it('fails as a whole when either source fails', async () => {
-    const { review, observationReader, measurementReader } = setup();
+    const { review, observationReader, measurementReader, careWorkReader } =
+      setup();
     vi.mocked(observationReader.listRecentOwned).mockRejectedValue(
       new Error('Observation source unavailable'),
     );
     vi.mocked(measurementReader.listRecentOwned).mockResolvedValue([]);
+    vi.mocked(careWorkReader.listRecentOwned).mockResolvedValue([]);
 
     await expect(review.execute()).rejects.toThrow(
       'Observation source unavailable',

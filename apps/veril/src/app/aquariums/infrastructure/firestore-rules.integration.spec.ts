@@ -225,6 +225,49 @@ async function queryMeasurements(
   );
 }
 
+async function queryCareWorks(
+  aquariumId: string,
+  ownerId: string,
+  token?: string,
+) {
+  return fetch(
+    'http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents:runQuery',
+    {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'careWorks' }],
+          where: {
+            compositeFilter: {
+              op: 'AND',
+              filters: [
+                {
+                  fieldFilter: {
+                    field: { fieldPath: 'aquariumId' },
+                    op: 'EQUAL',
+                    value: { stringValue: aquariumId },
+                  },
+                },
+                {
+                  fieldFilter: {
+                    field: { fieldPath: 'ownerId' },
+                    op: 'EQUAL',
+                    value: { stringValue: ownerId },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      }),
+    },
+  );
+}
+
 async function writeCareWork(
   id: string,
   aquariumId: string,
@@ -422,6 +465,24 @@ describe('Firestore Security Rules (Emulator Suite)', () => {
         { headers: { Authorization: `Bearer ${keeperA.idToken}` } },
       );
       expect(ownerCareWorkRead.status).toBe(200);
+      const ownerCareWorkQuery = await queryCareWorks(
+        aquariumA,
+        keeperA.localId,
+        keeperA.idToken,
+      );
+      expect(ownerCareWorkQuery.status).toBe(200);
+      expect(
+        (await ownerCareWorkQuery.text()).match(/"document"/g),
+      ).toHaveLength(1);
+      expect(
+        [401, 403].includes(
+          (await queryCareWorks(aquariumA, keeperA.localId)).status,
+        ),
+      ).toBe(true);
+      expect(
+        (await queryCareWorks(aquariumA, keeperA.localId, keeperB.idToken))
+          .status,
+      ).toBe(403);
       const anonymousCareWorkRead = await fetch(
         `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/careWorks/${careWorkId}`,
       );

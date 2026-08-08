@@ -37,9 +37,9 @@ Aquarium transaction boundary.
 ### Timeline — accepted first increment
 
 The first Timeline increment is `Review Recent Timeline`: a bounded read model
-that combines existing Observation and Measurement history without becoming a
-source of truth. Complete historical pagination and materialization remain
-future decisions.
+that combines existing Observation, Measurement and Care Work history without
+becoming a source of truth. Complete historical pagination and materialization
+remain future decisions.
 
 ## Candidate capabilities
 

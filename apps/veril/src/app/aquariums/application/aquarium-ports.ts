@@ -135,3 +135,18 @@ export interface RecordCareWorkInput {
 export interface CareWorkWriter {
   record(input: RecordCareWorkInput): Promise<CareWork>;
 }
+
+export interface CareWorkListItem {
+  readonly id: CareWorkId;
+  readonly description: string;
+  readonly performedAt: Date;
+  readonly recordedAt: Date;
+}
+
+export interface CareWorkReader {
+  listRecentOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    limit: number,
+  ): Promise<readonly CareWorkListItem[]>;
+}

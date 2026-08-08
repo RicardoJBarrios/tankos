@@ -69,24 +69,24 @@ The canonical Playwright keeper journey also verifies that recorded qualitative
 evidence is visible in the observation list.
 
 `Review Recent Timeline` adds application tests for authentication, Active
-Context, the two-source merge, effective-time semantics, deterministic ties,
+Context, the three-source merge, effective-time semantics, deterministic ties,
 the bounded top-N result and whole-read failure behavior. Its adapter tests
-verify the bounded Observation and Measurement source queries against the
+verify the bounded Observation, Measurement and Care Work source queries against the
 Emulator Suite; source parsing remains covered by the existing adapter boundary
-tests. Spectator tests cover missing context, loading, mixed results, empty and
+tests. Spectator tests cover missing context, loading, mixed results including Care Work, empty and
 recoverable error states. The canonical Playwright journey verifies that a
-recorded Observation and Measurement are both visible in recent activity.
+recorded Observation, Measurement and Care Work action are all visible in recent activity.
 
 `Record Care Work` adds pure domain tests for UUID identity, trimmed non-empty
 description, performed/recorded timestamps and manual provenance. Application
 tests cover authentication, Active Context, validation, successful recording
 and infrastructure failures. Its Firebase adapter test verifies the
 owner-attributed document, both timestamps and provenance through the SDK.
-Rules tests cover authorized creation and owner reads while rejecting
-unauthenticated, cross-owner and spoofed-owner access. Spectator tests cover
-missing context, validation, pending, success and recoverable error states. The
-canonical Playwright journey records a completed Care Work action through the
-UI; Care Work remains outside the current Timeline read model.
+Rules tests cover authorized creation and owner reads and queries while
+rejecting unauthenticated, cross-owner and spoofed-owner access. Spectator tests
+cover missing context, validation, pending, success and recoverable error
+states. The canonical Playwright journey records a completed Care Work action
+through the UI and verifies it in the current Timeline read model.
 
 ## Browser journeys
 

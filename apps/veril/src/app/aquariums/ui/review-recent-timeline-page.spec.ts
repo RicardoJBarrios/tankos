@@ -6,6 +6,7 @@ import { ActiveAquariumContextStorage } from '../application/active-aquarium-con
 import {
   MeasurementTimelineItem,
   ObservationTimelineItem,
+  CareWorkTimelineItem,
   ReviewRecentTimeline,
 } from '../application/review-recent-timeline';
 import { aquariumIdFrom } from '../domain/aquarium';
@@ -28,6 +29,14 @@ const measurement: MeasurementTimelineItem = {
   effectiveAt: new Date('2026-08-08T09:00:00.000Z'),
   measuredAt: new Date('2026-08-08T09:00:00.000Z'),
   recordedAt: new Date('2026-08-08T09:01:00.000Z'),
+};
+const careWork: CareWorkTimelineItem = {
+  kind: 'care-work',
+  careWorkId: '123e4567-e89b-42d3-a456-426614174003' as never,
+  description: 'Limpié la copa del skimmer',
+  effectiveAt: new Date('2026-08-08T08:00:00.000Z'),
+  performedAt: new Date('2026-08-08T08:00:00.000Z'),
+  recordedAt: new Date('2026-08-08T09:00:00.000Z'),
 };
 
 describe('ReviewRecentTimelinePage', () => {
@@ -99,7 +108,7 @@ describe('ReviewRecentTimelinePage', () => {
   });
 
   it('renders mixed results with their semantic labels', async () => {
-    execute.mockResolvedValue([observation, measurement]);
+    execute.mockResolvedValue([observation, measurement, careWork]);
     const spectator = createComponent();
     await settle(spectator);
 
@@ -112,6 +121,15 @@ describe('ReviewRecentTimelinePage', () => {
     expect(
       spectator.query('[data-testid="recent-timeline"]')?.textContent,
     ).toContain('23.5 °C');
+    expect(
+      spectator.query('[data-testid="recent-timeline"]')?.textContent,
+    ).toContain('Cuidado');
+    expect(
+      spectator.query('[data-testid="recent-timeline"]')?.textContent,
+    ).toContain('Limpié la copa del skimmer');
+    expect(spectator.queryAll('time')[2]?.getAttribute('datetime')).toBe(
+      '2026-08-08T08:00:00.000Z',
+    );
   });
 
   it('shows an actionable empty state', async () => {

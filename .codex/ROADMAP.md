@@ -37,16 +37,17 @@ broader ownership semantics.
 ## 3.1 Timeline — accepted first increment
 
 `Review Recent Timeline` is the first bounded Timeline increment. It combines
-the existing Observation and Measurement read sources for recent contextual
-review without introducing a Timeline collection or changing source truth.
-Complete pagination, materialization and Care-derived entries remain deferred.
+the existing Observation, Measurement and Care Work read sources for recent
+contextual review without introducing a Timeline collection or changing source
+truth. Complete pagination and materialization remain deferred.
 
 ## 4. Care
 
 `Record Care Work` is accepted as the first increment: a small online,
 append-only record of an intentional action already performed. Planning,
-recurrence, completion workflows, reminders, Maintenance subtypes and
-Care-derived Timeline entries remain separate future decisions.
+recurrence, completion workflows, reminders and Maintenance subtypes remain
+separate future decisions. Completed Care Work is included in the bounded
+recent Timeline read but remains its own source of truth.
 
 ## 5. Timeline
 

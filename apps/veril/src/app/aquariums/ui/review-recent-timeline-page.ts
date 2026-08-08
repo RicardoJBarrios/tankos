@@ -13,6 +13,7 @@ import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import {
   MeasurementTimelineItem,
   ObservationTimelineItem,
+  CareWorkTimelineItem,
   ReviewRecentTimeline,
   TimelineItem,
 } from '../application/review-recent-timeline';
@@ -20,10 +21,12 @@ import {
   KEEPER_SESSION,
   TIMELINE_MEASUREMENT_READER,
   TIMELINE_OBSERVATION_READER,
+  CARE_WORK_READER,
 } from './aquarium-providers';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
 import { FirestoreMeasurementRepository } from '../infrastructure/firestore-measurement-repository';
 import { FirestoreObservationRepository } from '../infrastructure/firestore-observation-repository';
+import { FirestoreCareWorkRepository } from '../infrastructure/firestore-care-work-repository';
 import { measurementPresentationFor } from './measurement-presentations';
 
 type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
@@ -46,6 +49,7 @@ type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
         new ReviewRecentTimeline(
           inject(TIMELINE_OBSERVATION_READER),
           inject(TIMELINE_MEASUREMENT_READER),
+          inject(CARE_WORK_READER),
           inject(KEEPER_SESSION),
           inject(ActiveAquariumContext),
         ),
@@ -58,6 +62,7 @@ type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
       provide: TIMELINE_MEASUREMENT_READER,
       useClass: FirestoreMeasurementRepository,
     },
+    { provide: CARE_WORK_READER, useClass: FirestoreCareWorkRepository },
     { provide: KEEPER_SESSION, useClass: FirebaseKeeperSession },
   ],
 })
@@ -89,6 +94,10 @@ export class ReviewRecentTimelinePage implements OnInit {
 
   isMeasurement(item: TimelineItem): item is MeasurementTimelineItem {
     return item.kind === 'measurement';
+  }
+
+  isCareWork(item: TimelineItem): item is CareWorkTimelineItem {
+    return item.kind === 'care-work';
   }
 
   measurementLabel(item: MeasurementTimelineItem): string {

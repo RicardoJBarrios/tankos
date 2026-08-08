@@ -57,7 +57,8 @@
   } @else {
   <ul aria-label="Actividad reciente del acuario">
     @for (item of items(); track item.kind === 'observation' ?
-    item.observationId : item.measurementId) {
+    item.observationId : item.kind === 'measurement' ? item.measurementId :
+    item.careWorkId) {
     <li>
       <mat-card appearance="outlined">
         <mat-card-content>
@@ -78,6 +79,12 @@
               {{ formatDate(item.effectiveAt) }}
             </time>
           </div>
+          } @else if (isCareWork(item)) {
+          <p class="item-kind">Cuidado</p>
+          <p class="observation-content">{{ item.description }}</p>
+          <time [attr.datetime]="item.effectiveAt.toISOString()">
+            {{ formatDate(item.performedAt) }}
+          </time>
           }
         </mat-card-content>
       </mat-card>

@@ -3,6 +3,7 @@ import {
   AquariumRepository,
   AquariumReader,
   CareWorkWriter,
+  CareWorkReader,
   KeeperSession,
   MeasurementReader,
   MeasurementWriter,
@@ -45,6 +46,10 @@ export const TIMELINE_MEASUREMENT_READER =
 
 export const CARE_WORK_WRITER = new InjectionToken<CareWorkWriter>(
   'CARE_WORK_WRITER',
+);
+
+export const CARE_WORK_READER = new InjectionToken<CareWorkReader>(
+  'CARE_WORK_READER',
 );
 
 export const ACTIVE_AQUARIUM_CONTEXT_STORAGE =

@@ -1,15 +1,16 @@
 # Review Recent Timeline
 
-**Status:** Accepted as the first Timeline increment
+**Status:** Accepted and implemented with Care Work
 
 ## User value
 
 An authenticated keeper can answer “what happened recently in this Aquarium?”
-by reviewing qualitative Observations and quantitative Measurements together in
-one chronological read surface.
+by reviewing qualitative Observations, quantitative Measurements and completed
+Care Work together in one chronological read surface.
 
 This is a recent contextual view, not a complete historical archive. The
-existing Observation and Measurement records remain the sources of truth.
+existing Observation, Measurement and Care Work records remain the sources of
+truth.
 
 ## Actor and preconditions
 
@@ -19,8 +20,8 @@ is directed to Aquarium selection.
 
 ## Scope
 
-The first increment reads only the existing Observation and Measurement sources.
-It does not include Care Work, Domain Events that have no persisted source yet,
+The increment reads only the existing Observation, Measurement and Care Work
+sources. It does not include Domain Events that have no persisted source yet,
 Livestock, Equipment, Interpretations, charts, filters, grouping, editing,
 deletion or Timeline mutations.
 
@@ -32,8 +33,8 @@ a complete history. Full historical continuation is a later decision.
 
 Timeline is an application read model assembled from accepted durable Facts. It
 is not an Aggregate, Entity, Fact, Domain Event, persistence source or mutation
-API. Observation and Measurement remain independent aggregates and their
-corrections, if accepted later, belong to their source capabilities.
+API. Observation, Measurement and Care Work remain independent aggregates and
+their corrections, if accepted later, belong to their source capabilities.
 
 ## Source variants
 
@@ -56,6 +57,14 @@ MeasurementTimelineItem
   effectiveAt
   measuredAt
   recordedAt
+
+CareWorkTimelineItem
+  kind: care-work
+  careWorkId
+  description
+  effectiveAt
+  performedAt
+  recordedAt
 ```
 
 `effectiveAt` exists only in the read model. It is not added to either source
@@ -67,12 +76,15 @@ aggregate or Firestore document.
   Observation time and means when Veril accepted the evidence.
 - Measurement `effectiveAt` is `measuredAt`, because it represents when the
   quantitative condition was measured.
+- Care Work `effectiveAt` is `performedAt`, because it represents when the
+  intentional action occurred.
 
 The total order is:
 
 1. `effectiveAt` descending;
 2. `recordedAt` descending;
-3. source kind ascending (`measurement` before `observation`);
+3. source kind using the explicit order `measurement`, `observation`,
+   `care-work`;
 4. source identifier ascending.
 
 The third and fourth dimensions are deterministic tie-breakers only. They do
@@ -81,14 +93,14 @@ does not alter either source list's accepted ordering.
 
 ## Query architecture
 
-The first implementation should execute two owner- and Aquarium-scoped bounded
-queries, one per existing source, then merge their read models in the
-application/read boundary. It must not read an unbounded collection.
+The implementation executes three owner- and Aquarium-scoped bounded queries,
+one per source, then merges their read models in the application/read boundary.
+It must not read an unbounded collection.
 
-Each source query may return a small local limit, for example 25 items. The
-merged result returns the newest bounded set, for example 25 combined items.
-The exact limits are implementation details but must be visible in tests and
-must not be described as complete history.
+Each source query returns at most the capability-local limit of 20 items. The
+merged result returns the newest 20 combined items. The limit is an
+implementation detail but is visible in tests and must not be described as
+complete history.
 
 This approach keeps source ownership and validation explicit. It avoids a
 materialized collection, duplicated writes, projection backfill and a new
@@ -102,7 +114,7 @@ not justified by the current value of a recent bounded view.
 
 `timelineItems` is not introduced now. A materialized projection may become
 appropriate when a real consumer needs complete history, low-latency repeated
-reads or additional sources such as Care Work. It would then require an
+reads or additional sources beyond the current three. It would then require an
 explicit backfill, ownership, consistency and rebuild policy. It must never
 replace Observation or Measurement history.
 
@@ -117,7 +129,7 @@ authorization. Timeline exposes no additional private-resource existence.
 The minimum page shows:
 
 - a clear “Actividad reciente” or equivalent heading;
-- visibly distinct Observation and Measurement items;
+- visibly distinct Observation, Measurement and Care Work items;
 - the relevant time;
 - Observation text;
 - Measurement Parameter, canonical value and Unit;
@@ -130,14 +142,15 @@ selected Aquarium context.
 ## Testing path
 
 - application: merge variants, effective-time ordering, ties, empty and source
-  failure behavior;
-- integration: both owner-scoped source queries, mapping and malformed-source
-  rejection;
-- Angular: mixed rendering, loading, empty, error and missing context;
-- E2E: record one Observation and one Measurement, open recent Timeline and
-  verify both are visible in meaningful order.
+  failure behavior across all three sources;
+- integration: the three owner-scoped source queries, mapping and malformed-
+  source rejection;
+- Angular: mixed rendering, Care Work semantics, loading, empty, error and
+  missing context;
+- E2E: record one Observation, one Measurement and one Care Work action, open
+  recent Timeline and verify all three are visible.
 
-The first increment does not require Signal Store, CQRS, Event Sourcing, a
+The increment does not require Signal Store, CQRS, Event Sourcing, a
 generic projection framework, a generic multi-source paginator or an Nx library.
 
 ## Definition of Ready
@@ -145,5 +158,4 @@ generic projection framework, a generic multi-source paginator or an Nx library.
 The increment is ready for implementation because its user value, bounded
 scope, source semantics, effective-time rule, deterministic order, ownership,
 failure behavior and proportional validation path are explicit. Complete
-history pagination, materialization and future source inclusion are consciously
-deferred.
+history pagination and materialization are consciously deferred.

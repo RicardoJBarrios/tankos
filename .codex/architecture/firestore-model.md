@@ -108,19 +108,21 @@ must be reviewed independently rather than reusing this conclusion.
 
 ## Review Recent Timeline: current read contract
 
-The first Timeline increment reads the existing `observations` and
-`measurements` collections through two separate owner- and Aquarium-scoped
+The first Timeline increment reads the existing `observations`, `measurements`
+and `careWorks` collections through three separate owner- and Aquarium-scoped
 bounded queries. Each source query returns at most the capability-local recent
 limit (currently 20); the application merges and orders those candidates using
-the Timeline contract. This is two bounded queries, not a promise of two
+the Timeline contract. This is three bounded queries, not a promise of three
 document reads: Firestore usage depends on the documents read and returned.
 
 Observation candidates use `recordedAt` descending and document ID ascending.
 Measurement candidates use `measuredAt` descending, `recordedAt` descending and
-document ID ascending. The application maps them to discriminated Timeline
-items, assigns read-model-only `effectiveAt`, merges them and returns the
-newest 20 combined items. No Timeline collection, cursor or additional Rules
-path is introduced.
+document ID ascending. Care Work candidates use `performedAt` descending,
+`recordedAt` descending and document ID ascending. The application maps them to
+discriminated Timeline items, assigns read-model-only `effectiveAt`, merges them
+using the explicit source order `measurement`, `observation`, `care-work`, and
+returns the newest 20 combined items. No Timeline collection, cursor or
+additional Rules path is introduced.
 
 ## Record Care Work: current persistence contract
 
@@ -134,7 +136,7 @@ The write is append-only: updates and deletes are denied. Rules require an
 authenticated keeper, owner attribution and an existing Aquarium owned by that
 keeper. The adapter validates the DTO with Zod and maps timestamps at the
 infrastructure boundary. No Care Work is nested in Aquarium or duplicated into
-Timeline; a future Timeline read may project it using `performedAt`.
+Timeline; the current recent Timeline read projects it using `performedAt`.
 
 ## Future current Measurement state
 

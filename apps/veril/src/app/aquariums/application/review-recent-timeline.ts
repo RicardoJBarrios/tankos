@@ -1,6 +1,8 @@
 import { ActiveAquariumContext } from './active-aquarium-context';
 import {
   KeeperSession,
+  CareWorkListItem,
+  CareWorkReader,
   MeasurementListItem,
   TimelineMeasurementReader,
   TimelineObservationReader,
@@ -28,15 +30,26 @@ export type MeasurementTimelineItem = {
   readonly recordedAt: Date;
 };
 
-export type TimelineItem = ObservationTimelineItem | MeasurementTimelineItem;
+export type CareWorkTimelineItem = {
+  readonly kind: 'care-work';
+  readonly careWorkId: CareWorkListItem['id'];
+  readonly description: string;
+  readonly effectiveAt: Date;
+  readonly performedAt: Date;
+  readonly recordedAt: Date;
+};
+
+export type TimelineItem =
+  ObservationTimelineItem | MeasurementTimelineItem | CareWorkTimelineItem;
 
 const sourceOrder: Record<TimelineItem['kind'], number> = {
   measurement: 0,
   observation: 1,
+  'care-work': 2,
 };
 
 function toTimelineItem(
-  item: ObservationListItem | MeasurementListItem,
+  item: ObservationListItem | MeasurementListItem | CareWorkListItem,
 ): TimelineItem {
   if ('content' in item) {
     return {
@@ -44,6 +57,17 @@ function toTimelineItem(
       observationId: item.id,
       content: item.content,
       effectiveAt: item.recordedAt,
+      recordedAt: item.recordedAt,
+    };
+  }
+
+  if ('description' in item) {
+    return {
+      kind: 'care-work',
+      careWorkId: item.id,
+      description: item.description,
+      effectiveAt: item.performedAt,
+      performedAt: item.performedAt,
       recordedAt: item.recordedAt,
     };
   }
@@ -78,9 +102,17 @@ function compareTimelineItems(left: TimelineItem, right: TimelineItem): number {
   }
 
   const leftId =
-    left.kind === 'measurement' ? left.measurementId : left.observationId;
+    left.kind === 'measurement'
+      ? left.measurementId
+      : left.kind === 'observation'
+        ? left.observationId
+        : left.careWorkId;
   const rightId =
-    right.kind === 'measurement' ? right.measurementId : right.observationId;
+    right.kind === 'measurement'
+      ? right.measurementId
+      : right.kind === 'observation'
+        ? right.observationId
+        : right.careWorkId;
   return leftId < rightId ? -1 : leftId > rightId ? 1 : 0;
 }
 
@@ -88,6 +120,7 @@ export class ReviewRecentTimeline {
   constructor(
     private readonly observationReader: TimelineObservationReader,
     private readonly measurementReader: TimelineMeasurementReader,
+    private readonly careWorkReader: CareWorkReader,
     private readonly keeperSession: KeeperSession,
     private readonly activeContext: ActiveAquariumContext,
   ) {}
@@ -100,7 +133,7 @@ export class ReviewRecentTimeline {
       throw new Error('Aquarium context is required');
     }
 
-    const [observations, measurements] = await Promise.all([
+    const [observations, measurements, careWorks] = await Promise.all([
       this.observationReader.listRecentOwned(
         keeper.id,
         aquariumId,
@@ -111,9 +144,14 @@ export class ReviewRecentTimeline {
         aquariumId,
         RECENT_TIMELINE_LIMIT,
       ),
+      this.careWorkReader.listRecentOwned(
+        keeper.id,
+        aquariumId,
+        RECENT_TIMELINE_LIMIT,
+      ),
     ]);
 
-    return [...observations, ...measurements]
+    return [...observations, ...measurements, ...careWorks]
       .map((item) => toTimelineItem(item))
       .sort(compareTimelineItems)
       .slice(0, RECENT_TIMELINE_LIMIT);

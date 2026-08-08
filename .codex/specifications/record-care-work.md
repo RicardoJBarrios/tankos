@@ -111,21 +111,23 @@ does not introduce `Task` or `PlannedCareWork`.
 
 ## Persistence and authorization
 
-If implemented, Care Work uses a dedicated top-level `careWorks` collection.
+Care Work uses a dedicated top-level `careWorks` collection.
 The document identifier is `CareWorkId`; `ownerId` remains an authorization
 field at the persistence boundary. Firestore Rules authorize authenticated
 owners through the referenced Aquarium. Care Work is not nested in the
-Aquarium document and does not duplicate Timeline entries.
+Aquarium document or duplicated into Timeline. The current recent Timeline read
+projects it as a source variant with `effectiveAt = performedAt`; Timeline
+remains a derived read model and never becomes a second source of truth.
 
 The operation is online-required. No offline queue, optimistic success or
 synchronization policy is introduced.
 
-## Future Timeline relationship
+## Timeline relationship
 
-Care Work would later be a third Timeline source. Its natural read-model
-mapping is `effectiveAt = performedAt`; `recordedAt` remains available for
-traceability and deterministic ordering. This does not change the current
-Timeline implementation or add a Care source before Care Work exists.
+Care Work is the third source in the current bounded recent Timeline read. Its
+read-model mapping is `effectiveAt = performedAt`; `recordedAt` remains
+available for traceability and deterministic ordering. Timeline remains a
+derived read model and does not change Care Work's source-of-truth boundary.
 
 ## UX language and capture
 
@@ -147,10 +149,8 @@ this slice does not create a Dashboard.
 - adapter: persistence shape, timestamps, provenance and Zod boundary;
 - Rules: owner access, unauthenticated rejection and cross-owner rejection;
 - Angular: no context, valid capture, validation, pending, success and error;
-- E2E: record Care Work through the UI once the slice is implemented.
+- E2E: record Care Work through the UI and verify it in recent Timeline.
 
-Timeline E2E coverage remains deferred until Care Work is actually included in
-the Timeline read model.
 
 ## Definition of Ready
 

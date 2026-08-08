@@ -75,10 +75,17 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await page.getByLabel('¿Qué has hecho?').fill('Limpié la copa del skimmer.');
   await page.getByRole('button', { name: 'Guardar cuidado' }).click();
   await expect(
-    page
-      .getByRole('status')
-      .filter({ hasText: 'Cuidado guardado correctamente.' }),
+    page.getByRole('status').filter({
+      hasText: 'Cuidado guardado correctamente en el acuario seleccionado.',
+    }),
   ).toBeVisible();
+
+  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
+  await page.getByRole('link', { name: 'Actividad reciente' }).click();
+  await expect(page.getByTestId('recent-timeline')).toContainText('Cuidado');
+  await expect(page.getByTestId('recent-timeline')).toContainText(
+    'Limpié la copa del skimmer.',
+  );
 });
 
 test('protected recording pages recover when no Aquarium is selected', async ({

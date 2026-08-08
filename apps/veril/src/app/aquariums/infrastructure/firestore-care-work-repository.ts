@@ -1,10 +1,23 @@
 import { Injectable } from '@angular/core';
-import { Timestamp, doc, setDoc } from 'firebase/firestore';
+import {
+  Timestamp,
+  collection,
+  doc,
+  documentId,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  setDoc,
+  where,
+} from 'firebase/firestore';
 import { z } from 'zod';
-import { aquariumIdFrom } from '../domain/aquarium';
+import { AquariumId, aquariumIdFrom } from '../domain/aquarium';
 import { careWorkIdFrom, CareWork, createCareWork } from '../domain/care-work';
 import {
   CareWorkWriter,
+  CareWorkReader,
+  CareWorkListItem,
   RecordCareWorkInput,
 } from '../application/aquarium-ports';
 import { getFirebaseClient } from './firebase-client';
@@ -19,7 +32,9 @@ const careWorkDocument = z.object({
 });
 
 @Injectable()
-export class FirestoreCareWorkRepository implements CareWorkWriter {
+export class FirestoreCareWorkRepository
+  implements CareWorkWriter, CareWorkReader
+{
   async record(input: RecordCareWorkInput): Promise<CareWork> {
     const { firestore } = getFirebaseClient();
     const reference = doc(firestore, 'careWorks', input.id);
@@ -41,6 +56,35 @@ export class FirestoreCareWorkRepository implements CareWorkWriter {
       performedAt: dto.performedAt.toDate(),
       recordedAt: dto.recordedAt.toDate(),
       provenance: dto.provenance,
+    });
+  }
+
+  async listRecentOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    limitCount: number,
+  ): Promise<readonly CareWorkListItem[]> {
+    const { firestore } = getFirebaseClient();
+    const careWorks = collection(firestore, 'careWorks');
+    const recentQuery = query(
+      careWorks,
+      where('ownerId', '==', ownerKeeperId),
+      where('aquariumId', '==', aquariumId),
+      orderBy('performedAt', 'desc'),
+      orderBy('recordedAt', 'desc'),
+      orderBy(documentId(), 'asc'),
+      limit(limitCount),
+    );
+    const snapshot = await getDocs(recentQuery);
+
+    return snapshot.docs.map((entry) => {
+      const dto = careWorkDocument.parse(entry.data());
+      return {
+        id: careWorkIdFrom(entry.id),
+        description: dto.description,
+        performedAt: dto.performedAt.toDate(),
+        recordedAt: dto.recordedAt.toDate(),
+      };
     });
   }
 }
