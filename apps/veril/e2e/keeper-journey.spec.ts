@@ -68,6 +68,17 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
     'El coral está abierto.',
   );
   await expect(page.getByTestId('recent-timeline')).toContainText('25.4 °C');
+
+  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
+  await expect(page).toHaveURL('/app/aquariums');
+  await page.getByRole('link', { name: 'Registrar cuidado' }).click();
+  await page.getByLabel('¿Qué has hecho?').fill('Limpié la copa del skimmer.');
+  await page.getByRole('button', { name: 'Guardar cuidado' }).click();
+  await expect(
+    page
+      .getByRole('status')
+      .filter({ hasText: 'Cuidado guardado correctamente.' }),
+  ).toBeVisible();
 });
 
 test('protected recording pages recover when no Aquarium is selected', async ({
@@ -89,6 +100,16 @@ test('protected recording pages recover when no Aquarium is selected', async ({
   await expect(
     page.getByRole('status').filter({
       hasText: 'Primero selecciona un acuario para registrar una medición.',
+    }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
+  await expect(page).toHaveURL('/app/aquariums');
+
+  await page.goto('/app/aquariums/care/new');
+  await expect(page.locator('form')).toBeHidden();
+  await expect(
+    page.getByRole('status').filter({
+      hasText: 'Primero selecciona un acuario para registrar un cuidado.',
     }),
   ).toBeVisible();
   await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();

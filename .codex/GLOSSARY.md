@@ -84,9 +84,10 @@ Equipment item.
 
 ### Care Work
 
-An umbrella term for intentional care activity, potentially including a Task,
-Maintenance, Water Change or Feeding. It does not establish that those concepts
-share an entity, lifecycle or history model.
+In the accepted `Record Care Work` slice, a durable record of one intentional
+action already performed for an Aquarium. It is not an Observation, planned
+Task or automatic Domain Event. Future Maintenance, Water Change, Feeding and
+Task semantics may specialize or relate to it only through accepted use cases.
 
 ### Water Change
 

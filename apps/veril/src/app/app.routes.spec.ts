@@ -74,4 +74,12 @@ describe('appRoutes', () => {
       'aquariums/timeline',
     );
   });
+
+  it('defines the Record Care Work child route', () => {
+    const privateRoute = appRoutes.find((route) => route.path === 'app');
+
+    expect(privateRoute?.children?.map((route) => route.path)).toContain(
+      'aquariums/care/new',
+    );
+  });
 });

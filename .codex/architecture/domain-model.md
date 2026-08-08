@@ -14,7 +14,7 @@ any item becomes accepted.
 | Aquarium | The managed care system and aggregate root. | Required attributes, ownership, sharing, and its relationship to Display and System. |
 | Livestock | Fish, Coral and other organisms associated with care. | Individual versus group, transfers, taxonomy and lifecycle. |
 | Equipment | A physical or logical device used in care. | Ownership, sharing, installation, state and safety. |
-| Care work | Maintenance, Task, Reminder, Water Change and Feeding. | Distinct concepts, recurrence, completion, cancellation and historical semantics. |
+| Care work | An intentional action already performed for an Aquarium. | Relationship to planned work, Maintenance, Water Change and Feeding; recurrence and lifecycle. |
 | Recorded information | Measurement, Observation, Parameter, Sensor and Inspection. | Provenance, units, quality, corrections and required parameters. |
 | Automation | Rules, inputs, recommendations or actions. | Authority, safety, audit, retries and offline behavior. |
 | Notifications | Alert, Reminder and delivery. | Consent, severity, acknowledgement, retention and delivery policy. |
@@ -46,6 +46,16 @@ This boundary keeps unbounded historical evidence from growing the Aquarium
 aggregate. Timeline remains a future chronological projection of durable Facts,
 not a second source of truth. Measurements and Care Work may use related but
 independent boundaries when their accepted use cases define them.
+
+## Accepted Care Work boundary
+
+For `Record Care Work`, Care Work is an independently persisted aggregate root
+and durable Fact. It references `AquariumId` without belonging to the Aquarium
+aggregate consistency boundary. It describes an intentional action already
+performed, not an Observation or planned Task. `performedAt` and `recordedAt`
+remain distinct. The first slice uses free text and manual provenance; it does
+not establish Maintenance, Water Change, Feeding, recurrence or correction as
+shared domain types.
 
 ## Acceptance rule
 

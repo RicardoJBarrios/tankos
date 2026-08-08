@@ -45,7 +45,7 @@ future decisions.
 
 ### Care
 
-- Record Care Work
+- Record Care Work — implemented as the first increment.
 - Schedule Care Work
 - Complete Care Work
 - Review Care History

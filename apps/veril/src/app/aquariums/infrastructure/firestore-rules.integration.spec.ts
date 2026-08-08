@@ -225,6 +225,36 @@ async function queryMeasurements(
   );
 }
 
+async function writeCareWork(
+  id: string,
+  aquariumId: string,
+  ownerId: string,
+  token?: string,
+  overrides: Record<string, unknown> = {},
+) {
+  const fields = {
+    aquariumId: { stringValue: aquariumId },
+    ownerId: { stringValue: ownerId },
+    description: { stringValue: 'Limpié la copa del skimmer' },
+    performedAt: { timestampValue: new Date().toISOString() },
+    recordedAt: { timestampValue: new Date().toISOString() },
+    provenance: { stringValue: 'manual' },
+    ...overrides,
+  };
+
+  return fetch(
+    `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/careWorks/${id}`,
+    {
+      method: 'PATCH',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ fields }),
+    },
+  );
+}
+
 describe('Firestore Security Rules (Emulator Suite)', () => {
   emulatorTest(
     'allow independent Aquariums and isolate owners',
@@ -373,6 +403,56 @@ describe('Firestore Security Rules (Emulator Suite)', () => {
               parameterId: { stringValue: 'temperature' },
               enteredValue: { stringValue: 'bad' },
             },
+          )
+        ).status,
+      ).toBe(403);
+      const careWorkId = createAquariumId();
+      expect(
+        (
+          await writeCareWork(
+            careWorkId,
+            aquariumA,
+            keeperA.localId,
+            keeperA.idToken,
+          )
+        ).status,
+      ).toBe(200);
+      const ownerCareWorkRead = await fetch(
+        `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/careWorks/${careWorkId}`,
+        { headers: { Authorization: `Bearer ${keeperA.idToken}` } },
+      );
+      expect(ownerCareWorkRead.status).toBe(200);
+      const anonymousCareWorkRead = await fetch(
+        `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/careWorks/${careWorkId}`,
+      );
+      expect([401, 403]).toContain(anonymousCareWorkRead.status);
+      const crossOwnerCareWorkRead = await fetch(
+        `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/careWorks/${careWorkId}`,
+        { headers: { Authorization: `Bearer ${keeperB.idToken}` } },
+      );
+      expect(crossOwnerCareWorkRead.status).toBe(403);
+      expect(
+        (await writeCareWork(createAquariumId(), aquariumA, keeperA.localId))
+          .status,
+      ).toBe(403);
+      expect(
+        (
+          await writeCareWork(
+            createAquariumId(),
+            aquariumA,
+            keeperB.localId,
+            keeperB.idToken,
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await writeCareWork(
+            createAquariumId(),
+            aquariumA,
+            keeperA.localId,
+            keeperA.idToken,
+            { ownerId: { stringValue: keeperB.localId } },
           )
         ).status,
       ).toBe(403);

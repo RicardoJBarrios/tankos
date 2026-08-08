@@ -123,6 +123,12 @@ describe('ListMyAquariumsPage', () => {
         )
         ?.getAttribute('href'),
     ).toBe('/app/aquariums/observations/new');
+    expect(
+      spectator
+        .queryAll('a')
+        .find((link) => link.textContent?.includes('Registrar cuidado'))
+        ?.getAttribute('href'),
+    ).toBe('/app/aquariums/care/new');
   });
 
   it('renders a failure state', async () => {

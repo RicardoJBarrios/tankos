@@ -77,6 +77,17 @@ tests. Spectator tests cover missing context, loading, mixed results, empty and
 recoverable error states. The canonical Playwright journey verifies that a
 recorded Observation and Measurement are both visible in recent activity.
 
+`Record Care Work` adds pure domain tests for UUID identity, trimmed non-empty
+description, performed/recorded timestamps and manual provenance. Application
+tests cover authentication, Active Context, validation, successful recording
+and infrastructure failures. Its Firebase adapter test verifies the
+owner-attributed document, both timestamps and provenance through the SDK.
+Rules tests cover authorized creation and owner reads while rejecting
+unauthenticated, cross-owner and spoofed-owner access. Spectator tests cover
+missing context, validation, pending, success and recoverable error states. The
+canonical Playwright journey records a completed Care Work action through the
+UI; Care Work remains outside the current Timeline read model.
+
 ## Browser journeys
 
 `pnpm nx e2e veril` runs the canonical Chromium journeys through visible UI

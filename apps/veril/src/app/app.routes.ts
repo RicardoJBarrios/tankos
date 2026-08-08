@@ -65,6 +65,13 @@ export const appRoutes: Route[] = [
             ({ RecordMeasurementPage }) => RecordMeasurementPage,
           ),
       },
+      {
+        path: 'aquariums/care/new',
+        loadComponent: () =>
+          import('./aquariums/ui/record-care-work-page').then(
+            ({ RecordCareWorkPage }) => RecordCareWorkPage,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

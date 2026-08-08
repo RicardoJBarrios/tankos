@@ -6,6 +6,7 @@ import {
   UnitId,
 } from '../domain/measurement';
 import { Observation, ObservationId } from '../domain/observation';
+import { CareWork, CareWorkId } from '../domain/care-work';
 
 export interface AquariumListItem {
   readonly id: AquariumId;
@@ -119,4 +120,18 @@ export interface TimelineMeasurementReader {
     aquariumId: AquariumId,
     limit: number,
   ): Promise<readonly MeasurementListItem[]>;
+}
+
+export interface RecordCareWorkInput {
+  readonly id: CareWorkId;
+  readonly aquariumId: AquariumId;
+  readonly ownerKeeperId: string;
+  readonly description: string;
+  readonly performedAt: Date;
+  readonly recordedAt: Date;
+  readonly provenance: 'manual';
+}
+
+export interface CareWorkWriter {
+  record(input: RecordCareWorkInput): Promise<CareWork>;
 }

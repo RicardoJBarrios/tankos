@@ -10,6 +10,7 @@ needs without adopting CQRS, event sourcing or any implementation pattern.
 | Establish Aquarium | Create a private, durable Aquarium context. | accepted |
 | Record Measurement | Record a Parameter value. | candidate |
 | Record Observation | Record a note relevant to care. | candidate |
+| Record Care Work | Record an intentional care action already performed. | accepted; first Care increment |
 | Plan care work | Record an intention to perform care. | candidate |
 | Complete care work | Record the outcome of planned care. | pending |
 | Associate Livestock | Relate Livestock to an Aquarium. | candidate |
@@ -23,7 +24,7 @@ needs without adopting CQRS, event sourcing or any implementation pattern.
 | `MeasurementRecorded` | A Parameter value was recorded. | candidate |
 | `ObservationRecorded` | A care-relevant note was recorded. | candidate |
 | `CareWorkPlanned` | An intention to perform care was recorded. | candidate |
-| `CareWorkCompleted` | Care work was recorded as complete. | pending |
+| `CareWorkCompleted` | Care work was recorded as complete. | future; not automatic for every Care Work Fact |
 | `LivestockAssociated` | Livestock was associated with an Aquarium. | candidate |
 | `EquipmentAssociated` | Equipment was associated with an Aquarium or System. | candidate |
 

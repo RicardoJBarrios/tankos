@@ -29,6 +29,12 @@ A keeper identifies work that should be done, records an intention, and later
 records or reviews its outcome. Recurrence, completion, cancellation and
 reminders are hypotheses until specified.
 
+## Accepted: Record Care Work
+
+An authenticated keeper records what they did for the selected Aquarium using a
+short description and the time when it happened. Veril preserves the action as
+durable evidence without turning it into a plan, reminder or automatic event.
+
 ## Add Livestock
 
 A keeper records that Livestock is associated with an Aquarium so future care

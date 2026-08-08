@@ -122,6 +122,20 @@ items, assigns read-model-only `effectiveAt`, merges them and returns the
 newest 20 combined items. No Timeline collection, cursor or additional Rules
 path is introduced.
 
+## Record Care Work: current persistence contract
+
+The accepted Care increment persists each completed Care Work action as an
+independent document in the top-level `careWorks` collection. Each document
+contains `aquariumId`, `ownerId`, `description`, Firestore timestamps
+`performedAt` and `recordedAt`, and the explicit `provenance` value `manual`.
+The document identifier is the stable `CareWorkId`.
+
+The write is append-only: updates and deletes are denied. Rules require an
+authenticated keeper, owner attribution and an existing Aquarium owned by that
+keeper. The adapter validates the DTO with Zod and maps timestamps at the
+infrastructure boundary. No Care Work is nested in Aquarium or duplicated into
+Timeline; a future Timeline read may project it using `performedAt`.
+
 ## Future current Measurement state
 
 The product will eventually need to answer which values are currently known for

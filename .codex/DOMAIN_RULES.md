@@ -27,6 +27,23 @@ Rules are classified to avoid turning assumptions into code prematurely.
 - Establishment is online-required. These rules apply only to this use case and
   do not decide future ownership, cardinality or offline policy.
 
+## Accepted rules for Record Care Work
+
+- Care Work records one intentional action already performed for exactly one
+  Aquarium in the first version.
+- Care Work is an independent aggregate root and durable Fact. It references
+  `AquariumId` and does not belong to the Aquarium aggregate consistency
+  boundary.
+- A Care Work record requires a non-empty description, `performedAt`,
+  `recordedAt` and provenance `manual`.
+- `performedAt` describes when the action happened; `recordedAt` describes when
+  Veril accepted the evidence.
+- Only the owning authenticated keeper may record Care Work. Active Context is
+  not authorization.
+- The first slice is append-only and online-required. Planning, recurrence,
+  reminders, correction, deletion and offline synchronization are deferred.
+- Recording Care Work does not automatically create a Domain Event.
+
 ## Candidate invariants requiring validation
 
 Other business invariants remain unaccepted. The following hypotheses must be
@@ -36,7 +53,8 @@ enforce them:
 - Whether an Aquarium is the ownership boundary for Measurements.
 - Whether Measurements are immutable, editable or corrected by compensation.
 - Whether Livestock can belong to one or multiple Aquariums over time.
-- Whether Maintenance and completed Tasks require append-only history.
+- Whether planned work and completed Care Work share a lifecycle or remain
+  separate records.
 - Whether Water Change is a distinct domain Event.
 - Whether an Observation may correct, qualify or otherwise relate to a
   Measurement.

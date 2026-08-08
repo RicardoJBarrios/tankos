@@ -2,6 +2,7 @@ import { InjectionToken } from '@angular/core';
 import {
   AquariumRepository,
   AquariumReader,
+  CareWorkWriter,
   KeeperSession,
   MeasurementReader,
   MeasurementWriter,
@@ -41,6 +42,10 @@ export const TIMELINE_OBSERVATION_READER =
 
 export const TIMELINE_MEASUREMENT_READER =
   new InjectionToken<TimelineMeasurementReader>('TIMELINE_MEASUREMENT_READER');
+
+export const CARE_WORK_WRITER = new InjectionToken<CareWorkWriter>(
+  'CARE_WORK_WRITER',
+);
 
 export const ACTIVE_AQUARIUM_CONTEXT_STORAGE =
   new InjectionToken<ActiveAquariumContextStorage>(

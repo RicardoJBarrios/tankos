@@ -1,0 +1,74 @@
+<section aria-labelledby="record-care-work-title" class="page-section">
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title id="record-care-work-title"
+        >Registrar cuidado</mat-card-title
+      >
+      <mat-card-subtitle
+        >Guarda una acción realizada en el acuario
+        seleccionado.</mat-card-subtitle
+      >
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (!hasActiveContext) {
+      <p role="status" class="feedback">
+        Primero selecciona un acuario para registrar un cuidado.
+      </p>
+      } @else if (state() === 'success') {
+      <p role="status" class="feedback feedback-success">
+        Cuidado guardado correctamente en el acuario seleccionado.
+      </p>
+      } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>¿Qué has hecho?</mat-label>
+          <textarea
+            matInput
+            id="care-work-description"
+            rows="5"
+            formControlName="description"
+          ></textarea>
+          @if (form.controls.description.touched &&
+          form.controls.description.invalid) {
+          <mat-error role="alert">Describe el cuidado realizado.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Fecha y hora del cuidado</mat-label>
+          <input
+            matInput
+            id="care-work-performed-at"
+            type="datetime-local"
+            formControlName="performedAt"
+          />
+        </mat-form-field>
+
+        @if (state() === 'error') {
+        <p role="alert" class="feedback feedback-error">{{ errorMessage() }}</p>
+        }
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="state() === 'saving'"
+        >
+          {{ state() === 'saving' ? 'Guardando…' : 'Guardar cuidado' }}
+        </button>
+      </form>
+      }
+    </mat-card-content>
+
+    <mat-card-actions>
+      @if (state() === 'success') {
+      <a mat-flat-button color="primary" routerLink="/app/aquariums"
+        >Volver a mis acuarios</a
+      >
+      } @else {
+      <a mat-button routerLink="/app/aquariums">Volver a mis acuarios</a>
+      }
+    </mat-card-actions>
+  </mat-card>
+</section>

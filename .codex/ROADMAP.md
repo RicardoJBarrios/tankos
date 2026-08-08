@@ -43,9 +43,10 @@ Complete pagination, materialization and Care-derived entries remain deferred.
 
 ## 4. Care
 
-Discover Maintenance, Water Change, Feeding, Task and Reminder semantics before
-choosing events, history behavior or offline classification. Split planning,
-execution and review only when their accepted use cases need separate behavior.
+`Record Care Work` is accepted as the first increment: a small online,
+append-only record of an intentional action already performed. Planning,
+recurrence, completion workflows, reminders, Maintenance subtypes and
+Care-derived Timeline entries remain separate future decisions.
 
 ## 5. Timeline
 
