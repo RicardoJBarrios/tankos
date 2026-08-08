@@ -136,9 +136,6 @@ test('protected recording pages recover when no Aquarium is selected', async ({
       hasText: 'Primero selecciona un acuario para consultar sus cuidados.',
     }),
   ).toBeVisible();
-  await page
-    .getByRole('link', { name: 'Volver a mis acuarios' })
-    .last()
-    .click();
+  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
   await expect(page).toHaveURL('/app/aquariums');
 });
