@@ -66,3 +66,13 @@ layout in feature CSS. Do not create a shared component library, Storybook or
 visual-regression baseline until repeated semantics and visual stability justify
 them. Tests must assert Veril behavior and accessibility, never Material's
 internal DOM or CSS classes.
+
+## Current Aquarium navigation
+
+When an Aquarium is selected, keep its existing action surface visible in the
+Aquarium context. Group actions by keeper intent: `Registrar` for new
+observations, measurements and care work, and `Consultar` for recent activity
+and the corresponding histories. This is a presentation grouping only; each
+capability keeps its own route and use case. Do not turn this surface into a
+Dashboard or move it into the private shell without evidence that the current
+page no longer supports discovery.

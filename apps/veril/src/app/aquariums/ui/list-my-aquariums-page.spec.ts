@@ -135,6 +135,16 @@ describe('ListMyAquariumsPage', () => {
         .find((link) => link.textContent?.includes('Ver cuidados'))
         ?.getAttribute('href'),
     ).toBe('/app/aquariums/care');
+    expect(
+      spectator.query(
+        'section[aria-labelledby="aquarium-record-actions-title"] h3',
+      )?.textContent,
+    ).toContain('Registrar');
+    expect(
+      spectator.query(
+        'section[aria-labelledby="aquarium-review-actions-title"] h3',
+      )?.textContent,
+    ).toContain('Consultar');
   });
 
   it('renders a failure state', async () => {
