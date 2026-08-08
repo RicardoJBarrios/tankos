@@ -60,6 +60,14 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await page.getByRole('link', { name: 'Ver mediciones' }).click();
   await expect(page).toHaveURL('/app/aquariums/measurements');
   await expect(page.getByTestId('measurement-list')).toContainText('25.4 °C');
+
+  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
+  await page.getByRole('link', { name: 'Actividad reciente' }).click();
+  await expect(page).toHaveURL('/app/aquariums/timeline');
+  await expect(page.getByTestId('recent-timeline')).toContainText(
+    'El coral está abierto.',
+  );
+  await expect(page.getByTestId('recent-timeline')).toContainText('25.4 °C');
 });
 
 test('protected recording pages recover when no Aquarium is selected', async ({

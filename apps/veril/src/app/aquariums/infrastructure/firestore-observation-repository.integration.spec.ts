@@ -132,4 +132,43 @@ describe('FirestoreObservationRepository (Emulator Suite)', () => {
     },
     20000,
   );
+
+  emulatorTest(
+    'returns a bounded recent Observation source page',
+    async () => {
+      const session = new FirebaseKeeperSession();
+      const keeper = await session.requireAuthenticatedKeeper();
+      const aquarium = await new FirestoreAquariumRepository().establish({
+        id: createAquariumId(),
+        name: AquariumName.create('Actividad reciente'),
+        ownerKeeperId: keeper.id,
+        establishedAt: new Date('2026-08-08T12:00:00.000Z'),
+      });
+      const repository = new FirestoreObservationRepository();
+
+      await repository.record({
+        id: createObservationId(),
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        content: 'Más reciente',
+        recordedAt: new Date('2026-08-08T12:02:00.000Z'),
+      });
+      await repository.record({
+        id: createObservationId(),
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        content: 'Más antigua',
+        recordedAt: new Date('2026-08-08T12:01:00.000Z'),
+      });
+
+      const items = await repository.listRecentOwned(keeper.id, aquarium.id, 1);
+
+      expect(items).toHaveLength(1);
+      expect(items[0]?.content).toBe('Más reciente');
+
+      const { auth } = getFirebaseClient();
+      await signOut(auth);
+    },
+    20000,
+  );
 });

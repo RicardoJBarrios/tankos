@@ -66,4 +66,12 @@ describe('appRoutes', () => {
       'aquariums/observations',
     );
   });
+
+  it('defines the Review Recent Timeline child route', () => {
+    const privateRoute = appRoutes.find((route) => route.path === 'app');
+
+    expect(privateRoute?.children?.map((route) => route.path)).toContain(
+      'aquariums/timeline',
+    );
+  });
 });

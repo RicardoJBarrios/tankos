@@ -68,6 +68,15 @@ tests cover missing context, loading, empty, results and recoverable errors.
 The canonical Playwright keeper journey also verifies that recorded qualitative
 evidence is visible in the observation list.
 
+`Review Recent Timeline` adds application tests for authentication, Active
+Context, the two-source merge, effective-time semantics, deterministic ties,
+the bounded top-N result and whole-read failure behavior. Its adapter tests
+verify the bounded Observation and Measurement source queries against the
+Emulator Suite; source parsing remains covered by the existing adapter boundary
+tests. Spectator tests cover missing context, loading, mixed results, empty and
+recoverable error states. The canonical Playwright journey verifies that a
+recorded Observation and Measurement are both visible in recent activity.
+
 ## Browser journeys
 
 `pnpm nx e2e veril` runs the canonical Chromium journeys through visible UI

@@ -200,4 +200,55 @@ describe('FirestoreMeasurementRepository (Emulator Suite)', () => {
     },
     30000,
   );
+
+  emulatorTest(
+    'returns a bounded recent Measurement source page',
+    async () => {
+      const session = new FirebaseKeeperSession();
+      const keeper = await session.requireAuthenticatedKeeper();
+      const aquarium = await new FirestoreAquariumRepository().establish({
+        id: createAquariumId(),
+        name: AquariumName.create('Actividad reciente'),
+        ownerKeeperId: keeper.id,
+        establishedAt: new Date('2026-08-08T13:00:00.000Z'),
+      });
+      const repository = new FirestoreMeasurementRepository();
+
+      await repository.record({
+        id: createMeasurementId(),
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        parameterId: 'temperature',
+        enteredValue: 24,
+        enteredUnit: 'celsius',
+        canonicalValue: 24,
+        canonicalUnit: 'celsius',
+        measuredAt: new Date('2026-08-08T13:02:00.000Z'),
+        recordedAt: new Date('2026-08-08T13:03:00.000Z'),
+        provenance: 'manual',
+      });
+      await repository.record({
+        id: createMeasurementId(),
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        parameterId: 'temperature',
+        enteredValue: 23,
+        enteredUnit: 'celsius',
+        canonicalValue: 23,
+        canonicalUnit: 'celsius',
+        measuredAt: new Date('2026-08-08T13:01:00.000Z'),
+        recordedAt: new Date('2026-08-08T13:02:00.000Z'),
+        provenance: 'manual',
+      });
+
+      const items = await repository.listRecentOwned(keeper.id, aquarium.id, 1);
+
+      expect(items).toHaveLength(1);
+      expect(items[0]?.canonicalValue).toBe(24);
+
+      const { auth } = getFirebaseClient();
+      await signOut(auth);
+    },
+    20000,
+  );
 });

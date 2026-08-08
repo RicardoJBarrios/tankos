@@ -28,6 +28,7 @@ import {
   MeasurementListItem,
   MeasurementPage,
   MeasurementReader,
+  TimelineMeasurementReader,
   RecordMeasurementInput,
 } from '../application/aquarium-ports';
 import { AquariumId, aquariumIdFrom } from '../domain/aquarium';
@@ -122,7 +123,7 @@ function toListItem(
 
 @Injectable()
 export class FirestoreMeasurementRepository
-  implements MeasurementWriter, MeasurementReader
+  implements MeasurementWriter, MeasurementReader, TimelineMeasurementReader
 {
   async record(input: RecordMeasurementInput): Promise<Measurement> {
     const { firestore } = getFirebaseClient();
@@ -187,5 +188,28 @@ export class FirestoreMeasurementRepository
       items,
       ...(hasMore ? { nextCursor: encodeCursor(items[items.length - 1]) } : {}),
     };
+  }
+
+  async listRecentOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    limitCount: number,
+  ): Promise<readonly MeasurementListItem[]> {
+    const { firestore } = getFirebaseClient();
+    const measurements = collection(firestore, 'measurements');
+    const recentQuery = query(
+      measurements,
+      where('ownerId', '==', ownerKeeperId),
+      where('aquariumId', '==', aquariumId),
+      orderBy('measuredAt', 'desc'),
+      orderBy('recordedAt', 'desc'),
+      orderBy(documentId(), 'asc'),
+      limit(limitCount),
+    );
+    const snapshot = await getDocs(recentQuery);
+
+    return snapshot.docs.map((entry) =>
+      toListItem(entry.id, measurementDocument.parse(entry.data())),
+    );
   }
 }

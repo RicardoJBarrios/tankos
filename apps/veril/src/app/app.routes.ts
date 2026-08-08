@@ -52,6 +52,13 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'aquariums/timeline',
+        loadComponent: () =>
+          import('./aquariums/ui/review-recent-timeline-page').then(
+            ({ ReviewRecentTimelinePage }) => ReviewRecentTimelinePage,
+          ),
+      },
+      {
         path: 'aquariums/measurements/new',
         loadComponent: () =>
           import('./aquariums/ui/record-measurement-page').then(

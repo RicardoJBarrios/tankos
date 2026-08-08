@@ -34,6 +34,13 @@ closed Parameter catalogue.
 Measurement remains an independent aggregate and does not become part of the
 Aquarium transaction boundary.
 
+### Timeline — accepted first increment
+
+The first Timeline increment is `Review Recent Timeline`: a bounded read model
+that combines existing Observation and Measurement history without becoming a
+source of truth. Complete historical pagination and materialization remain
+future decisions.
+
 ## Candidate capabilities
 
 ### Care
@@ -43,9 +50,9 @@ Aquarium transaction boundary.
 - Complete Care Work
 - Review Care History
 
-### Timeline
+### Timeline — future increments
 
-- Review Timeline
+- Review complete Timeline history
 - Timeline filters
 - Contextual navigation
 

@@ -7,6 +7,8 @@ import {
   MeasurementWriter,
   ObservationReader,
   ObservationWriter,
+  TimelineMeasurementReader,
+  TimelineObservationReader,
 } from '../application/aquarium-ports';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 
@@ -33,6 +35,12 @@ export const MEASUREMENT_WRITER = new InjectionToken<MeasurementWriter>(
 export const MEASUREMENT_READER = new InjectionToken<MeasurementReader>(
   'MEASUREMENT_READER',
 );
+
+export const TIMELINE_OBSERVATION_READER =
+  new InjectionToken<TimelineObservationReader>('TIMELINE_OBSERVATION_READER');
+
+export const TIMELINE_MEASUREMENT_READER =
+  new InjectionToken<TimelineMeasurementReader>('TIMELINE_MEASUREMENT_READER');
 
 export const ACTIVE_AQUARIUM_CONTEXT_STORAGE =
   new InjectionToken<ActiveAquariumContextStorage>(

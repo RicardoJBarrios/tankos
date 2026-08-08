@@ -60,6 +60,14 @@ export interface ObservationReader {
   ): Promise<readonly ObservationListItem[]>;
 }
 
+export interface TimelineObservationReader {
+  listRecentOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    limit: number,
+  ): Promise<readonly ObservationListItem[]>;
+}
+
 export interface RecordMeasurementInput {
   readonly id: MeasurementId;
   readonly aquariumId: AquariumId;
@@ -103,4 +111,12 @@ export interface MeasurementReader {
     aquariumId: AquariumId,
     cursor?: MeasurementCursor,
   ): Promise<MeasurementPage>;
+}
+
+export interface TimelineMeasurementReader {
+  listRecentOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    limit: number,
+  ): Promise<readonly MeasurementListItem[]>;
 }

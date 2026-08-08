@@ -17,6 +17,7 @@ import { Observation, observationIdFrom } from '../domain/observation';
 import {
   ObservationListItem,
   ObservationReader,
+  TimelineObservationReader,
   ObservationWriter,
   RecordObservationInput,
 } from '../application/aquarium-ports';
@@ -44,7 +45,7 @@ function toListItem(
 
 @Injectable()
 export class FirestoreObservationRepository
-  implements ObservationWriter, ObservationReader
+  implements ObservationWriter, ObservationReader, TimelineObservationReader
 {
   async record(input: RecordObservationInput): Promise<Observation> {
     const { firestore } = getFirebaseClient();
@@ -81,6 +82,28 @@ export class FirestoreObservationRepository
       limit(OBSERVATION_LIST_LIMIT),
     );
     const snapshot = await getDocs(pageQuery);
+
+    return snapshot.docs.map((entry) =>
+      toListItem(entry.id, observationDocument.parse(entry.data())),
+    );
+  }
+
+  async listRecentOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    limitCount: number,
+  ): Promise<readonly ObservationListItem[]> {
+    const { firestore } = getFirebaseClient();
+    const observations = collection(firestore, 'observations');
+    const recentQuery = query(
+      observations,
+      where('ownerId', '==', ownerKeeperId),
+      where('aquariumId', '==', aquariumId),
+      orderBy('recordedAt', 'desc'),
+      orderBy(documentId(), 'asc'),
+      limit(limitCount),
+    );
+    const snapshot = await getDocs(recentQuery);
 
     return snapshot.docs.map((entry) =>
       toListItem(entry.id, observationDocument.parse(entry.data())),

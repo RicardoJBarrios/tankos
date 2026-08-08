@@ -1,0 +1,90 @@
+<section
+  aria-labelledby="timeline-title"
+  data-testid="recent-timeline"
+  class="page-section"
+>
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Contexto del acuario</p>
+      <h2 id="timeline-title">Actividad reciente</h2>
+    </div>
+  </div>
+
+  @if (state() === 'no-context') {
+  <mat-card appearance="outlined" class="empty-state">
+    <mat-card-content>
+      <p role="status">
+        Primero selecciona un acuario para consultar su actividad reciente.
+      </p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums"
+        >Volver a mis acuarios</a
+      >
+    </mat-card-content>
+  </mat-card>
+  } @else if (state() === 'loading') {
+  <div class="loading-state" role="status" aria-live="polite">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="32"
+      aria-label="Cargando actividad reciente"
+    />
+    <span>Cargando actividad reciente…</span>
+  </div>
+  } @else if (state() === 'failure') {
+  <div class="feedback feedback-error" role="alert">
+    <p>{{ errorMessage() }}</p>
+    <button mat-stroked-button type="button" (click)="retry()">
+      Reintentar
+    </button>
+  </div>
+  } @else if (state() === 'empty') {
+  <mat-card appearance="outlined" class="empty-state">
+    <mat-card-content>
+      <p>No hay actividad reciente registrada para este acuario.</p>
+      <div class="action-row">
+        <a
+          mat-flat-button
+          color="primary"
+          routerLink="/app/aquariums/observations/new"
+          >Registrar observación</a
+        >
+        <a mat-stroked-button routerLink="/app/aquariums/measurements/new"
+          >Registrar medición</a
+        >
+      </div>
+    </mat-card-content>
+  </mat-card>
+  } @else {
+  <ul aria-label="Actividad reciente del acuario">
+    @for (item of items(); track item.kind === 'observation' ?
+    item.observationId : item.measurementId) {
+    <li>
+      <mat-card appearance="outlined">
+        <mat-card-content>
+          @if (isObservation(item)) {
+          <p class="item-kind">Observación</p>
+          <p class="observation-content">{{ item.content }}</p>
+          <time [attr.datetime]="item.effectiveAt.toISOString()">
+            {{ formatDate(item.effectiveAt) }}
+          </time>
+          } @else if (isMeasurement(item)) {
+          <p class="item-kind">Medición</p>
+          <div class="measurement-row">
+            <strong
+              >{{ measurementLabel(item) }}: {{ item.canonicalValue }} {{
+              measurementUnit(item) }}</strong
+            >
+            <time [attr.datetime]="item.effectiveAt.toISOString()">
+              {{ formatDate(item.effectiveAt) }}
+            </time>
+          </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </li>
+    }
+  </ul>
+  }
+
+  <a mat-button routerLink="/app/aquariums">Volver a mis acuarios</a>
+</section>

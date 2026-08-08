@@ -34,6 +34,13 @@ replace the historical collection or introduce a second source of truth.
 Future increments still require decisions about correction, retention and
 broader ownership semantics.
 
+## 3.1 Timeline — accepted first increment
+
+`Review Recent Timeline` is the first bounded Timeline increment. It combines
+the existing Observation and Measurement read sources for recent contextual
+review without introducing a Timeline collection or changing source truth.
+Complete pagination, materialization and Care-derived entries remain deferred.
+
 ## 4. Care
 
 Discover Maintenance, Water Change, Feeding, Task and Reminder semantics before
@@ -42,9 +49,10 @@ execution and review only when their accepted use cases need separate behavior.
 
 ## 5. Timeline
 
-Add Timeline review and filters only after source records and their ordering,
-visibility and retention rules are trustworthy. Timeline is a projection, not a
-new source of truth.
+The accepted first increment is a bounded recent review over trustworthy source
+records. Complete Timeline review and filters require separate pagination,
+retention and consistency decisions. Timeline remains a projection, not a new
+source of truth.
 
 ## 6. Livestock and Equipment
 
