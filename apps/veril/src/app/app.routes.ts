@@ -38,6 +38,13 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'aquariums/measurements',
+        loadComponent: () =>
+          import('./aquariums/ui/list-measurements-page').then(
+            ({ ListMeasurementsPage }) => ListMeasurementsPage,
+          ),
+      },
+      {
         path: 'aquariums/measurements/new',
         loadComponent: () =>
           import('./aquariums/ui/record-measurement-page').then(

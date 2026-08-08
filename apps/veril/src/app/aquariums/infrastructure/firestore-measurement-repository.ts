@@ -1,5 +1,18 @@
 import { Injectable } from '@angular/core';
-import { Timestamp, doc, setDoc } from 'firebase/firestore';
+import {
+  Timestamp,
+  collection,
+  doc,
+  documentId,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  QueryConstraint,
+  setDoc,
+  startAfter,
+  where,
+} from 'firebase/firestore';
 import { z } from 'zod';
 import {
   canonicalUnitFor,
@@ -11,9 +24,13 @@ import {
 } from '../domain/measurement';
 import {
   MeasurementWriter,
+  MeasurementCursor,
+  MeasurementListItem,
+  MeasurementPage,
+  MeasurementReader,
   RecordMeasurementInput,
 } from '../application/aquarium-ports';
-import { aquariumIdFrom } from '../domain/aquarium';
+import { AquariumId, aquariumIdFrom } from '../domain/aquarium';
 import { getFirebaseClient } from './firebase-client';
 
 const measurementDocument = z.object({
@@ -28,6 +45,45 @@ const measurementDocument = z.object({
   recordedAt: z.instanceof(Timestamp),
   provenance: z.literal('manual'),
 });
+
+const measurementCursor = z.object({
+  measuredAt: z.string(),
+  recordedAt: z.string(),
+  measurementId: z.string(),
+});
+
+export const MEASUREMENT_PAGE_SIZE = 20;
+
+function encodeCursor(item: MeasurementListItem): MeasurementCursor {
+  return encodeURIComponent(
+    JSON.stringify({
+      measuredAt: item.measuredAt.toISOString(),
+      recordedAt: item.recordedAt.toISOString(),
+      measurementId: item.id,
+    }),
+  ) as MeasurementCursor;
+}
+
+function decodeCursor(cursor: MeasurementCursor) {
+  const parsed = measurementCursor.parse(
+    JSON.parse(decodeURIComponent(cursor)),
+  );
+  const measuredAt = new Date(parsed.measuredAt);
+  const recordedAt = new Date(parsed.recordedAt);
+
+  if (
+    Number.isNaN(measuredAt.getTime()) ||
+    Number.isNaN(recordedAt.getTime())
+  ) {
+    throw new Error('Measurement cursor contains invalid dates');
+  }
+
+  return {
+    measuredAt,
+    recordedAt,
+    measurementId: measurementIdFrom(parsed.measurementId),
+  };
+}
 
 function toDomain(
   id: string,
@@ -47,8 +103,27 @@ function toDomain(
   });
 }
 
+function toListItem(
+  id: string,
+  data: z.infer<typeof measurementDocument>,
+): MeasurementListItem {
+  const measurement = toDomain(id, data);
+
+  return {
+    id: measurement.id,
+    parameterId: measurement.parameterId,
+    canonicalValue: measurement.canonicalValue,
+    canonicalUnit: measurement.canonicalUnit,
+    measuredAt: measurement.measuredAt,
+    recordedAt: measurement.recordedAt,
+    provenance: measurement.provenance,
+  };
+}
+
 @Injectable()
-export class FirestoreMeasurementRepository implements MeasurementWriter {
+export class FirestoreMeasurementRepository
+  implements MeasurementWriter, MeasurementReader
+{
   async record(input: RecordMeasurementInput): Promise<Measurement> {
     const { firestore } = getFirebaseClient();
     const reference = doc(firestore, 'measurements', input.id);
@@ -71,5 +146,46 @@ export class FirestoreMeasurementRepository implements MeasurementWriter {
 
     await setDoc(reference, dto);
     return toDomain(reference.id, dto);
+  }
+
+  async listOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    cursor?: MeasurementCursor,
+  ): Promise<MeasurementPage> {
+    const { firestore } = getFirebaseClient();
+    const measurements = collection(firestore, 'measurements');
+    const decodedCursor = cursor ? decodeCursor(cursor) : undefined;
+    const constraints: QueryConstraint[] = [
+      where('ownerId', '==', ownerKeeperId),
+      where('aquariumId', '==', aquariumId),
+      orderBy('measuredAt', 'desc'),
+      orderBy('recordedAt', 'desc'),
+      orderBy(documentId(), 'asc'),
+    ];
+    if (decodedCursor) {
+      constraints.push(
+        startAfter(
+          Timestamp.fromDate(decodedCursor.measuredAt),
+          Timestamp.fromDate(decodedCursor.recordedAt),
+          decodedCursor.measurementId,
+        ),
+      );
+    }
+    constraints.push(limit(MEASUREMENT_PAGE_SIZE + 1));
+
+    const pageQuery = query(measurements, ...constraints);
+    const snapshot = await getDocs(pageQuery);
+    const hasMore = snapshot.docs.length > MEASUREMENT_PAGE_SIZE;
+    const items = snapshot.docs
+      .slice(0, MEASUREMENT_PAGE_SIZE)
+      .map((entry) =>
+        toListItem(entry.id, measurementDocument.parse(entry.data())),
+      );
+
+    return {
+      items,
+      ...(hasMore ? { nextCursor: encodeCursor(items[items.length - 1]) } : {}),
+    };
   }
 }

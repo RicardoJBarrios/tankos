@@ -1,5 +1,4 @@
-import { Aquarium } from '../domain/aquarium';
-import { AquariumId, AquariumName } from '../domain/aquarium';
+import { Aquarium, AquariumId, AquariumName } from '../domain/aquarium';
 import {
   Measurement,
   MeasurementId,
@@ -64,4 +63,31 @@ export interface RecordMeasurementInput {
 
 export interface MeasurementWriter {
   record(input: RecordMeasurementInput): Promise<Measurement>;
+}
+
+export type MeasurementCursor = string & {
+  readonly __measurementCursor: unique symbol;
+};
+
+export interface MeasurementListItem {
+  readonly id: MeasurementId;
+  readonly parameterId: ParameterId;
+  readonly canonicalValue: number;
+  readonly canonicalUnit: UnitId;
+  readonly measuredAt: Date;
+  readonly recordedAt: Date;
+  readonly provenance: 'manual';
+}
+
+export interface MeasurementPage {
+  readonly items: readonly MeasurementListItem[];
+  readonly nextCursor?: MeasurementCursor;
+}
+
+export interface MeasurementReader {
+  listOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    cursor?: MeasurementCursor,
+  ): Promise<MeasurementPage>;
 }

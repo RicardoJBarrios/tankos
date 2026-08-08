@@ -4,7 +4,7 @@ import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { describe, expect, it } from 'vitest';
 import { AquariumName, createAquariumId } from '../domain/aquarium';
-import { createMeasurementId } from '../domain/measurement';
+import { createMeasurementId, measurementIdFrom } from '../domain/measurement';
 import { getFirebaseClient } from './firebase-client';
 import { FirebaseKeeperSession } from './firebase-keeper-session';
 import { FirestoreAquariumRepository } from './firestore-aquarium-repository';
@@ -104,8 +104,100 @@ describe('FirestoreMeasurementRepository (Emulator Suite)', () => {
         canonicalUnit: 'parts-per-thousand',
       });
 
+      const listed = await repository.listOwned(keeper.id, aquarium.id);
+      expect(listed.items).toHaveLength(2);
+      expect(listed.items.map((item) => item.parameterId)).toEqual([
+        'salinity',
+        'temperature',
+      ]);
+      expect(listed.items[0]).toMatchObject({
+        canonicalValue: 35,
+        canonicalUnit: 'parts-per-thousand',
+        measuredAt,
+        recordedAt: new Date('2026-08-08T10:06:00.000Z'),
+      });
+
       await signOut(auth);
     },
     20000,
+  );
+
+  emulatorTest(
+    'orders equal timestamps by MeasurementId and resumes without duplicates',
+    async () => {
+      const session = new FirebaseKeeperSession();
+      const keeper = await session.requireAuthenticatedKeeper();
+      const aquarium = await new FirestoreAquariumRepository().establish({
+        id: createAquariumId(),
+        name: AquariumName.create('Ordenación'),
+        ownerKeeperId: keeper.id,
+        establishedAt: new Date('2026-08-08T11:00:00.000Z'),
+      });
+      const repository = new FirestoreMeasurementRepository();
+      const otherAquarium = await new FirestoreAquariumRepository().establish({
+        id: createAquariumId(),
+        name: AquariumName.create('Otro acuario'),
+        ownerKeeperId: keeper.id,
+        establishedAt: new Date('2026-08-08T11:01:00.000Z'),
+      });
+      const ids = Array.from({ length: 21 }, (_, index) =>
+        measurementIdFrom(
+          `123e4567-e89b-42d3-a456-426614174${index
+            .toString()
+            .padStart(3, '0')}`,
+        ),
+      );
+      const measuredAt = new Date('2026-08-08T11:10:00.000Z');
+      const recordedAt = new Date('2026-08-08T11:11:00.000Z');
+
+      await repository.record({
+        id: createMeasurementId(),
+        aquariumId: otherAquarium.id,
+        ownerKeeperId: keeper.id,
+        parameterId: 'temperature',
+        enteredValue: 19,
+        enteredUnit: 'celsius',
+        canonicalValue: 19,
+        canonicalUnit: 'celsius',
+        measuredAt,
+        recordedAt,
+        provenance: 'manual',
+      });
+
+      for (const id of ids) {
+        await repository.record({
+          id,
+          aquariumId: aquarium.id,
+          ownerKeeperId: keeper.id,
+          parameterId: 'temperature',
+          enteredValue: 23,
+          enteredUnit: 'celsius',
+          canonicalValue: 23,
+          canonicalUnit: 'celsius',
+          measuredAt,
+          recordedAt,
+          provenance: 'manual',
+        });
+      }
+
+      const firstPage = await repository.listOwned(keeper.id, aquarium.id);
+      const secondPage = await repository.listOwned(
+        keeper.id,
+        aquarium.id,
+        firstPage.nextCursor,
+      );
+      const listedIds = [...firstPage.items, ...secondPage.items].map(
+        (item) => item.id,
+      );
+
+      expect(firstPage.items).toHaveLength(20);
+      expect(secondPage.items).toHaveLength(1);
+      expect(listedIds).toEqual(ids);
+      expect(new Set(listedIds).size).toBe(21);
+
+      const { auth } = getFirebaseClient();
+      await signOut(auth);
+    },
+    30000,
   );
 });

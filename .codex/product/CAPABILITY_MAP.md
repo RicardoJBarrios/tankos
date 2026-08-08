@@ -26,7 +26,7 @@ Provides durable quantitative evidence for the selected Aquarium through a
 closed Parameter catalogue.
 
 - Record Measurement — accepted and implemented.
-- List Measurements — candidate.
+- List Measurements — accepted and implemented.
 - Correct Measurement — candidate.
 - Parameter History — candidate.
 

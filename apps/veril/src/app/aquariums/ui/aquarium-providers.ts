@@ -3,6 +3,7 @@ import {
   AquariumRepository,
   AquariumReader,
   KeeperSession,
+  MeasurementReader,
   MeasurementWriter,
   ObservationWriter,
 } from '../application/aquarium-ports';
@@ -22,6 +23,10 @@ export const OBSERVATION_WRITER = new InjectionToken<ObservationWriter>(
 
 export const MEASUREMENT_WRITER = new InjectionToken<MeasurementWriter>(
   'MEASUREMENT_WRITER',
+);
+
+export const MEASUREMENT_READER = new InjectionToken<MeasurementReader>(
+  'MEASUREMENT_READER',
 );
 
 export const ACTIVE_AQUARIUM_CONTEXT_STORAGE =

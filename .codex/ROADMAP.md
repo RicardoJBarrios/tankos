@@ -21,15 +21,17 @@ establish a private Aquarium context and the first durable qualitative record.
 They do not require public presentation, domain offline, App Check, E2E,
 Display, System, Equipment, Livestock or Timeline.
 
-## 3. Measurements — current increment, future expansion
+## 3. Measurements — current capability
 
 `Record Measurement` is accepted and implemented as the first increment of this
 capability. Its closed Parameter catalogue, units, provenance, ownership and
 append-only semantics are defined in the measurement language and specification.
-Do not infer future measurement behavior from the Observation model. Parameter
-history is a read capability, not a prerequisite for recording the first
-measurement. Future measurement increments still require decisions about
-correction, retention and broader ownership semantics.
+`List Measurements` is implemented as a bounded read of the existing
+collection, not a universal Timeline. A future current-state read may use a
+derived materialized model once its first consumer is accepted; it must not
+replace the historical collection or introduce a second source of truth.
+Future increments still require decisions about correction, retention and
+broader ownership semantics.
 
 ## 4. Care
 

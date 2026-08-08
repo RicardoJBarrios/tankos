@@ -48,6 +48,16 @@ Firebase adapter and Rules tests verify owner-scoped persistence, canonical
 representation, timestamps, provenance and rejection of anonymous, cross-owner,
 spoofed-owner and malformed structural writes.
 
+`List Measurements` adds application tests for authentication, Active Context,
+empty pages, opaque continuation and infrastructure failures. Its adapter
+integration tests use the real Emulator Suite to verify owner-scoped reads,
+field mapping, the accepted three-field ordering, page limits, cursor
+continuation, tie handling and malformed persisted data. Rules tests cover the
+owner query and reject unauthenticated and cross-owner queries. Spectator tests
+cover missing context, loading, empty, ordered results, continuation, pending
+loading and recoverable errors. The existing Playwright keeper journey also
+verifies that a recorded Measurement is visible in its list.
+
 ## Browser journeys
 
 `pnpm nx e2e veril` runs the canonical Chromium journeys through visible UI

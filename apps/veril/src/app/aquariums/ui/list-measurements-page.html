@@ -1,0 +1,40 @@
+<section aria-labelledby="measurements-title" data-testid="measurement-list">
+  <h1 id="measurements-title">Mediciones</h1>
+
+  @if (state() === 'no-context') {
+  <p role="status">
+    Primero selecciona un acuario para consultar sus mediciones.
+  </p>
+  <a routerLink="/app/aquariums">Volver a mis acuarios</a>
+  } @else if (state() === 'loading') {
+  <p role="status" aria-live="polite">Cargando mediciones…</p>
+  } @else if (state() === 'failure') {
+  <p role="alert">{{ errorMessage() }}</p>
+  <a routerLink="/app/aquariums">Volver a mis acuarios</a>
+  } @else if (state() === 'empty') {
+  <p>No hay mediciones registradas para este acuario.</p>
+  <a routerLink="/app/aquariums/measurements/new">Registrar medición</a>
+  } @else {
+  <ul aria-label="Mediciones registradas">
+    @for (item of items(); track item.id) {
+    <li>
+      <span>{{ measurementLabel(item) }}:</span>
+      <strong>{{ item.canonicalValue }} {{ measurementUnit(item) }}</strong>
+      <time [attr.datetime]="item.measuredAt.toISOString()">
+        {{ formatMeasuredAt(item) }}
+      </time>
+    </li>
+    }
+  </ul>
+
+  @if (errorMessage()) {
+  <p role="alert">{{ errorMessage() }}</p>
+  } @if (nextCursor()) {
+  <button type="button" (click)="loadMore()" [disabled]="isLoadingMore()">
+    {{ isLoadingMore() ? 'Cargando…' : 'Cargar más' }}
+  </button>
+  }
+
+  <a routerLink="/app/aquariums/measurements/new">Registrar medición</a>
+  }
+</section>

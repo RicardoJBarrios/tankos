@@ -13,24 +13,18 @@ import {
 import { RouterLink } from '@angular/router';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { RecordMeasurement } from '../application/record-measurement';
-import { canonicalUnitFor, ParameterId } from '../domain/measurement';
+import { ParameterId } from '../domain/measurement';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
 import { FirestoreMeasurementRepository } from '../infrastructure/firestore-measurement-repository';
 import { KEEPER_SESSION, MEASUREMENT_WRITER } from './aquarium-providers';
+import {
+  MEASUREMENT_PARAMETER_PRESENTATIONS,
+  measurementPresentationFor,
+} from './measurement-presentations';
+
+const parameters = MEASUREMENT_PARAMETER_PRESENTATIONS;
 
 type PageState = 'ready' | 'saving' | 'success' | 'error';
-
-const parameters: readonly {
-  readonly id: ParameterId;
-  readonly label: string;
-  readonly unit: string;
-}[] = [
-  { id: 'temperature', label: 'Temperatura', unit: '°C' },
-  { id: 'salinity', label: 'Salinidad', unit: 'ppt' },
-  { id: 'alkalinity', label: 'Alcalinidad', unit: 'dKH' },
-  { id: 'nitrate', label: 'Nitrato', unit: 'mg/L as NO₃' },
-  { id: 'phosphate', label: 'Fosfato', unit: 'mg/L as PO₄' },
-];
 
 function currentDateTimeLocal(): string {
   const now = new Date();
@@ -89,10 +83,7 @@ export class RecordMeasurementPage {
 
   get selectedUnit(): string {
     const parameterId = this.form.controls.parameterId.value;
-    return (
-      this.parameters.find((parameter) => parameter.id === parameterId)?.unit ??
-      canonicalUnitFor(parameterId)
-    );
+    return measurementPresentationFor(parameterId).unit;
   }
 
   async submit(): Promise<void> {

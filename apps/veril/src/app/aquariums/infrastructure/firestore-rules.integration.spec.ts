@@ -135,6 +135,49 @@ async function writeMeasurement(
   );
 }
 
+async function queryMeasurements(
+  aquariumId: string,
+  ownerId: string,
+  token?: string,
+) {
+  return fetch(
+    'http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents:runQuery',
+    {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'measurements' }],
+          where: {
+            compositeFilter: {
+              op: 'AND',
+              filters: [
+                {
+                  fieldFilter: {
+                    field: { fieldPath: 'aquariumId' },
+                    op: 'EQUAL',
+                    value: { stringValue: aquariumId },
+                  },
+                },
+                {
+                  fieldFilter: {
+                    field: { fieldPath: 'ownerId' },
+                    op: 'EQUAL',
+                    value: { stringValue: ownerId },
+                  },
+                },
+              ],
+            },
+          },
+        },
+      }),
+    },
+  );
+}
+
 describe('Firestore Security Rules (Emulator Suite)', () => {
   emulatorTest(
     'allow independent Aquariums and isolate owners',
@@ -207,6 +250,28 @@ describe('Firestore Security Rules (Emulator Suite)', () => {
           )
         ).status,
       ).toBe(200);
+      const ownerMeasurementQuery = await queryMeasurements(
+        aquariumA,
+        keeperA.localId,
+        keeperA.idToken,
+      );
+      expect(ownerMeasurementQuery.status).toBe(200);
+      expect(
+        (await ownerMeasurementQuery.text()).match(/"document"/g),
+      ).toHaveLength(1);
+
+      const anonymousMeasurementQuery = await queryMeasurements(
+        aquariumA,
+        keeperA.localId,
+      );
+      expect([401, 403]).toContain(anonymousMeasurementQuery.status);
+
+      const crossOwnerMeasurementQuery = await queryMeasurements(
+        aquariumA,
+        keeperA.localId,
+        keeperB.idToken,
+      );
+      expect(crossOwnerMeasurementQuery.status).toBe(403);
       expect(
         (await writeMeasurement(createAquariumId(), aquariumA, keeperA.localId))
           .status,

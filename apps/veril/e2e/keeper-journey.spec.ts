@@ -52,6 +52,9 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
       .getByRole('status')
       .filter({ hasText: 'Medición guardada correctamente.' }),
   ).toBeVisible();
+  await page.getByRole('link', { name: 'Ver mediciones' }).click();
+  await expect(page).toHaveURL('/app/aquariums/measurements');
+  await expect(page.getByTestId('measurement-list')).toContainText('25.4 °C');
 });
 
 test('protected recording pages recover when no Aquarium is selected', async ({
