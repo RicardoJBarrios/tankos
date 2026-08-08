@@ -58,4 +58,12 @@ describe('appRoutes', () => {
       'aquariums/measurements',
     );
   });
+
+  it('defines the List Observations child route', () => {
+    const privateRoute = appRoutes.find((route) => route.path === 'app');
+
+    expect(privateRoute?.children?.map((route) => route.path)).toContain(
+      'aquariums/observations',
+    );
+  });
 });

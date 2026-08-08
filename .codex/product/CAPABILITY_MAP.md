@@ -15,6 +15,7 @@ discovered, selected and used for durable qualitative records.
 - List My Aquariums — accepted and implemented.
 - Select Aquarium — accepted and implemented.
 - Record Observation — accepted and implemented.
+- List Observations — accepted and implemented.
 
 These use cases share product language and the Aquarium as their subject, but
 they do not require a single large transaction boundary or a shared technical

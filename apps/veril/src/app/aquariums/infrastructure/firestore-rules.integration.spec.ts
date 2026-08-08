@@ -75,6 +75,53 @@ async function queryAquariums(ownerId: string, token?: string) {
   );
 }
 
+async function queryObservations(
+  aquariumId: string,
+  ownerId: string,
+  token?: string,
+) {
+  return fetch(
+    'http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents:runQuery',
+    {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'observations' }],
+          where: {
+            compositeFilter: {
+              op: 'AND',
+              filters: [
+                {
+                  fieldFilter: {
+                    field: { fieldPath: 'aquariumId' },
+                    op: 'EQUAL',
+                    value: { stringValue: aquariumId },
+                  },
+                },
+                {
+                  fieldFilter: {
+                    field: { fieldPath: 'ownerId' },
+                    op: 'EQUAL',
+                    value: { stringValue: ownerId },
+                  },
+                },
+              ],
+            },
+          },
+          orderBy: [
+            { field: { fieldPath: 'recordedAt' }, direction: 'DESCENDING' },
+            { field: { fieldPath: '__name__' }, direction: 'ASCENDING' },
+          ],
+        },
+      }),
+    },
+  );
+}
+
 async function writeObservation(
   id: string,
   aquariumId: string,
@@ -225,6 +272,24 @@ describe('Firestore Security Rules (Emulator Suite)', () => {
         { headers: { Authorization: `Bearer ${keeperB.idToken}` } },
       );
       expect(crossOwnerObservationRead.status).toBe(403);
+      const ownerObservationQuery = await queryObservations(
+        aquariumA,
+        keeperA.localId,
+        keeperA.idToken,
+      );
+      expect(ownerObservationQuery.status).toBe(200);
+      expect(
+        (await ownerObservationQuery.text()).match(/"document"/g),
+      ).toHaveLength(1);
+      expect(
+        [401, 403].includes(
+          (await queryObservations(aquariumA, keeperA.localId)).status,
+        ),
+      ).toBe(true);
+      expect(
+        (await queryObservations(aquariumA, keeperA.localId, keeperB.idToken))
+          .status,
+      ).toBe(403);
       expect(
         (await writeObservation(createAquariumId(), aquariumA, keeperA.localId))
           .status,

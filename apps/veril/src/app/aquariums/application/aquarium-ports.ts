@@ -47,6 +47,19 @@ export interface ObservationWriter {
   record(input: RecordObservationInput): Promise<Observation>;
 }
 
+export interface ObservationListItem {
+  readonly id: ObservationId;
+  readonly content: string;
+  readonly recordedAt: Date;
+}
+
+export interface ObservationReader {
+  listOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+  ): Promise<readonly ObservationListItem[]>;
+}
+
 export interface RecordMeasurementInput {
   readonly id: MeasurementId;
   readonly aquariumId: AquariumId;

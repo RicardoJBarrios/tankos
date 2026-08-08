@@ -41,6 +41,11 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
       .getByRole('status')
       .filter({ hasText: 'Observación guardada correctamente.' }),
   ).toBeVisible();
+  await page.getByRole('link', { name: 'Ver observaciones' }).click();
+  await expect(page).toHaveURL('/app/aquariums/observations');
+  await expect(page.getByTestId('observation-list')).toContainText(
+    'El coral está abierto.',
+  );
 
   await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
   await expect(page.getByLabel('Acuario seleccionado')).toBeVisible();

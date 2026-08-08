@@ -58,6 +58,16 @@ cover missing context, loading, empty, ordered results, continuation, pending
 loading and recoverable errors. The existing Playwright keeper journey also
 verifies that a recorded Measurement is visible in its list.
 
+`List Observations` adds application tests for authentication, Active Context,
+empty results, ordered read models and infrastructure failures. Its adapter
+integration tests use the real Emulator Suite to verify owner-scoped reads,
+recorded-time and ObservationId ordering, bounded results and field mapping;
+the adapter boundary test rejects malformed persisted data. Rules tests cover
+the owner query and reject unauthenticated and cross-owner queries. Spectator
+tests cover missing context, loading, empty, results and recoverable errors.
+The canonical Playwright keeper journey also verifies that recorded qualitative
+evidence is visible in the observation list.
+
 ## Browser journeys
 
 `pnpm nx e2e veril` runs the canonical Chromium journeys through visible UI

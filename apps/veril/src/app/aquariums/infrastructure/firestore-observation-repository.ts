@@ -1,9 +1,22 @@
 import { Injectable } from '@angular/core';
-import { Timestamp, doc, setDoc } from 'firebase/firestore';
+import {
+  Timestamp,
+  collection,
+  doc,
+  documentId,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  setDoc,
+  where,
+} from 'firebase/firestore';
 import { z } from 'zod';
-import { aquariumIdFrom } from '../domain/aquarium';
+import { AquariumId, aquariumIdFrom } from '../domain/aquarium';
 import { Observation, observationIdFrom } from '../domain/observation';
 import {
+  ObservationListItem,
+  ObservationReader,
   ObservationWriter,
   RecordObservationInput,
 } from '../application/aquarium-ports';
@@ -16,8 +29,23 @@ const observationDocument = z.object({
   recordedAt: z.instanceof(Timestamp),
 });
 
+export const OBSERVATION_LIST_LIMIT = 50;
+
+function toListItem(
+  id: string,
+  data: z.infer<typeof observationDocument>,
+): ObservationListItem {
+  return {
+    id: observationIdFrom(id),
+    content: data.content,
+    recordedAt: data.recordedAt.toDate(),
+  };
+}
+
 @Injectable()
-export class FirestoreObservationRepository implements ObservationWriter {
+export class FirestoreObservationRepository
+  implements ObservationWriter, ObservationReader
+{
   async record(input: RecordObservationInput): Promise<Observation> {
     const { firestore } = getFirebaseClient();
     const reference = doc(firestore, 'observations', input.id);
@@ -36,5 +64,26 @@ export class FirestoreObservationRepository implements ObservationWriter {
       content: dto.content,
       recordedAt: dto.recordedAt.toDate(),
     };
+  }
+
+  async listOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+  ): Promise<readonly ObservationListItem[]> {
+    const { firestore } = getFirebaseClient();
+    const observations = collection(firestore, 'observations');
+    const pageQuery = query(
+      observations,
+      where('ownerId', '==', ownerKeeperId),
+      where('aquariumId', '==', aquariumId),
+      orderBy('recordedAt', 'desc'),
+      orderBy(documentId(), 'asc'),
+      limit(OBSERVATION_LIST_LIMIT),
+    );
+    const snapshot = await getDocs(pageQuery);
+
+    return snapshot.docs.map((entry) =>
+      toListItem(entry.id, observationDocument.parse(entry.data())),
+    );
   }
 }

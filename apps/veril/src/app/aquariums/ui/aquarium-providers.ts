@@ -5,6 +5,7 @@ import {
   KeeperSession,
   MeasurementReader,
   MeasurementWriter,
+  ObservationReader,
   ObservationWriter,
 } from '../application/aquarium-ports';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
@@ -19,6 +20,10 @@ export const KEEPER_SESSION = new InjectionToken<KeeperSession>(
 
 export const OBSERVATION_WRITER = new InjectionToken<ObservationWriter>(
   'OBSERVATION_WRITER',
+);
+
+export const OBSERVATION_READER = new InjectionToken<ObservationReader>(
+  'OBSERVATION_READER',
 );
 
 export const MEASUREMENT_WRITER = new InjectionToken<MeasurementWriter>(

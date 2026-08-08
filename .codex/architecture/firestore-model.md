@@ -78,6 +78,20 @@ referenced Aquarium owner before allowing creation, and owner-scoped reads are
 allowed for the persisted document. No index or historical query is introduced
 until a future accepted read use case requires one.
 
+## List Observations: current read contract
+
+The accepted `List Observations` read filters the top-level `observations`
+collection by `ownerId` and `aquariumId`, then orders by `recordedAt`
+descending and document ID ascending. It applies a capability-local limit of
+50 records and does not introduce pagination in this increment. The adapter
+validates every returned document with the existing Observation persistence
+schema before mapping it to `ObservationListItem`.
+
+The query is compatible with the current Rules and Emulator Suite without an
+additional entry in `firestore.indexes.json`; this conclusion is specific to
+these equality filters and order fields. A future pagination, filter or time
+query must be reviewed independently rather than generalizing this result.
+
 ## List Measurements: current read contract
 
 The accepted `List Measurements` read filters the top-level `measurements`

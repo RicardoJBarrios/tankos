@@ -16,8 +16,9 @@ Expected ADRs: only changes to the accepted baseline or tooling policy.
 ## 2. Aquarium Management — current capability
 
 The current baseline contains the accepted increments `Establish Aquarium`,
-`List My Aquariums`, `Select Aquarium` and `Record Observation`. Together they
-establish a private Aquarium context and the first durable qualitative record.
+`List My Aquariums`, `Select Aquarium`, `Record Observation` and `List
+Observations`. Together they establish a private Aquarium context and the
+first durable qualitative evidence loop.
 They do not require public presentation, domain offline, App Check, E2E,
 Display, System, Equipment, Livestock or Timeline.
 
