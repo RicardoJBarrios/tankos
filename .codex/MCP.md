@@ -23,10 +23,11 @@ Purpose: local structural relationships between files and symbols, including
 imports, callers, callees and impact analysis. Use it after exact retrieval when
 relationships add value. Do not use it for trivial string lookup.
 
-Configuration is outside the workspace, uses the repository as its workspace,
-`graph` profile and `graph-only` mode, and disables telemetry. It ignores
-dependencies, builds, caches, coverage, Git metadata, logs and emulator exports.
-The graph is complementary to Nx ProjectGraph, `rg` and Git.
+The project registers CodeGraph in `.codex/config.toml`, using the repository as
+its workspace, the `graph` profile and `graph-only` mode, and disabling
+telemetry. Its executable and graph data remain outside the repository. It
+ignores dependencies, builds, caches, coverage, Git metadata, logs and emulator
+exports. The graph is complementary to Nx ProjectGraph, `rg` and Git.
 
 ## Permissions and limitations
 

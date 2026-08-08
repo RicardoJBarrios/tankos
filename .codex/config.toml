@@ -11,6 +11,13 @@ cwd = "."
 command = "/bin/zsh"
 args = [ "-lc", "export GITHUB_PERSONAL_ACCESS_TOKEN=\"$(gh auth token)\"; exec github-mcp-server stdio --toolsets=repos,issues,pull_requests,actions,code_security,secret_protection" ]
 
+[mcp_servers.codegraph]
+command = "/opt/homebrew/bin/codegraph-mcp"
+args = [ "--graph-only", "--workspace", "/Users/ricardo/Documents/github/veril", "--profile", "graph", "--exclude", "node_modules", "--exclude", "dist", "--exclude", ".nx", "--exclude", "coverage", "--exclude", ".git", "--exclude", "playwright-report", "--exclude", "test-results", "--exclude", ".codegraph", "--exclude", "*.log" ]
+
+[mcp_servers.codegraph.env]
+CODEGRAPH_TELEMETRY = "off"
+
 [features]
 multi_agent = true
 
