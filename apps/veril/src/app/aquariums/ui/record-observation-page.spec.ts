@@ -1,6 +1,8 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/vitest';
+import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
+import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 import { RecordObservation } from '../application/record-observation';
 import { aquariumIdFrom } from '../domain/aquarium';
 import { RecordObservationPage } from './record-observation-page';
@@ -13,10 +15,16 @@ describe('RecordObservationPage', () => {
   const createComponent = createComponentFactory({
     component: RecordObservationPage,
     providers: [
+      provideRouter([]),
       {
         provide: ActiveAquariumContext,
         useFactory: () => {
-          const context = new ActiveAquariumContext();
+          const storage: ActiveAquariumContextStorage = {
+            load: vi.fn(),
+            save: vi.fn(),
+            clear: vi.fn(),
+          };
+          const context = new ActiveAquariumContext(storage);
           if (includeActiveContext) {
             context.select(aquariumId);
           }

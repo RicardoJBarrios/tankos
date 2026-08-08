@@ -1,7 +1,9 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/vitest';
+import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AquariumListItem } from '../application/aquarium-ports';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
+import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 import { ListMyAquariums } from '../application/list-my-aquariums';
 import { SelectAquarium } from '../application/select-aquarium';
 import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
@@ -17,7 +19,20 @@ describe('ListMyAquariumsPage', () => {
   const selectAquarium = vi.fn();
   const createComponent = createComponentFactory({
     component: ListMyAquariumsPage,
-    providers: [ActiveAquariumContext],
+    providers: [
+      provideRouter([]),
+      {
+        provide: ActiveAquariumContext,
+        useFactory: () => {
+          const storage: ActiveAquariumContextStorage = {
+            load: vi.fn(),
+            save: vi.fn(),
+            clear: vi.fn(),
+          };
+          return new ActiveAquariumContext(storage);
+        },
+      },
+    ],
     overrideComponents: [
       [
         ListMyAquariumsPage,

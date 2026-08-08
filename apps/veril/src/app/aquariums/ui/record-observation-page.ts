@@ -10,6 +10,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { RecordObservation } from '../application/record-observation';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { KEEPER_SESSION, OBSERVATION_WRITER } from './aquarium-providers';
@@ -20,7 +21,7 @@ type PageState = 'ready' | 'saving' | 'success' | 'error';
 
 @Component({
   selector: 'veril-record-observation-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './record-observation-page.html',
   styleUrl: './record-observation-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

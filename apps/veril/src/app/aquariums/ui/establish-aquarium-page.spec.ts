@@ -1,4 +1,5 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/vitest';
+import { provideRouter } from '@angular/router';
 import { describe, expect, it, vi } from 'vitest';
 import { EstablishAquarium } from '../application/establish-aquarium';
 import { EstablishAquariumPage } from './establish-aquarium-page';
@@ -13,6 +14,7 @@ describe('EstablishAquariumPage', () => {
   });
   const createComponent = createComponentFactory({
     component: EstablishAquariumPage,
+    providers: [provideRouter([])],
     componentProviders: [
       { provide: EstablishAquarium, useValue: { execute: establish } },
     ],

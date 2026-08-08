@@ -10,6 +10,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { RecordMeasurement } from '../application/record-measurement';
 import { canonicalUnitFor, ParameterId } from '../domain/measurement';
@@ -39,7 +40,7 @@ function currentDateTimeLocal(): string {
 
 @Component({
   selector: 'veril-record-measurement-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './record-measurement-page.html',
   styleUrl: './record-measurement-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

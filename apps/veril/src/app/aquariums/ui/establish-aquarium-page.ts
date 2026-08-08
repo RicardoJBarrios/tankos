@@ -10,6 +10,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { EstablishAquarium } from '../application/establish-aquarium';
 import { AQUARIUM_REPOSITORY, KEEPER_SESSION } from './aquarium-providers';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
@@ -19,7 +20,7 @@ type PageState = 'ready' | 'saving' | 'success' | 'error';
 
 @Component({
   selector: 'veril-establish-aquarium-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './establish-aquarium-page.html',
   styleUrl: './establish-aquarium-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
