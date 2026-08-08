@@ -2,6 +2,11 @@
 
 Use the smallest retrieval sequence that can answer the question.
 
+Prefer cheap retrieval first: canonical documentation, then `rg` and Git. Use
+CodeGraph only when source-level relationships, callers, callees or impact are
+needed. Use Nx for workspace/project relationships and the external MCPs only
+for their own systems.
+
 ## Order
 
 1. `.codex/AGENT.md`, `VISION.md`, `PROJECT_CONTEXT.md`, `GLOSSARY.md`,
@@ -21,6 +26,12 @@ Use the smallest retrieval sequence that can answer the question.
 - Ignore dependencies, builds, caches, coverage and generated artifacts.
 - Use CodeGraph for callers, callees, imports, implementations and impact.
 - Do not use CodeGraph for trivial exact string lookup.
+- Use CodeGraph before moving a domain concept, changing a public interface or
+  application port, modifying an aggregate or ownership boundary, renaming a
+  use case, removing a shared component, or performing a multi-file refactoring
+  where structural impact matters.
+- For isolated templates, styles and local implementation changes, prefer not
+  to invoke CodeGraph.
 - Use Nx MCP for project-level relationships; do not substitute it with source
   graph queries.
 - Use external MCPs only when local documentation cannot answer the question.
@@ -45,5 +56,6 @@ If any required item is missing, stop and state what is missing before editing.
 ## Fallback
 
 If a tool is unavailable or returns incomplete relationships, use `rg`, Git and
-focused file reads. Do not add another retrieval system merely because a query
-was inconvenient.
+Nx as appropriate, report the unavailability once, and continue. Stop only if
+the missing structural analysis is genuinely required for a safe decision. Do
+not add another retrieval system merely because a query was inconvenient.
