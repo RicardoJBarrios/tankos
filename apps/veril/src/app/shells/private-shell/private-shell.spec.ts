@@ -14,5 +14,10 @@ describe('PrivateShell', () => {
 
     expect(spectator.query('h1')?.textContent).toBe('Área privada');
     expect(spectator.query('router-outlet')).toBeTruthy();
+    expect(
+      Array.from(spectator.queryAll('a')).some((link) =>
+        link.textContent?.includes('Mis acuarios'),
+      ),
+    ).toBe(true);
   });
 });

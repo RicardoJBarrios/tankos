@@ -35,5 +35,6 @@ describe('EstablishAquariumPage', () => {
 
     expect(establish).toHaveBeenCalledWith('Veril');
     expect(spectator.query('[role="status"]')?.textContent).toContain('Veril');
+    expect(spectator.query('a')?.getAttribute('href')).toBe('/app/aquariums');
   });
 });
