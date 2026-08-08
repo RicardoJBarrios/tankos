@@ -2,11 +2,12 @@
 
 ## Identity and identifiers
 
-`AquariumId` is an opaque, stable UUID v4 string. The application generates it
-locally with the platform `crypto.randomUUID()` capability before constructing
-the Aquarium; the domain receives an `AquariumId` value and never a Firebase
-identifier type. The Firestore adapter persists the same string as its document
-identifier, but Firestore does not generate or own the domain identity.
+Aggregate identities generated internally by Veril are opaque, stable UUID v4
+strings. The application generates them locally with the platform
+`crypto.randomUUID()` capability before constructing the aggregate; the domain
+receives its explicit branded identity type and never a Firebase identifier
+type. The Firestore adapter persists the same string as its document identifier,
+but Firestore does not generate or own domain identity.
 
 This satisfies offline-safe generation without network access and avoids a new
 dependency. UUIDv7 and ULID are rejected for the first slice because their time

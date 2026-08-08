@@ -33,6 +33,20 @@ Alert or Reminder --may inform?--> Person
 Question marks are intentional. These are semantic prompts for discovery, not
 accepted ownership, aggregate or storage boundaries.
 
+## Accepted Observation boundary
+
+For the accepted `Record an Observation` use case, `Observation` is an
+independently persisted aggregate. It references `AquariumId` but does not
+belong to the Aquarium aggregate's consistency boundary. Creating an
+Observation therefore does not require loading or mutating the Aquarium
+aggregate; Firestore Rules verify that the referenced Aquarium is owned by the
+authenticated keeper.
+
+This boundary keeps unbounded historical evidence from growing the Aquarium
+aggregate. Timeline remains a future chronological projection of durable Facts,
+not a second source of truth. Measurements and Care Work may use related but
+independent boundaries when their accepted use cases define them.
+
 ## Acceptance rule
 
 Promote a relationship to a domain rule only when a validated use case states

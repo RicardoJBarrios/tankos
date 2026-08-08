@@ -64,3 +64,16 @@ keeper to create and read each root they own, reject unauthenticated access and
 prevent arbitrary ownership changes. A persistence schema version is not required for this first DTO
 because there is no prior persisted shape to migrate; add one only with the
 first compatibility need.
+
+## Record an Observation: current persistence contract
+
+The accepted observation slice persists each Observation as an independent
+document in the top-level `observations` collection. Each document contains
+only `aquariumId`, `ownerId`, `content` and the Firestore timestamp
+`recordedAt`. The document identifier is the stable Observation identity.
+
+The write is append-only for this slice: updates and deletes are denied. The
+adapter does not load or mutate the Aquarium aggregate. Rules verify the
+referenced Aquarium owner before allowing creation, and owner-scoped reads are
+allowed for the persisted document. No index or historical query is introduced
+until a future accepted read use case requires one.

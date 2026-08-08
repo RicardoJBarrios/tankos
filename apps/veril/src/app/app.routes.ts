@@ -30,6 +30,20 @@ export const appRoutes: Route[] = [
             ({ EstablishAquariumPage }) => EstablishAquariumPage,
           ),
       },
+      {
+        path: 'aquariums/observations/new',
+        loadComponent: () =>
+          import('./aquariums/ui/record-observation-page').then(
+            ({ RecordObservationPage }) => RecordObservationPage,
+          ),
+      },
+      {
+        path: 'aquariums/measurements/new',
+        loadComponent: () =>
+          import('./aquariums/ui/record-measurement-page').then(
+            ({ RecordMeasurementPage }) => RecordMeasurementPage,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: '' },

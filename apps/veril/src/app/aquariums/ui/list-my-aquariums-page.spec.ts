@@ -101,6 +101,9 @@ describe('ListMyAquariumsPage', () => {
     expect(spectator.query('button')?.getAttribute('aria-pressed')).toBe(
       'true',
     );
+    expect(spectator.query('a')?.getAttribute('href')).toBe(
+      '/app/aquariums/observations/new',
+    );
   });
 
   it('renders a failure state', async () => {

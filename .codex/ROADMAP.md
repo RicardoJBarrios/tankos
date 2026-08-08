@@ -1,8 +1,9 @@
-# Technical Evolution Roadmap
+# Product and Technical Evolution Roadmap
 
-This is a technical sequencing roadmap, not a product feature commitment. Each
-step is conditional on a real requirement and should add only the boundaries it
-needs.
+This roadmap sequences product capabilities and their enabling technical work.
+It is not a feature commitment. Each step is conditional on a real requirement
+and should add only the boundaries it needs. See the [capability map](product/CAPABILITY_MAP.md)
+for the product grouping; this document does not define bounded contexts.
 
 ## 1. Bootstrap
 
@@ -12,61 +13,69 @@ become ceremonial if extraction happens before ownership exists.
 
 Expected ADRs: only changes to the accepted baseline or tooling policy.
 
-## 2. Establish an Aquarium
+## 2. Aquarium Management — current capability
 
-Implement the accepted first use case: an authenticated keeper establishes a new
-private, durable Aquarium with a name. The slice requires Authentication,
-Firestore, Emulator Suite, Security Rules, fail-closed configuration and focused
-unit/integration tests. It does not require public presentation, domain offline,
-App Check, E2E, Display, System, Equipment or Livestock.
+The current capability contains the accepted increments `Establish Aquarium`,
+`List My Aquariums`, `Select Aquarium` and `Record Observation`. Together they
+establish a private Aquarium context and the first durable qualitative record.
+They do not require public presentation, domain offline, App Check, E2E,
+Display, System, Equipment, Livestock or Timeline.
 
-## 3. Record and review the core loop
+## 3. Measurements
 
-Validate low-friction Measurements, Observations and focused history after their
-units, provenance, correction and retention semantics are accepted. Timeline is
-a later review model, not a prerequisite for establishment.
+Accept and implement measurement increments only after units, provenance,
+correction, retention and ownership semantics are defined. Do not infer them from
+the Observation model. Parameter history is a read capability, not a prerequisite
+for recording the first measurement.
 
-## 4. Care work
+## 4. Care
 
 Discover Maintenance, Water Change, Feeding, Task and Reminder semantics before
-choosing events, history behavior or offline classification.
+choosing events, history behavior or offline classification. Split planning,
+execution and review only when their accepted use cases need separate behavior.
 
-## 5. Livestock and Equipment
+## 5. Timeline
+
+Add Timeline review and filters only after source records and their ordering,
+visibility and retention rules are trustworthy. Timeline is a projection, not a
+new source of truth.
+
+## 6. Livestock and Equipment
 
 Add Fish and Coral only after Aquarium ownership is stable. Impact: historical
 identity, transfer rules, UI composition and likely new feature/data-access code.
 Risk: premature taxonomy and grouping complexity.
 
-## 6. Public presentation and portability
+## 7. Public presentation and portability
 
 Accept a publication use case before exposing Aquarium information. Accept export,
 import or restoration only after their scope, authorization and recovery semantics
 are defined.
 
-## 7. Offline capability
+## 8. Offline capability
 
 Classify a concrete operation as offline-safe before introducing persistent cache,
 trusted-device consent, synchronization UX or conflict handling.
 
-## 8. Automation
+## 9. Automation
 
 Add Controllers and Rules only after safety, authorization, audit and online/offline
 semantics are explicit. Impact: stronger ports, adapters and operational controls.
 Risk: unsafe actions and hidden coupling to vendor devices.
 
-## 9. Notifications
+## 10. Notifications
 
 Add Alerts and notification delivery after alert semantics and user consent are
 defined. Impact: background infrastructure, preferences and delivery failure
 handling. This may require a separate cost and security decision.
 
-## 10. Analytics and Timeline
+## 11. Analytics
 
 Add derived reports and Timeline projections once source events and measurements
 are trustworthy. Impact: read models and bounded queries. Do not make analytics
 the source of truth.
 
-## 11. AI
+## 12. AI Assistance
 
 Consider AI only after permissions, provenance, history, privacy and evaluation
 criteria are mature. It must assist rather than silently alter domain truth.

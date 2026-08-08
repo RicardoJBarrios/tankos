@@ -75,6 +75,66 @@ async function queryAquariums(ownerId: string, token?: string) {
   );
 }
 
+async function writeObservation(
+  id: string,
+  aquariumId: string,
+  ownerId: string,
+  token?: string,
+) {
+  return fetch(
+    `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/observations/${id}`,
+    {
+      method: 'PATCH',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fields: {
+          aquariumId: { stringValue: aquariumId },
+          ownerId: { stringValue: ownerId },
+          content: { stringValue: 'El coral está abierto' },
+          recordedAt: { timestampValue: new Date().toISOString() },
+        },
+      }),
+    },
+  );
+}
+
+async function writeMeasurement(
+  id: string,
+  aquariumId: string,
+  ownerId: string,
+  token?: string,
+  overrides: Record<string, unknown> = {},
+) {
+  const fields = {
+    aquariumId: { stringValue: aquariumId },
+    ownerId: { stringValue: ownerId },
+    parameterId: { stringValue: 'temperature' },
+    enteredValue: { doubleValue: 23.5 },
+    enteredUnit: { stringValue: 'celsius' },
+    canonicalValue: { doubleValue: 23.5 },
+    canonicalUnit: { stringValue: 'celsius' },
+    measuredAt: { timestampValue: new Date().toISOString() },
+    recordedAt: { timestampValue: new Date().toISOString() },
+    provenance: { stringValue: 'manual' },
+    ...overrides,
+  };
+
+  return fetch(
+    `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/measurements/${id}`,
+    {
+      method: 'PATCH',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ fields }),
+    },
+  );
+}
+
 describe('Firestore Security Rules (Emulator Suite)', () => {
   emulatorTest(
     'allow independent Aquariums and isolate owners',
@@ -94,6 +154,98 @@ describe('Firestore Security Rules (Emulator Suite)', () => {
           )
         ).status,
       ).toBe(200);
+
+      const observationId = createAquariumId();
+      expect(
+        (
+          await writeObservation(
+            observationId,
+            aquariumA,
+            keeperA.localId,
+            keeperA.idToken,
+          )
+        ).status,
+      ).toBe(200);
+      const ownerObservationRead = await fetch(
+        `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/observations/${observationId}`,
+        { headers: { Authorization: `Bearer ${keeperA.idToken}` } },
+      );
+      expect(ownerObservationRead.status).toBe(200);
+
+      const anonymousObservationRead = await fetch(
+        `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/observations/${observationId}`,
+      );
+      expect([401, 403]).toContain(anonymousObservationRead.status);
+
+      const crossOwnerObservationRead = await fetch(
+        `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/observations/${observationId}`,
+        { headers: { Authorization: `Bearer ${keeperB.idToken}` } },
+      );
+      expect(crossOwnerObservationRead.status).toBe(403);
+      expect(
+        (await writeObservation(createAquariumId(), aquariumA, keeperA.localId))
+          .status,
+      ).toBe(403);
+      expect(
+        (
+          await writeObservation(
+            createAquariumId(),
+            aquariumA,
+            keeperB.localId,
+            keeperB.idToken,
+          )
+        ).status,
+      ).toBe(403);
+      const measurementId = createAquariumId();
+      expect(
+        (
+          await writeMeasurement(
+            measurementId,
+            aquariumA,
+            keeperA.localId,
+            keeperA.idToken,
+          )
+        ).status,
+      ).toBe(200);
+      expect(
+        (await writeMeasurement(createAquariumId(), aquariumA, keeperA.localId))
+          .status,
+      ).toBe(403);
+      expect(
+        (
+          await writeMeasurement(
+            createAquariumId(),
+            aquariumA,
+            keeperB.localId,
+            keeperB.idToken,
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await writeMeasurement(
+            createAquariumId(),
+            aquariumA,
+            keeperA.localId,
+            keeperA.idToken,
+            { ownerId: { stringValue: keeperB.localId } },
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await writeMeasurement(
+            createAquariumId(),
+            aquariumA,
+            keeperA.localId,
+            keeperA.idToken,
+            {
+              parameterId: { stringValue: 'temperature' },
+              enteredValue: { stringValue: 'bad' },
+            },
+          )
+        ).status,
+      ).toBe(403);
       expect(
         (
           await writeAquarium(

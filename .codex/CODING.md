@@ -30,6 +30,17 @@ shared feature state only when local state is insufficient. An adapter translate
 an external API; a mapper translates between transport, domain and view models.
 These are responsibilities, not mandatory folders or classes.
 
+Give a domain concept its own type or file when it owns domain meaning,
+invariants, creation/parsing behavior or independent evolution. File boundaries
+follow semantic responsibility, not visual symmetry: keep tightly coupled
+concepts together when separation would add ceremony, and do not merge distinct
+concepts merely because their representations look alike.
+
+Aggregate identities generated internally by Veril follow a common validation
+policy. A different identity format requires an explicit business requirement;
+imports, migrations and external integrations may define one only when those
+capabilities actually exist.
+
 ## Nx libraries and boundaries
 
 Keep code in `apps/veril` while it has one clear owner and no independently

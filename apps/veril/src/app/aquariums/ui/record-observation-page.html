@@ -1,0 +1,35 @@
+<section aria-labelledby="record-observation-title">
+  <h1 id="record-observation-title">Registrar observación</h1>
+
+  @if (!hasActiveContext) {
+  <p role="status">
+    Primero selecciona un acuario para registrar una observación.
+  </p>
+  } @else {
+  <p>Guarda algo que hayas observado en el acuario seleccionado.</p>
+
+  @if (state() === 'success') {
+  <p role="status">Observación guardada correctamente.</p>
+  } @else {
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <label for="observation-content">¿Qué has observado?</label>
+    <textarea
+      id="observation-content"
+      rows="5"
+      formControlName="content"
+    ></textarea>
+
+    @if (form.controls.content.touched && form.controls.content.invalid) {
+    <p id="observation-content-error" role="alert">Escribe una observación.</p>
+    }
+
+    <button type="submit" [disabled]="state() === 'saving'">
+      {{ state() === 'saving' ? 'Guardando…' : 'Guardar observación' }}
+    </button>
+  </form>
+  } @if (state() === 'error') {
+  <p role="alert">{{ errorMessage() }}</p>
+  } }
+
+  <a href="/app/aquariums">Volver a mis acuarios</a>
+</section>

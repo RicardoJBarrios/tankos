@@ -1,0 +1,52 @@
+<section aria-labelledby="record-measurement-title">
+  <h1 id="record-measurement-title">Registrar medición</h1>
+
+  @if (!hasActiveContext) {
+  <p role="status">
+    Primero selecciona un acuario para registrar una medición.
+  </p>
+  } @else {
+  <p>Registra una medición del acuario seleccionado.</p>
+
+  @if (state() === 'success') {
+  <p role="status">Medición guardada correctamente.</p>
+  } @else {
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <label for="measurement-parameter">Parámetro</label>
+    <select id="measurement-parameter" formControlName="parameterId">
+      @for (parameter of parameters; track parameter.id) {
+      <option [value]="parameter.id">{{ parameter.label }}</option>
+      }
+    </select>
+
+    <label for="measurement-value">Valor</label>
+    <input
+      id="measurement-value"
+      type="number"
+      min="0"
+      step="any"
+      formControlName="value"
+    />
+    <p id="measurement-unit">Unidad: {{ selectedUnit }}</p>
+
+    <label for="measurement-measured-at">Fecha y hora de la medición</label>
+    <input
+      id="measurement-measured-at"
+      type="datetime-local"
+      formControlName="measuredAt"
+    />
+
+    @if (form.controls.value.touched && form.controls.value.invalid) {
+    <p role="alert">Escribe un valor válido.</p>
+    }
+
+    <button type="submit" [disabled]="state() === 'saving'">
+      {{ state() === 'saving' ? 'Guardando…' : 'Guardar medición' }}
+    </button>
+  </form>
+  } @if (state() === 'error') {
+  <p role="alert">{{ errorMessage() }}</p>
+  } }
+
+  <a href="/app/aquariums">Volver a mis acuarios</a>
+</section>
