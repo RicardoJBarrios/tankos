@@ -121,19 +121,26 @@ continues to come from the authenticated keeper and Firestore Rules.
 
 ### Persistence and refresh
 
-For the MVP, Active Context is held in memory only. It is not a Firestore
-document, local-storage record, domain entity or durable user preference.
+For the MVP, Active Context persists only as a tab-scoped `sessionStorage`
+hint. It is not a Firestore document, a durable user preference, domain state
+or authorization. On private-shell initialization, the application restores it
+only after the session identity and an owner-scoped read verify that the stored
+`AquariumId` remains available. Malformed, missing, unauthorized or failed
+restoration clears the hint and leaves no Active Context.
 
-After a full page refresh, the context is lost and the application starts with
-no selected Aquarium. The keeper must select an Aquarium again. This avoids
-persisting private scope on a shared device before logout, trusted-device and
-offline policies are accepted.
+Anonymous Auth uses Firebase session persistence, so the same anonymous keeper
+is restored after a refresh in the same tab. Both authentication and the hint
+are cleared when the page session ends. Normal navigation must still use Angular
+routing; it does not need a restoration cycle.
 
 ### Multiple tabs
 
-Each browser tab has an independent in-memory Active Context. Selecting an
-Aquarium in one tab does not change another tab's context. Cross-tab
-synchronization is deferred until a concrete multi-tab workflow requires it.
+Each browser tab has independent session-scoped authentication and Active
+Context. Selecting an Aquarium in one tab never synchronizes a change to
+another. Browser opener/duplicate-tab behavior may copy the initial session
+storage value; Veril treats that as a new untrusted hint and validates ownership
+before use. Cross-tab synchronization is deferred until a concrete multi-tab
+workflow requires it.
 
 ### No Aquarium and deleted Aquarium
 
@@ -171,10 +178,13 @@ one owned Aquarium through the existing port boundary. It must not introduce a
 generic repository, projection, event store, context collection or schema
 version solely for this use case.
 
-Active Context itself is not persisted.
+No remote schema changes are required; the only persisted value is the
+tab-scoped browser restoration hint.
 
 ## UX states
 
+- **Restoring:** private routes wait while an existing tab hint is revalidated;
+  no Aquarium-scoped action is available yet.
 - **Loading:** the selected Aquarium is being verified; no new context is
   presented as active yet.
 - **Empty:** there are no owned Aquariums; offer `Establish Aquarium`.
@@ -221,9 +231,8 @@ Keep context state local to the feature; Signal Store is not required.
 ### Integration and E2E
 
 Keep Firebase SDK adapter tests against Auth and Firestore Emulator Suite.
-Browser E2E is not required for the application use case alone. Reconsider it
-only if implementation introduces a meaningful browser-only, multi-route flow
-that unit and emulator tests cannot demonstrate.
+Browser E2E proves the meaningful browser-only lifecycle: an owned selection
+survives refresh in the same tab and remains safe to use in later routes.
 
 ## Architecture impact
 
@@ -239,7 +248,6 @@ by the owner-scoped verification requirement; a generic repository is not.
 
 - The destination UI after context selection.
 - Dashboard, Timeline, Measurements, Livestock and Equipment features.
-- Durable context restoration after refresh.
 - Trusted-device and offline context policies.
 - Cross-tab context synchronization.
 - Collaboration, memberships and shared access.
@@ -255,17 +263,17 @@ by the owner-scoped verification requirement; a generic repository is not.
 | Accepted status, actor and value | Ready | Status, keeper actor and the single problem of entering one owned Aquarium are explicit. |
 | Scope, preconditions, outcome and failures | Ready | Selection is separated from establishment, listing and future Aquarium features; success and failure states are bounded. |
 | Terminology, rules and invariants | Ready | Aquarium remains the aggregate root; Active Context is explicitly application state; owner-only access is explicit. |
-| Persistence, authorization and offline class | Ready | Existing `aquariums` documents and owner-scoped read are sufficient; Rules remain authoritative; context is in-memory and online-required. |
+| Persistence, authorization and offline class | Ready | Existing `aquariums` documents and owner-scoped read are sufficient; Rules remain authoritative; a session-scoped browser hint is revalidated and online-required. |
 | Domain/event boundary | Ready | No Command, Domain Event or Fact is invented for application selection. |
 | UX and navigation scope | Ready | Loading, empty, unavailable, unauthorized, error and success are defined without Dashboard behavior. |
 | Architecture and smallest path | Ready | No new schema, collection, repository family, Signal Store, CQRS, projection or Nx library is required. |
 | Testing and delivery path | Ready | Application, adapter, Rules and proportional Angular/integration tests are identified. |
-| Open questions | Ready | Restoration, tabs, destination UI, collaboration and audit are explicitly deferred and non-blocking. |
+| Open questions | Ready | Trusted devices, cross-tab synchronization, destination UI, collaboration and audit are explicitly deferred and non-blocking. |
 
 ## Accepted decisions
 
 - `Select an Aquarium` is the next use case after `List My Aquariums`.
-- It establishes an in-memory, per-tab Active Context for one owned Aquarium.
+- It restores a session-scoped, per-tab Active Context for one owned Aquarium only after ownership is revalidated.
 - It verifies ownership before setting context.
-- It does not persist Active Context or evolve the Firestore schema.
+- It adds no Firestore schema; its browser hint is never authorization or a source of truth.
 - It creates no domain event or historical Fact.

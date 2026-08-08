@@ -33,7 +33,7 @@ where product evidence is still absent.
 | Offline capability | `Establish Aquarium` is online-required. | Offline writes, trusted-device mode and conflict handling. |
 | App Check | Accepted direction. | Rollout and enforcement after a deployed client/use case justifies it. |
 | Timeline | Direction for later review. | Timeline projection and parameter-history UX. |
-| Playwright E2E | Accepted test direction. | An E2E project after a browser journey beyond this slice needs it. |
+| Playwright E2E | Required for canonical cross-route keeper journeys. | Additional journeys only when they reveal browser-level risk. |
 
 This table governs timing. It does not weaken the accepted directions in ADRs.
 
@@ -44,8 +44,7 @@ Observed workspace baseline:
 - AngularFire 20.0.1, Firebase JS SDK 12.17.1 and NgRx Signals 20.1.0.
 - One application, `veril`, with standalone routing and public/private shells.
 - Static output with public prerendering and private CSR.
-- Build, serve, lint, test and serve-static targets; Playwright remains the E2E
-  strategy, although no E2E project exists yet.
+- Build, serve, lint, test, serve-static and inferred Playwright `e2e` targets.
 - The application is tagged `scope:app` and `type:app`; no domain libraries
   are created until a real boundary exists.
 - Codex uses local documentation, exact search, CodeGraph for structural
@@ -226,9 +225,8 @@ Required tests are: domain tests for `AquariumId`/`AquariumName` and creation
 rules; application tests for authentication and infrastructure failures; Zod
 DTO tests; Emulator Suite repository-adapter tests; Firestore Security Rules
 tests for unauthenticated, owner, second-owner and independent multiple-Aquarium
-paths; and
-Spectator form/component tests. Playwright is deferred: introduce it when a
-cross-route or browser-only journey cannot be demonstrated by these layers.
+paths; and Spectator form/component tests. The canonical cross-route keeper
+journey is covered by Playwright against local emulators.
 
 ## 7. External data and model boundaries
 
@@ -357,9 +355,9 @@ a global dumping ground.
 - Firebase adapters and Security Rules: Firebase Emulator Suite integration tests.
 - Browser journeys: Playwright E2E against an isolated environment.
 
-For the first slice, run focused domain/application tests plus emulator-backed
-adapter and Security Rules integration tests. Playwright E2E is deferred until a
-browser journey needs coverage beyond those layers.
+Run focused domain/application tests plus emulator-backed adapter and Security
+Rules integration tests. Use Playwright for canonical multi-step browser
+journeys; do not duplicate lower-level assertions there.
 
 Prefer Spectator helpers over repetitive TestBed setup. Avoid excessive mocks;
 use fakes for application ports where practical. Do not force Spectator into

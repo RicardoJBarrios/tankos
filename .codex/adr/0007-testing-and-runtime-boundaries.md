@@ -30,10 +30,10 @@ to Zod when a plain domain model is sufficient.
 
 ## Implementation timing
 
-For `Establish an Aquarium`, focused unit tests, emulator-backed adapter tests
-and Security Rules tests are required with the persistence implementation.
-Playwright remains the accepted browser-test direction but is deferred until a
-meaningful browser journey requires it.
+Focused unit tests, emulator-backed adapter tests and Security Rules tests are
+required with persistence implementations. Canonical multi-step keeper journeys
+are covered with Playwright against the local emulators, without duplicating
+lower-level assertions.
 
 ## Alternatives considered
 

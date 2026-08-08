@@ -26,8 +26,14 @@ jobs:
         with:
           node-version: 24
           cache: 'pnpm'
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
       - run: pnpm install --frozen-lockfile
+      - run: pnpm peers check
+      - run: pnpm exec playwright install --with-deps chromium
 
       # This enables task distribution via Nx Cloud.
       - run: pnpm exec nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="build"
@@ -35,6 +41,14 @@ jobs:
       # Prepend commands with "nx record --" to record their logs to Nx Cloud.
       - run: pnpm exec nx record -- pnpm exec nx format:check --base="remotes/origin/main"
       - run: pnpm exec nx run-many -t lint test build
+      - run: pnpm exec firebase emulators:exec --project demo-veril --only auth,firestore "pnpm exec vitest run --config apps/veril/vitest.integration.config.ts"
+      - run: pnpm exec nx e2e veril
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-artifacts
+          path: apps/veril/test-results
+          if-no-files-found: ignore
       # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/docs/features/ci-features/self-healing-ci
       - run: pnpm exec nx fix-ci
         if: always()

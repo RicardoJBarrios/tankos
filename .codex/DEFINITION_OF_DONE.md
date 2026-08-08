@@ -37,6 +37,8 @@ Playwright E2E is required when a slice introduces a meaningful browser journey
 that component and emulator integration tests cannot demonstrate, such as a
 multi-step cross-route flow, browser-only integration, PWA lifecycle behavior or
 a regression at that boundary. It is not automatic for a trivial form.
+When browser persistence or lifecycle behavior is introduced, E2E must prove
+the observable restoration or clearing contract rather than storage internals.
 
 ## Documentation and operations
 

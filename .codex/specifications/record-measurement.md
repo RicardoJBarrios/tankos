@@ -199,7 +199,8 @@ invalid structural writes where Rules enforce them.
 ### Angular
 
 Test Parameter selection, value validation, measured-time behavior, missing
-Active Context, pending, success and failure. Playwright remains deferred.
+Active Context, pending, success and failure. The canonical cross-route keeper
+journey covers browser-level continuity separately.
 
 ## Architecture impact
 

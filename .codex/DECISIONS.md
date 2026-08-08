@@ -6,9 +6,9 @@ These decisions are accepted and should not be reopened without a documented ADR
 
 An accepted direction is not automatically work for the current slice. The
 accepted specification and the timing table in `architecture/target-architecture.md`
-decide what is required now. The first slice requires private authenticated
-persistence; public presentation, domain offline capability, App Check and E2E
-remain deferred.
+decide what is required now. The current baseline requires private authenticated
+persistence and canonical E2E keeper journeys; public presentation, domain
+offline capability and App Check remain deferred.
 
 ## Architecture
 
@@ -28,6 +28,9 @@ remain deferred.
 ## Code and data
 
 - Use NgRx Signals for shared or complex feature state; keep local state local.
+- Keep the current Active Context as a small application service plus a narrow
+  tab-scoped storage port. Signal Store is deferred: one `AquariumId` and its
+  three current consumers do not justify a feature store or storage-sync layer.
 - Use Zod at external boundaries and derive DTO types with `z.infer`.
 - Keep transport DTOs, domain models and view models separate.
 - Use Angular Material before creating custom UI primitives.
@@ -45,6 +48,8 @@ remain deferred.
 - Use Emulator Suite for local development, Rules and integration tests.
 - Never use production Firebase for local development or CI.
 - Require explicit trusted-device consent for persistent private offline data.
+- Use Firebase Auth session persistence for anonymous MVP keepers; restore an
+  Active Context only after an owner-scoped read validates its browser hint.
 
 ### Local development entry point
 

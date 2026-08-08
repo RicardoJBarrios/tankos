@@ -5,7 +5,7 @@
 | Domain/application TypeScript                | Vitest                  | Test pure logic directly.                               |
 | Angular components/services/directives/pipes | Spectator + Vitest      | Prefer Spectator helpers over repetitive TestBed setup. |
 | Firebase adapters and Security Rules         | Firebase Emulator Suite | Use deterministic fixtures and resettable emulators.    |
-| Browser journeys                             | Playwright              | Use an isolated non-production environment.             |
+| Browser journeys                             | Playwright              | Validate only meaningful cross-route keeper journeys.   |
 
 Avoid excessive mocks. Prefer fakes for application ports where practical.
 Do not force Spectator into pure TypeScript tests. CI must not connect to Firebase
@@ -19,13 +19,12 @@ Aquariums, a Firebase SDK repository-adapter integration test against the Auth
 and Firestore emulators, Security Rules tests for unauthenticated, owner,
 independent multiple-Aquarium and cross-owner paths, and a Spectator component
 test for the form interaction. The adapter test verifies persisted documents
-through the SDK; Rules tests verify authorization separately. Playwright remains
-the browser-test direction but is deferred until a cross-route or browser-only
-journey cannot be demonstrated by these layers.
+through the SDK; Rules tests verify authorization separately.
 
 The unit-test target excludes `*.integration.spec.ts` because the Angular/jsdom
 runner does not provide a reliable Firebase SDK environment. Run the adapter
-test separately with `firebase emulators:exec` and Vitest's Node environment.
+and Rules tests through `firebase emulators:exec` with
+`apps/veril/vitest.integration.config.ts`, which uses Vitest's Node environment.
 
 `List My Aquariums` and `Select Aquarium` add application and Spectator coverage
 for owner-scoped retrieval, selection, Active Context replacement and failure
@@ -48,3 +47,28 @@ value validation, success, recoverable failure and the no-context state. The
 Firebase adapter and Rules tests verify owner-scoped persistence, canonical
 representation, timestamps, provenance and rejection of anonymous, cross-owner,
 spoofed-owner and malformed structural writes.
+
+## Browser journeys
+
+`pnpm nx e2e veril` runs the canonical Chromium journeys through visible UI
+against the local Auth and Firestore emulators. Playwright starts the same local
+development environment as `pnpm dev` when needed; it never targets a deployed
+Firebase project. Each test receives a fresh browser context and establishes its
+own anonymous keeper and data through the UI, without shared fixtures or
+production exports.
+
+The suite protects the complete keeper loop (establish, list, select, record an
+Observation and record a Measurement), including the same-tab refresh that
+restores the anonymous keeper and owner-validated Active Context. It also covers
+the recovery state for recording without an Active Context. It does not repeat
+domain, adapter or Rules assertions already covered at lower levels. CI installs
+Chromium, retries browser failures once with trace capture and uploads the
+resulting Playwright artifacts only on failure.
+
+## E2E selectors
+
+Prefer user-facing role, label and text selectors. Add `data-testid` only for a
+stable test contract that has no suitable user-facing equivalent; it names the
+element's purpose, not its styling or implementation. The current list and
+Active Context indicator are such anchors. Do not make test ids a production
+API, duplicate them on every element or use them instead of accessible queries.
