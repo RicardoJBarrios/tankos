@@ -8,10 +8,15 @@ Install dependencies and start the application:
 
 ```bash
 pnpm install
-pnpm nx serve veril
+pnpm dev
 ```
 
-The application is available at `http://localhost:4200`.
+`pnpm dev` starts the Angular development server together with the Firebase
+Auth and Firestore emulators. The application is available at
+`http://localhost:4200`.
+
+The development environment requires a supported Java runtime for the
+Firebase emulators. Press `Ctrl+C` to stop the application and emulators.
 
 ## Useful commands
 

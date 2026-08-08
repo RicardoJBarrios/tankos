@@ -46,6 +46,17 @@ remain deferred.
 - Never use production Firebase for local development or CI.
 - Require explicit trusted-device consent for persistent private offline data.
 
+### Local development entry point
+
+- Use Firebase CLI directly for local emulators.
+- `pnpm dev` is the canonical local-development entry point.
+- `tools/dev.sh` coordinates Angular, Auth Emulator and Firestore Emulator.
+- Do not add a Firebase/Nx plugin unless a concrete need emerges, such as
+  Firebase Functions, multiple Firebase applications or substantially more
+  complex Nx-native deployment orchestration.
+- Re-evaluate plugin compatibility and fit when such a need appears; this is
+  not a permanent prohibition on future plugins.
+
 ## UI and accessibility
 
 - Use Angular Material/CDK before custom primitives.

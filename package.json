@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "license": "MIT",
   "packageManager": "pnpm@11.17.0",
-  "scripts": {},
+  "scripts": {
+    "dev": "bash ./tools/dev.sh"
+  },
   "private": true,
   "dependencies": {
     "@angular/cdk": "20.2.14",
