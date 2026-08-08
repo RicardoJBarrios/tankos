@@ -11,6 +11,10 @@ import {
   Validators,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { RecordMeasurement } from '../application/record-measurement';
 import { ParameterId } from '../domain/measurement';
@@ -34,7 +38,14 @@ function currentDateTimeLocal(): string {
 
 @Component({
   selector: 'veril-record-measurement-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    RouterLink,
+  ],
   templateUrl: './record-measurement-page.html',
   styleUrl: './record-measurement-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -11,6 +11,10 @@ import {
   Validators,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { RecordObservation } from '../application/record-observation';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { KEEPER_SESSION, OBSERVATION_WRITER } from './aquarium-providers';
@@ -21,7 +25,14 @@ type PageState = 'ready' | 'saving' | 'success' | 'error';
 
 @Component({
   selector: 'veril-record-observation-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    RouterLink,
+  ],
   templateUrl: './record-observation-page.html',
   styleUrl: './record-observation-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

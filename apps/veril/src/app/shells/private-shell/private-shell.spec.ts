@@ -13,7 +13,7 @@ describe('PrivateShell', () => {
     await spectator.fixture.whenStable();
     spectator.detectChanges();
 
-    expect(spectator.query('h1')?.textContent).toBe('Área privada');
+    expect(spectator.query('h1')?.textContent).toBe('Mis acuarios');
     expect(spectator.query('router-outlet')).toBeTruthy();
     expect(
       Array.from(spectator.queryAll('a')).some((link) =>

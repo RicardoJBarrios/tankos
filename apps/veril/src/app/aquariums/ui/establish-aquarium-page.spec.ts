@@ -23,10 +23,10 @@ describe('EstablishAquariumPage', () => {
   it('renders the Spanish establishment form', () => {
     const spectator: Spectator<EstablishAquariumPage> = createComponent();
 
-    expect(spectator.query('h1')?.textContent).toContain('Establecer acuario');
-    expect(spectator.query('label')?.textContent).toContain(
-      'Nombre del acuario',
+    expect(spectator.query('section')?.textContent).toContain(
+      'Establecer acuario',
     );
+    expect(spectator.query('#aquarium-name')).toBeTruthy();
   });
 
   it('submits the Aquarium name and renders success', async () => {

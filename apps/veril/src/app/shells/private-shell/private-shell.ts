@@ -1,4 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { ActiveAquariumContext } from '../../aquariums/application/active-aquarium-context';
@@ -14,7 +16,13 @@ import {
 
 @Component({
   selector: 'veril-private-shell',
-  imports: [MatToolbarModule, RouterLink, RouterOutlet],
+  imports: [
+    MatButtonModule,
+    MatProgressSpinnerModule,
+    MatToolbarModule,
+    RouterLink,
+    RouterOutlet,
+  ],
   providers: [
     {
       provide: ACTIVE_AQUARIUM_CONTEXT_STORAGE,

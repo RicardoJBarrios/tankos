@@ -1,27 +1,60 @@
-<section aria-labelledby="establish-aquarium-title">
-  <h1 id="establish-aquarium-title">Establecer acuario</h1>
+<section aria-labelledby="establish-aquarium-title" class="page-section">
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title id="establish-aquarium-title"
+        >Establecer acuario</mat-card-title
+      >
+      <mat-card-subtitle
+        >Empieza definiendo el acuario que quieres cuidar y
+        gestionar.</mat-card-subtitle
+      >
+    </mat-card-header>
 
-  @if (state() === 'success') {
-  <p role="status">Acuario «{{ aquariumName() }}» creado correctamente.</p>
-  <a routerLink="/app/aquariums">Ver mis acuarios</a>
-  } @else {
-  <p>Define el acuario que quieres cuidar y gestionar.</p>
+    <mat-card-content>
+      @if (state() === 'success') {
+      <p role="status" class="feedback feedback-success">
+        Acuario «{{ aquariumName() }}» creado correctamente.
+      </p>
+      } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre del acuario</mat-label>
+          <input
+            matInput
+            id="aquarium-name"
+            type="text"
+            formControlName="name"
+            autocomplete="off"
+          />
+          @if (form.controls.name.touched && form.controls.name.invalid) {
+          <mat-error id="aquarium-name-error" role="alert"
+            >Introduce un nombre para el acuario.</mat-error
+          >
+          }
+        </mat-form-field>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-    <label for="aquarium-name">Nombre del acuario</label>
-    <input id="aquarium-name" type="text" formControlName="name" />
+        @if (state() === 'error') {
+        <p role="alert" class="feedback feedback-error">{{ errorMessage() }}</p>
+        }
 
-    @if (form.controls.name.touched && form.controls.name.invalid) {
-    <p id="aquarium-name-error" role="alert">
-      Introduce un nombre para el acuario.
-    </p>
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="state() === 'saving'"
+        >
+          {{ state() === 'saving' ? 'Guardando…' : 'Crear acuario' }}
+        </button>
+      </form>
+      }
+    </mat-card-content>
+
+    @if (state() === 'success') {
+    <mat-card-actions>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums"
+        >Ver mis acuarios</a
+      >
+    </mat-card-actions>
     }
-
-    <button type="submit" [disabled]="state() === 'saving'">
-      {{ state() === 'saving' ? 'Guardando…' : 'Crear acuario' }}
-    </button>
-  </form>
-  } @if (state() === 'error') {
-  <p role="alert">{{ errorMessage() }}</p>
-  }
+  </mat-card>
 </section>

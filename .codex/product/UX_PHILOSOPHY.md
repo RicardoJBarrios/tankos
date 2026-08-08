@@ -52,3 +52,17 @@ accessibility tooling.
 
 User-facing content is Spanish. Code, technical identifiers and technical
 documentation remain English.
+
+## Current UI foundation
+
+Angular Material 3 is the presentation foundation for the current application.
+Use its theme tokens for color, typography, density and shape before adding
+local visual values. The initial theme is light-only; dark mode remains a
+future product decision rather than a partial implementation.
+
+Keep layouts responsive from narrow screens outward, use Material components
+only where they improve the current interaction, and keep product-specific
+layout in feature CSS. Do not create a shared component library, Storybook or
+visual-regression baseline until repeated semantics and visual stability justify
+them. Tests must assert Veril behavior and accessibility, never Material's
+internal DOM or CSS classes.

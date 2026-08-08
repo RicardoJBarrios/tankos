@@ -1,21 +1,33 @@
-section {
-  max-width: 32rem;
-  margin: 2rem auto;
-  padding: 0 1rem;
+.page-section {
+  max-width: 42rem;
+}
+
+mat-card {
+  border-radius: var(--mat-sys-corner-large);
+}
+
+mat-card-title {
+  font: var(--mat-sys-headline-small);
+}
+
+mat-card-content {
+  padding-top: 1.5rem;
 }
 
 form {
   display: grid;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
-input {
-  min-height: 2.5rem;
-  padding: 0 0.5rem;
+.feedback {
+  margin: 0;
+  font: var(--mat-sys-body-large);
 }
 
-button {
-  justify-self: start;
-  min-height: 2.5rem;
-  padding: 0 1rem;
+.feedback-success {
+  color: var(--mat-sys-primary);
+}
+
+.feedback-error {
+  color: var(--mat-sys-error);
 }

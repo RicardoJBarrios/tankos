@@ -1,35 +1,59 @@
-<section aria-labelledby="record-observation-title">
-  <h1 id="record-observation-title">Registrar observación</h1>
+<section aria-labelledby="record-observation-title" class="page-section">
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title id="record-observation-title"
+        >Registrar observación</mat-card-title
+      >
+      <mat-card-subtitle
+        >Guarda algo que hayas observado en el acuario
+        seleccionado.</mat-card-subtitle
+      >
+    </mat-card-header>
 
-  @if (!hasActiveContext) {
-  <p role="status">
-    Primero selecciona un acuario para registrar una observación.
-  </p>
-  } @else {
-  <p>Guarda algo que hayas observado en el acuario seleccionado.</p>
+    <mat-card-content>
+      @if (!hasActiveContext) {
+      <p role="status" class="feedback">
+        Primero selecciona un acuario para registrar una observación.
+      </p>
+      } @else if (state() === 'success') {
+      <p role="status" class="feedback feedback-success">
+        Observación guardada correctamente.
+      </p>
+      } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>¿Qué has observado?</mat-label>
+          <textarea
+            matInput
+            id="observation-content"
+            rows="5"
+            formControlName="content"
+          ></textarea>
+          @if (form.controls.content.touched && form.controls.content.invalid) {
+          <mat-error id="observation-content-error" role="alert"
+            >Escribe una observación.</mat-error
+          >
+          }
+        </mat-form-field>
 
-  @if (state() === 'success') {
-  <p role="status">Observación guardada correctamente.</p>
-  } @else {
-  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-    <label for="observation-content">¿Qué has observado?</label>
-    <textarea
-      id="observation-content"
-      rows="5"
-      formControlName="content"
-    ></textarea>
+        @if (state() === 'error') {
+        <p role="alert" class="feedback feedback-error">{{ errorMessage() }}</p>
+        }
 
-    @if (form.controls.content.touched && form.controls.content.invalid) {
-    <p id="observation-content-error" role="alert">Escribe una observación.</p>
-    }
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="state() === 'saving'"
+        >
+          {{ state() === 'saving' ? 'Guardando…' : 'Guardar observación' }}
+        </button>
+      </form>
+      }
+    </mat-card-content>
 
-    <button type="submit" [disabled]="state() === 'saving'">
-      {{ state() === 'saving' ? 'Guardando…' : 'Guardar observación' }}
-    </button>
-  </form>
-  } @if (state() === 'error') {
-  <p role="alert">{{ errorMessage() }}</p>
-  } }
-
-  <a routerLink="/app/aquariums">Volver a mis acuarios</a>
+    <mat-card-actions>
+      <a mat-button routerLink="/app/aquariums">Volver a mis acuarios</a>
+    </mat-card-actions>
+  </mat-card>
 </section>

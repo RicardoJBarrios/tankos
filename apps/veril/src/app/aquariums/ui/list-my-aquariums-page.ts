@@ -6,6 +6,9 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AquariumListItem } from '../application/aquarium-ports';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ListMyAquariums } from '../application/list-my-aquariums';
@@ -18,7 +21,12 @@ type ListState = 'loading' | 'empty' | 'success' | 'failure';
 
 @Component({
   selector: 'veril-list-my-aquariums-page',
-  imports: [RouterLink],
+  imports: [
+    MatButtonModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    RouterLink,
+  ],
   templateUrl: './list-my-aquariums-page.html',
   styleUrl: './list-my-aquariums-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -70,6 +78,11 @@ export class ListMyAquariumsPage implements OnInit {
     } catch {
       this.selectionState.set('failure');
     }
+  }
+
+  retry(): void {
+    this.state.set('loading');
+    void this.loadAquariums();
   }
 
   private async loadAquariums(): Promise<void> {

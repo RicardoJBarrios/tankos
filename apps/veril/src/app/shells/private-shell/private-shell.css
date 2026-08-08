@@ -4,12 +4,8 @@
 }
 
 mat-toolbar {
-  gap: 1rem;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
 }
 
 .spacer {
@@ -19,5 +15,36 @@ a {
 main {
   margin: 0 auto;
   max-width: 72rem;
-  padding: 2rem 1.5rem;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.page-heading {
+  max-width: 42rem;
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-large);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-large);
+}
+
+.page-heading p:last-child {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-large);
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--mat-sys-on-surface-variant);
 }

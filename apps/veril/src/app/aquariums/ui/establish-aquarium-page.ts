@@ -11,6 +11,10 @@ import {
   Validators,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { EstablishAquarium } from '../application/establish-aquarium';
 import { AQUARIUM_REPOSITORY, KEEPER_SESSION } from './aquarium-providers';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
@@ -20,7 +24,14 @@ type PageState = 'ready' | 'saving' | 'success' | 'error';
 
 @Component({
   selector: 'veril-establish-aquarium-page',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    RouterLink,
+  ],
   templateUrl: './establish-aquarium-page.html',
   styleUrl: './establish-aquarium-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

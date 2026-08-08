@@ -1,15 +1,25 @@
 <mat-toolbar aria-label="Navegación privada">
-  <span>Veril</span>
+  <a mat-button routerLink="/">Veril</a>
   <span class="spacer"></span>
-  <a routerLink="/app/aquariums">Mis acuarios</a>
-  <a routerLink="/">Volver al área pública</a>
+  <a mat-button routerLink="/app/aquariums">Mis acuarios</a>
+  <a mat-button routerLink="/">Área pública</a>
 </mat-toolbar>
 
 <main>
-  <h1>Área privada</h1>
-  <p>Shell CSR preparado para futuras rutas autenticadas.</p>
+  <div class="page-heading">
+    <p class="eyebrow">Área privada</p>
+    <h1>Mis acuarios</h1>
+    <p>Registra lo que ocurre y consulta la información de cada acuario.</p>
+  </div>
   @if (isRestoring()) {
-  <p role="status" aria-live="polite">Restaurando el contexto del acuario…</p>
+  <div class="loading-state" role="status" aria-live="polite">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="32"
+      aria-label="Restaurando el contexto del acuario"
+    />
+    <span>Restaurando el contexto del acuario…</span>
+  </div>
   } @else {
   <router-outlet></router-outlet>
   }

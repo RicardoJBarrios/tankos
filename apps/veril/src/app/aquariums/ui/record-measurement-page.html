@@ -1,53 +1,94 @@
-<section aria-labelledby="record-measurement-title">
-  <h1 id="record-measurement-title">Registrar medición</h1>
+<section aria-labelledby="record-measurement-title" class="page-section">
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title id="record-measurement-title"
+        >Registrar medición</mat-card-title
+      >
+      <mat-card-subtitle
+        >Registra una medición del acuario seleccionado.</mat-card-subtitle
+      >
+    </mat-card-header>
 
-  @if (!hasActiveContext) {
-  <p role="status">
-    Primero selecciona un acuario para registrar una medición.
-  </p>
-  } @else {
-  <p>Registra una medición del acuario seleccionado.</p>
+    <mat-card-content>
+      @if (!hasActiveContext) {
+      <p role="status" class="feedback">
+        Primero selecciona un acuario para registrar una medición.
+      </p>
+      } @else if (state() === 'success') {
+      <p role="status" class="feedback feedback-success">
+        Medición guardada correctamente.
+      </p>
+      } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>Parámetro</mat-label>
+          <select
+            matNativeControl
+            id="measurement-parameter"
+            formControlName="parameterId"
+          >
+            @for (parameter of parameters; track parameter.id) {
+            <option [value]="parameter.id">{{ parameter.label }}</option>
+            }
+          </select>
+        </mat-form-field>
 
-  @if (state() === 'success') {
-  <p role="status">Medición guardada correctamente.</p>
-  <a routerLink="/app/aquariums/measurements">Ver mediciones</a>
-  } @else {
-  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-    <label for="measurement-parameter">Parámetro</label>
-    <select id="measurement-parameter" formControlName="parameterId">
-      @for (parameter of parameters; track parameter.id) {
-      <option [value]="parameter.id">{{ parameter.label }}</option>
+        <mat-form-field appearance="outline">
+          <mat-label>Valor</mat-label>
+          <input
+            matInput
+            id="measurement-value"
+            type="number"
+            min="0"
+            step="any"
+            formControlName="value"
+          />
+          @if (form.controls.value.touched && form.controls.value.invalid) {
+          <mat-error role="alert">Escribe un valor válido.</mat-error>
+          }
+        </mat-form-field>
+
+        <p id="measurement-unit" class="unit-hint">
+          Unidad: <strong>{{ selectedUnit }}</strong>
+        </p>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Fecha y hora de la medición</mat-label>
+          <input
+            matInput
+            id="measurement-measured-at"
+            type="datetime-local"
+            formControlName="measuredAt"
+          />
+        </mat-form-field>
+
+        @if (state() === 'error') {
+        <p role="alert" class="feedback feedback-error">{{ errorMessage() }}</p>
+        }
+
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="state() === 'saving'"
+        >
+          {{ state() === 'saving' ? 'Guardando…' : 'Guardar medición' }}
+        </button>
+      </form>
       }
-    </select>
+    </mat-card-content>
 
-    <label for="measurement-value">Valor</label>
-    <input
-      id="measurement-value"
-      type="number"
-      min="0"
-      step="any"
-      formControlName="value"
-    />
-    <p id="measurement-unit">Unidad: {{ selectedUnit }}</p>
-
-    <label for="measurement-measured-at">Fecha y hora de la medición</label>
-    <input
-      id="measurement-measured-at"
-      type="datetime-local"
-      formControlName="measuredAt"
-    />
-
-    @if (form.controls.value.touched && form.controls.value.invalid) {
-    <p role="alert">Escribe un valor válido.</p>
-    }
-
-    <button type="submit" [disabled]="state() === 'saving'">
-      {{ state() === 'saving' ? 'Guardando…' : 'Guardar medición' }}
-    </button>
-  </form>
-  } @if (state() === 'error') {
-  <p role="alert">{{ errorMessage() }}</p>
-  } }
-
-  <a routerLink="/app/aquariums">Volver a mis acuarios</a>
+    <mat-card-actions>
+      @if (state() === 'success') {
+      <a
+        mat-flat-button
+        color="primary"
+        routerLink="/app/aquariums/measurements"
+        >Ver mediciones</a
+      >
+      } @else {
+      <a mat-button routerLink="/app/aquariums">Volver a mis acuarios</a>
+      }
+    </mat-card-actions>
+  </mat-card>
 </section>

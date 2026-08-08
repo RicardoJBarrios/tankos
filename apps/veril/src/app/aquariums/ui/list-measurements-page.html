@@ -1,40 +1,97 @@
-<section aria-labelledby="measurements-title" data-testid="measurement-list">
-  <h1 id="measurements-title">Mediciones</h1>
+<section
+  aria-labelledby="measurements-title"
+  data-testid="measurement-list"
+  class="page-section"
+>
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Evidencia cuantitativa</p>
+      <h2 id="measurements-title">Mediciones</h2>
+    </div>
+    <a mat-stroked-button routerLink="/app/aquariums/measurements/new"
+      >Registrar medición</a
+    >
+  </div>
 
   @if (state() === 'no-context') {
-  <p role="status">
-    Primero selecciona un acuario para consultar sus mediciones.
-  </p>
-  <a routerLink="/app/aquariums">Volver a mis acuarios</a>
+  <mat-card appearance="outlined" class="empty-state">
+    <mat-card-content>
+      <p role="status">
+        Primero selecciona un acuario para consultar sus mediciones.
+      </p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums"
+        >Volver a mis acuarios</a
+      >
+    </mat-card-content>
+  </mat-card>
   } @else if (state() === 'loading') {
-  <p role="status" aria-live="polite">Cargando mediciones…</p>
+  <div class="loading-state" role="status" aria-live="polite">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="32"
+      aria-label="Cargando mediciones"
+    />
+    <span>Cargando mediciones…</span>
+  </div>
   } @else if (state() === 'failure') {
-  <p role="alert">{{ errorMessage() }}</p>
-  <a routerLink="/app/aquariums">Volver a mis acuarios</a>
+  <div class="feedback feedback-error" role="alert">
+    <p>{{ errorMessage() }}</p>
+    <button mat-stroked-button type="button" (click)="retry()">
+      Reintentar
+    </button>
+  </div>
   } @else if (state() === 'empty') {
-  <p>No hay mediciones registradas para este acuario.</p>
-  <a routerLink="/app/aquariums/measurements/new">Registrar medición</a>
+  <mat-card appearance="outlined" class="empty-state">
+    <mat-card-content>
+      <p>No hay mediciones registradas para este acuario.</p>
+      <a
+        mat-flat-button
+        color="primary"
+        routerLink="/app/aquariums/measurements/new"
+        >Registrar medición</a
+      >
+    </mat-card-content>
+  </mat-card>
   } @else {
   <ul aria-label="Mediciones registradas">
     @for (item of items(); track item.id) {
     <li>
-      <span>{{ measurementLabel(item) }}:</span>
-      <strong>{{ item.canonicalValue }} {{ measurementUnit(item) }}</strong>
-      <time [attr.datetime]="item.measuredAt.toISOString()">
-        {{ formatMeasuredAt(item) }}
-      </time>
+      <mat-card appearance="outlined">
+        <mat-card-content>
+          <div class="measurement-row">
+            <div>
+              <span class="measurement-label"
+                >{{ measurementLabel(item) }}</span
+              >
+              <strong
+                >{{ item.canonicalValue }} {{ measurementUnit(item) }}</strong
+              >
+            </div>
+            <time [attr.datetime]="item.measuredAt.toISOString()">
+              {{ formatMeasuredAt(item) }}
+            </time>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </li>
     }
   </ul>
 
   @if (errorMessage()) {
-  <p role="alert">{{ errorMessage() }}</p>
+  <p class="feedback feedback-error" role="alert">{{ errorMessage() }}</p>
   } @if (nextCursor()) {
-  <button type="button" (click)="loadMore()" [disabled]="isLoadingMore()">
+  <button
+    mat-stroked-button
+    type="button"
+    (click)="loadMore()"
+    [disabled]="isLoadingMore()"
+  >
     {{ isLoadingMore() ? 'Cargando…' : 'Cargar más' }}
   </button>
   }
 
-  <a routerLink="/app/aquariums/measurements/new">Registrar medición</a>
+  <a mat-button routerLink="/app/aquariums/measurements/new"
+    >Registrar medición</a
+  >
   }
 </section>

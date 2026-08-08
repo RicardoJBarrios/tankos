@@ -1,16 +1,33 @@
-section {
-  max-width: 32rem;
-  margin: 2rem auto;
-  padding: 0 1rem;
+.page-section {
+  max-width: 42rem;
+}
+
+mat-card {
+  border-radius: var(--mat-sys-corner-large);
+}
+
+mat-card-title {
+  font: var(--mat-sys-headline-small);
+}
+
+mat-card-content {
+  padding-top: 1.5rem;
 }
 
 form {
   display: grid;
-  gap: 0.75rem;
-  margin: 1.5rem 0;
+  gap: 1rem;
 }
 
-textarea {
-  font: inherit;
-  padding: 0.75rem;
+.feedback {
+  margin: 0;
+  font: var(--mat-sys-body-large);
+}
+
+.feedback-success {
+  color: var(--mat-sys-primary);
+}
+
+.feedback-error {
+  color: var(--mat-sys-error);
 }

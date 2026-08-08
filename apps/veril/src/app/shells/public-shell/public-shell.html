@@ -1,11 +1,16 @@
 <mat-toolbar aria-label="Navegación pública">
-  <a class="brand" routerLink="/">Veril</a>
+  <a class="brand" mat-button routerLink="/">Veril</a>
   <span class="spacer"></span>
-  <a routerLink="/app">Área privada</a>
+  <a mat-button routerLink="/app">Área privada</a>
 </mat-toolbar>
 
 <main>
-  <h1>Veril</h1>
-  <p>Área pública preparada para contenido prerenderizado.</p>
+  <div class="page-heading">
+    <p class="eyebrow">Gestión de acuarios</p>
+    <h1>Veril</h1>
+    <p>
+      Cuida tu acuario con contexto, claridad y registros que puedes revisar.
+    </p>
+  </div>
   <router-outlet></router-outlet>
 </main>

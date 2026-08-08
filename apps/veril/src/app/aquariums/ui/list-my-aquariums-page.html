@@ -1,44 +1,94 @@
-<section aria-labelledby="my-aquariums-title">
-  <h2 id="my-aquariums-title">Mis acuarios</h2>
+<section aria-labelledby="my-aquariums-title" class="page-section">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Contexto de trabajo</p>
+      <h2 id="my-aquariums-title">Mis acuarios</h2>
+    </div>
+    @if (state() !== 'empty' && state() !== 'loading') {
+    <a mat-stroked-button routerLink="/app/aquariums/new">Establecer acuario</a>
+    }
+  </div>
 
   @if (state() === 'loading') {
-  <p role="status" aria-live="polite">Cargando acuarios…</p>
+  <div class="loading-state" role="status" aria-live="polite">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="32"
+      aria-label="Cargando acuarios"
+    />
+    <span>Cargando acuarios…</span>
+  </div>
   } @else if (state() === 'failure') {
-  <p role="alert">No se han podido cargar tus acuarios. Inténtalo de nuevo.</p>
+  <div class="feedback feedback-error" role="alert">
+    <p>No se han podido cargar tus acuarios. Inténtalo de nuevo.</p>
+    <button mat-stroked-button type="button" (click)="retry()">
+      Reintentar
+    </button>
+  </div>
   } @else if (state() === 'empty') {
-  <p>No has establecido ningún acuario todavía.</p>
-  <a routerLink="/app/aquariums/new">Establecer acuario</a>
+  <mat-card appearance="outlined" class="empty-state">
+    <mat-card-content>
+      <p>No has establecido ningún acuario todavía.</p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums/new"
+        >Establecer acuario</a
+      >
+    </mat-card-content>
+  </mat-card>
   } @else { @if (selectionState() === 'loading') {
-  <p role="status" aria-live="polite">Seleccionando acuario…</p>
+  <div class="loading-state" role="status" aria-live="polite">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="24"
+      aria-label="Seleccionando acuario"
+    />
+    <span>Seleccionando acuario…</span>
+  </div>
   } @else if (selectionState() === 'failure') {
-  <p role="alert">
+  <p class="feedback feedback-error" role="alert">
     No se ha podido seleccionar el acuario. Inténtalo de nuevo.
   </p>
   }
+
   <ul aria-label="Acuarios disponibles" data-testid="aquarium-list">
     @for (aquarium of aquariums(); track aquarium.id) {
     <li>
-      <button
-        type="button"
-        [attr.aria-pressed]="activeContext.get() === aquarium.id"
-        (click)="select(aquarium)"
-      >
-        {{ aquarium.name.value }}
-      </button>
-      @if (activeContext.get() === aquarium.id) {
-      <span
-        aria-label="Acuario seleccionado"
-        data-testid="active-aquarium-indicator"
-      >
-        (seleccionado)
-      </span>
-      }
+      <mat-card appearance="outlined">
+        <mat-card-content>
+          <button
+            mat-button
+            class="aquarium-choice"
+            type="button"
+            [attr.aria-pressed]="activeContext.get() === aquarium.id"
+            (click)="select(aquarium)"
+          >
+            {{ aquarium.name.value }}
+          </button>
+          @if (activeContext.get() === aquarium.id) {
+          <span
+            class="active-indicator"
+            aria-label="Acuario seleccionado"
+            data-testid="active-aquarium-indicator"
+          >
+            Seleccionado
+          </span>
+          }
+        </mat-card-content>
+      </mat-card>
     </li>
     }
   </ul>
   @if (activeContext.get()) {
-  <a routerLink="/app/aquariums/observations/new">Registrar observación</a>
-  <a routerLink="/app/aquariums/measurements/new">Registrar medición</a>
-  <a routerLink="/app/aquariums/measurements">Ver mediciones</a>
+  <div class="action-row" aria-label="Acciones disponibles">
+    <a
+      mat-flat-button
+      color="primary"
+      routerLink="/app/aquariums/observations/new"
+      >Registrar observación</a
+    >
+    <a mat-stroked-button routerLink="/app/aquariums/measurements/new"
+      >Registrar medición</a
+    >
+    <a mat-button routerLink="/app/aquariums/measurements">Ver mediciones</a>
+  </div>
   } }
 </section>

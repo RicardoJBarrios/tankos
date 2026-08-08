@@ -6,6 +6,9 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ListMeasurements } from '../application/list-measurements';
 import {
@@ -21,7 +24,12 @@ type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
 
 @Component({
   selector: 'veril-list-measurements-page',
-  imports: [RouterLink],
+  imports: [
+    MatButtonModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    RouterLink,
+  ],
   templateUrl: './list-measurements-page.html',
   styleUrl: './list-measurements-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -81,6 +89,11 @@ export class ListMeasurementsPage implements OnInit {
     } finally {
       this.isLoadingMore.set(false);
     }
+  }
+
+  retry(): void {
+    this.state.set('loading');
+    void this.loadFirstPage();
   }
 
   measurementLabel(item: MeasurementListItem): string {

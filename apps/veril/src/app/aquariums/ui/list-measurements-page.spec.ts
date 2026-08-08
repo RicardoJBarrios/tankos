@@ -76,7 +76,12 @@ describe('ListMeasurementsPage', () => {
     expect(spectator.query('[role="status"]')?.textContent).toContain(
       'Primero selecciona un acuario',
     );
-    expect(spectator.query('a')?.getAttribute('href')).toBe('/app/aquariums');
+    expect(
+      spectator
+        .queryAll('a')
+        .find((link) => link.getAttribute('href') === '/app/aquariums')
+        ?.getAttribute('href'),
+    ).toBe('/app/aquariums');
   });
 
   it('shows loading while the first page is pending', () => {
@@ -93,7 +98,7 @@ describe('ListMeasurementsPage', () => {
     const spectator = createComponent();
     await settle(spectator);
 
-    expect(spectator.query('p')?.textContent).toContain(
+    expect(spectator.query('.empty-state p')?.textContent).toContain(
       'No hay mediciones registradas',
     );
     expect(spectator.query('a')?.getAttribute('href')).toBe(

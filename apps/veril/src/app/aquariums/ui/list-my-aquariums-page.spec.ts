@@ -72,7 +72,7 @@ describe('ListMyAquariumsPage', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     spectator.detectChanges();
 
-    expect(spectator.query('p')?.textContent).toContain(
+    expect(spectator.query('.empty-state p')?.textContent).toContain(
       'ningún acuario todavía',
     );
     expect(spectator.query('a')?.getAttribute('href')).toBe(
@@ -92,7 +92,7 @@ describe('ListMyAquariumsPage', () => {
     expect(
       spectator.queryAll('li').map((element) => element.textContent?.trim()),
     ).toEqual(['Veril', 'Acuario auxiliar']);
-    expect(spectator.queryAll('a')).toHaveLength(0);
+    expect(spectator.queryAll('a')).toHaveLength(1);
   });
 
   it('selects an Aquarium from the list', async () => {
@@ -115,9 +115,14 @@ describe('ListMyAquariumsPage', () => {
     expect(spectator.query('button')?.getAttribute('aria-pressed')).toBe(
       'true',
     );
-    expect(spectator.query('a')?.getAttribute('href')).toBe(
-      '/app/aquariums/observations/new',
-    );
+    expect(
+      spectator
+        .queryAll('a')
+        .find((link) =>
+          link.getAttribute('href')?.includes('/observations/new'),
+        )
+        ?.getAttribute('href'),
+    ).toBe('/app/aquariums/observations/new');
   });
 
   it('renders a failure state', async () => {

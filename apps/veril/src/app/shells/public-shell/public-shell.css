@@ -4,12 +4,8 @@
 }
 
 mat-toolbar {
-  gap: 1rem;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
 }
 
 .brand {
@@ -23,5 +19,29 @@ a {
 main {
   margin: 0 auto;
   max-width: 72rem;
-  padding: 2rem 1.5rem;
+  padding: clamp(2rem, 5vw, 4rem) 1.5rem;
+}
+
+.page-heading {
+  max-width: 42rem;
+  margin-bottom: 2.5rem;
+}
+
+.eyebrow {
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-large);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font: var(--mat-sys-display-small);
+}
+
+.page-heading p:last-child {
+  max-width: 34rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-large);
 }
