@@ -86,6 +86,13 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page.getByTestId('recent-timeline')).toContainText(
     'Limpié la copa del skimmer.',
   );
+
+  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
+  await page.getByRole('link', { name: 'Ver cuidados' }).click();
+  await expect(page).toHaveURL('/app/aquariums/care');
+  await expect(page.getByTestId('care-work-list')).toContainText(
+    'Limpié la copa del skimmer.',
+  );
 });
 
 test('protected recording pages recover when no Aquarium is selected', async ({
@@ -120,5 +127,18 @@ test('protected recording pages recover when no Aquarium is selected', async ({
     }),
   ).toBeVisible();
   await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
+  await expect(page).toHaveURL('/app/aquariums');
+
+  await page.goto('/app/aquariums/care');
+  await expect(page.locator('ul')).toBeHidden();
+  await expect(
+    page.getByRole('status').filter({
+      hasText: 'Primero selecciona un acuario para consultar sus cuidados.',
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole('link', { name: 'Volver a mis acuarios' })
+    .last()
+    .click();
   await expect(page).toHaveURL('/app/aquariums');
 });

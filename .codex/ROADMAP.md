@@ -47,7 +47,9 @@ truth. Complete pagination and materialization remain deferred.
 append-only record of an intentional action already performed. Planning,
 recurrence, completion workflows, reminders and Maintenance subtypes remain
 separate future decisions. Completed Care Work is included in the bounded
-recent Timeline read but remains its own source of truth.
+recent Timeline read but remains its own source of truth. `List Care Work` is
+accepted and implemented as a bounded recent read over the same source; it does
+not introduce planning or a generic history framework.
 
 ## 5. Timeline
 

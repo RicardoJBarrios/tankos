@@ -35,6 +35,13 @@ An authenticated keeper records what they did for the selected Aquarium using a
 short description and the time when it happened. Veril preserves the action as
 durable evidence without turning it into a plan, reminder or automatic event.
 
+## Accepted: List Care Work
+
+An authenticated keeper with a selected Aquarium reviews recent completed care
+actions in deterministic order and can return to record another action. The
+bounded view is Care-specific and does not claim to be the complete historical
+record or include planned work.
+
 ## Add Livestock
 
 A keeper records that Livestock is associated with an Aquarium so future care

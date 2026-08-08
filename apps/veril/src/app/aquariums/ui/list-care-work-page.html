@@ -1,0 +1,70 @@
+<section
+  aria-labelledby="care-work-title"
+  data-testid="care-work-list"
+  class="page-section"
+>
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Acciones realizadas</p>
+      <h2 id="care-work-title">Cuidados recientes</h2>
+    </div>
+    <a mat-stroked-button routerLink="/app/aquariums/care/new"
+      >Registrar cuidado</a
+    >
+  </div>
+
+  @if (state() === 'no-context') {
+  <mat-card appearance="outlined" class="empty-state">
+    <mat-card-content>
+      <p role="status">
+        Primero selecciona un acuario para consultar sus cuidados.
+      </p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums"
+        >Volver a mis acuarios</a
+      >
+    </mat-card-content>
+  </mat-card>
+  } @else if (state() === 'loading') {
+  <div class="loading-state" role="status" aria-live="polite">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="32"
+      aria-label="Cargando cuidados"
+    />
+    <span>Cargando cuidados…</span>
+  </div>
+  } @else if (state() === 'failure') {
+  <div class="feedback feedback-error" role="alert">
+    <p>{{ errorMessage() }}</p>
+    <button mat-stroked-button type="button" (click)="retry()">
+      Reintentar
+    </button>
+  </div>
+  } @else if (state() === 'empty') {
+  <mat-card appearance="outlined" class="empty-state">
+    <mat-card-content>
+      <p>No hay cuidados registrados para este acuario todavía.</p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums/care/new"
+        >Registrar cuidado</a
+      >
+    </mat-card-content>
+  </mat-card>
+  } @else {
+  <ul aria-label="Cuidados recientes">
+    @for (item of items(); track item.id) {
+    <li>
+      <mat-card appearance="outlined">
+        <mat-card-content>
+          <p class="care-work-description">{{ item.description }}</p>
+          <time [attr.datetime]="item.performedAt.toISOString()">
+            {{ formatPerformedAt(item) }}
+          </time>
+        </mat-card-content>
+      </mat-card>
+    </li>
+    }
+  </ul>
+  }
+
+  <a mat-button routerLink="/app/aquariums">Volver a mis acuarios</a>
+</section>

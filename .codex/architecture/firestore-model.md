@@ -138,6 +138,20 @@ keeper. The adapter validates the DTO with Zod and maps timestamps at the
 infrastructure boundary. No Care Work is nested in Aquarium or duplicated into
 Timeline; the current recent Timeline read projects it using `performedAt`.
 
+## List Care Work: current read contract
+
+The accepted Care history read reuses the top-level `careWorks` collection and
+filters by `ownerId` and `aquariumId`. It orders by `performedAt` descending,
+`recordedAt` descending and document ID ascending, and applies a capability-
+local limit of 50 in the Firestore query. The result is presented as recent
+Care Work; it does not claim to be the complete historical record and does not
+introduce pagination.
+
+The existing Care Work persistence schema remains the read boundary. Every
+returned document is validated before mapping to a small `CareWorkListItem`.
+No new collection, index or generic history reader is introduced. A future
+pagination or planned-work query must be reviewed independently.
+
 ## Future current Measurement state
 
 The product will eventually need to answer which values are currently known for

@@ -88,6 +88,17 @@ cover missing context, validation, pending, success and recoverable error
 states. The canonical Playwright journey records a completed Care Work action
 through the UI and verifies it in the current Timeline read model.
 
+`List Care Work` adds application coverage for authentication, Active Context,
+the bounded recent-history request, empty results and infrastructure failures.
+Its adapter integration coverage reuses the existing Care Work reader against
+the Emulator Suite to verify owner/Aquarium scope, canonical ordering, the
+capability-local limit, mapping and malformed-document rejection. Rules tests
+remain focused on the existing identical owner query shape. Spectator tests
+cover missing context, loading, empty, results, recoverable errors and the
+navigation to recording Care Work. The canonical Playwright journey records a
+Care Work action, opens `Cuidados recientes` and verifies that the action is
+visible there.
+
 ## Browser journeys
 
 `pnpm nx e2e veril` runs the canonical Chromium journeys through visible UI
