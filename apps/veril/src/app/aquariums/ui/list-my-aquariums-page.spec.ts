@@ -116,35 +116,8 @@ describe('ListMyAquariumsPage', () => {
       'true',
     );
     expect(
-      spectator
-        .queryAll('a')
-        .find((link) =>
-          link.getAttribute('href')?.includes('/observations/new'),
-        )
-        ?.getAttribute('href'),
-    ).toBe('/app/aquariums/observations/new');
-    expect(
-      spectator
-        .queryAll('a')
-        .find((link) => link.textContent?.includes('Registrar cuidado'))
-        ?.getAttribute('href'),
-    ).toBe('/app/aquariums/care/new');
-    expect(
-      spectator
-        .queryAll('a')
-        .find((link) => link.textContent?.includes('Ver cuidados'))
-        ?.getAttribute('href'),
-    ).toBe('/app/aquariums/care');
-    expect(
-      spectator.query(
-        'section[aria-labelledby="aquarium-record-actions-title"] h3',
-      )?.textContent,
-    ).toContain('Registrar');
-    expect(
-      spectator.query(
-        'section[aria-labelledby="aquarium-review-actions-title"] h3',
-      )?.textContent,
-    ).toContain('Consultar');
+      spectator.query('a[routerlink="/app/aquariums/current"]')?.textContent,
+    ).toContain('Abrir acuario seleccionado');
   });
 
   it('renders a failure state', async () => {

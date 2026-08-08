@@ -31,6 +31,13 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'aquariums/current',
+        loadComponent: () =>
+          import('./aquariums/ui/aquarium-workspace-page').then(
+            ({ AquariumWorkspacePage }) => AquariumWorkspacePage,
+          ),
+      },
+      {
         path: 'aquariums/observations/new',
         loadComponent: () =>
           import('./aquariums/ui/record-observation-page').then(

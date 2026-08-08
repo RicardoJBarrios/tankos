@@ -78,39 +78,8 @@
     }
   </ul>
   @if (activeContext.get()) {
-  <div class="action-groups" aria-label="Acciones disponibles">
-    <section aria-labelledby="aquarium-record-actions-title">
-      <h3 id="aquarium-record-actions-title">Registrar</h3>
-      <div class="action-row">
-        <a
-          mat-flat-button
-          color="primary"
-          routerLink="/app/aquariums/observations/new"
-          >Registrar observación</a
-        >
-        <a mat-stroked-button routerLink="/app/aquariums/measurements/new"
-          >Registrar medición</a
-        >
-        <a mat-stroked-button routerLink="/app/aquariums/care/new"
-          >Registrar cuidado</a
-        >
-      </div>
-    </section>
-    <section aria-labelledby="aquarium-review-actions-title">
-      <h3 id="aquarium-review-actions-title">Consultar</h3>
-      <div class="action-row">
-        <a mat-stroked-button routerLink="/app/aquariums/timeline"
-          >Actividad reciente</a
-        >
-        <a mat-button routerLink="/app/aquariums/observations"
-          >Ver observaciones</a
-        >
-        <a mat-button routerLink="/app/aquariums/measurements"
-          >Ver mediciones</a
-        >
-        <a mat-button routerLink="/app/aquariums/care">Ver cuidados</a>
-      </div>
-    </section>
-  </div>
+  <a mat-flat-button color="primary" routerLink="/app/aquariums/current">
+    Abrir acuario seleccionado
+  </a>
   } }
 </section>

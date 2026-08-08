@@ -1,0 +1,72 @@
+<section aria-labelledby="aquarium-workspace-title" class="workspace">
+  @if (state() === 'loading') {
+  <div class="feedback" role="status" aria-live="polite">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="32"
+      aria-label="Cargando acuario"
+    />
+    <span>Cargando acuario…</span>
+  </div>
+  } @else if (state() === 'no-context') {
+  <div class="feedback" role="status">
+    <p>Primero selecciona un acuario para trabajar con él.</p>
+    <a mat-flat-button color="primary" routerLink="/app/aquariums"
+      >Volver a mis acuarios</a
+    >
+  </div>
+  } @else if (state() === 'failure') {
+  <div class="feedback" role="alert">
+    <p>No se ha podido cargar el acuario seleccionado.</p>
+    <a mat-flat-button color="primary" routerLink="/app/aquariums"
+      >Volver a mis acuarios</a
+    >
+  </div>
+  } @else {
+  <header class="workspace-heading">
+    <div>
+      <p class="eyebrow">Acuario activo</p>
+      <h2 id="aquarium-workspace-title">{{ aquariumName() }}</h2>
+      <p>
+        Este es tu espacio de trabajo para registrar y consultar información.
+      </p>
+    </div>
+    <a mat-stroked-button routerLink="/app/aquariums">Cambiar de acuario</a>
+  </header>
+
+  <div class="action-groups" aria-label="Acciones del acuario">
+    <section aria-labelledby="aquarium-record-actions-title">
+      <h3 id="aquarium-record-actions-title">Registrar</h3>
+      <div class="action-row">
+        <a
+          mat-flat-button
+          color="primary"
+          routerLink="/app/aquariums/observations/new"
+          >Registrar observación</a
+        >
+        <a mat-stroked-button routerLink="/app/aquariums/measurements/new"
+          >Registrar medición</a
+        >
+        <a mat-stroked-button routerLink="/app/aquariums/care/new"
+          >Registrar cuidado</a
+        >
+      </div>
+    </section>
+    <section aria-labelledby="aquarium-review-actions-title">
+      <h3 id="aquarium-review-actions-title">Consultar</h3>
+      <div class="action-row">
+        <a mat-stroked-button routerLink="/app/aquariums/timeline"
+          >Actividad reciente</a
+        >
+        <a mat-button routerLink="/app/aquariums/observations"
+          >Ver observaciones</a
+        >
+        <a mat-button routerLink="/app/aquariums/measurements"
+          >Ver mediciones</a
+        >
+        <a mat-button routerLink="/app/aquariums/care">Ver cuidados</a>
+      </div>
+    </section>
+  </div>
+  }
+</section>

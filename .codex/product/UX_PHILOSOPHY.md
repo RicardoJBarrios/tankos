@@ -69,10 +69,11 @@ internal DOM or CSS classes.
 
 ## Current Aquarium navigation
 
-When an Aquarium is selected, keep its existing action surface visible in the
-Aquarium context. Group actions by keeper intent: `Registrar` for new
-observations, measurements and care work, and `Consultar` for recent activity
-and the corresponding histories. This is a presentation grouping only; each
-capability keeps its own route and use case. Do not turn this surface into a
-Dashboard or move it into the private shell without evidence that the current
-page no longer supports discovery.
+Use `Mis acuarios` to establish, list and switch the current Aquarium. After a
+selection, enter the Aquarium Workspace as the operational context. Group its
+actions by keeper intent: `Registrar` for new observations, measurements and
+care work, and `Consultar` for recent activity and the corresponding histories.
+This is a presentation grouping only; each capability keeps its own route and
+use case. The Workspace is not a Dashboard: it does not invent summaries,
+current values or analytics. Do not move every capability into the private
+shell.

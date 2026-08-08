@@ -43,6 +43,14 @@ describe('appRoutes', () => {
     );
   });
 
+  it('defines the Aquarium Workspace child route', () => {
+    const privateRoute = appRoutes.find((route) => route.path === 'app');
+
+    expect(privateRoute?.children?.map((route) => route.path)).toContain(
+      'aquariums/current',
+    );
+  });
+
   it('defines the Record Measurement child route', () => {
     const privateRoute = appRoutes.find((route) => route.path === 'app');
 

@@ -5,7 +5,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -55,6 +55,7 @@ type ListState = 'loading' | 'empty' | 'success' | 'failure';
 export class ListMyAquariumsPage implements OnInit {
   private readonly listMyAquariums = inject(ListMyAquariums);
   private readonly selectAquarium = inject(SelectAquarium);
+  private readonly router = inject(Router);
   readonly activeContext = inject(ActiveAquariumContext);
 
   readonly state = signal<ListState>('loading');
@@ -75,6 +76,7 @@ export class ListMyAquariumsPage implements OnInit {
     try {
       await this.selectAquarium.execute(aquarium.id);
       this.selectionState.set('idle');
+      await this.router.navigateByUrl('/app/aquariums/current');
     } catch {
       this.selectionState.set('failure');
     }
