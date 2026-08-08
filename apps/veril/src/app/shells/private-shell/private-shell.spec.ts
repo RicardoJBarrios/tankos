@@ -11,6 +11,7 @@ describe('PrivateShell', () => {
   it('renders the private shell without domain features', async () => {
     const spectator: Spectator<PrivateShell> = createComponent();
     await spectator.fixture.whenStable();
+    spectator.detectChanges();
 
     expect(spectator.query('h1')?.textContent).toBe('Área privada');
     expect(spectator.query('router-outlet')).toBeTruthy();

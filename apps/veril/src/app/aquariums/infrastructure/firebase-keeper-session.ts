@@ -7,6 +7,7 @@ import { KeeperSession } from '../application/aquarium-ports';
 export class FirebaseKeeperSession implements KeeperSession {
   async requireAuthenticatedKeeper(): Promise<{ readonly id: string }> {
     const { auth } = getFirebaseClient();
+    await auth.authStateReady();
 
     if (auth.currentUser) {
       return { id: auth.currentUser.uid };

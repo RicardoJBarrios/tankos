@@ -8,5 +8,9 @@
 <main>
   <h1>Área privada</h1>
   <p>Shell CSR preparado para futuras rutas autenticadas.</p>
+  @if (isRestoring()) {
+  <p role="status" aria-live="polite">Restaurando el contexto del acuario…</p>
+  } @else {
   <router-outlet></router-outlet>
+  }
 </main>

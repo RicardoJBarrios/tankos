@@ -7,7 +7,7 @@
   <p role="alert">No se han podido cargar tus acuarios. Inténtalo de nuevo.</p>
   } @else if (state() === 'empty') {
   <p>No has establecido ningún acuario todavía.</p>
-  <a href="/app/aquariums/new">Establecer acuario</a>
+  <a routerLink="/app/aquariums/new">Establecer acuario</a>
   } @else { @if (selectionState() === 'loading') {
   <p role="status" aria-live="polite">Seleccionando acuario…</p>
   } @else if (selectionState() === 'failure') {
@@ -15,24 +15,29 @@
     No se ha podido seleccionar el acuario. Inténtalo de nuevo.
   </p>
   }
-  <ul aria-label="Acuarios disponibles">
+  <ul aria-label="Acuarios disponibles" data-testid="aquarium-list">
     @for (aquarium of aquariums(); track aquarium.id) {
     <li>
       <button
         type="button"
-        [attr.aria-pressed]="activeAquariumId() === aquarium.id"
+        [attr.aria-pressed]="activeContext.get() === aquarium.id"
         (click)="select(aquarium)"
       >
         {{ aquarium.name.value }}
       </button>
-      @if (activeAquariumId() === aquarium.id) {
-      <span aria-label="Acuario seleccionado"> (seleccionado)</span>
+      @if (activeContext.get() === aquarium.id) {
+      <span
+        aria-label="Acuario seleccionado"
+        data-testid="active-aquarium-indicator"
+      >
+        (seleccionado)
+      </span>
       }
     </li>
     }
   </ul>
-  @if (activeAquariumId()) {
-  <a href="/app/aquariums/observations/new">Registrar observación</a>
-  <a href="/app/aquariums/measurements/new">Registrar medición</a>
+  @if (activeContext.get()) {
+  <a routerLink="/app/aquariums/observations/new">Registrar observación</a>
+  <a routerLink="/app/aquariums/measurements/new">Registrar medición</a>
   } }
 </section>

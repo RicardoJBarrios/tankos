@@ -5,6 +5,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { AquariumListItem } from '../application/aquarium-ports';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ListMyAquariums } from '../application/list-my-aquariums';
@@ -17,6 +18,7 @@ type ListState = 'loading' | 'empty' | 'success' | 'failure';
 
 @Component({
   selector: 'veril-list-my-aquariums-page',
+  imports: [RouterLink],
   templateUrl: './list-my-aquariums-page.html',
   styleUrl: './list-my-aquariums-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -45,11 +47,10 @@ type ListState = 'loading' | 'empty' | 'success' | 'failure';
 export class ListMyAquariumsPage implements OnInit {
   private readonly listMyAquariums = inject(ListMyAquariums);
   private readonly selectAquarium = inject(SelectAquarium);
-  private readonly activeContext = inject(ActiveAquariumContext);
+  readonly activeContext = inject(ActiveAquariumContext);
 
   readonly state = signal<ListState>('loading');
   readonly aquariums = signal<readonly AquariumListItem[]>([]);
-  readonly activeAquariumId = signal(this.activeContext.get());
   readonly selectionState = signal<'idle' | 'loading' | 'failure'>('idle');
 
   ngOnInit(): void {
@@ -57,7 +58,7 @@ export class ListMyAquariumsPage implements OnInit {
   }
 
   async select(aquarium: AquariumListItem): Promise<void> {
-    if (this.activeAquariumId() === aquarium.id) {
+    if (this.activeContext.get() === aquarium.id) {
       return;
     }
 
@@ -65,10 +66,8 @@ export class ListMyAquariumsPage implements OnInit {
 
     try {
       await this.selectAquarium.execute(aquarium.id);
-      this.activeAquariumId.set(this.activeContext.get());
       this.selectionState.set('idle');
     } catch {
-      this.activeAquariumId.set(this.activeContext.get());
       this.selectionState.set('failure');
     }
   }

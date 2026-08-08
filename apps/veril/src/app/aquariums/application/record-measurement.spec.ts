@@ -1,18 +1,28 @@
 import { describe, expect, it, vi } from 'vitest';
 import { aquariumIdFrom } from '../domain/aquarium';
 import { ActiveAquariumContext } from './active-aquarium-context';
+import { ActiveAquariumContextStorage } from './active-aquarium-context-storage';
 import { KeeperSession, MeasurementWriter } from './aquarium-ports';
 import { RecordMeasurement } from './record-measurement';
 
 const aquariumId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
 const measuredAt = new Date('2026-08-08T10:00:00.000Z');
 
+function createContext(): ActiveAquariumContext {
+  const storage: ActiveAquariumContextStorage = {
+    load: vi.fn(),
+    save: vi.fn(),
+    clear: vi.fn(),
+  };
+  return new ActiveAquariumContext(storage);
+}
+
 function setup() {
   const writer: MeasurementWriter = { record: vi.fn() };
   const keeperSession: KeeperSession = {
     requireAuthenticatedKeeper: vi.fn().mockResolvedValue({ id: 'keeper-a' }),
   };
-  const context = new ActiveAquariumContext();
+  const context = createContext();
   context.select(aquariumId);
 
   return {

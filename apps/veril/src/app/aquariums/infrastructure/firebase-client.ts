@@ -2,9 +2,9 @@ import { getApp, getApps, initializeApp } from 'firebase/app';
 import { isDevMode } from '@angular/core';
 import {
   Auth,
+  browserSessionPersistence,
   connectAuthEmulator,
   getAuth,
-  inMemoryPersistence,
   initializeAuth,
 } from 'firebase/auth';
 import {
@@ -35,7 +35,7 @@ export function getFirebaseClient() {
   const app = hasExistingApp ? getApp() : initializeApp(firebaseConfig);
   const auth = hasExistingApp
     ? getAuth(app)
-    : initializeAuth(app, { persistence: inMemoryPersistence });
+    : initializeAuth(app, { persistence: browserSessionPersistence });
   const firestore = initializeFirestore(app, {
     experimentalForceLongPolling: true,
   });

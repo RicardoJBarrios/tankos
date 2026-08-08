@@ -20,6 +20,19 @@ fi
 
 export PATH="$JAVA_HOME/bin:$PATH"
 
+require_available_port() {
+  local port="$1"
+
+  if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
+    echo "Port $port is already in use. Stop the process using it before running pnpm dev." >&2
+    exit 1
+  fi
+}
+
+for port in 4200 8080 9099; do
+  require_available_port "$port"
+done
+
 firebase_pid=""
 
 cleanup() {
@@ -27,7 +40,7 @@ cleanup() {
   trap - EXIT INT TERM
 
   if [[ -n "$firebase_pid" ]] && kill -0 "$firebase_pid" 2>/dev/null; then
-    kill "$firebase_pid" 2>/dev/null || true
+    kill -INT "$firebase_pid" 2>/dev/null || true
     wait "$firebase_pid" 2>/dev/null || true
   fi
 
@@ -36,7 +49,7 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
-pnpm exec firebase emulators:start --project demo-veril --only auth,firestore &
+./node_modules/.bin/firebase emulators:start --project demo-veril --only auth,firestore &
 firebase_pid=$!
 
 emulators_ready=false

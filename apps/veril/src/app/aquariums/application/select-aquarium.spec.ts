@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
 import { ActiveAquariumContext } from './active-aquarium-context';
+import { ActiveAquariumContextStorage } from './active-aquarium-context-storage';
 import { AquariumReader, KeeperSession } from './aquarium-ports';
 import { SelectAquarium } from './select-aquarium';
 
@@ -12,6 +13,15 @@ const selectedAquarium = {
   name: AquariumName.create('Veril'),
 };
 
+function createContext(): ActiveAquariumContext {
+  const storage: ActiveAquariumContextStorage = {
+    load: vi.fn(),
+    save: vi.fn(),
+    clear: vi.fn(),
+  };
+  return new ActiveAquariumContext(storage);
+}
+
 function setup() {
   const reader: AquariumReader = {
     listOwned: vi.fn(),
@@ -20,7 +30,7 @@ function setup() {
   const keeperSession: KeeperSession = {
     requireAuthenticatedKeeper: vi.fn().mockResolvedValue({ id: 'keeper-a' }),
   };
-  const context = new ActiveAquariumContext();
+  const context = createContext();
 
   return {
     reader,
