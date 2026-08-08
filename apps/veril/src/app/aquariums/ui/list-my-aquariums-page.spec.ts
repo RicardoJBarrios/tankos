@@ -4,8 +4,7 @@ import { AquariumListItem } from '../application/aquarium-ports';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ListMyAquariums } from '../application/list-my-aquariums';
 import { SelectAquarium } from '../application/select-aquarium';
-import { aquariumIdFrom } from '../domain/aquarium-id';
-import { AquariumName } from '../domain/aquarium-name';
+import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
 import { ListMyAquariumsPage } from './list-my-aquariums-page';
 
 const aquarium = (id: string, name: string): AquariumListItem => ({

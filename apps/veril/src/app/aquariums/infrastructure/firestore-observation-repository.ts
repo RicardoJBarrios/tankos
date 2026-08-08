@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Timestamp, doc, setDoc } from 'firebase/firestore';
 import { z } from 'zod';
-import { aquariumIdFrom } from '../domain/aquarium-id';
+import { aquariumIdFrom } from '../domain/aquarium';
 import { Observation, observationIdFrom } from '../domain/observation';
 import {
   ObservationWriter,

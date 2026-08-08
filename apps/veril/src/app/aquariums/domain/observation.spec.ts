@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { aquariumIdFrom } from './aquarium-id';
+import { aquariumIdFrom } from './aquarium';
 import { createObservation, observationIdFrom } from './observation';
 
 const input = {

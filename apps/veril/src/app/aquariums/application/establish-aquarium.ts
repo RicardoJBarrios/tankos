@@ -1,6 +1,5 @@
 import { Aquarium } from '../domain/aquarium';
-import { createAquariumId } from '../domain/aquarium-id';
-import { AquariumName } from '../domain/aquarium-name';
+import { AquariumName, createAquariumId } from '../domain/aquarium';
 import { AquariumRepository, KeeperSession } from './aquarium-ports';
 
 export class EstablishAquarium {

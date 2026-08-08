@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { aquariumIdFrom } from '../domain/aquarium-id';
-import { AquariumName } from '../domain/aquarium-name';
+import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
 import { ActiveAquariumContext } from './active-aquarium-context';
 import { AquariumReader, KeeperSession } from './aquarium-ports';
 import { SelectAquarium } from './select-aquarium';

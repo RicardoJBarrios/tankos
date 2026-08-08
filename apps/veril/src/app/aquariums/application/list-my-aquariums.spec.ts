@@ -5,8 +5,7 @@ import {
   KeeperSession,
 } from './aquarium-ports';
 import { ListMyAquariums } from './list-my-aquariums';
-import { aquariumIdFrom } from '../domain/aquarium-id';
-import { AquariumName } from '../domain/aquarium-name';
+import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
 
 const item = (id: string, name: string): AquariumListItem => ({
   id: aquariumIdFrom(id),

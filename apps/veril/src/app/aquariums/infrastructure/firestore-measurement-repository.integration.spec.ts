@@ -3,8 +3,7 @@
 import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { describe, expect, it } from 'vitest';
-import { createAquariumId } from '../domain/aquarium-id';
-import { AquariumName } from '../domain/aquarium-name';
+import { AquariumName, createAquariumId } from '../domain/aquarium';
 import { createMeasurementId } from '../domain/measurement';
 import { getFirebaseClient } from './firebase-client';
 import { FirebaseKeeperSession } from './firebase-keeper-session';

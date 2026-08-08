@@ -2,8 +2,7 @@ import { createComponentFactory, Spectator } from '@ngneat/spectator/vitest';
 import { describe, expect, it, vi } from 'vitest';
 import { EstablishAquarium } from '../application/establish-aquarium';
 import { EstablishAquariumPage } from './establish-aquarium-page';
-import { aquariumIdFrom } from '../domain/aquarium-id';
-import { AquariumName } from '../domain/aquarium-name';
+import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
 
 describe('EstablishAquariumPage', () => {
   const establish = vi.fn().mockResolvedValue({

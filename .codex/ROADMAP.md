@@ -15,18 +15,21 @@ Expected ADRs: only changes to the accepted baseline or tooling policy.
 
 ## 2. Aquarium Management — current capability
 
-The current capability contains the accepted increments `Establish Aquarium`,
+The current baseline contains the accepted increments `Establish Aquarium`,
 `List My Aquariums`, `Select Aquarium` and `Record Observation`. Together they
 establish a private Aquarium context and the first durable qualitative record.
 They do not require public presentation, domain offline, App Check, E2E,
 Display, System, Equipment, Livestock or Timeline.
 
-## 3. Measurements
+## 3. Measurements — current increment, future expansion
 
-Accept and implement measurement increments only after units, provenance,
-correction, retention and ownership semantics are defined. Do not infer them from
-the Observation model. Parameter history is a read capability, not a prerequisite
-for recording the first measurement.
+`Record Measurement` is accepted and implemented as the first increment of this
+capability. Its closed Parameter catalogue, units, provenance, ownership and
+append-only semantics are defined in the measurement language and specification.
+Do not infer future measurement behavior from the Observation model. Parameter
+history is a read capability, not a prerequisite for recording the first
+measurement. Future measurement increments still require decisions about
+correction, retention and broader ownership semantics.
 
 ## 4. Care
 

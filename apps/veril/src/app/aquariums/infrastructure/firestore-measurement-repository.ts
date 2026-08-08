@@ -13,7 +13,7 @@ import {
   MeasurementWriter,
   RecordMeasurementInput,
 } from '../application/aquarium-ports';
-import { aquariumIdFrom } from '../domain/aquarium-id';
+import { aquariumIdFrom } from '../domain/aquarium';
 import { getFirebaseClient } from './firebase-client';
 
 const measurementDocument = z.object({

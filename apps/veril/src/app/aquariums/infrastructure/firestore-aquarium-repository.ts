@@ -11,8 +11,7 @@ import {
 } from 'firebase/firestore';
 import { z } from 'zod';
 import { Aquarium } from '../domain/aquarium';
-import { aquariumIdFrom } from '../domain/aquarium-id';
-import { AquariumName } from '../domain/aquarium-name';
+import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
 import {
   AquariumListItem,
   AquariumReader,

@@ -1,4 +1,4 @@
-import { AquariumId } from './aquarium-id';
+import { AquariumId } from './aquarium';
 import { isUuidV4 } from './uuid-v4';
 
 export type ObservationId = string & {

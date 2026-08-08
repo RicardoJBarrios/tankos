@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createAquariumId } from '../domain/aquarium-id';
+import { createAquariumId } from '../domain/aquarium';
 
 const emulatorTest =
   process.env['FIRESTORE_EMULATOR_HOST'] &&

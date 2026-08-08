@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { aquariumIdFrom, createAquariumId } from './aquarium-id';
-import { AquariumName } from './aquarium-name';
+import { AquariumName, aquariumIdFrom, createAquariumId } from './aquarium';
 
 describe('Aquarium domain', () => {
   it('creates an independent UUID v4 for every Aquarium', () => {

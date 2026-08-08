@@ -2,7 +2,7 @@ import { createComponentFactory, Spectator } from '@ngneat/spectator/vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { RecordObservation } from '../application/record-observation';
-import { aquariumIdFrom } from '../domain/aquarium-id';
+import { aquariumIdFrom } from '../domain/aquarium';
 import { RecordObservationPage } from './record-observation-page';
 
 const aquariumId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');

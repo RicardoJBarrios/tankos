@@ -36,8 +36,8 @@ linking, recovery and durable human identity are deferred.
 | System         | A coherent set of physical, biological or technical elements that supports an Aquarium. It is not automatically an aggregate or a database hierarchy.                                | Domain concept; possible Entity only when needed                                     | hypothesis           |
 | Equipment      | A device or item that supports, observes or acts on an Aquarium or System. It is not a controller authority, sensor record or automation by itself.                                  | Entity only when identity/lifecycle is needed                                        | hypothesis           |
 | Livestock      | Organisms cared for in relation to an Aquarium. Individual/group identity, association and lifecycle are unresolved.                                                                 | Entity only when a use case needs it                                                 | hypothesis           |
-| Measurement    | A quantitative Observation of a Parameter at a time.                                                                                                                                 | Recorded evidence; possible Entity only when identity/correction requires it         | candidate            |
-| Observation    | A qualitative or quantitative account of an observed subject or condition.                                                                                                           | Recorded evidence; possible Entity only when identity/correction requires it         | candidate            |
+| Measurement    | Quantitative, durable evidence about a Parameter at a time.                                                                                                                         | Independently persisted aggregate; durable Fact                                   | accepted             |
+| Observation    | Qualitative, durable evidence about an observed subject or condition.                                                                                                             | Independently persisted aggregate; durable Fact                                   | accepted             |
 | Fact           | Durable, immutable, attributable evidence accepted by the system. It retains provenance and occurrence or recording time; it does not claim complete certainty about Aquarium state. | Conceptual evidence category                                                         | accepted             |
 | Event          | A Fact whose occurrence has independent domain meaning in an accepted use case. It classifies that Fact; it is not a second generic record.                                          | Domain occurrence; not every Fact becomes an Event                                   | candidate per event  |
 | Interpretation | A human or derived assessment of Facts, Observations or Events.                                                                                                                      | Derived assessment; never replaces source evidence                                   | accepted distinction |
@@ -141,13 +141,17 @@ an application concern and does not change this definition.
 ## Classification boundaries
 
 - **Entities:** only concepts that require stable identity and lifecycle in an
-  accepted use case. `Aquarium` is accepted; the others remain conditional.
+  accepted use case. `Aquarium`, `Observation` and `Measurement` are accepted
+  aggregate roots for their implemented use cases; the others remain
+  conditional.
 - **Value Objects:** `AquariumId` and `AquariumName` are accepted for
   establishment. `AquariumId` is opaque and stable; `AquariumName` is a
   non-empty trimmed label. Quantity/unit, time and provenance remain candidates
   when equality, validation or behavior is needed.
-- **Aggregates:** `Aquarium` is the sole accepted aggregate root. No child
-  aggregate, consistency boundary or cross-Aquarium rule is accepted.
+- **Aggregates:** `Aquarium` is the central aggregate root. `Observation` and
+  `Measurement` are independent aggregate roots for their accepted use cases;
+  they reference `AquariumId` without belonging to Aquarium's consistency
+  boundary. No child aggregate or cross-Aquarium rule is accepted.
 - **Domain Services:** none are accepted. Compatibility, eligibility,
   interpretation or control must not become services before a validated policy
   requires cross-concept behavior.

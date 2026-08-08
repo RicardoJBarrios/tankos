@@ -1,6 +1,5 @@
 import { Aquarium } from '../domain/aquarium';
-import { AquariumId } from '../domain/aquarium-id';
-import { AquariumName } from '../domain/aquarium-name';
+import { AquariumId, AquariumName } from '../domain/aquarium';
 import {
   Measurement,
   MeasurementId,

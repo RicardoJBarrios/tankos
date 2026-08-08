@@ -1,4 +1,4 @@
-import { AquariumId } from '../domain/aquarium-id';
+import { AquariumId } from '../domain/aquarium';
 import { ActiveAquariumContext } from './active-aquarium-context';
 import { AquariumReader, KeeperSession } from './aquarium-ports';
 

@@ -1,4 +1,4 @@
-import { AquariumId } from '../domain/aquarium-id';
+import { AquariumId } from '../domain/aquarium';
 
 export class ActiveAquariumContext {
   private activeAquariumId: AquariumId | null = null;

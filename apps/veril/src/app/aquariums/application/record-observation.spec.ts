@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { aquariumIdFrom } from '../domain/aquarium-id';
+import { aquariumIdFrom } from '../domain/aquarium';
 import { ActiveAquariumContext } from './active-aquarium-context';
 import { KeeperSession, ObservationWriter } from './aquarium-ports';
 import { RecordObservation } from './record-observation';

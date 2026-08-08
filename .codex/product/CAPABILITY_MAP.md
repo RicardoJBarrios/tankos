@@ -20,14 +20,20 @@ These use cases share product language and the Aquarium as their subject, but
 they do not require a single large transaction boundary or a shared technical
 module.
 
-## Candidate capabilities
-
 ### Measurements
 
-- Record Measurement
-- List Measurements
-- Correct Measurement
-- Parameter History
+Provides durable quantitative evidence for the selected Aquarium through a
+closed Parameter catalogue.
+
+- Record Measurement — accepted and implemented.
+- List Measurements — candidate.
+- Correct Measurement — candidate.
+- Parameter History — candidate.
+
+Measurement remains an independent aggregate and does not become part of the
+Aquarium transaction boundary.
+
+## Candidate capabilities
 
 ### Care
 
