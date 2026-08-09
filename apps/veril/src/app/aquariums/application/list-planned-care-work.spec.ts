@@ -47,4 +47,13 @@ describe('ListPlannedCareWork', () => {
       PLANNED_CARE_WORK_LIMIT,
     );
   });
+
+  it('passes a smaller preview limit without changing ordering semantics', async () => {
+    context.select(aquariumId);
+    vi.mocked(reader.listOwned).mockResolvedValue([item]);
+
+    await new ListPlannedCareWork(reader, keeperSession, context).execute(3);
+
+    expect(reader.listOwned).toHaveBeenCalledWith('keeper-a', aquariumId, 3);
+  });
 });

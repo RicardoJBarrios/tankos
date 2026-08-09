@@ -15,6 +15,7 @@ import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session
 import { FirestoreAquariumRepository } from '../infrastructure/firestore-aquarium-repository';
 import { CurrentMeasurementsSection } from './current-measurements-section';
 import { RecentActivityPreview } from './recent-activity-preview';
+import { UpcomingCarePreview } from './upcoming-care-preview';
 
 type WorkspaceState = 'loading' | 'ready' | 'no-context' | 'failure';
 
@@ -23,6 +24,7 @@ type WorkspaceState = 'loading' | 'ready' | 'no-context' | 'failure';
   imports: [
     CurrentMeasurementsSection,
     RecentActivityPreview,
+    UpcomingCarePreview,
     MatButtonModule,
     MatProgressSpinnerModule,
     RouterLink,

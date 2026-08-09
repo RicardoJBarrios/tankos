@@ -14,7 +14,9 @@ export class ListPlannedCareWork {
     private readonly activeContext: ActiveAquariumContext,
   ) {}
 
-  async execute(): Promise<readonly PlannedCareWorkListItem[]> {
+  async execute(
+    limit = PLANNED_CARE_WORK_LIMIT,
+  ): Promise<readonly PlannedCareWorkListItem[]> {
     const keeper = await this.keeperSession.requireAuthenticatedKeeper();
     const aquariumId = this.activeContext.get();
 
@@ -22,10 +24,6 @@ export class ListPlannedCareWork {
       throw new Error('Aquarium context is required');
     }
 
-    return this.reader.listOwned(
-      keeper.id,
-      aquariumId,
-      PLANNED_CARE_WORK_LIMIT,
-    );
+    return this.reader.listOwned(keeper.id, aquariumId, limit);
   }
 }

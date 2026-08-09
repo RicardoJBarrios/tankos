@@ -5,11 +5,13 @@ import { AquariumListItem } from '../application/aquarium-ports';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 import { ListMyAquariums } from '../application/list-my-aquariums';
+import { ListPlannedCareWork } from '../application/list-planned-care-work';
 import { ReviewCurrentMeasurements } from '../application/review-current-measurements';
 import { ReviewRecentTimeline } from '../application/review-recent-timeline';
 import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
 import { CurrentMeasurementsSection } from './current-measurements-section';
 import { RecentActivityPreview } from './recent-activity-preview';
+import { UpcomingCarePreview } from './upcoming-care-preview';
 import { AquariumWorkspacePage } from './aquarium-workspace-page';
 
 const activeId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
@@ -78,6 +80,19 @@ describe('AquariumWorkspacePage', () => {
           },
         },
       ],
+      [
+        UpcomingCarePreview,
+        {
+          set: {
+            providers: [
+              {
+                provide: ListPlannedCareWork,
+                useValue: { execute: vi.fn().mockResolvedValue([]) },
+              },
+            ],
+          },
+        },
+      ],
     ],
   });
 
@@ -108,6 +123,7 @@ describe('AquariumWorkspacePage', () => {
     ).toEqual([
       'Últimas mediciones',
       'Actividad reciente',
+      'Próximos cuidados',
       'Registrar',
       'Consultar',
     ]);

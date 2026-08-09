@@ -113,6 +113,15 @@ cross-owner deletion, unrelated and cross-Aquarium batches, mismatched source
 data and altered descriptions, while accepting only the matching atomic batch.
 Playwright verifies the completed fact in the Care Work list and Timeline.
 
+`Review Upcoming Care Preview` reuses the Planned Care reader with a
+capability-local limit of three. Its application tests verify Active Context,
+the preview limit and the existing canonical ordering contract. Spectator tests
+cover no context, loading, empty, planned items, planned-date presentation and
+section-level failures. The canonical Playwright journey verifies the empty
+preview, a newly planned item after returning to the Workspace, navigation to
+the full planned-care list and its disappearance after completion. It does not
+duplicate Rules or adapter authorization coverage.
+
 `Review Current Measurements` uses direct bounded queries against the immutable
 Measurement history. Application tests cover authentication, Active Context,
 missing Parameters and infrastructure failure. Adapter integration covers the
