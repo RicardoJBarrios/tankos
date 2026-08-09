@@ -7,6 +7,10 @@ import {
 } from '../domain/measurement';
 import { Observation, ObservationId } from '../domain/observation';
 import { CareWork, CareWorkId } from '../domain/care-work';
+import {
+  PlannedCareWork,
+  PlannedCareWorkId,
+} from '../domain/planned-care-work';
 
 export interface AquariumListItem {
   readonly id: AquariumId;
@@ -164,4 +168,44 @@ export interface CareWorkReader {
     aquariumId: AquariumId,
     limit: number,
   ): Promise<readonly CareWorkListItem[]>;
+}
+
+export interface PlanCareWorkInput {
+  readonly id: PlannedCareWorkId;
+  readonly aquariumId: AquariumId;
+  readonly ownerKeeperId: string;
+  readonly description: string;
+  readonly plannedFor: Date;
+  readonly recordedAt: Date;
+  readonly provenance: 'manual';
+}
+
+export interface PlannedCareWorkWriter {
+  recordPlanned(input: PlanCareWorkInput): Promise<PlannedCareWork>;
+}
+
+export interface CompletePlannedCareWorkInput {
+  readonly id: PlannedCareWorkId;
+  readonly aquariumId: AquariumId;
+  readonly ownerKeeperId: string;
+  readonly completedAt: Date;
+}
+
+export interface PlannedCareWorkCompleter {
+  complete(input: CompletePlannedCareWorkInput): Promise<CareWork>;
+}
+
+export interface PlannedCareWorkListItem {
+  readonly id: PlannedCareWorkId;
+  readonly description: string;
+  readonly plannedFor: Date;
+  readonly recordedAt: Date;
+}
+
+export interface PlannedCareWorkReader {
+  listOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    limit: number,
+  ): Promise<readonly PlannedCareWorkListItem[]>;
 }

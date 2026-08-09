@@ -99,6 +99,20 @@ navigation to recording Care Work. The canonical Playwright journey records a
 Care Work action, opens `Cuidados recientes` and verifies that the action is
 visible there.
 
+`Plan Care Work` adds domain and application tests for the independent planned
+intention, Active Context, validation and infrastructure failures. Its separate
+Firestore adapter integration tests verify the `plannedCareWorks` collection,
+ordering, timestamp mapping and malformed-document rejection. Rules tests cover
+owner-only queries and reject anonymous, cross-owner and spoofed-owner writes.
+Spectator tests cover no context, validation, pending, success, empty, results
+and recoverable errors. The canonical Playwright journey plans care work and
+verifies it in the planned-care list. `Complete Planned Care Work` adds
+application, UI and emulator coverage for the atomic creation of a Care Work
+and removal of its plan; Rules tests reject direct owner, anonymous and
+cross-owner deletion, unrelated and cross-Aquarium batches, mismatched source
+data and altered descriptions, while accepting only the matching atomic batch.
+Playwright verifies the completed fact in the Care Work list and Timeline.
+
 `Review Current Measurements` uses direct bounded queries against the immutable
 Measurement history. Application tests cover authentication, Active Context,
 missing Parameters and infrastructure failure. Adapter integration covers the

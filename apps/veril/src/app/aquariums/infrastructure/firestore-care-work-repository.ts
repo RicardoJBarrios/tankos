@@ -22,7 +22,7 @@ import {
 } from '../application/aquarium-ports';
 import { getFirebaseClient } from './firebase-client';
 
-const careWorkDocument = z.object({
+export const careWorkDocument = z.object({
   aquariumId: z.string().min(1),
   ownerId: z.string().min(1),
   description: z.string().min(1),

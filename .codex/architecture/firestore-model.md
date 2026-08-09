@@ -152,6 +152,27 @@ returned document is validated before mapping to a small `CareWorkListItem`.
 No new collection, index or generic history reader is introduced. A future
 pagination or planned-work query must be reviewed independently.
 
+## Plan Care Work: current persistence contract
+
+Planned intentions are independent documents in the top-level
+`plannedCareWorks` collection. They contain `aquariumId`, `ownerId`,
+`description`, Firestore timestamps `plannedFor` and `recordedAt`, and manual
+provenance. They are not completed `CareWork` facts and are not included in
+Timeline.
+
+The query filters by `ownerId` and `aquariumId`, orders by `plannedFor` and
+`recordedAt` ascending, then document ID ascending, and uses the required
+composite index in `firestore.indexes.json`. The planned-care adapter is
+separate from the completed-care adapter, validates every document with Zod,
+and exposes no Firestore types beyond infrastructure. Rules allow owner-only
+reads and creation. Completion uses an owner-scoped atomic batch that creates
+the corresponding `careWorks` document and deletes the planned document;
+Rules require both writes through `existsAfter` and verify the post-batch
+`ownerId`, `aquariumId` and `description` against the deleted plan through
+`getAfter`; direct deletion remains denied. The resulting document uses the
+same underlying UUID as the planned document only for correlation, while
+`PlannedCareWorkId` and `CareWorkId` remain distinct domain identities.
+
 ## Current Measurement values
 
 The Aquarium Workspace answers which values are currently known for the active

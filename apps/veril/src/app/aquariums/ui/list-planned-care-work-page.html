@@ -1,0 +1,84 @@
+<section
+  aria-labelledby="planned-care-work-title"
+  data-testid="planned-care-work-list"
+  class="page-section"
+>
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Intenciones futuras</p>
+      <h2 id="planned-care-work-title">Cuidados planificados</h2>
+    </div>
+    <a mat-stroked-button routerLink="/app/aquariums/care/planned/new"
+      >Planificar cuidado</a
+    >
+  </div>
+
+  @if (state() === 'no-context') {
+  <mat-card appearance="outlined" class="empty-state">
+    <mat-card-content>
+      <p role="status">
+        Primero selecciona un acuario para consultar sus cuidados planificados.
+      </p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums"
+        >Volver a mis acuarios</a
+      >
+    </mat-card-content>
+  </mat-card>
+  } @else if (state() === 'loading') {
+  <div class="loading-state" role="status" aria-live="polite">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="32"
+      aria-label="Cargando cuidados planificados"
+    />
+    <span>Cargando cuidados planificados…</span>
+  </div>
+  } @else if (state() === 'failure') {
+  <div class="feedback feedback-error" role="alert">
+    <p>{{ errorMessage() }}</p>
+    <button mat-stroked-button type="button" (click)="retry()">
+      Reintentar
+    </button>
+  </div>
+  } @else if (state() === 'empty') {
+  <mat-card appearance="outlined" class="empty-state">
+    <mat-card-content>
+      <p>No hay cuidados planificados para este acuario todavía.</p>
+      <a
+        mat-flat-button
+        color="primary"
+        routerLink="/app/aquariums/care/planned/new"
+        >Planificar cuidado</a
+      >
+    </mat-card-content>
+  </mat-card>
+  } @else {
+  <ul aria-label="Cuidados planificados">
+    @for (item of items(); track item.id) {
+    <li>
+      <mat-card appearance="outlined">
+        <mat-card-content>
+          <p class="care-work-description">{{ item.description }}</p>
+          <time [attr.datetime]="item.plannedFor.toISOString()">
+            Previsto para {{ formatPlannedFor(item) }}
+          </time>
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="completingId() !== null"
+            [attr.aria-label]="'Completar ' + item.description"
+            (click)="complete(item)"
+          >
+            {{ completingId() === item.id ? 'Completando…' : 'Completar' }}
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </li>
+    }
+  </ul>
+  } @if (completionError()) {
+  <p class="feedback feedback-error" role="alert">{{ completionError() }}</p>
+  }
+
+  <a mat-button routerLink="/app/aquariums/current">Volver al acuario</a>
+</section>

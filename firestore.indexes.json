@@ -1,6 +1,17 @@
 {
   "indexes": [
     {
+      "collectionGroup": "plannedCareWorks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ownerId", "order": "ASCENDING" },
+        { "fieldPath": "aquariumId", "order": "ASCENDING" },
+        { "fieldPath": "plannedFor", "order": "ASCENDING" },
+        { "fieldPath": "recordedAt", "order": "ASCENDING" },
+        { "fieldPath": "__name__", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "measurements",
       "queryScope": "COLLECTION",
       "fields": [

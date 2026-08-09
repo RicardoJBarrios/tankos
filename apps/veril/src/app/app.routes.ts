@@ -80,6 +80,20 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'aquariums/care/planned/new',
+        loadComponent: () =>
+          import('./aquariums/ui/plan-care-work-page').then(
+            ({ PlanCareWorkPage }) => PlanCareWorkPage,
+          ),
+      },
+      {
+        path: 'aquariums/care/planned',
+        loadComponent: () =>
+          import('./aquariums/ui/list-planned-care-work-page').then(
+            ({ ListPlannedCareWorkPage }) => ListPlannedCareWorkPage,
+          ),
+      },
+      {
         path: 'aquariums/care',
         loadComponent: () =>
           import('./aquariums/ui/list-care-work-page').then(

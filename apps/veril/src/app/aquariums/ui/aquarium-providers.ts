@@ -12,6 +12,9 @@ import {
   ObservationWriter,
   TimelineMeasurementReader,
   TimelineObservationReader,
+  PlannedCareWorkReader,
+  PlannedCareWorkWriter,
+  PlannedCareWorkCompleter,
 } from '../application/aquarium-ports';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 
@@ -55,6 +58,15 @@ export const CARE_WORK_WRITER = new InjectionToken<CareWorkWriter>(
 export const CARE_WORK_READER = new InjectionToken<CareWorkReader>(
   'CARE_WORK_READER',
 );
+
+export const PLANNED_CARE_WORK_WRITER =
+  new InjectionToken<PlannedCareWorkWriter>('PLANNED_CARE_WORK_WRITER');
+
+export const PLANNED_CARE_WORK_READER =
+  new InjectionToken<PlannedCareWorkReader>('PLANNED_CARE_WORK_READER');
+
+export const PLANNED_CARE_WORK_COMPLETER =
+  new InjectionToken<PlannedCareWorkCompleter>('PLANNED_CARE_WORK_COMPLETER');
 
 export const ACTIVE_AQUARIUM_CONTEXT_STORAGE =
   new InjectionToken<ActiveAquariumContextStorage>(
