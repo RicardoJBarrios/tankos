@@ -9,16 +9,16 @@ any item becomes accepted.
 
 ## Concepts to refine
 
-| Area | Current language | Questions still open |
-| --- | --- | --- |
-| Aquarium | The managed care system and aggregate root. | Required attributes, ownership, sharing, and its relationship to Display and System. |
-| Livestock | Fish, Coral and other organisms associated with care. | Individual versus group, transfers, taxonomy and lifecycle. |
-| Equipment | A physical or logical device used in care. | Ownership, sharing, installation, state and safety. |
-| Care work | An intentional action already performed for an Aquarium. | Relationship to planned work, Maintenance, Water Change and Feeding; recurrence and lifecycle. |
-| Recorded information | Measurement, Observation, Parameter, Sensor and Inspection. | Provenance, units, quality, corrections and required parameters. |
-| Automation | Rules, inputs, recommendations or actions. | Authority, safety, audit, retries and offline behavior. |
-| Notifications | Alert, Reminder and delivery. | Consent, severity, acknowledgement, retention and delivery policy. |
-| Identity and collaboration | Authentication, authorization, ownership and collaboration. | Membership model, permissions, invitations and account deletion. |
+| Area                       | Current language                                            | Questions still open                                                                           |
+| -------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Aquarium                   | The managed care system and aggregate root.                 | Required attributes, ownership, sharing, and its relationship to Display and System.           |
+| Livestock                  | Fish, Coral and other organisms associated with care.       | Individual versus group, transfers, taxonomy and lifecycle.                                    |
+| Equipment                  | A physical or logical device used in care.                  | Ownership, sharing, installation, state and safety.                                            |
+| Care work                  | An intentional action already performed for an Aquarium.    | Relationship to planned work, Maintenance, Water Change and Feeding; recurrence and lifecycle. |
+| Recorded information       | Measurement, Observation, Parameter, Sensor and Inspection. | Provenance, units, quality, corrections and required parameters.                               |
+| Automation                 | Rules, inputs, recommendations or actions.                  | Authority, safety, audit, retries and offline behavior.                                        |
+| Notifications              | Alert, Reminder and delivery.                               | Consent, severity, acknowledgement, retention and delivery policy.                             |
+| Identity and collaboration | Authentication, authorization, ownership and collaboration. | Membership model, permissions, invitations and account deletion.                               |
 
 ## Candidate relationships
 

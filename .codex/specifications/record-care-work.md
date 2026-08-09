@@ -151,7 +151,6 @@ this slice does not create a Dashboard.
 - Angular: no context, valid capture, validation, pending, success and error;
 - E2E: record Care Work through the UI and verify it in recent Timeline.
 
-
 ## Definition of Ready
 
 The first Care increment is ready for implementation because its user value,

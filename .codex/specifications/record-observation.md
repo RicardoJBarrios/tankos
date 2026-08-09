@@ -105,16 +105,16 @@ No history screen, Timeline, Dashboard or observation list is introduced.
 
 ## Testing and Definition of Ready
 
-| Criterion | Result | Evidence |
-| --- | --- | --- |
-| Actor, value and bounded scope | Ready | Authenticated keeper records one qualitative Observation in the Active Context. |
-| Minimum data and validation | Ready | AquariumId, owner/recorder, non-empty text and generated recordedAt are explicit. |
-| Ownership and authorization | Ready | Existing auth plus owner-scoped Firestore Rules are authoritative. |
-| Persistence and offline class | Ready | One observations collection, append-only MVP write, online-required. |
-| Application and domain boundary | Ready | Pure use case and domain validation; Firebase and Angular remain at the edges. |
-| UX and failures | Ready | Loading, validation, infrastructure failure and success are bounded. |
-| Testing path | Ready | Domain, application, adapter, Rules and Angular tests; no E2E required. |
-| Deferred scope | Ready | Measurement, Care Work, Timeline, history, subjects and media remain explicitly out. |
+| Criterion                       | Result | Evidence                                                                             |
+| ------------------------------- | ------ | ------------------------------------------------------------------------------------ |
+| Actor, value and bounded scope  | Ready  | Authenticated keeper records one qualitative Observation in the Active Context.      |
+| Minimum data and validation     | Ready  | AquariumId, owner/recorder, non-empty text and generated recordedAt are explicit.    |
+| Ownership and authorization     | Ready  | Existing auth plus owner-scoped Firestore Rules are authoritative.                   |
+| Persistence and offline class   | Ready  | One observations collection, append-only MVP write, online-required.                 |
+| Application and domain boundary | Ready  | Pure use case and domain validation; Firebase and Angular remain at the edges.       |
+| UX and failures                 | Ready  | Loading, validation, infrastructure failure and success are bounded.                 |
+| Testing path                    | Ready  | Domain, application, adapter, Rules and Angular tests; no E2E required.              |
+| Deferred scope                  | Ready  | Measurement, Care Work, Timeline, history, subjects and media remain explicitly out. |
 
 ## Deferred decisions
 

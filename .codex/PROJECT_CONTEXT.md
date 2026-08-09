@@ -38,6 +38,7 @@ false confidence. Historical semantics for individual domain concepts remain a
 use-case decision.
 
 ## Design philosophy
+
 Use domain language in the interface and code. Make the active Aquarium context,
 the next useful action and the historical record easy to find. Accessibility,
 readability and predictable recovery are product qualities, not later polish.

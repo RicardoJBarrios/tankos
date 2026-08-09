@@ -258,17 +258,17 @@ by the owner-scoped verification requirement; a generic repository is not.
 
 ## Definition of Ready assessment
 
-| Mandatory criterion | Result | Evidence |
-| --- | --- | --- |
-| Accepted status, actor and value | Ready | Status, keeper actor and the single problem of entering one owned Aquarium are explicit. |
-| Scope, preconditions, outcome and failures | Ready | Selection is separated from establishment, listing and future Aquarium features; success and failure states are bounded. |
-| Terminology, rules and invariants | Ready | Aquarium remains the aggregate root; Active Context is explicitly application state; owner-only access is explicit. |
-| Persistence, authorization and offline class | Ready | Existing `aquariums` documents and owner-scoped read are sufficient; Rules remain authoritative; a session-scoped browser hint is revalidated and online-required. |
-| Domain/event boundary | Ready | No Command, Domain Event or Fact is invented for application selection. |
-| UX and navigation scope | Ready | Loading, empty, unavailable, unauthorized, error and success are defined without Dashboard behavior. |
-| Architecture and smallest path | Ready | No new schema, collection, repository family, Signal Store, CQRS, projection or Nx library is required. |
-| Testing and delivery path | Ready | Application, adapter, Rules and proportional Angular/integration tests are identified. |
-| Open questions | Ready | Trusted devices, cross-tab synchronization, destination UI, collaboration and audit are explicitly deferred and non-blocking. |
+| Mandatory criterion                          | Result | Evidence                                                                                                                                                           |
+| -------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Accepted status, actor and value             | Ready  | Status, keeper actor and the single problem of entering one owned Aquarium are explicit.                                                                           |
+| Scope, preconditions, outcome and failures   | Ready  | Selection is separated from establishment, listing and future Aquarium features; success and failure states are bounded.                                           |
+| Terminology, rules and invariants            | Ready  | Aquarium remains the aggregate root; Active Context is explicitly application state; owner-only access is explicit.                                                |
+| Persistence, authorization and offline class | Ready  | Existing `aquariums` documents and owner-scoped read are sufficient; Rules remain authoritative; a session-scoped browser hint is revalidated and online-required. |
+| Domain/event boundary                        | Ready  | No Command, Domain Event or Fact is invented for application selection.                                                                                            |
+| UX and navigation scope                      | Ready  | Loading, empty, unavailable, unauthorized, error and success are defined without Dashboard behavior.                                                               |
+| Architecture and smallest path               | Ready  | No new schema, collection, repository family, Signal Store, CQRS, projection or Nx library is required.                                                            |
+| Testing and delivery path                    | Ready  | Application, adapter, Rules and proportional Angular/integration tests are identified.                                                                             |
+| Open questions                               | Ready  | Trusted devices, cross-tab synchronization, destination UI, collaboration and audit are explicitly deferred and non-blocking.                                      |
 
 ## Accepted decisions
 
