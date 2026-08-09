@@ -55,10 +55,12 @@ offline capability and App Check remain deferred.
 
 - Use Firebase CLI directly for local emulators.
 - `pnpm dev` is the canonical local-development entry point.
-- `tools/dev.sh` coordinates Angular, Auth Emulator and Firestore Emulator.
-- Do not add a Firebase/Nx plugin unless a concrete need emerges, such as
-  Firebase Functions, multiple Firebase applications or substantially more
-  complex Nx-native deployment orchestration.
+- `tools/dev.sh` coordinates Angular plus the Auth and Firestore emulators.
+- **SPARK FIRST:** the current production baseline uses Authentication and
+  Firestore directly. It does not require Blaze, Cloud Functions or a backend
+  projection for Current Measurements.
+- Do not add a Firebase/Nx plugin unless multiple Firebase applications or more
+  complex Nx-native deployment orchestration creates a concrete need.
 - Re-evaluate plugin compatibility and fit when such a need appears; this is
   not a permanent prohibition on future plugins.
 

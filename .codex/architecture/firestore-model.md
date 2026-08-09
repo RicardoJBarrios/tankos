@@ -152,13 +152,11 @@ returned document is validated before mapping to a small `CareWorkListItem`.
 No new collection, index or generic history reader is introduced. A future
 pagination or planned-work query must be reviewed independently.
 
-## Future current Measurement state
+## Current Measurement values
 
-The product will eventually need to answer which values are currently known for
-the active Aquarium without repeatedly querying Measurement history. This is a
-read concern, not a new domain Aggregate: immutable `Measurement` documents
-remain the source of truth and a current-state model is reconstructable derived
-data. Deleting or rebuilding that model must never alter Measurement history.
+The Aquarium Workspace answers which values are currently known for the active
+Aquarium directly from immutable `Measurement` documents. This is a read
+concern, not a new domain Aggregate: Measurements remain the source of truth.
 
 The latest-value policy is the same sequence already accepted for historical
 reads:
@@ -172,48 +170,27 @@ current value. Equal timestamps use the deterministic MeasurementId tie-breaker.
 No separate definition of “latest” is allowed for current values or future
 Timeline projections.
 
-No current-state projection is implemented yet because there is no current-value
-consumer in the product. The explicit future overview requirement was reviewed
-against two shapes:
+For each closed Parameter, the adapter performs an owner- and Aquarium-scoped
+query with `limit(1)` and the canonical ordering. These independent reads run
+concurrently. A missing result is rendered as missing evidence, while a query
+failure fails the whole current-values read; absence is never inferred from an
+infrastructure error.
 
-- one document per Aquarium and Parameter: up to one read per catalogue
-  Parameter, narrow writes and simpler per-Parameter Rules;
-- one document per Aquarium with a bounded `values` map: one overview read and
-  one transaction target, with a small amount of write contention shared by all
-  Parameters.
+The exact query is supported by a collection composite index over `ownerId`,
+`aquariumId`, `parameterId`, `measuredAt` descending, `recordedAt` descending
+and document ID ascending. The explicit document-ID direction makes ties stable
+without an in-memory sort.
 
-For Veril's current manual, low-frequency catalogue, the second shape is the
-better read model for the question “what are the current values of this
-Aquarium?”. Five current entries, and even a plausible 20–50 entries, are far
-below Firestore's document-size limit. It should therefore be the preferred
-shape when the first current-value consumer is accepted:
-`measurementCurrentStates/{aquariumId}`. The map key is the `ParameterId`; each
-value should contain only the current MeasurementId, canonical value, unit and
-measurement time, plus `recordedAt` and provenance only if that consumer needs
-them. Aquarium identity is already the document ID and ownership should be
-derived from the Aquarium rather than duplicated.
+This is the Spark-first production baseline: Cloud Firestore and Authentication
+are sufficient, and no Cloud Functions, projection collection, backfill or
+scheduled reconciliation is active. The bounded direct-read cost is appropriate
+for the five-Parameter manual catalogue.
 
-This is a shape decision, not an implementation decision. It remains deferred
-until a consumer exists because a client-maintained projection would add a new
-trusted write path now. A transaction provides atomicity but does not by itself
-let client Rules prove the complete latest-value ordering for retrospective
-Measurements. Adding a server function solely to close that gap would be
-disproportionate before a consumer exists. The one-document-per-Parameter
-shape remains a fallback if the future security boundary cannot safely support
-the Aquarium-level map.
+A trusted `measurementCurrentStates/{aquariumId}` materialized projection via a
+Firestore Function remains a future optimization only. If a real consumer shows
+that five direct reads are insufficient, it must be introduced as rebuildable,
+eventually consistent derived data with a separately approved initialization
+and recovery plan.
 
-If the projection is maintained by the web client, recording a Measurement and
-conditionally updating its current value must use one Firestore transaction:
-read the current value, compare the accepted ordering, then write the immutable
-Measurement and projection atomically. Transactions are online-required and
-may retry; transaction callbacks must not mutate application state. The
-projection write must be validated at the Rules boundary, with `getAfter()` used
-only if needed to enforce the relation between source Measurement and derived
-state. A server function is deferred because Veril has no Functions runtime and
-eventual consistency would complicate this invariant without a current
-consumer.
-
-The future model does not change `List Measurements`, which continues reading
-the canonical `measurements` collection with its existing cursor contract. Its
-first implementation belongs to the accepted current-state read slice, not to
-the already accepted historical-list slice.
+`List Measurements` remains the independent historical read with its existing
+cursor contract.

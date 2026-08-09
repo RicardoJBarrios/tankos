@@ -42,16 +42,20 @@ application service and is not replaced by a store.
 
 ## Dashboard boundary
 
-This increment defines a Workspace, not a Dashboard. It contains identity and
-navigation only. It does not show Current Measurements, health scores, alerts,
-charts, analytics, AI, planned care or other summaries.
+This increment defines a Workspace, not a Dashboard. It contains Aquarium
+identity, navigation and the bounded latest known Measurements. It does not
+show health scores, alerts, charts, analytics, AI, planned care or other
+summaries.
 
 ## Current Measurements decision
 
-`measurementCurrentStates/{aquariumId}` remains deferred. The Workspace does
-not yet consume current values, so it is not the first real consumer that
-crosses the projection implementation threshold. `Measurement` remains the
-source of truth and `List Measurements` remains historical.
+The Workspace presents the five latest known values through direct bounded
+queries of the authoritative `measurements` history. Each Parameter uses the
+canonical ordering and `limit(1)`; `Sin datos` is an honest missing value, not
+an inferred default. This Spark-first design avoids a backend projection while
+the catalogue is small. `Measurement` remains the source of truth and `List
+Measurements` remains historical. A trusted materialized projection is deferred
+until direct reads show a measured need.
 
 ## Missing context and unavailable Aquarium
 
@@ -82,9 +86,9 @@ the existing actions through visible links.
 
 ## Deferred scope
 
-Dashboard summaries, Current Measurements, Timeline previews, route-embedded
-Aquarium IDs, shared workspace refresh state, Signal Store, planned care,
-offline workspace state and shell-level capability navigation remain deferred.
+Dashboard summaries, Timeline previews, route-embedded Aquarium IDs, shared
+workspace refresh state, Signal Store, planned care, offline workspace state
+and shell-level capability navigation remain deferred.
 
 ## Definition of Ready
 
@@ -93,6 +97,6 @@ offline workspace state and shell-level capability navigation remain deferred.
 - Active Context relationship: existing application state, Ready.
 - Persistence: no schema change, Ready.
 - Shared state: no store, Ready.
-- Current Measurements: explicitly deferred, Ready.
+- Current Measurements: direct Spark-first read, Ready.
 - Loading, failure and no-context behaviour: defined, Ready.
 - Testing and deferred scope: defined, Ready.

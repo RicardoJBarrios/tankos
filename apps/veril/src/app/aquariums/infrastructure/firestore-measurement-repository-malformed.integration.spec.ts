@@ -47,4 +47,27 @@ describe('FirestoreMeasurementRepository document boundary', () => {
     ).rejects.toThrow();
     expect(firestoreMocks.getDocs).toHaveBeenCalledTimes(1);
   });
+
+  it('rejects malformed external data through findCurrentOwned', async () => {
+    firestoreMocks.getDocs.mockResolvedValue({
+      docs: [
+        {
+          id: '123e4567-e89b-42d3-a456-426614174001',
+          data: () => ({
+            aquariumId: 'not-an-aquarium-id',
+            ownerId: 'keeper-1',
+            parameterId: 'temperature',
+          }),
+        },
+      ],
+    });
+
+    await expect(
+      new FirestoreMeasurementRepository().findCurrentOwned(
+        'keeper-1',
+        aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000'),
+        'temperature',
+      ),
+    ).rejects.toThrow();
+  });
 });

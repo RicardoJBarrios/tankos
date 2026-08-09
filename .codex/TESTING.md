@@ -99,6 +99,14 @@ navigation to recording Care Work. The canonical Playwright journey records a
 Care Work action, opens `Cuidados recientes` and verifies that the action is
 visible there.
 
+`Review Current Measurements` uses direct bounded queries against the immutable
+Measurement history. Application tests cover authentication, Active Context,
+missing Parameters and infrastructure failure. Adapter integration covers the
+canonical latest query and malformed data; Rules cover owner, anonymous and
+cross-owner requests. Spectator covers loading, values, missing values and
+errors. The canonical Playwright journey records a Measurement, returns to the
+Workspace and observes its latest value.
+
 ## Browser journeys
 
 `pnpm nx e2e veril` runs the canonical Chromium journeys through visible UI

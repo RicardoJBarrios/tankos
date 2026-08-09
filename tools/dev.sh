@@ -62,7 +62,6 @@ for _ in {1..60}; do
 
   auth_status="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:9099/ || true)"
   firestore_status="$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/ || true)"
-
   if [[ "$auth_status" != "000" && "$firestore_status" != "000" ]]; then
     emulators_ready=true
     break
@@ -72,7 +71,7 @@ for _ in {1..60}; do
 done
 
 if [[ "$emulators_ready" != true ]]; then
-  echo "Firebase Auth and Firestore emulators did not become ready in time." >&2
+  echo "Firebase emulators did not become ready in time." >&2
   exit 1
 fi
 

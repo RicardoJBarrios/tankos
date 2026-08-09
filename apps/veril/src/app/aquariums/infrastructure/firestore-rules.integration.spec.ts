@@ -225,6 +225,62 @@ async function queryMeasurements(
   );
 }
 
+async function queryCurrentMeasurement(
+  aquariumId: string,
+  ownerId: string,
+  token?: string,
+) {
+  return fetch(
+    'http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents:runQuery',
+    {
+      method: 'POST',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: 'measurements' }],
+          where: {
+            compositeFilter: {
+              op: 'AND',
+              filters: [
+                {
+                  fieldFilter: {
+                    field: { fieldPath: 'aquariumId' },
+                    op: 'EQUAL',
+                    value: { stringValue: aquariumId },
+                  },
+                },
+                {
+                  fieldFilter: {
+                    field: { fieldPath: 'ownerId' },
+                    op: 'EQUAL',
+                    value: { stringValue: ownerId },
+                  },
+                },
+                {
+                  fieldFilter: {
+                    field: { fieldPath: 'parameterId' },
+                    op: 'EQUAL',
+                    value: { stringValue: 'temperature' },
+                  },
+                },
+              ],
+            },
+          },
+          orderBy: [
+            { field: { fieldPath: 'measuredAt' }, direction: 'DESCENDING' },
+            { field: { fieldPath: 'recordedAt' }, direction: 'DESCENDING' },
+            { field: { fieldPath: '__name__' }, direction: 'ASCENDING' },
+          ],
+          limit: 1,
+        },
+      }),
+    },
+  );
+}
+
 async function queryCareWorks(
   aquariumId: string,
   ownerId: string,
@@ -398,6 +454,16 @@ describe('Firestore Security Rules (Emulator Suite)', () => {
         (await ownerMeasurementQuery.text()).match(/"document"/g),
       ).toHaveLength(1);
 
+      const ownerCurrentMeasurementQuery = await queryCurrentMeasurement(
+        aquariumA,
+        keeperA.localId,
+        keeperA.idToken,
+      );
+      expect(ownerCurrentMeasurementQuery.status).toBe(200);
+      expect(
+        (await ownerCurrentMeasurementQuery.text()).match(/"document"/g),
+      ).toHaveLength(1);
+
       const anonymousMeasurementQuery = await queryMeasurements(
         aquariumA,
         keeperA.localId,
@@ -410,6 +476,20 @@ describe('Firestore Security Rules (Emulator Suite)', () => {
         keeperB.idToken,
       );
       expect(crossOwnerMeasurementQuery.status).toBe(403);
+      expect(
+        [401, 403].includes(
+          (await queryCurrentMeasurement(aquariumA, keeperA.localId)).status,
+        ),
+      ).toBe(true);
+      expect(
+        (
+          await queryCurrentMeasurement(
+            aquariumA,
+            keeperA.localId,
+            keeperB.idToken,
+          )
+        ).status,
+      ).toBe(403);
       expect(
         (await writeMeasurement(createAquariumId(), aquariumA, keeperA.localId))
           .status,

@@ -5,7 +5,9 @@ import { AquariumListItem } from '../application/aquarium-ports';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 import { ListMyAquariums } from '../application/list-my-aquariums';
+import { ReviewCurrentMeasurements } from '../application/review-current-measurements';
 import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
+import { CurrentMeasurementsSection } from './current-measurements-section';
 import { AquariumWorkspacePage } from './aquarium-workspace-page';
 
 const activeId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
@@ -48,6 +50,19 @@ describe('AquariumWorkspacePage', () => {
           },
         },
       ],
+      [
+        CurrentMeasurementsSection,
+        {
+          set: {
+            providers: [
+              {
+                provide: ReviewCurrentMeasurements,
+                useValue: { execute: vi.fn().mockResolvedValue([]) },
+              },
+            ],
+          },
+        },
+      ],
     ],
   });
 
@@ -75,7 +90,7 @@ describe('AquariumWorkspacePage', () => {
     expect(spectator.query('h2')?.textContent).toContain('Veril');
     expect(
       spectator.queryAll('h3').map((heading) => heading.textContent),
-    ).toEqual(['Registrar', 'Consultar']);
+    ).toEqual(['Últimas mediciones', 'Registrar', 'Consultar']);
     expect(
       spectator.queryAll('a').map((link) => link.textContent?.trim()),
     ).toEqual(

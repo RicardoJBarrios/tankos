@@ -18,6 +18,79 @@ const emulatorTest =
 
 describe('FirestoreMeasurementRepository (Emulator Suite)', () => {
   emulatorTest(
+    'returns the canonical latest Measurement for a Parameter',
+    async () => {
+      const session = new FirebaseKeeperSession();
+      const keeper = await session.requireAuthenticatedKeeper();
+      const aquarium = await new FirestoreAquariumRepository().establish({
+        id: createAquariumId(),
+        name: AquariumName.create('Actuales'),
+        ownerKeeperId: keeper.id,
+        establishedAt: new Date('2026-08-08T09:00:00.000Z'),
+      });
+      const repository = new FirestoreMeasurementRepository();
+      const olderId = measurementIdFrom('123e4567-e89b-42d3-a456-426614174010');
+      const latestId = measurementIdFrom(
+        '123e4567-e89b-42d3-a456-426614174011',
+      );
+      const retrospectivelyRecordedId = measurementIdFrom(
+        '123e4567-e89b-42d3-a456-426614174012',
+      );
+
+      await repository.record({
+        id: olderId,
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        parameterId: 'temperature',
+        enteredValue: 23,
+        enteredUnit: 'celsius',
+        canonicalValue: 23,
+        canonicalUnit: 'celsius',
+        measuredAt: new Date('2026-08-08T09:01:00.000Z'),
+        recordedAt: new Date('2026-08-08T09:02:00.000Z'),
+        provenance: 'manual',
+      });
+      await repository.record({
+        id: latestId,
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        parameterId: 'temperature',
+        enteredValue: 25.4,
+        enteredUnit: 'celsius',
+        canonicalValue: 25.4,
+        canonicalUnit: 'celsius',
+        measuredAt: new Date('2026-08-08T09:03:00.000Z'),
+        recordedAt: new Date('2026-08-08T09:04:00.000Z'),
+        provenance: 'manual',
+      });
+      await repository.record({
+        id: retrospectivelyRecordedId,
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        parameterId: 'temperature',
+        enteredValue: 24,
+        enteredUnit: 'celsius',
+        canonicalValue: 24,
+        canonicalUnit: 'celsius',
+        measuredAt: new Date('2026-08-08T09:00:00.000Z'),
+        recordedAt: new Date('2026-08-08T09:05:00.000Z'),
+        provenance: 'manual',
+      });
+
+      await expect(
+        repository.findCurrentOwned(keeper.id, aquarium.id, 'temperature'),
+      ).resolves.toMatchObject({ id: latestId, canonicalValue: 25.4 });
+      await expect(
+        repository.findCurrentOwned(keeper.id, aquarium.id, 'salinity'),
+      ).resolves.toBeNull();
+
+      const { auth } = getFirebaseClient();
+      await signOut(auth);
+    },
+    20000,
+  );
+
+  emulatorTest(
     'persists independent manual measurements for the owner Aquarium',
     async () => {
       const session = new FirebaseKeeperSession();
@@ -142,7 +215,7 @@ describe('FirestoreMeasurementRepository (Emulator Suite)', () => {
       });
       const ids = Array.from({ length: 21 }, (_, index) =>
         measurementIdFrom(
-          `123e4567-e89b-42d3-a456-426614174${index
+          `123e4567-e89b-42d3-a456-426614175${index
             .toString()
             .padStart(3, '0')}`,
         ),

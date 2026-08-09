@@ -13,12 +13,18 @@ import { ListMyAquariums } from '../application/list-my-aquariums';
 import { AQUARIUM_REPOSITORY, KEEPER_SESSION } from './aquarium-providers';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
 import { FirestoreAquariumRepository } from '../infrastructure/firestore-aquarium-repository';
+import { CurrentMeasurementsSection } from './current-measurements-section';
 
 type WorkspaceState = 'loading' | 'ready' | 'no-context' | 'failure';
 
 @Component({
   selector: 'veril-aquarium-workspace-page',
-  imports: [MatButtonModule, MatProgressSpinnerModule, RouterLink],
+  imports: [
+    CurrentMeasurementsSection,
+    MatButtonModule,
+    MatProgressSpinnerModule,
+    RouterLink,
+  ],
   templateUrl: './aquarium-workspace-page.html',
   styleUrl: './aquarium-workspace-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

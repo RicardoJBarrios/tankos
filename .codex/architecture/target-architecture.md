@@ -24,16 +24,16 @@ where product evidence is still absent.
 
 ## Direction and implementation timing
 
-| Direction | Required for current slice | Deferred implementation |
-| --- | --- | --- |
-| Private/public capability separation | Private establishment only; public data is deferred. | Public Aquarium presentation and publication controls. |
-| Firebase Auth and Firestore | Required for the authenticated, durable private Aquarium. | Additional services and data models. |
-| Emulator Suite and Security Rules | Required before the slice persists private data. | Broader fixture catalogues and environment promotion. |
-| PWA | App-shell capability already exists. | Update UX, data sync and domain offline behavior. |
-| Offline capability | `Establish Aquarium` is online-required. | Offline writes, trusted-device mode and conflict handling. |
-| App Check | Accepted direction. | Rollout and enforcement after a deployed client/use case justifies it. |
-| Timeline | Direction for later review. | Timeline projection and parameter-history UX. |
-| Playwright E2E | Required for canonical cross-route keeper journeys. | Additional journeys only when they reveal browser-level risk. |
+| Direction                            | Required for current slice                                | Deferred implementation                                                |
+| ------------------------------------ | --------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Private/public capability separation | Private establishment only; public data is deferred.      | Public Aquarium presentation and publication controls.                 |
+| Firebase Auth and Firestore          | Required for the authenticated, durable private Aquarium. | Additional services and data models.                                   |
+| Emulator Suite and Security Rules    | Required before the slice persists private data.          | Broader fixture catalogues and environment promotion.                  |
+| PWA                                  | App-shell capability already exists.                      | Update UX, data sync and domain offline behavior.                      |
+| Offline capability                   | `Establish Aquarium` is online-required.                  | Offline writes, trusted-device mode and conflict handling.             |
+| App Check                            | Accepted direction.                                       | Rollout and enforcement after a deployed client/use case justifies it. |
+| Timeline                             | Direction for later review.                               | Timeline projection and parameter-history UX.                          |
+| Playwright E2E                       | Required for canonical cross-route keeper journeys.       | Additional journeys only when they reveal browser-level risk.          |
 
 This table governs timing. It does not weaken the accepted directions in ADRs.
 
@@ -171,10 +171,12 @@ Decision: [ADR-0002](../adr/0002-firebase-free-first.md).
 
 Firebase Authentication, Cloud Firestore, Hosting, App Check and the Local
 Emulator Suite are accepted directions. The current slice requires only
-Authentication, Firestore and the Emulator Suite with Security Rules. Hosting is
-needed when deployment is introduced; App Check, Storage, Functions, Cloud Run,
-Analytics and other services are deferred until a concrete use case justifies
-them.
+Authentication, Firestore and the Emulator Suite with Security Rules. Current
+Measurement values are read directly from historical Measurements; a trusted
+projection is deferred until a concrete scale need justifies its operational
+cost. Hosting is needed when deployment is introduced; App Check, Storage,
+Functions, Cloud Run, Analytics and other services remain deferred until a
+concrete use case justifies them.
 
 Use one modular Firebase implementation configured for real or emulator hosts.
 AngularFire and the Firebase SDK remain behind small `data-access` adapters.
@@ -291,11 +293,11 @@ for competing writes. Use `fromCache` and `hasPendingWrites` for snapshot state.
 
 Classify each command before enabling offline writes:
 
-| Class | Policy |
-| --- | --- |
-| `offline-safe` | Local write and native Firestore synchronization are acceptable. |
-| `offline-read-only` | Cached reads are allowed; mutations are blocked. |
-| `online-required` | Connection and current server state are required. |
+| Class               | Policy                                                           |
+| ------------------- | ---------------------------------------------------------------- |
+| `offline-safe`      | Local write and native Firestore synchronization are acceptable. |
+| `offline-read-only` | Cached reads are allowed; mutations are blocked.                 |
+| `online-required`   | Connection and current server state are required.                |
 
 Transactions and current-value invariants are `online-required`. Conflict policy
 is per operation: last-write-wins where an accepted use case allows it,
@@ -310,12 +312,12 @@ destructive action and must clearly warn about data loss.
 
 ## 10. Environments and Emulator Suite
 
-| Environment | Backend | Data policy |
-| --- | --- | --- |
-| `local` | Auth and Firestore emulators, `demo-*` project | Deterministic fixtures |
-| `test` | Mocks for unit tests; emulators for integration | Resettable baseline |
-| `preview` | Hosting Preview Channel; isolated non-production backend only when needed | Synthetic, PR-scoped data |
-| `production` | Real Firebase services and App Check | Real data only |
+| Environment  | Backend                                                                   | Data policy               |
+| ------------ | ------------------------------------------------------------------------- | ------------------------- |
+| `local`      | Auth and Firestore emulators, `demo-*` project                            | Deterministic fixtures    |
+| `test`       | Mocks for unit tests; emulators for integration                           | Resettable baseline       |
+| `preview`    | Hosting Preview Channel; isolated non-production backend only when needed | Synthetic, PR-scoped data |
+| `production` | Real Firebase services and App Check                                      | Real data only            |
 
 Local and test must fail closed rather than connect to production. Preview URLs
 are public and temporary; visual previews use a backend-free build, while

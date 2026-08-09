@@ -114,6 +114,21 @@ export interface MeasurementReader {
   ): Promise<MeasurementPage>;
 }
 
+export interface CurrentMeasurementValue {
+  readonly parameterId: ParameterId;
+  readonly canonicalValue: number | null;
+  readonly canonicalUnit: UnitId | null;
+  readonly measuredAt: Date | null;
+}
+
+export interface CurrentMeasurementReader {
+  findCurrentOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    parameterId: ParameterId,
+  ): Promise<MeasurementListItem | null>;
+}
+
 export interface TimelineMeasurementReader {
   listRecentOwned(
     ownerKeeperId: string,

@@ -1,0 +1,47 @@
+<section
+  aria-labelledby="current-measurements-title"
+  data-testid="current-measurements"
+>
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Estado actual</p>
+      <h3 id="current-measurements-title">Últimas mediciones</h3>
+    </div>
+  </div>
+
+  @if (state() === 'loading') {
+  <div class="feedback" role="status" aria-live="polite">
+    <mat-progress-spinner
+      mode="indeterminate"
+      diameter="28"
+      aria-label="Cargando últimas mediciones"
+    />
+    <span>Cargando últimas mediciones…</span>
+  </div>
+  } @else if (state() === 'failure') {
+  <div class="feedback feedback-error" role="alert">
+    <p>No se han podido cargar las últimas mediciones.</p>
+    <button type="button" (click)="retry()">Reintentar</button>
+  </div>
+  } @else {
+  <ul aria-label="Últimas mediciones">
+    @for (item of values(); track item.parameterId) {
+    <li>
+      <mat-card appearance="outlined">
+        <mat-card-content>
+          <span>{{ label(item) }}</span>
+          @if (item.canonicalValue === null) {
+          <strong>Sin datos</strong>
+          } @else {
+          <strong>{{ item.canonicalValue }} {{ unit(item) }}</strong>
+          <time [attr.datetime]="item.measuredAt?.toISOString()">
+            {{ formatMeasuredAt(item) }}
+          </time>
+          }
+        </mat-card-content>
+      </mat-card>
+    </li>
+    }
+  </ul>
+  }
+</section>

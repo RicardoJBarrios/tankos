@@ -3,6 +3,7 @@ import {
   AquariumRepository,
   AquariumReader,
   CareWorkWriter,
+  CurrentMeasurementReader,
   CareWorkReader,
   KeeperSession,
   MeasurementReader,
@@ -37,6 +38,9 @@ export const MEASUREMENT_WRITER = new InjectionToken<MeasurementWriter>(
 export const MEASUREMENT_READER = new InjectionToken<MeasurementReader>(
   'MEASUREMENT_READER',
 );
+
+export const CURRENT_MEASUREMENT_READER =
+  new InjectionToken<CurrentMeasurementReader>('CURRENT_MEASUREMENT_READER');
 
 export const TIMELINE_OBSERVATION_READER =
   new InjectionToken<TimelineObservationReader>('TIMELINE_OBSERVATION_READER');
