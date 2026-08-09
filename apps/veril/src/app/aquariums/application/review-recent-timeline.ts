@@ -125,7 +125,9 @@ export class ReviewRecentTimeline {
     private readonly activeContext: ActiveAquariumContext,
   ) {}
 
-  async execute(): Promise<readonly TimelineItem[]> {
+  async execute(
+    limit = RECENT_TIMELINE_LIMIT,
+  ): Promise<readonly TimelineItem[]> {
     const keeper = await this.keeperSession.requireAuthenticatedKeeper();
     const aquariumId = this.activeContext.get();
 
@@ -134,26 +136,14 @@ export class ReviewRecentTimeline {
     }
 
     const [observations, measurements, careWorks] = await Promise.all([
-      this.observationReader.listRecentOwned(
-        keeper.id,
-        aquariumId,
-        RECENT_TIMELINE_LIMIT,
-      ),
-      this.measurementReader.listRecentOwned(
-        keeper.id,
-        aquariumId,
-        RECENT_TIMELINE_LIMIT,
-      ),
-      this.careWorkReader.listRecentOwned(
-        keeper.id,
-        aquariumId,
-        RECENT_TIMELINE_LIMIT,
-      ),
+      this.observationReader.listRecentOwned(keeper.id, aquariumId, limit),
+      this.measurementReader.listRecentOwned(keeper.id, aquariumId, limit),
+      this.careWorkReader.listRecentOwned(keeper.id, aquariumId, limit),
     ]);
 
     return [...observations, ...measurements, ...careWorks]
       .map((item) => toTimelineItem(item))
       .sort(compareTimelineItems)
-      .slice(0, RECENT_TIMELINE_LIMIT);
+      .slice(0, limit);
   }
 }

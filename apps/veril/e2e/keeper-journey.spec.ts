@@ -29,7 +29,10 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Veril E2E' })).toBeVisible();
 
-  await page.getByRole('link', { name: 'Registrar observación' }).click();
+  await page
+    .getByLabel('Registrar')
+    .getByRole('link', { name: 'Registrar observación' })
+    .click();
   await page.getByLabel('¿Qué has observado?').fill('El coral está abierto.');
   await page.getByRole('button', { name: 'Guardar observación' }).click();
   await expect(
@@ -60,6 +63,12 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page.getByTestId('current-measurements')).toContainText(
     '25.4 °C',
   );
+  await expect(page.getByTestId('recent-activity-preview')).toContainText(
+    'El coral está abierto.',
+  );
+  await expect(page.getByTestId('recent-activity-preview')).toContainText(
+    '25.4 °C',
+  );
 
   await page.getByRole('link', { name: 'Ver mediciones' }).click();
   await expect(page).toHaveURL('/app/aquariums/measurements');
@@ -67,7 +76,7 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
 
   await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
   await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
-  await page.getByRole('link', { name: 'Actividad reciente' }).click();
+  await page.getByRole('link', { name: 'Ver toda la actividad' }).click();
   await expect(page).toHaveURL('/app/aquariums/timeline');
   await expect(page.getByTestId('recent-timeline')).toContainText(
     'El coral está abierto.',
@@ -88,7 +97,10 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
 
   await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
   await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
-  await page.getByRole('link', { name: 'Actividad reciente' }).click();
+  await expect(page.getByTestId('recent-activity-preview')).toContainText(
+    'Limpié la copa del skimmer.',
+  );
+  await page.getByRole('link', { name: 'Ver toda la actividad' }).click();
   await expect(page.getByTestId('recent-timeline')).toContainText('Cuidado');
   await expect(page.getByTestId('recent-timeline')).toContainText(
     'Limpié la copa del skimmer.',

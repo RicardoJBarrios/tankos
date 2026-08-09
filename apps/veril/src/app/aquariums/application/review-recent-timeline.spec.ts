@@ -279,6 +279,49 @@ describe('ReviewRecentTimeline', () => {
     expect(items.some((item) => item.kind === 'measurement')).toBe(true);
   });
 
+  it('uses a caller-provided limit for bounded previews without changing ordering', async () => {
+    const { review, observationReader, measurementReader, careWorkReader } =
+      setup();
+    const items = [
+      observation(
+        '123e4567-e89b-42d3-a456-426614174001',
+        '2026-08-08T10:00:00.000Z',
+      ),
+      observation(
+        '123e4567-e89b-42d3-a456-426614174002',
+        '2026-08-08T09:00:00.000Z',
+      ),
+      observation(
+        '123e4567-e89b-42d3-a456-426614174003',
+        '2026-08-08T08:00:00.000Z',
+      ),
+      observation(
+        '123e4567-e89b-42d3-a456-426614174004',
+        '2026-08-08T07:00:00.000Z',
+      ),
+    ];
+    vi.mocked(observationReader.listRecentOwned).mockResolvedValue(items);
+    vi.mocked(measurementReader.listRecentOwned).mockResolvedValue([]);
+    vi.mocked(careWorkReader.listRecentOwned).mockResolvedValue([]);
+
+    await expect(review.execute(3)).resolves.toHaveLength(3);
+    expect(observationReader.listRecentOwned).toHaveBeenCalledWith(
+      'keeper-a',
+      '123e4567-e89b-42d3-a456-426614174000',
+      3,
+    );
+    expect(measurementReader.listRecentOwned).toHaveBeenCalledWith(
+      'keeper-a',
+      '123e4567-e89b-42d3-a456-426614174000',
+      3,
+    );
+    expect(careWorkReader.listRecentOwned).toHaveBeenCalledWith(
+      'keeper-a',
+      '123e4567-e89b-42d3-a456-426614174000',
+      3,
+    );
+  });
+
   it('fails as a whole when either source fails', async () => {
     const { review, observationReader, measurementReader, careWorkReader } =
       setup();

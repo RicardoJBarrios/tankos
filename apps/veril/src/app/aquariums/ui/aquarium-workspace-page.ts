@@ -14,6 +14,7 @@ import { AQUARIUM_REPOSITORY, KEEPER_SESSION } from './aquarium-providers';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
 import { FirestoreAquariumRepository } from '../infrastructure/firestore-aquarium-repository';
 import { CurrentMeasurementsSection } from './current-measurements-section';
+import { RecentActivityPreview } from './recent-activity-preview';
 
 type WorkspaceState = 'loading' | 'ready' | 'no-context' | 'failure';
 
@@ -21,6 +22,7 @@ type WorkspaceState = 'loading' | 'ready' | 'no-context' | 'failure';
   selector: 'veril-aquarium-workspace-page',
   imports: [
     CurrentMeasurementsSection,
+    RecentActivityPreview,
     MatButtonModule,
     MatProgressSpinnerModule,
     RouterLink,
