@@ -12,7 +12,7 @@ const items = [
   {
     id: '123e4567-e89b-42d3-a456-426614174001' as never,
     description: 'Revisar el skimmer',
-    plannedFor: new Date('2026-08-10T10:00:00.000Z'),
+    plannedFor: new Date('2026-08-12T10:00:00.000Z'),
     recordedAt: new Date('2026-08-09T10:00:00.000Z'),
   },
 ];
@@ -73,7 +73,7 @@ describe('UpcomingCarePreview', () => {
     execute.mockReturnValue(new Promise((done) => (resolve = done)));
     const loading = createComponent();
     expect(loading.query('[role="status"]')?.textContent).toContain(
-      'Cargando próximos cuidados',
+      'Cargando cuidados pendientes',
     );
 
     resolve([]);
@@ -100,6 +100,25 @@ describe('UpcomingCarePreview', () => {
       'Revisar el skimmer',
     );
     expect(spectator.query('time')?.textContent).toContain('Previsto para');
+    expect(spectator.query('.care-timing')?.textContent).toContain('Pendiente');
+  });
+
+  it('shows overdue text without changing the planned timestamp', async () => {
+    execute.mockResolvedValue([
+      {
+        ...items[0],
+        plannedFor: new Date('2026-08-08T10:00:00.000Z'),
+      },
+    ]);
+    const spectator = createComponent();
+    await spectator.fixture.whenStable();
+    spectator.component.now.set(new Date('2026-08-10T10:00:00.000Z'));
+    spectator.detectChanges();
+
+    expect(spectator.query('.care-timing')?.textContent).toContain('Vencido');
+    expect(spectator.query('time')?.getAttribute('datetime')).toBe(
+      '2026-08-08T10:00:00.000Z',
+    );
   });
 
   it('isolates recoverable failures to the section', async () => {
@@ -109,7 +128,7 @@ describe('UpcomingCarePreview', () => {
     spectator.detectChanges();
 
     expect(spectator.query('[role="alert"]')?.textContent).toContain(
-      'No se han podido cargar los próximos cuidados',
+      'No se han podido cargar los cuidados pendientes',
     );
   });
 });

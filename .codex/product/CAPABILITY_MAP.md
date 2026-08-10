@@ -50,7 +50,9 @@ remain future decisions.
 - Plan Care Work — accepted and implemented.
 - Complete Planned Care Work — accepted and implemented.
 - Cancel Planned Care Work — accepted and implemented.
-- Establish Weekly Recurring Care — accepted for the next increment.
+- Establish Weekly Recurring Care — accepted and implemented.
+- Review Due Care — Definition of Ready; derived overdue/upcoming awareness is
+  the next implementation increment.
 - Monthly recurrence, multiple weekdays, editing and pause — deferred.
 
 ### Timeline — future increments

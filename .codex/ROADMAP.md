@@ -45,12 +45,13 @@ truth. Complete pagination and materialization remain deferred.
 
 `Record Care Work` and `List Care Work` are implemented as bounded historical
 Care records. Planning, completing and cancelling concrete Planned Care Work
-are also implemented without a generic Task lifecycle. The next accepted Care
-increment is weekly recurring Care: a Care-specific calendar definition plus
-one concrete outstanding occurrence. Reminders, monthly rules, multiple
-weekdays, editing, pause, notifications and Maintenance subtypes remain future
-decisions. Completed Care Work is included in the bounded recent Timeline read
-but remains its own source of truth.
+are also implemented without a generic Task lifecycle. Weekly recurring Care
+is implemented as a Care-specific calendar definition plus one concrete
+outstanding occurrence. The next ready increment is `Review Due Care`, a
+derived presentation of overdue and upcoming plans. Reminders, monthly rules,
+multiple weekdays, editing, pause, notifications and Maintenance subtypes
+remain future decisions. Completed Care Work is included in the bounded recent
+Timeline read but remains its own source of truth.
 
 ## 5. Timeline
 
@@ -84,9 +85,11 @@ Risk: unsafe actions and hidden coupling to vendor devices.
 
 ## 10. Notifications
 
-Add Alerts and notification delivery after alert semantics and user consent are
-defined. Impact: background infrastructure, preferences and delivery failure
-handling. This may require a separate cost and security decision.
+Add Alerts and notification delivery only after alert semantics, user consent
+and trusted background delivery are accepted. Browser-visible awareness is not
+notification delivery. Impact: background infrastructure, preferences, token
+lifecycle and delivery failure handling. This may require a separate cost and
+security decision.
 
 ## 11. Analytics
 

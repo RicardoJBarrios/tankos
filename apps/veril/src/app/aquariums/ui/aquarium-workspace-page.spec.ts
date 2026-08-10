@@ -123,7 +123,7 @@ describe('AquariumWorkspacePage', () => {
     ).toEqual([
       'Últimas mediciones',
       'Actividad reciente',
-      'Próximos cuidados',
+      'Cuidados pendientes',
       'Registrar',
       'Consultar',
     ]);

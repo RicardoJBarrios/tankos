@@ -6,7 +6,7 @@
   <div class="section-heading">
     <div>
       <p class="eyebrow">Planificación</p>
-      <h3 id="upcoming-care-preview-title">Próximos cuidados</h3>
+      <h3 id="upcoming-care-preview-title">Cuidados pendientes</h3>
     </div>
   </div>
 
@@ -26,9 +26,9 @@
     <mat-progress-spinner
       mode="indeterminate"
       diameter="28"
-      aria-label="Cargando próximos cuidados"
+      aria-label="Cargando cuidados pendientes"
     />
-    <span>Cargando próximos cuidados…</span>
+    <span>Cargando cuidados pendientes…</span>
   </div>
   } @else if (state() === 'failure') {
   <div class="feedback feedback-error" role="alert">
@@ -50,12 +50,13 @@
     </mat-card-content>
   </mat-card>
   } @else {
-  <ul aria-label="Próximos cuidados">
+  <ul aria-label="Cuidados pendientes">
     @for (item of items(); track item.id) {
     <li>
       <mat-card appearance="outlined">
         <mat-card-content>
           <p class="care-description">{{ item.description }}</p>
+          <p class="care-timing">{{ timingLabel(item) }}</p>
           <time [attr.datetime]="item.plannedFor.toISOString()">
             Previsto para {{ formatPlannedFor(item) }}
           </time>

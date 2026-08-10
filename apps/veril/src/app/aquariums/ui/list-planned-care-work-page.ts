@@ -13,6 +13,10 @@ import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { CancelPlannedCareWork } from '../application/cancel-planned-care-work';
 import { CompletePlannedCareWork } from '../application/complete-planned-care-work';
 import { ListPlannedCareWork } from '../application/list-planned-care-work';
+import {
+  classifyPlannedCareTiming,
+  PlannedCareTiming,
+} from '../application/planned-care-timing';
 import { StopRecurringCarePlan } from '../application/stop-recurring-care-plan';
 import { PlannedCareWorkListItem } from '../application/aquarium-ports';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
@@ -110,6 +114,7 @@ export class ListPlannedCareWorkPage implements OnInit {
   readonly cancellationError = signal('');
   readonly stoppingId = signal<string | null>(null);
   readonly stoppingError = signal('');
+  readonly now = signal(new Date());
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -201,8 +206,18 @@ export class ListPlannedCareWorkPage implements OnInit {
     }).format(item.plannedFor);
   }
 
+  timing(item: PlannedCareWorkListItem): PlannedCareTiming {
+    return classifyPlannedCareTiming(item.plannedFor, this.now());
+  }
+
+  timingLabel(item: PlannedCareWorkListItem): string {
+    if (item.plannedFor.getTime() === this.now().getTime()) return 'Ahora';
+    return this.timing(item) === 'overdue' ? 'Vencido' : 'Pendiente';
+  }
+
   private async load(): Promise<void> {
     try {
+      this.now.set(new Date());
       const items = await this.listPlannedCareWork.execute();
       this.items.set(items);
       this.state.set(items.length === 0 ? 'empty' : 'success');

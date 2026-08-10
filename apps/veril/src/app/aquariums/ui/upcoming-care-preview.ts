@@ -11,6 +11,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ListPlannedCareWork } from '../application/list-planned-care-work';
+import {
+  classifyPlannedCareTiming,
+  PlannedCareTiming,
+} from '../application/planned-care-timing';
 import { PlannedCareWorkListItem } from '../application/aquarium-ports';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
 import { FirestorePlannedCareWorkRepository } from '../infrastructure/firestore-planned-care-work-repository';
@@ -54,6 +58,7 @@ export class UpcomingCarePreview implements OnInit {
   readonly state = signal<PreviewState>('loading');
   readonly items = signal<readonly PlannedCareWorkListItem[]>([]);
   readonly errorMessage = signal('');
+  readonly now = signal(new Date());
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -76,8 +81,18 @@ export class UpcomingCarePreview implements OnInit {
     }).format(item.plannedFor);
   }
 
+  timing(item: PlannedCareWorkListItem): PlannedCareTiming {
+    return classifyPlannedCareTiming(item.plannedFor, this.now());
+  }
+
+  timingLabel(item: PlannedCareWorkListItem): string {
+    if (item.plannedFor.getTime() === this.now().getTime()) return 'Ahora';
+    return this.timing(item) === 'overdue' ? 'Vencido' : 'Pendiente';
+  }
+
   private async load(): Promise<void> {
     try {
+      this.now.set(new Date());
       const items = await this.listPlannedCareWork.execute(
         UPCOMING_CARE_PREVIEW_LIMIT,
       );
@@ -85,7 +100,7 @@ export class UpcomingCarePreview implements OnInit {
       this.state.set(items.length === 0 ? 'empty' : 'success');
     } catch {
       this.errorMessage.set(
-        'No se han podido cargar los próximos cuidados. Inténtalo de nuevo.',
+        'No se han podido cargar los cuidados pendientes. Inténtalo de nuevo.',
       );
       this.state.set('failure');
     }

@@ -123,6 +123,14 @@ preview, a newly planned item after returning to the Workspace, navigation to
 the full planned-care list and its disappearance after completion. It does not
 duplicate Rules or adapter authorization coverage.
 
+`Review Due Care` adds pure application coverage for future, exact-now and
+overdue classification with an explicit `now`. Spectator tests cover the
+`Cuidados pendientes` heading, overdue and pending text, preserved absolute
+timestamps, empty and failure states, and the full planned-care list. The
+canonical Playwright journey uses a deterministic past timestamp and verifies
+the overdue meaning through both surfaces. It does not add a query, persistence
+or Rules test because due-awareness derives from already-loaded Planned Care.
+
 `Cancel Planned Care Work` adds application coverage for authentication,
 Active Context and the owner-scoped cancellation port. Its adapter integration
 coverage verifies deletion without creating a Care Work. Rules tests cover

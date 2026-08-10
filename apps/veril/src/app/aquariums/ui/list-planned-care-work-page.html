@@ -62,6 +62,7 @@
       <mat-card appearance="outlined">
         <mat-card-content>
           <p class="care-work-description">{{ item.description }}</p>
+          <p class="care-timing">{{ timingLabel(item) }}</p>
           <time [attr.datetime]="item.plannedFor.toISOString()">
             Previsto para {{ formatPlannedFor(item) }}
           </time>

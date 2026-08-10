@@ -86,6 +86,7 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await page
     .getByLabel('¿Qué quieres hacer?')
     .fill('Limpiar la copa del skimmer.');
+  await page.getByLabel('Fecha y hora previstas').fill('2026-08-01T10:00');
   await page.getByRole('button', { name: 'Guardar planificación' }).click();
   await expect(
     page.getByRole('status').filter({
@@ -96,6 +97,9 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page).toHaveURL('/app/aquariums/care/planned');
   await expect(page.getByTestId('planned-care-work-list')).toContainText(
     'Limpiar la copa del skimmer.',
+  );
+  await expect(page.getByTestId('planned-care-work-list')).toContainText(
+    'Vencido',
   );
   await page.getByRole('link', { name: 'Volver al acuario' }).click();
   await expect(page).toHaveURL('/app/aquariums/current');

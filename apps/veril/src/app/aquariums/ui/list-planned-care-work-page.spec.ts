@@ -14,7 +14,7 @@ const aquariumId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
 const item = {
   id: '123e4567-e89b-42d3-a456-426614174001' as never,
   description: 'Limpiar el skimmer',
-  plannedFor: new Date('2026-08-10T10:00:00.000Z'),
+  plannedFor: new Date('2026-08-12T10:00:00.000Z'),
   recordedAt: new Date('2026-08-09T10:00:00.000Z'),
   provenance: 'manual' as const,
 };
@@ -97,6 +97,24 @@ describe('ListPlannedCareWorkPage', () => {
       populated.query('[data-testid="planned-care-work-list"]')?.textContent,
     ).toContain('Limpiar el skimmer');
     expect(populated.query('time')?.textContent).toContain('Previsto para');
+    expect(populated.query('.care-timing')?.textContent).toContain('Pendiente');
+  });
+
+  it('shows overdue text for a past plan', async () => {
+    const overdue = {
+      ...item,
+      plannedFor: new Date('2026-08-08T10:00:00.000Z'),
+    };
+    execute.mockResolvedValue([overdue]);
+    const spectator = createComponent();
+    await spectator.fixture.whenStable();
+    spectator.component.now.set(new Date('2026-08-10T10:00:00.000Z'));
+    spectator.detectChanges();
+
+    expect(spectator.query('.care-timing')?.textContent).toContain('Vencido');
+    expect(spectator.query('time')?.getAttribute('datetime')).toBe(
+      '2026-08-08T10:00:00.000Z',
+    );
   });
 
   it('shows recoverable failures', async () => {
