@@ -178,6 +178,18 @@ explicit selection and already-configured state. The Playwright journey stubs
 both provider endpoints and verifies configuration plus rendered local weather;
 CI never calls the live provider.
 
+`Configure Parameter Targets` adds domain tests for the five closed Parameters,
+finite non-negative intervals and the exact-value boundary. Application and
+Store tests cover authenticated Active Context mutations, configure/edit/remove
+behaviour, state preservation on failure and Aquarium switches. Emulator adapter
+tests verify map persistence, replacement, removal, concurrent distinct-slot
+updates and malformed document rejection; Rules tests cover owner-only valid
+updates and removal plus anonymous, cross-owner, unknown-key, malformed-field
+and combined-update rejection. Spectator covers unconfigured and configured
+rows, canonical Units, interval validation, removal and no-context recovery.
+The canonical Playwright journey configures, edits and removes a target through
+the visible UI without asserting a future Parameter Status.
+
 The Aquarium Dashboard uses a scoped Signal Store for cross-section context and
 configuration state. Store tests verify selected-Aquarium loading, no-context
 recovery, derived flags and reset behavior. Section-only loading/error state

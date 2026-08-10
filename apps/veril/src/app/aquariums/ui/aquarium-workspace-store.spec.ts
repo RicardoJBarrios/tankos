@@ -2,77 +2,125 @@ import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
-import { ListMyAquariums } from '../application/list-my-aquariums';
-import { AquariumListItem } from '../application/aquarium-ports';
-import { aquariumIdFrom, AquariumName } from '../domain/aquarium';
+import { ReadAquariumDashboardContext } from '../application/read-aquarium-dashboard-context';
+import { RemoveParameterTarget } from '../application/remove-parameter-target';
+import { SaveParameterTarget } from '../application/save-parameter-target';
+import { AquariumDashboardContext } from '../application/aquarium-ports';
+import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
 import { AquariumWorkspaceStore } from './aquarium-workspace-store';
 
-const activeId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
-const aquarium: AquariumListItem = {
-  id: activeId,
+const firstId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
+const secondId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174001');
+const firstContext: AquariumDashboardContext = {
+  id: firstId,
   name: AquariumName.create('Veril'),
+  parameterTargets: {
+    temperature: { parameterId: 'temperature', minimum: 24, maximum: 25 },
+  },
 };
 
 describe('AquariumWorkspaceStore', () => {
-  const execute = vi.fn();
-  let selected = true;
+  const read = vi.fn();
+  const save = vi.fn();
+  const remove = vi.fn();
+  let context: ActiveAquariumContext;
 
   beforeEach(() => {
-    execute.mockReset();
+    read.mockReset();
+    save.mockReset();
+    remove.mockReset();
+    const storage: ActiveAquariumContextStorage = {
+      load: vi.fn(),
+      save: vi.fn(),
+      clear: vi.fn(),
+    };
+    context = new ActiveAquariumContext(storage);
+    context.select(firstId);
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         AquariumWorkspaceStore,
-        { provide: ListMyAquariums, useValue: { execute } },
-        {
-          provide: ActiveAquariumContext,
-          useFactory: () => {
-            const storage: ActiveAquariumContextStorage = {
-              load: vi.fn(),
-              save: vi.fn(),
-              clear: vi.fn(),
-            };
-            const context = new ActiveAquariumContext(storage);
-            if (selected) context.select(activeId);
-            return context;
-          },
-        },
+        { provide: ReadAquariumDashboardContext, useValue: { execute: read } },
+        { provide: SaveParameterTarget, useValue: { execute: save } },
+        { provide: RemoveParameterTarget, useValue: { execute: remove } },
+        { provide: ActiveAquariumContext, useValue: context },
       ],
     });
   });
 
-  it('loads the selected Aquarium into scoped state', async () => {
-    execute.mockResolvedValue([aquarium]);
+  it('loads the selected Dashboard context including targets', async () => {
+    read.mockResolvedValue(firstContext);
     const store = TestBed.inject(AquariumWorkspaceStore);
 
     await store.load();
 
     expect(store.status()).toBe('ready');
     expect(store.aquariumName()).toBe('Veril');
-    expect(store.hasLocation()).toBe(false);
-    expect(store.hasTimeZone()).toBe(false);
+    expect(store.targetFor('temperature')).toEqual(
+      firstContext.parameterTargets.temperature,
+    );
+    expect(store.hasTarget('temperature')).toBe(true);
+    expect(store.hasTarget('salinity')).toBe(false);
   });
 
   it('does not query without an Active Context', async () => {
-    selected = false;
+    context.clear();
     const store = TestBed.inject(AquariumWorkspaceStore);
 
     await store.load();
 
     expect(store.status()).toBe('no-context');
-    expect(execute).not.toHaveBeenCalled();
-    selected = true;
+    expect(read).not.toHaveBeenCalled();
   });
 
-  it('resets the scoped state when the selected Aquarium changes', async () => {
-    execute.mockResolvedValue([aquarium]);
+  it('synchronizes successful save and remove mutations without a reload', async () => {
+    read.mockResolvedValue(firstContext);
+    save.mockResolvedValue({
+      parameterId: 'salinity',
+      minimum: 34,
+      maximum: 35,
+    });
     const store = TestBed.inject(AquariumWorkspaceStore);
     await store.load();
 
-    execute.mockResolvedValue([]);
+    await store.saveTarget('salinity', 34, 35);
+    expect(store.targetFor('salinity')).toEqual({
+      parameterId: 'salinity',
+      minimum: 34,
+      maximum: 35,
+    });
+
+    await store.removeTarget('temperature');
+    expect(store.hasTarget('temperature')).toBe(false);
+  });
+
+  it('preserves the existing target state when a mutation fails', async () => {
+    read.mockResolvedValue(firstContext);
+    remove.mockRejectedValueOnce(new Error('Firestore unavailable'));
+    const store = TestBed.inject(AquariumWorkspaceStore);
+    await store.load();
+
+    await expect(store.removeTarget('temperature')).rejects.toThrow(
+      'Firestore unavailable',
+    );
+    expect(store.targetFor('temperature')).toEqual(
+      firstContext.parameterTargets.temperature,
+    );
+  });
+
+  it('clears previous targets when the active Aquarium changes', async () => {
+    read.mockResolvedValueOnce(firstContext).mockResolvedValueOnce({
+      id: secondId,
+      name: AquariumName.create('Otro acuario'),
+      parameterTargets: {},
+    });
+    const store = TestBed.inject(AquariumWorkspaceStore);
+    await store.load();
+
+    context.select(secondId);
     await store.reload();
 
-    expect(store.status()).toBe('failure');
-    expect(store.aquariumName()).toBeNull();
+    expect(store.aquariumName()).toBe('Otro acuario');
+    expect(store.hasTarget('temperature')).toBe(false);
   });
 });

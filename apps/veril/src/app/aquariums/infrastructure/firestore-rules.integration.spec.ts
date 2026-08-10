@@ -72,6 +72,40 @@ async function updateAquarium(
   );
 }
 
+function targetFields(
+  targets: Record<
+    string,
+    {
+      readonly minimum: number;
+      readonly maximum: number;
+      readonly extra?: boolean;
+    }
+  >,
+) {
+  return {
+    parameterTargets: {
+      mapValue: {
+        fields: Object.fromEntries(
+          Object.entries(targets).map(([parameterId, target]) => [
+            parameterId,
+            {
+              mapValue: {
+                fields: {
+                  minimum: { doubleValue: target.minimum },
+                  maximum: { doubleValue: target.maximum },
+                  ...(target.extra
+                    ? { unexpected: { stringValue: 'no' } }
+                    : {}),
+                },
+              },
+            },
+          ]),
+        ),
+      },
+    },
+  };
+}
+
 async function queryAquariums(ownerId: string, token?: string) {
   return fetch(
     'http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents:runQuery',
@@ -721,6 +755,119 @@ describe('Firestore Security Rules (Emulator Suite)', () => {
               name: { stringValue: 'Mutación no autorizada' },
             },
             ['timeZone', 'name'],
+          )
+        ).status,
+      ).toBe(403);
+
+      expect(
+        (
+          await updateAquarium(
+            aquariumA,
+            keeperA.idToken,
+            targetFields({
+              temperature: { minimum: 24, maximum: 25 },
+            }),
+            ['parameterTargets'],
+          )
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await updateAquarium(
+            aquariumA,
+            keeperA.idToken,
+            targetFields({
+              temperature: { minimum: 24.5, maximum: 25.5 },
+              salinity: { minimum: 34, maximum: 35 },
+            }),
+            ['parameterTargets'],
+          )
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await updateAquarium(
+            aquariumA,
+            keeperA.idToken,
+            targetFields({ salinity: { minimum: 34, maximum: 35 } }),
+            ['parameterTargets'],
+          )
+        ).status,
+      ).toBe(200);
+      expect(
+        [401, 403].includes(
+          (
+            await updateAquarium(
+              aquariumA,
+              undefined,
+              targetFields({ temperature: { minimum: 24, maximum: 25 } }),
+              ['parameterTargets'],
+            )
+          ).status,
+        ),
+      ).toBe(true);
+      expect(
+        (
+          await updateAquarium(
+            otherOwnerAquarium,
+            keeperA.idToken,
+            targetFields({ temperature: { minimum: 24, maximum: 25 } }),
+            ['parameterTargets'],
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await updateAquarium(
+            aquariumA,
+            keeperA.idToken,
+            targetFields({ unknown: { minimum: 1, maximum: 2 } }),
+            ['parameterTargets'],
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await updateAquarium(
+            aquariumA,
+            keeperA.idToken,
+            targetFields({ temperature: { minimum: -1, maximum: 2 } }),
+            ['parameterTargets'],
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await updateAquarium(
+            aquariumA,
+            keeperA.idToken,
+            targetFields({ temperature: { minimum: 2, maximum: 1 } }),
+            ['parameterTargets'],
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await updateAquarium(
+            aquariumA,
+            keeperA.idToken,
+            targetFields({
+              temperature: { minimum: 1, maximum: 2, extra: true },
+            }),
+            ['parameterTargets'],
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await updateAquarium(
+            aquariumA,
+            keeperA.idToken,
+            {
+              ...targetFields({ temperature: { minimum: 24, maximum: 25 } }),
+              name: { stringValue: 'Mutación no autorizada' },
+            },
+            ['parameterTargets', 'name'],
           )
         ).status,
       ).toBe(403);

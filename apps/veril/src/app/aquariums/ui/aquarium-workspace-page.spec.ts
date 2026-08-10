@@ -1,10 +1,12 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/vitest';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AquariumListItem } from '../application/aquarium-ports';
+import { AquariumDashboardContext } from '../application/aquarium-ports';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
-import { ListMyAquariums } from '../application/list-my-aquariums';
+import { ReadAquariumDashboardContext } from '../application/read-aquarium-dashboard-context';
+import { RemoveParameterTarget } from '../application/remove-parameter-target';
+import { SaveParameterTarget } from '../application/save-parameter-target';
 import { ListPlannedCareWork } from '../application/list-planned-care-work';
 import { ReviewCurrentMeasurements } from '../application/review-current-measurements';
 import { ReviewRecentTimeline } from '../application/review-recent-timeline';
@@ -20,9 +22,10 @@ import { AquariumWorkspaceStore } from './aquarium-workspace-store';
 import { AquariumWorkspacePage } from './aquarium-workspace-page';
 
 const activeId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
-const aquarium: AquariumListItem = {
+const aquarium: AquariumDashboardContext = {
   id: activeId,
   name: AquariumName.create('Veril'),
+  parameterTargets: {},
 };
 
 describe('AquariumWorkspacePage', () => {
@@ -50,7 +53,12 @@ describe('AquariumWorkspacePage', () => {
         {
           set: {
             providers: [
-              { provide: ListMyAquariums, useValue: { execute } },
+              { provide: ReadAquariumDashboardContext, useValue: { execute } },
+              { provide: SaveParameterTarget, useValue: { execute: vi.fn() } },
+              {
+                provide: RemoveParameterTarget,
+                useValue: { execute: vi.fn() },
+              },
               {
                 provide: ActiveAquariumContext,
                 useFactory: () => createContext(contextSelected),
@@ -118,7 +126,7 @@ describe('AquariumWorkspacePage', () => {
 
   it('renders the selected Aquarium and grouped capabilities', async () => {
     contextSelected = true;
-    execute.mockResolvedValue([aquarium]);
+    execute.mockResolvedValue(aquarium);
     const spectator: Spectator<AquariumWorkspacePage> = createComponent();
     await new Promise((resolve) => setTimeout(resolve, 0));
     spectator.detectChanges();
@@ -133,6 +141,7 @@ describe('AquariumWorkspacePage', () => {
       'Últimas mediciones',
       'Actividad reciente',
       'Cuidados pendientes',
+      'Configurar',
       'Registrar',
       'Consultar',
     ]);
@@ -148,9 +157,10 @@ describe('AquariumWorkspacePage', () => {
 
   it('shows the configured timezone without offering configuration', async () => {
     contextSelected = true;
-    execute.mockResolvedValue([
-      { ...aquarium, timeZone: aquariumTimeZoneFrom('Atlantic/Canary') },
-    ]);
+    execute.mockResolvedValue({
+      ...aquarium,
+      timeZone: aquariumTimeZoneFrom('Atlantic/Canary'),
+    });
     const spectator = createComponent();
     await new Promise((resolve) => setTimeout(resolve, 0));
     spectator.detectChanges();

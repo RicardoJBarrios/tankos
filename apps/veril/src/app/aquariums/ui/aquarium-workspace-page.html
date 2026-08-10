@@ -64,6 +64,14 @@
   <veril-upcoming-care-preview [timeZone]="workspace.aquariumTimeZone()" />
 
   <div class="action-groups" aria-label="Acciones del acuario">
+    <section aria-labelledby="aquarium-configuration-actions-title">
+      <h3 id="aquarium-configuration-actions-title">Configurar</h3>
+      <div class="action-row">
+        <a mat-button routerLink="/app/aquariums/parameter-targets"
+          >Objetivos de parámetros</a
+        >
+      </div>
+    </section>
     <section aria-labelledby="aquarium-record-actions-title">
       <h3 id="aquarium-record-actions-title">Registrar</h3>
       <div class="action-row">

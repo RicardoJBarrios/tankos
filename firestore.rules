@@ -24,6 +24,48 @@ service cloud.firestore {
         && location.displayName.size() > 0;
     }
 
+    function isValidParameterTarget(target) {
+      return target is map
+        && target.keys().hasOnly(['minimum', 'maximum'])
+        && target.keys().hasAll(['minimum', 'maximum'])
+        && target.minimum is number
+        && target.maximum is number
+        && target.minimum >= 0
+        && target.maximum >= 0
+        && target.minimum <= target.maximum;
+    }
+
+    function isValidParameterTargets(targets) {
+      return targets is map
+        && targets.keys().hasOnly([
+          'temperature',
+          'salinity',
+          'alkalinity',
+          'nitrate',
+          'phosphate'
+        ])
+        && (
+          !targets.keys().hasAll(['temperature'])
+          || isValidParameterTarget(targets.temperature)
+        )
+        && (
+          !targets.keys().hasAll(['salinity'])
+          || isValidParameterTarget(targets.salinity)
+        )
+        && (
+          !targets.keys().hasAll(['alkalinity'])
+          || isValidParameterTarget(targets.alkalinity)
+        )
+        && (
+          !targets.keys().hasAll(['nitrate'])
+          || isValidParameterTarget(targets.nitrate)
+        )
+        && (
+          !targets.keys().hasAll(['phosphate'])
+          || isValidParameterTarget(targets.phosphate)
+        );
+    }
+
     match /aquariums/{aquariumId} {
       allow create: if isAuthenticated()
         && request.resource.data.keys().hasOnly([
@@ -71,6 +113,13 @@ service cloud.firestore {
             && request.resource.data.keys().hasAll(['location'])
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['location'])
             && isValidLocation(request.resource.data.location)
+          )
+          || (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['parameterTargets'])
+            && (
+              !request.resource.data.keys().hasAll(['parameterTargets'])
+              || isValidParameterTargets(request.resource.data.parameterTargets)
+            )
           )
         );
       allow delete: if false;

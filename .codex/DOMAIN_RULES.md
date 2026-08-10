@@ -114,6 +114,23 @@ Rules are classified to avoid turning assumptions into code prematurely.
 - Measurement cadence, freshness thresholds and target interpretation are
   separate product decisions and are not implied by the Measurement catalogue.
 
+## Parameter policy
+
+- The MVP Parameter catalogue is closed and system-defined; users cannot add
+  custom Parameters.
+- All five current Parameters are measurable and may become target candidates,
+  but no target or biological interpretation is accepted by default.
+- A future Parameter Target belongs to Aquarium configuration and does not alter
+  Measurement validity, provenance or historical meaning.
+- A Parameter Target is an optional keeper-owned interval identified by
+  `AquariumId + ParameterId`; there is at most one per Parameter, with finite
+  non-negative canonical values and `minimum <= maximum`.
+- The target map is persisted with Aquarium configuration. Absence means
+  `uninterpreted`; there are no product defaults, target history or status
+  persistence.
+- Parameter Status, when accepted, is derived application state and is not a
+  Fact, Domain Event or persisted Measurement state.
+
 ## Candidate invariants requiring validation
 
 Other business invariants remain unaccepted. The following hypotheses must be

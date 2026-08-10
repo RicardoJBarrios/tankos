@@ -53,6 +53,12 @@ elapsed age of the latest known value without introducing freshness thresholds,
 target ranges or Parameter Status. Those interpretation decisions remain
 deferred until product evidence supports them.
 
+`Configure Parameter Targets` is implemented as optional Aquarium-owned
+operating intervals without product-wide biological defaults; see
+[`configure-parameter-targets.md`](specifications/configure-parameter-targets.md).
+`Parameter Status` remains deferred until its interpretation and stale-data
+semantics are separately accepted.
+
 ## 3.1 Timeline — accepted first increment
 
 `Review Recent Timeline` is the first bounded Timeline increment. It combines

@@ -1,4 +1,5 @@
 import { isUuidV4 } from './uuid-v4';
+import { isParameterId, ParameterId } from './measurement';
 
 export type AquariumTimeZone = string & {
   readonly __aquariumTimeZone: unique symbol;
@@ -53,6 +54,54 @@ export interface AquariumLocation {
   readonly displayName: string;
 }
 
+export interface ParameterTarget {
+  readonly parameterId: ParameterId;
+  readonly minimum: number;
+  readonly maximum: number;
+}
+
+export type ParameterTargets = Readonly<
+  Partial<Record<ParameterId, ParameterTarget>>
+>;
+
+export const ParameterTarget = {
+  create(input: ParameterTarget): ParameterTarget {
+    if (!isParameterId(input.parameterId)) {
+      throw new Error('Unsupported Parameter target');
+    }
+
+    if (!Number.isFinite(input.minimum) || !Number.isFinite(input.maximum)) {
+      throw new Error('Parameter target values must be finite');
+    }
+
+    if (input.minimum < 0 || input.maximum < 0) {
+      throw new Error('Parameter target values must not be negative');
+    }
+
+    if (input.minimum > input.maximum) {
+      throw new Error('Parameter target minimum must not exceed maximum');
+    }
+
+    return { ...input };
+  },
+};
+
+export function parameterTargetsFrom(
+  targets: readonly ParameterTarget[],
+): ParameterTargets {
+  const result: Partial<Record<ParameterId, ParameterTarget>> = {};
+
+  for (const target of targets) {
+    const normalized = ParameterTarget.create(target);
+    if (result[normalized.parameterId]) {
+      throw new Error('Parameter target must be unique per Parameter');
+    }
+    result[normalized.parameterId] = normalized;
+  }
+
+  return result;
+}
+
 function roundLocationCoordinate(value: number): number {
   return Math.round((value + Number.EPSILON) * 100) / 100;
 }
@@ -95,4 +144,5 @@ export interface Aquarium {
   readonly establishedAt: Date;
   readonly timeZone?: AquariumTimeZone;
   readonly location?: AquariumLocation;
+  readonly parameterTargets?: ParameterTargets;
 }

@@ -7,8 +7,16 @@ import {
   patchState,
 } from '@ngrx/signals';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
-import { ListMyAquariums } from '../application/list-my-aquariums';
-import { AquariumLocation, AquariumTimeZone } from '../domain/aquarium';
+import { ReadAquariumDashboardContext } from '../application/read-aquarium-dashboard-context';
+import { RemoveParameterTarget } from '../application/remove-parameter-target';
+import { SaveParameterTarget } from '../application/save-parameter-target';
+import {
+  AquariumLocation,
+  AquariumTimeZone,
+  ParameterTarget,
+  ParameterTargets,
+} from '../domain/aquarium';
+import { ParameterId } from '../domain/measurement';
 
 type WorkspaceStatus = 'loading' | 'ready' | 'no-context' | 'failure';
 
@@ -17,6 +25,7 @@ interface AquariumWorkspaceState {
   readonly aquariumName: string | null;
   readonly aquariumTimeZone: AquariumTimeZone | undefined;
   readonly aquariumLocation: AquariumLocation | undefined;
+  readonly parameterTargets: ParameterTargets;
 }
 
 const initialState: AquariumWorkspaceState = {
@@ -24,6 +33,7 @@ const initialState: AquariumWorkspaceState = {
   aquariumName: null,
   aquariumTimeZone: undefined,
   aquariumLocation: undefined,
+  parameterTargets: {},
 };
 
 export const AquariumWorkspaceStore = signalStore(
@@ -33,7 +43,9 @@ export const AquariumWorkspaceStore = signalStore(
     hasTimeZone: computed(() => aquariumTimeZone() !== undefined),
   })),
   withMethods((store) => {
-    const listMyAquariums = inject(ListMyAquariums);
+    const readDashboardContext = inject(ReadAquariumDashboardContext);
+    const saveParameterTarget = inject(SaveParameterTarget);
+    const removeParameterTarget = inject(RemoveParameterTarget);
     const activeContext = inject(ActiveAquariumContext);
 
     async function load(): Promise<void> {
@@ -52,28 +64,60 @@ export const AquariumWorkspaceStore = signalStore(
       });
 
       try {
-        const aquarium = (await listMyAquariums.execute()).find(
-          ({ id }) => id === aquariumId,
-        );
-        if (!aquarium) {
-          patchState(store, { status: 'failure' });
-          return;
-        }
-
+        const aquarium = await readDashboardContext.execute();
         patchState(store, {
           status: 'ready',
           aquariumName: aquarium.name.value,
           aquariumTimeZone: aquarium.timeZone,
           aquariumLocation: aquarium.location,
+          parameterTargets: aquarium.parameterTargets,
         });
       } catch {
         patchState(store, { status: 'failure' });
       }
     }
 
+    function targetFor(parameterId: ParameterId): ParameterTarget | undefined {
+      return store.parameterTargets()[parameterId];
+    }
+
+    function hasTarget(parameterId: ParameterId): boolean {
+      return targetFor(parameterId) !== undefined;
+    }
+
+    async function saveTarget(
+      parameterId: ParameterId,
+      minimum: number,
+      maximum: number,
+    ): Promise<ParameterTarget> {
+      const target = await saveParameterTarget.execute(
+        parameterId,
+        minimum,
+        maximum,
+      );
+      patchState(store, {
+        parameterTargets: {
+          ...store.parameterTargets(),
+          [parameterId]: target,
+        },
+      });
+      return target;
+    }
+
+    async function removeTarget(parameterId: ParameterId): Promise<void> {
+      await removeParameterTarget.execute(parameterId);
+      const parameterTargets = { ...store.parameterTargets() };
+      delete parameterTargets[parameterId];
+      patchState(store, { parameterTargets });
+    }
+
     return {
       load,
       reload: load,
+      targetFor,
+      hasTarget,
+      saveTarget,
+      removeTarget,
     };
   }),
 );

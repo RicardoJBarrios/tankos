@@ -101,13 +101,13 @@ required because this increment deliberately defines no threshold.
 
 ## Definition of Ready
 
-| Criterion | Result | Evidence |
-| --- | --- | --- |
-| User value | Ready | Makes the existing latest-value surface more truthful. |
-| Source and time | Ready | Uses `measuredAt` and explicit `now`. |
-| Semantics | Ready | Age is distinct from Fact validity and target interpretation. |
-| Store ownership | Ready | No cross-section consumer requires moving section state. |
-| Persistence and cost | Ready | No schema or query change. |
-| UX and accessibility | Ready | Explicit Spanish text; no colour-only meaning. |
-| Testing | Ready | Deterministic age and timestamp cases are defined. |
-| Deferred scope | Ready | Thresholds, targets and status interpretation are explicit. |
+| Criterion            | Result | Evidence                                                      |
+| -------------------- | ------ | ------------------------------------------------------------- |
+| User value           | Ready  | Makes the existing latest-value surface more truthful.        |
+| Source and time      | Ready  | Uses `measuredAt` and explicit `now`.                         |
+| Semantics            | Ready  | Age is distinct from Fact validity and target interpretation. |
+| Store ownership      | Ready  | No cross-section consumer requires moving section state.      |
+| Persistence and cost | Ready  | No schema or query change.                                    |
+| UX and accessibility | Ready  | Explicit Spanish text; no colour-only meaning.                |
+| Testing              | Ready  | Deterministic age and timestamp cases are defined.            |
+| Deferred scope       | Ready  | Thresholds, targets and status interpretation are explicit.   |

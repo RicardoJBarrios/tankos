@@ -1,0 +1,54 @@
+.page-section {
+  max-width: 48rem;
+}
+
+mat-card {
+  border-radius: var(--mat-sys-corner-large);
+}
+
+mat-card-title {
+  font: var(--mat-sys-headline-small);
+}
+
+mat-card-content {
+  padding-top: 1.5rem;
+}
+
+.targets {
+  display: grid;
+  gap: 1rem;
+}
+
+.target {
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  padding-top: 1rem;
+}
+
+.target h3,
+.target p {
+  margin: 0;
+}
+
+.target p {
+  margin-top: 0.25rem;
+}
+
+.target-actions,
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+form mat-form-field {
+  flex: 1 1 12rem;
+}
+
+.feedback {
+  margin: 0;
+}
+
+.feedback-error {
+  color: var(--mat-sys-error);
+}

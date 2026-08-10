@@ -3,6 +3,8 @@ import {
   AquariumId,
   AquariumName,
   AquariumLocation,
+  ParameterTarget,
+  ParameterTargets,
   AquariumTimeZone,
 } from '../domain/aquarium';
 import {
@@ -41,6 +43,21 @@ export interface AquariumReader {
   ): Promise<AquariumListItem | null>;
 }
 
+export interface AquariumDashboardContext {
+  readonly id: AquariumId;
+  readonly name: AquariumName;
+  readonly timeZone?: AquariumTimeZone;
+  readonly location?: AquariumLocation;
+  readonly parameterTargets: ParameterTargets;
+}
+
+export interface AquariumDashboardReader {
+  getDashboardContextOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+  ): Promise<AquariumDashboardContext | null>;
+}
+
 export interface EstablishAquariumInput {
   readonly id: AquariumId;
   readonly name: AquariumName;
@@ -72,6 +89,23 @@ export interface AquariumLocationConfigurer {
   configureLocation(
     input: ConfigureAquariumLocationInput,
   ): Promise<AquariumLocation>;
+}
+
+export interface SaveParameterTargetInput {
+  readonly aquariumId: AquariumId;
+  readonly ownerKeeperId: string;
+  readonly target: ParameterTarget;
+}
+
+export interface RemoveParameterTargetInput {
+  readonly aquariumId: AquariumId;
+  readonly ownerKeeperId: string;
+  readonly parameterId: ParameterId;
+}
+
+export interface ParameterTargetWriter {
+  saveOwned(input: SaveParameterTargetInput): Promise<ParameterTarget>;
+  removeOwned(input: RemoveParameterTargetInput): Promise<void>;
 }
 
 export interface LocationCandidate {

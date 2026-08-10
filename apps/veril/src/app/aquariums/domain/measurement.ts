@@ -1,4 +1,4 @@
-import { AquariumId } from './aquarium';
+import type { AquariumId } from './aquarium';
 import { isUuidV4 } from './uuid-v4';
 
 export const PARAMETER_IDS = [

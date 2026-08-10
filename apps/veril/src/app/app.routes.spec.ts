@@ -59,6 +59,14 @@ describe('appRoutes', () => {
     );
   });
 
+  it('defines the Configure Parameter Targets child route', () => {
+    const privateRoute = appRoutes.find((route) => route.path === 'app');
+
+    expect(privateRoute?.children?.map((route) => route.path)).toContain(
+      'aquariums/parameter-targets',
+    );
+  });
+
   it('defines the Record Measurement child route', () => {
     const privateRoute = appRoutes.find((route) => route.path === 'app');
 

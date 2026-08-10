@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   AquariumLocation,
   AquariumName,
+  ParameterTarget,
   aquariumIdFrom,
   createAquariumId,
 } from './aquarium';
@@ -41,6 +42,47 @@ describe('Aquarium domain', () => {
         latitude: 91,
         longitude: 0,
         displayName: 'Lugar',
+      }),
+    ).toThrow();
+  });
+
+  it('creates canonical Parameter targets without an independent identity', () => {
+    expect(
+      ParameterTarget.create({
+        parameterId: 'salinity',
+        minimum: 35,
+        maximum: 35,
+      }),
+    ).toEqual({ parameterId: 'salinity', minimum: 35, maximum: 35 });
+  });
+
+  it('rejects invalid Parameter target values and intervals', () => {
+    expect(() =>
+      ParameterTarget.create({
+        parameterId: 'temperature',
+        minimum: -1,
+        maximum: 1,
+      }),
+    ).toThrow();
+    expect(() =>
+      ParameterTarget.create({
+        parameterId: 'temperature',
+        minimum: 2,
+        maximum: 1,
+      }),
+    ).toThrow();
+    expect(() =>
+      ParameterTarget.create({
+        parameterId: 'unknown' as never,
+        minimum: 1,
+        maximum: 2,
+      }),
+    ).toThrow();
+    expect(() =>
+      ParameterTarget.create({
+        parameterId: 'phosphate',
+        minimum: Number.NaN,
+        maximum: 1,
       }),
     ).toThrow();
   });

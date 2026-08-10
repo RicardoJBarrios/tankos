@@ -2,6 +2,7 @@ import { InjectionToken } from '@angular/core';
 import {
   AquariumRepository,
   AquariumReader,
+  AquariumDashboardReader,
   CareWorkWriter,
   CurrentMeasurementReader,
   CareWorkReader,
@@ -22,12 +23,19 @@ import {
   AquariumLocationConfigurer,
   LocationSearch,
   LocalWeatherReader,
+  ParameterTargetWriter,
 } from '../application/aquarium-ports';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 
 export const AQUARIUM_REPOSITORY = new InjectionToken<
   AquariumRepository & AquariumReader
 >('AQUARIUM_REPOSITORY');
+
+export const AQUARIUM_DASHBOARD_READER =
+  new InjectionToken<AquariumDashboardReader>('AQUARIUM_DASHBOARD_READER');
+
+export const PARAMETER_TARGET_WRITER =
+  new InjectionToken<ParameterTargetWriter>('PARAMETER_TARGET_WRITER');
 
 export const AQUARIUM_TIME_ZONE_CONFIGURER =
   new InjectionToken<AquariumTimeZoneConfigurer>(

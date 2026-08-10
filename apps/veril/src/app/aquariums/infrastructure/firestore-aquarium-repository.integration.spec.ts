@@ -224,4 +224,130 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
     },
     20000,
   );
+
+  emulatorTest(
+    'persists, edits and removes bounded Parameter targets without losing another Parameter',
+    async () => {
+      const session = new FirebaseKeeperSession();
+      const repository = new FirestoreAquariumRepository();
+      const keeper = await session.requireAuthenticatedKeeper();
+      const aquarium = await repository.establish({
+        id: createAquariumId(),
+        name: AquariumName.create('Acuario objetivos'),
+        ownerKeeperId: keeper.id,
+        establishedAt: new Date('2026-01-01T00:00:00.000Z'),
+      });
+
+      await repository.saveOwned({
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        target: { parameterId: 'temperature', minimum: 24, maximum: 25 },
+      });
+      await repository.saveOwned({
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        target: { parameterId: 'salinity', minimum: 34, maximum: 35 },
+      });
+      await repository.saveOwned({
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        target: { parameterId: 'temperature', minimum: 24.5, maximum: 25.5 },
+      });
+
+      expect(
+        (await repository.getDashboardContextOwned(keeper.id, aquarium.id))
+          ?.parameterTargets,
+      ).toEqual({
+        temperature: {
+          parameterId: 'temperature',
+          minimum: 24.5,
+          maximum: 25.5,
+        },
+        salinity: { parameterId: 'salinity', minimum: 34, maximum: 35 },
+      });
+
+      await repository.removeOwned({
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        parameterId: 'temperature',
+      });
+      expect(
+        (await repository.getDashboardContextOwned(keeper.id, aquarium.id))
+          ?.parameterTargets,
+      ).toEqual({
+        salinity: { parameterId: 'salinity', minimum: 34, maximum: 35 },
+      });
+
+      await repository.removeOwned({
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        parameterId: 'salinity',
+      });
+      expect(
+        (await repository.getDashboardContextOwned(keeper.id, aquarium.id))
+          ?.parameterTargets,
+      ).toEqual({});
+    },
+    20000,
+  );
+
+  emulatorTest(
+    'preserves valid targets during concurrent updates',
+    async () => {
+      const session = new FirebaseKeeperSession();
+      const repository = new FirestoreAquariumRepository();
+      const keeper = await session.requireAuthenticatedKeeper();
+      const aquarium = await repository.establish({
+        id: createAquariumId(),
+        name: AquariumName.create('Acuario concurrente'),
+        ownerKeeperId: keeper.id,
+        establishedAt: new Date('2026-01-01T00:00:00.000Z'),
+      });
+
+      await Promise.all([
+        repository.saveOwned({
+          aquariumId: aquarium.id,
+          ownerKeeperId: keeper.id,
+          target: { parameterId: 'temperature', minimum: 24, maximum: 25 },
+        }),
+        repository.saveOwned({
+          aquariumId: aquarium.id,
+          ownerKeeperId: keeper.id,
+          target: { parameterId: 'salinity', minimum: 34, maximum: 35 },
+        }),
+      ]);
+
+      const context = await repository.getDashboardContextOwned(
+        keeper.id,
+        aquarium.id,
+      );
+      expect(context?.parameterTargets.temperature).toBeDefined();
+      expect(context?.parameterTargets.salinity).toBeDefined();
+
+      const edits = await Promise.allSettled([
+        repository.saveOwned({
+          aquariumId: aquarium.id,
+          ownerKeeperId: keeper.id,
+          target: { parameterId: 'temperature', minimum: 24.1, maximum: 25.1 },
+        }),
+        repository.saveOwned({
+          aquariumId: aquarium.id,
+          ownerKeeperId: keeper.id,
+          target: { parameterId: 'temperature', minimum: 24.2, maximum: 25.2 },
+        }),
+      ]);
+      expect(edits.every((result) => result.status === 'fulfilled')).toBe(true);
+      const finalTarget = (
+        await repository.getDashboardContextOwned(keeper.id, aquarium.id)
+      )?.parameterTargets.temperature;
+      expect(finalTarget).toSatisfy(
+        (target) => target?.minimum === 24.1 || target?.minimum === 24.2,
+      );
+      if (!finalTarget) {
+        throw new Error('Expected the concurrent target update to persist.');
+      }
+      expect(finalTarget.maximum).toBe(finalTarget.minimum + 1);
+    },
+    20000,
+  );
 });

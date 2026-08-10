@@ -77,6 +77,21 @@ transition for the current capability. Local Weather is an infrastructure-backed
 ephemeral read model and never becomes an Aquarium Measurement or Timeline
 source.
 
+## Accepted Parameter Target boundary
+
+`ParameterTarget` is a value in Aquarium configuration, not a Measurement,
+Fact, Domain Event or independent Aggregate. The configuration slot is keyed by
+`AquariumId + ParameterId` and contains one optional canonical interval with
+finite non-negative values and `minimum <= maximum`. It does not alter
+Measurement validity or historical meaning. Absence means that a future status
+read is `uninterpreted`.
+
+The five-slot target map is bounded and persisted with the Aquarium document.
+The `AquariumWorkspaceStore` may expose it as shared Dashboard configuration,
+while a future `Parameter Status` read model derives interpretation without
+persisting status. This does not turn Aquarium into generic CRUD or make
+Measurement part of the Aquarium transaction boundary.
+
 ## Acceptance rule
 
 Promote a relationship to a domain rule only when a validated use case states

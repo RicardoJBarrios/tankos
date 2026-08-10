@@ -227,3 +227,20 @@ and recovery plan.
 
 `List Measurements` remains the independent historical read with its existing
 cursor contract.
+
+## Configure Parameter Targets: accepted persistence direction
+
+`ParameterTarget` is Aquarium-owned configuration, not an independent
+aggregate or historical document. The accepted shape is an optional bounded
+`parameterTargets` map on `aquariums/{aquariumId}`, keyed by the five closed
+`ParameterId` values. Each configured entry contains only canonical finite
+non-negative `minimum` and `maximum` values with `minimum <= maximum`; the
+canonical Unit is supplied by the Parameter catalogue and is not duplicated.
+
+This gives the Dashboard one bounded Aquarium configuration read and avoids
+five reads, a speculative collection, an index or backend infrastructure. A
+capability-specific transaction updates only this map and preserves other
+Parameter entries. Firestore Rules must restrict updates to the owner, known
+keys and the permitted structural fields; they do not interpret biological
+meaning. The concrete Rules contract and malformed-document tests belong to
+the implementation specification.

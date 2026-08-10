@@ -65,7 +65,22 @@ is a new Fact that refers to the earlier evidence; it does not overwrite it.
 
 ### Parameter
 
-A measurable property such as temperature, salinity, pH or nitrate.
+A product-defined kind of quantity that may be measured for an Aquarium. It
+defines semantic identity and compatible Units; it is not itself a target,
+recommendation, schedule or alert.
+
+### Parameter Target
+
+An optional Aquarium-owned operating interval for one canonical Parameter. The
+configuration slot is identified by `AquariumId + ParameterId`; it has finite,
+non-negative canonical `minimum` and `maximum` values where `minimum <=
+maximum`. It is keeper configuration, not a universal biological range or a
+Measurement validity rule. Absence means `uninterpreted`.
+
+### Parameter Status
+
+A future application-derived interpretation of a Measurement against an
+explicit Parameter Target. It is not persisted domain evidence.
 
 ### Sensor
 

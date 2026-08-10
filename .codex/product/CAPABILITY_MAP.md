@@ -38,8 +38,14 @@ closed Parameter catalogue.
   the latest known value without classifying it as fresh or stale.
 - Correct Measurement — candidate.
 - Parameter History — candidate.
-- Configure Parameter Targets and Review Parameter Status — deferred until
-  target ownership, ranges and interpretation semantics are accepted.
+- Configure Parameter Targets — implemented as optional Aquarium-owned keeper
+  intervals; see [its specification](../specifications/configure-parameter-targets.md).
+- Review Parameter Status — deferred until interpretation and stale-data
+  semantics are accepted.
+
+`Configure Parameter Targets` defines optional Aquarium-owned operating
+intervals; it does not introduce biological defaults or status interpretation.
+`Review Parameter Status` remains deferred.
 
 Measurement remains an independent aggregate and does not become part of the
 Aquarium transaction boundary.

@@ -50,4 +50,29 @@ describe('FirestoreAquariumRepository document boundary', () => {
     ).rejects.toThrow('valid IANA time zone');
     expect(firestoreMocks.runTransaction).not.toHaveBeenCalled();
   });
+
+  it('rejects a malformed persisted Parameter target map through the Dashboard reader', async () => {
+    const timestamp = new (await import('firebase/firestore')).Timestamp(0, 0);
+    firestoreMocks.getDocs.mockResolvedValue({
+      docs: [
+        {
+          id: '00000000-0000-4000-8000-000000000001',
+          data: () => ({
+            ownerId: 'keeper-1',
+            name: 'Veril',
+            establishedBy: 'keeper-1',
+            establishedAt: timestamp,
+            parameterTargets: { temperature: { minimum: 26 } },
+          }),
+        },
+      ],
+    });
+
+    await expect(
+      new FirestoreAquariumRepository().getDashboardContextOwned(
+        'keeper-1',
+        '00000000-0000-4000-8000-000000000001' as never,
+      ),
+    ).rejects.toThrow();
+  });
 });
