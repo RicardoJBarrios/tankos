@@ -1,4 +1,9 @@
-import { Aquarium, AquariumId, AquariumName } from '../domain/aquarium';
+import {
+  Aquarium,
+  AquariumId,
+  AquariumName,
+  AquariumTimeZone,
+} from '../domain/aquarium';
 import {
   Measurement,
   MeasurementId,
@@ -11,10 +16,15 @@ import {
   PlannedCareWork,
   PlannedCareWorkId,
 } from '../domain/planned-care-work';
+import {
+  RecurringCarePlan,
+  RecurringCarePlanId,
+} from '../domain/recurring-care-plan';
 
 export interface AquariumListItem {
   readonly id: AquariumId;
   readonly name: AquariumName;
+  readonly timeZone?: AquariumTimeZone;
 }
 
 export interface KeeperSession {
@@ -199,10 +209,36 @@ export interface CancelPlannedCareWorkInput {
   readonly id: PlannedCareWorkId;
   readonly aquariumId: AquariumId;
   readonly ownerKeeperId: string;
+  readonly actionAt?: Date;
 }
 
 export interface PlannedCareWorkCanceller {
   cancel(input: CancelPlannedCareWorkInput): Promise<void>;
+}
+
+export interface EstablishWeeklyRecurringCareInput {
+  readonly id: RecurringCarePlanId;
+  readonly occurrenceId: PlannedCareWorkId;
+  readonly aquariumId: AquariumId;
+  readonly ownerKeeperId: string;
+  readonly description: string;
+  readonly firstOccurrenceAt: Date;
+  readonly recordedAt: Date;
+  readonly timeZone: AquariumTimeZone;
+}
+
+export interface RecurringCarePlanWriter {
+  establish(
+    input: EstablishWeeklyRecurringCareInput,
+  ): Promise<RecurringCarePlan>;
+}
+
+export interface RecurringCarePlanStopper {
+  stop(input: {
+    readonly id: RecurringCarePlanId;
+    readonly aquariumId: AquariumId;
+    readonly ownerKeeperId: string;
+  }): Promise<void>;
 }
 
 export interface PlannedCareWorkListItem {
@@ -210,6 +246,8 @@ export interface PlannedCareWorkListItem {
   readonly description: string;
   readonly plannedFor: Date;
   readonly recordedAt: Date;
+  readonly provenance: 'manual' | 'recurring-plan';
+  readonly recurringCarePlanId?: RecurringCarePlanId;
 }
 
 export interface PlannedCareWorkReader {

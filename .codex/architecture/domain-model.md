@@ -57,6 +57,20 @@ remain distinct. The first slice uses free text and manual provenance; it does
 not establish Maintenance, Water Change, Feeding, recurrence or correction as
 shared domain types.
 
+## Accepted Weekly Recurring Care boundary
+
+`RecurringCarePlan` is an independently persisted, Care-specific aggregate. It
+references `AquariumId`, defines one weekly local-calendar intention, and owns
+the relationship to at most one outstanding `PlannedCareWork`. The occurrence
+remains a concrete independent planned intention; `CareWork` remains a separate
+durable Fact created only by completion. Neither recurrence definitions nor
+future occurrences are Timeline facts.
+
+The Aquarium owns the authoritative IANA time zone for calendar Care. It is a
+property needed when the first recurrence is established, not a Keeper or
+browser preference. Recurrence does not turn Aquarium into the transactional
+owner of its planned or completed Care records.
+
 ## Acceptance rule
 
 Promote a relationship to a domain rule only when a validated use case states

@@ -14,6 +14,7 @@ const item = {
   description: 'Limpiar el skimmer',
   plannedFor: new Date('2026-08-10T10:00:00.000Z'),
   recordedAt: new Date('2026-08-09T10:00:00.000Z'),
+  provenance: 'manual' as const,
 };
 
 describe('ListPlannedCareWork', () => {

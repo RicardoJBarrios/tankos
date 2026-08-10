@@ -10,8 +10,13 @@ import {
   where,
 } from 'firebase/firestore';
 import { describe, expect, it } from 'vitest';
-import { AquariumName, createAquariumId } from '../domain/aquarium';
+import {
+  AquariumName,
+  aquariumTimeZoneFrom,
+  createAquariumId,
+} from '../domain/aquarium';
 import { plannedCareWorkIdFrom } from '../domain/planned-care-work';
+import { createRecurringCarePlanId } from '../domain/recurring-care-plan';
 import { FirestoreAquariumRepository } from './firestore-aquarium-repository';
 import { FirestorePlannedCareWorkRepository } from './firestore-planned-care-work-repository';
 import { FirebaseKeeperSession } from './firebase-keeper-session';
@@ -113,6 +118,97 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
       );
       expect(careWorks.docs.map((entry) => entry.id)).not.toContain(secondId);
 
+      await signOut(auth);
+    },
+    20000,
+  );
+
+  emulatorTest(
+    'establishes, advances, cancels and stops a weekly recurring plan atomically',
+    async () => {
+      const keeper =
+        await new FirebaseKeeperSession().requireAuthenticatedKeeper();
+      const aquarium = await new FirestoreAquariumRepository().establish({
+        id: createAquariumId(),
+        name: AquariumName.create('Recurrencia'),
+        ownerKeeperId: keeper.id,
+        establishedAt: new Date('2026-08-08T10:00:00.000Z'),
+      });
+      const repository = new FirestorePlannedCareWorkRepository();
+      const planId = createRecurringCarePlanId();
+      const firstOccurrenceId = plannedCareWorkIdFrom(
+        '123e4567-e89b-42d3-a456-426614174201',
+      );
+      const zone = aquariumTimeZoneFrom('Atlantic/Canary');
+
+      const plan = await repository.establish({
+        id: planId,
+        occurrenceId: firstOccurrenceId,
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        description: 'Cambio semanal de agua',
+        firstOccurrenceAt: new Date('2026-08-16T10:00:00.000Z'),
+        recordedAt: new Date('2026-08-10T10:00:00.000Z'),
+        timeZone: zone,
+      });
+      expect(plan.outstandingPlannedCareWorkId).toBe(firstOccurrenceId);
+      expect(
+        await repository.listOwned(keeper.id, aquarium.id, 10),
+      ).toHaveLength(1);
+
+      const { firestore, auth } = getFirebaseClient();
+      const aquariumSnapshot = await getDoc(
+        doc(firestore, 'aquariums', aquarium.id),
+      );
+      expect(aquariumSnapshot.data()?.['timeZone']).toBe('Atlantic/Canary');
+
+      const completed = await repository.complete({
+        id: firstOccurrenceId,
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        completedAt: new Date('2026-08-16T11:00:00.000Z'),
+      });
+      const afterCompletion = await repository.listOwned(
+        keeper.id,
+        aquarium.id,
+        10,
+      );
+      expect(afterCompletion).toHaveLength(1);
+      expect(afterCompletion[0].provenance).toBe('recurring-plan');
+      expect(afterCompletion[0].plannedFor).toEqual(
+        new Date('2026-08-23T10:00:00.000Z'),
+      );
+      expect(
+        (await getDoc(doc(firestore, 'careWorks', completed.id))).exists(),
+      ).toBe(true);
+
+      await repository.cancel({
+        id: afterCompletion[0].id,
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        actionAt: new Date('2026-08-23T11:00:00.000Z'),
+      });
+      const afterCancellation = await repository.listOwned(
+        keeper.id,
+        aquarium.id,
+        10,
+      );
+      expect(afterCancellation).toHaveLength(1);
+      expect(afterCancellation[0].plannedFor).toEqual(
+        new Date('2026-08-30T10:00:00.000Z'),
+      );
+
+      await repository.stop({
+        id: planId,
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+      });
+      expect(await repository.listOwned(keeper.id, aquarium.id, 10)).toEqual(
+        [],
+      );
+      expect(
+        (await getDoc(doc(firestore, 'recurringCarePlans', planId))).exists(),
+      ).toBe(false);
       await signOut(auth);
     },
     20000,

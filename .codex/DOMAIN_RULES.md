@@ -50,6 +50,34 @@ Rules are classified to avoid turning assumptions into code prematurely.
   creates a Care Work fact and removes the plan atomically; cancellation removes
   an unperformed plan without creating a Fact or Timeline item.
 
+## Accepted rules for Weekly Recurring Care
+
+- A Recurring Care Plan is a Care-specific independent aggregate that defines
+  one weekly calendar intention for one owned Aquarium. It is neither a generic
+  Task nor a scheduler.
+- The Aquarium time zone is the single authoritative IANA time zone for its
+  calendar Care. A keeper confirms it explicitly when recurrence first needs
+  it; Veril never silently derives it from the active browser.
+- The first recurring occurrence is chosen explicitly. Its local weekday and
+  `HH:mm` time define the weekly rule; the schedule remains at that local clock
+  time across daylight-saving changes.
+- A recurring plan has at most one concrete outstanding Planned Care Work.
+  That occurrence remains actionable even when overdue and blocks creation of
+  another occurrence.
+- Recurrence is schedule-driven. Completing or cancelling an occurrence creates
+  the first scheduled occurrence strictly after the later of the occurrence's
+  scheduled instant and the action time. It never recreates missed backlog.
+- Cancelling an occurrence does not stop its recurring plan. Stopping a
+  recurring plan is a separate operation that deletes the plan and its current
+  outstanding occurrence without creating a Fact or Timeline item.
+- A generated occurrence has provenance `recurring-plan`; a resulting Care
+  Work remains `manual` because the keeper confirms that the work was actually
+  performed.
+- Calendar correctness belongs to the domain/application calculation. Rules
+  protect ownership and structural links; a keeper manipulating their own
+  future schedule does not authorize access to another Aquarium or create a
+  historical Fact.
+
 ## Candidate invariants requiring validation
 
 Other business invariants remain unaccepted. The following hypotheses must be
@@ -84,7 +112,6 @@ These are likely to matter but must wait for concrete features:
 - Alert severity, acknowledgement and resolution.
 - Shared equipment ownership and permissions.
 - Livestock transfer, grouping and identification history.
-- Recurring Task and Reminder semantics.
 - Conflict policy for concurrent edits to domain records.
 
 ## Unknown rules

@@ -189,6 +189,31 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page.getByTestId('care-work-list')).toContainText(
     'Limpié la copa del skimmer.',
   );
+
+  await page.getByRole('link', { name: 'Volver al acuario' }).click();
+  await page.getByRole('link', { name: 'Programar semanal' }).click();
+  await page
+    .getByLabel('¿Qué quieres hacer cada semana?')
+    .fill('Cambio semanal de agua.');
+  await page.getByLabel('Primera fecha y hora').fill('2026-08-16T10:00');
+  await page.getByRole('checkbox').check();
+  await page.getByRole('button', { name: 'Programar cuidado semanal' }).click();
+  await expect(page.getByRole('status')).toContainText(
+    'Cuidado semanal programado correctamente.',
+  );
+  await page.getByRole('link', { name: 'Ver cuidados planificados' }).click();
+  await expect(page.getByTestId('planned-care-work-list')).toContainText(
+    'Cambio semanal de agua.',
+  );
+  page.once('dialog', (dialog) => dialog.accept());
+  await page
+    .getByRole('button', {
+      name: 'Detener recurrencia Cambio semanal de agua.',
+    })
+    .click();
+  await expect(page.getByTestId('planned-care-work-list')).toContainText(
+    'No hay cuidados planificados',
+  );
 });
 
 test('protected recording pages recover when no Aquarium is selected', async ({

@@ -31,11 +31,14 @@ describe('CancelPlannedCareWork', () => {
       activeContext,
     ).execute(plannedId);
 
-    expect(canceller.cancel).toHaveBeenCalledWith({
-      id: plannedId,
-      aquariumId,
-      ownerKeeperId: 'keeper-1',
-    });
+    expect(canceller.cancel).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: plannedId,
+        aquariumId,
+        ownerKeeperId: 'keeper-1',
+        actionAt: expect.any(Date),
+      }),
+    );
   });
 
   it('requires authentication and Active Context', async () => {

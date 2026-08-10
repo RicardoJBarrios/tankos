@@ -13,8 +13,22 @@ planned ── cancel ────> removed
 The planned intention has no persisted lifecycle status. Completion creates a
 durable `CareWork` fact and removes the intention atomically. Cancellation
 removes the unperformed intention without creating a Fact or Timeline item.
-This is the accepted lifecycle for the current Care capability; recurrence and
-durable cancellation history remain future decisions.
+This is the accepted lifecycle for concrete Planned Care Work. Durable
+cancellation history remains a future decision.
+
+## Weekly Recurring Care
+
+```text
+RecurringCarePlan + first PlannedCareWork
+  ├── complete occurrence ──> CareWork + next PlannedCareWork
+  ├── cancel occurrence ────> removed occurrence + next PlannedCareWork
+  └── stop recurrence ──────> removed plan + removed outstanding occurrence
+```
+
+The recurrence definition is not historical evidence. A planned occurrence is
+always concrete and remains the only actionable future intention. Completion
+keeps the existing CareWork fact semantics; cancelling or stopping creates no
+Fact and no Timeline item.
 
 ## Alert
 

@@ -89,6 +89,18 @@ action already performed for an Aquarium. It is not an Observation, planned
 Task or automatic Domain Event. Future Maintenance, Water Change, Feeding and
 Task semantics may specialize or relate to it only through accepted use cases.
 
+### Recurring Care Plan
+
+A Care-specific definition of one weekly, calendar-based intended action for an
+Aquarium. It is not a generic Task, Scheduler, Reminder or workflow. It
+materializes at most one concrete Planned Care Work occurrence at a time.
+
+### Recurring occurrence
+
+A concrete Planned Care Work created from a Recurring Care Plan for one
+scheduled local date and time. It can be completed or cancelled like any other
+planned intention; those actions do not themselves stop the recurring plan.
+
 ### Water Change
 
 A term for care work involving aquarium water replacement. Whether it is a
@@ -168,6 +180,12 @@ other accepted history for an Aquarium. It is not an independent source of truth
 The application-level scope from which a person views or operates on an
 Aquarium. It is not an Entity, Aggregate, authorization rule or persistence
 model.
+
+### Aquarium time zone
+
+The IANA time-zone identifier that defines calendar-based Care scheduling for
+an Aquarium, for example `Atlantic/Canary`. It is not the current browser
+time zone, a raw UTC offset or a locale preference.
 
 ### Inspection
 

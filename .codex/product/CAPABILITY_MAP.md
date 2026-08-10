@@ -47,9 +47,11 @@ remain future decisions.
 
 - Record Care Work — accepted and implemented.
 - List Care Work — accepted and implemented as bounded recent history.
-- Schedule Care Work
-- Complete Care Work
-- Review Care History
+- Plan Care Work — accepted and implemented.
+- Complete Planned Care Work — accepted and implemented.
+- Cancel Planned Care Work — accepted and implemented.
+- Establish Weekly Recurring Care — accepted for the next increment.
+- Monthly recurrence, multiple weekdays, editing and pause — deferred.
 
 ### Timeline — future increments
 

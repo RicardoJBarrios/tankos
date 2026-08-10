@@ -1,0 +1,101 @@
+<section aria-labelledby="weekly-recurring-care-title" class="page-section">
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title id="weekly-recurring-care-title"
+        >Programar cuidado semanal</mat-card-title
+      >
+      <mat-card-subtitle
+        >Una única intención semanal para este acuario.</mat-card-subtitle
+      >
+    </mat-card-header>
+    <mat-card-content>
+      @if (state() === 'loading') {
+      <div class="feedback" role="status">Cargando el acuario…</div>
+      } @else if (state() === 'no-context') {
+      <p class="feedback" role="status">
+        Primero selecciona un acuario para programar un cuidado semanal.
+      </p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums"
+        >Volver a mis acuarios</a
+      >
+      } @else if (state() === 'failure') {
+      <p class="feedback feedback-error" role="alert">
+        No se ha podido cargar el acuario seleccionado.
+      </p>
+      } @else if (state() === 'success') {
+      <p class="feedback feedback-success" role="status">
+        Cuidado semanal programado correctamente.
+      </p>
+      <a
+        mat-flat-button
+        color="primary"
+        routerLink="/app/aquariums/care/planned"
+        >Ver cuidados planificados</a
+      >
+      } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>¿Qué quieres hacer cada semana?</mat-label>
+          <textarea
+            matInput
+            rows="4"
+            id="recurring-care-description"
+            formControlName="description"
+          ></textarea>
+          @if (form.controls.description.touched &&
+          form.controls.description.invalid) {
+          <mat-error>Describe el cuidado.</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Primera fecha y hora</mat-label>
+          <input
+            matInput
+            type="datetime-local"
+            id="recurring-care-first-occurrence"
+            formControlName="firstOccurrenceLocal"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Zona horaria del acuario</mat-label>
+          <input
+            matInput
+            id="recurring-care-time-zone"
+            formControlName="timeZone"
+            [readonly]="!needsTimeZoneConfirmation"
+          />
+          <mat-hint
+            >Usa un identificador IANA, por ejemplo Atlantic/Canary.</mat-hint
+          >
+        </mat-form-field>
+        @if (needsTimeZoneConfirmation) {
+        <label>
+          <input
+            type="checkbox"
+            formControlName="confirmTimeZone"
+            (change)="confirmZone()"
+          />
+          Confirmo que esta es la zona horaria física del acuario.
+        </label>
+        } @if (state() === 'error') {
+        <p class="feedback feedback-error" role="alert">{{ errorMessage() }}</p>
+        }
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="state() === 'saving'"
+        >
+          {{ state() === 'saving' ? 'Guardando…' : 'Programar cuidado semanal'
+          }}
+        </button>
+      </form>
+      }
+    </mat-card-content>
+    <mat-card-actions>
+      <a mat-button routerLink="/app/aquariums/care/planned"
+        >Volver a cuidados planificados</a
+      >
+    </mat-card-actions>
+  </mat-card>
+</section>

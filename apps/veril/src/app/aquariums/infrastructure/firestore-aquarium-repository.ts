@@ -11,7 +11,11 @@ import {
 } from 'firebase/firestore';
 import { z } from 'zod';
 import { Aquarium } from '../domain/aquarium';
-import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
+import {
+  AquariumName,
+  aquariumIdFrom,
+  aquariumTimeZoneFrom,
+} from '../domain/aquarium';
 import {
   AquariumListItem,
   AquariumReader,
@@ -20,11 +24,12 @@ import {
 } from '../application/aquarium-ports';
 import { getFirebaseClient } from './firebase-client';
 
-const aquariumDocument = z.object({
+export const aquariumDocument = z.object({
   ownerId: z.string().min(1),
   name: z.string().min(1),
   establishedBy: z.string().min(1),
   establishedAt: z.instanceof(Timestamp),
+  timeZone: z.string().optional(),
 });
 
 function parseAquariumDocument(data: unknown) {
@@ -52,6 +57,7 @@ export class FirestoreAquariumRepository
       name: AquariumName.create(dto.name),
       ownerKeeperId: dto.ownerId,
       establishedAt: dto.establishedAt.toDate(),
+      ...(dto.timeZone ? { timeZone: aquariumTimeZoneFrom(dto.timeZone) } : {}),
     };
   }
 
@@ -72,6 +78,9 @@ export class FirestoreAquariumRepository
           item: {
             id: aquariumIdFrom(snapshot.id),
             name: AquariumName.create(dto.name),
+            ...(dto.timeZone
+              ? { timeZone: aquariumTimeZoneFrom(dto.timeZone) }
+              : {}),
           },
           establishedAt: dto.establishedAt.toMillis(),
         };
@@ -111,6 +120,7 @@ export class FirestoreAquariumRepository
     return {
       id: aquariumIdFrom(snapshot.id),
       name: AquariumName.create(dto.name),
+      ...(dto.timeZone ? { timeZone: aquariumTimeZoneFrom(dto.timeZone) } : {}),
     };
   }
 }

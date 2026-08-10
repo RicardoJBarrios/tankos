@@ -25,6 +25,10 @@ making the domain depend on browser APIs.
 - Convert to domain time types through a mapper; do not leak Firebase Timestamp
   into domain code.
 - Display using the user's timezone and locale.
+- For calendar commitments such as recurring Care, calculate from the
+  Aquarium's authoritative IANA time zone. UI may localize language and show a
+  user-local equivalent, but must keep the Aquarium schedule and its zone
+  visible.
 - Whether Temporal becomes a dependency is pending; do not add it preemptively.
 
 ## Permission vocabulary

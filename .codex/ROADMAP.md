@@ -43,13 +43,14 @@ truth. Complete pagination and materialization remain deferred.
 
 ## 4. Care
 
-`Record Care Work` is accepted as the first increment: a small online,
-append-only record of an intentional action already performed. Planning,
-recurrence, completion workflows, reminders and Maintenance subtypes remain
-separate future decisions. Completed Care Work is included in the bounded
-recent Timeline read but remains its own source of truth. `List Care Work` is
-accepted and implemented as a bounded recent read over the same source; it does
-not introduce planning or a generic history framework.
+`Record Care Work` and `List Care Work` are implemented as bounded historical
+Care records. Planning, completing and cancelling concrete Planned Care Work
+are also implemented without a generic Task lifecycle. The next accepted Care
+increment is weekly recurring Care: a Care-specific calendar definition plus
+one concrete outstanding occurrence. Reminders, monthly rules, multiple
+weekdays, editing, pause, notifications and Maintenance subtypes remain future
+decisions. Completed Care Work is included in the bounded recent Timeline read
+but remains its own source of truth.
 
 ## 5. Timeline
 

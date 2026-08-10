@@ -87,6 +87,14 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'aquariums/care/recurring/new',
+        loadComponent: () =>
+          import('./aquariums/ui/establish-weekly-recurring-care-page').then(
+            ({ EstablishWeeklyRecurringCarePage }) =>
+              EstablishWeeklyRecurringCarePage,
+          ),
+      },
+      {
         path: 'aquariums/care/planned',
         loadComponent: () =>
           import('./aquariums/ui/list-planned-care-work-page').then(

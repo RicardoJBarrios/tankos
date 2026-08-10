@@ -16,7 +16,8 @@ service cloud.firestore {
           'ownerId',
           'name',
           'establishedBy',
-          'establishedAt'
+          'establishedAt',
+          'timeZone'
         ])
         && request.resource.data.keys().hasAll([
           'ownerId',
@@ -31,7 +32,18 @@ service cloud.firestore {
         && request.resource.data.establishedAt is timestamp;
 
       allow read: if isOwner(resource.data);
-      allow update: if false;
+      allow update: if isOwner(resource.data)
+        && !resource.data.keys().hasAll(['timeZone'])
+        && request.resource.data.keys().hasAll([
+          'ownerId',
+          'name',
+          'establishedBy',
+          'establishedAt',
+          'timeZone'
+        ])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['timeZone'])
+        && request.resource.data.timeZone is string
+        && request.resource.data.timeZone.size() > 0;
       allow delete: if false;
     }
 
@@ -165,7 +177,8 @@ service cloud.firestore {
           'description',
           'plannedFor',
           'recordedAt',
-          'provenance'
+          'provenance',
+          'recurringCarePlanId'
         ])
         && request.resource.data.keys().hasAll([
           'aquariumId',
@@ -183,20 +196,88 @@ service cloud.firestore {
         && request.resource.data.description.size() > 0
         && request.resource.data.plannedFor is timestamp
         && request.resource.data.recordedAt is timestamp
-        && request.resource.data.provenance == 'manual';
+        && (
+          request.resource.data.provenance == 'manual'
+          && !request.resource.data.keys().hasAll(['recurringCarePlanId'])
+          || (
+            request.resource.data.provenance == 'recurring-plan'
+            && request.resource.data.recurringCarePlanId is string
+            && existsAfter(/databases/$(database)/documents/recurringCarePlans/$(request.resource.data.recurringCarePlanId))
+            && getAfter(/databases/$(database)/documents/recurringCarePlans/$(request.resource.data.recurringCarePlanId)).data.ownerId == request.resource.data.ownerId
+            && getAfter(/databases/$(database)/documents/recurringCarePlans/$(request.resource.data.recurringCarePlanId)).data.aquariumId == request.resource.data.aquariumId
+            && getAfter(/databases/$(database)/documents/recurringCarePlans/$(request.resource.data.recurringCarePlanId)).data.outstandingPlannedCareWorkId == plannedCareWorkId
+          )
+        );
 
-      allow read: if isOwner(resource.data);
+      allow read: if !exists(/databases/$(database)/documents/plannedCareWorks/$(plannedCareWorkId))
+        || isOwner(resource.data);
       allow update: if false;
       allow delete: if isOwner(resource.data)
         && (
-          !existsAfter(/databases/$(database)/documents/careWorks/$(plannedCareWorkId))
+          (
+            resource.data.provenance == 'manual'
+            && (
+              !existsAfter(/databases/$(database)/documents/careWorks/$(plannedCareWorkId))
+              || (
+                !exists(/databases/$(database)/documents/careWorks/$(plannedCareWorkId))
+                && getAfter(/databases/$(database)/documents/careWorks/$(plannedCareWorkId)).data.ownerId == resource.data.ownerId
+                && getAfter(/databases/$(database)/documents/careWorks/$(plannedCareWorkId)).data.aquariumId == resource.data.aquariumId
+                && getAfter(/databases/$(database)/documents/careWorks/$(plannedCareWorkId)).data.description == resource.data.description
+              )
+            )
+          )
           || (
-            !exists(/databases/$(database)/documents/careWorks/$(plannedCareWorkId))
-            && getAfter(/databases/$(database)/documents/careWorks/$(plannedCareWorkId)).data.ownerId == resource.data.ownerId
-            && getAfter(/databases/$(database)/documents/careWorks/$(plannedCareWorkId)).data.aquariumId == resource.data.aquariumId
-            && getAfter(/databases/$(database)/documents/careWorks/$(plannedCareWorkId)).data.description == resource.data.description
+            resource.data.provenance == 'recurring-plan'
+            && resource.data.recurringCarePlanId is string
+            && (
+              !existsAfter(/databases/$(database)/documents/recurringCarePlans/$(resource.data.recurringCarePlanId))
+              || getAfter(/databases/$(database)/documents/recurringCarePlans/$(resource.data.recurringCarePlanId)).data.outstandingPlannedCareWorkId != plannedCareWorkId
+            )
           )
         );
+    }
+
+    match /recurringCarePlans/{recurringCarePlanId} {
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasOnly([
+          'aquariumId',
+          'ownerId',
+          'description',
+          'firstOccurrenceAt',
+          'recordedAt',
+          'outstandingPlannedCareWorkId'
+        ])
+        && request.resource.data.keys().hasAll([
+          'aquariumId',
+          'ownerId',
+          'description',
+          'firstOccurrenceAt',
+          'recordedAt',
+          'outstandingPlannedCareWorkId'
+        ])
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.aquariumId is string
+        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
+        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
+        && request.resource.data.description is string
+        && request.resource.data.description.size() > 0
+        && request.resource.data.firstOccurrenceAt is timestamp
+        && request.resource.data.recordedAt is timestamp
+        && request.resource.data.outstandingPlannedCareWorkId is string
+        && existsAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId))
+        && getAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId)).data.recurringCarePlanId == recurringCarePlanId;
+
+      allow read: if !exists(/databases/$(database)/documents/recurringCarePlans/$(recurringCarePlanId))
+        || isOwner(resource.data);
+      allow update: if isOwner(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['outstandingPlannedCareWorkId'])
+        && request.resource.data.outstandingPlannedCareWorkId is string
+        && existsAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId))
+        && getAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId)).data.recurringCarePlanId == recurringCarePlanId
+        && getAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId)).data.ownerId == resource.data.ownerId
+        && getAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId)).data.aquariumId == resource.data.aquariumId;
+      allow delete: if isOwner(resource.data)
+        && !existsAfter(/databases/$(database)/documents/plannedCareWorks/$(resource.data.outstandingPlannedCareWorkId));
     }
 
     match /{document=**} {

@@ -21,6 +21,7 @@ export class CancelPlannedCareWork {
       id: plannedCareWorkId,
       aquariumId,
       ownerKeeperId: keeper.id,
+      actionAt: new Date(),
     });
   }
 }

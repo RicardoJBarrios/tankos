@@ -11,6 +11,9 @@
     <a mat-stroked-button routerLink="/app/aquariums/care/planned/new"
       >Planificar cuidado</a
     >
+    <a mat-stroked-button routerLink="/app/aquariums/care/recurring/new"
+      >Programar cuidado semanal</a
+    >
   </div>
 
   @if (state() === 'no-context') {
@@ -65,7 +68,7 @@
           <button
             mat-stroked-button
             type="button"
-            [disabled]="completingId() !== null || cancellingId() !== null"
+            [disabled]="completingId() !== null || cancellingId() !== null || stoppingId() !== null"
             [attr.aria-label]="'Completar ' + item.description"
             (click)="complete(item)"
           >
@@ -74,12 +77,24 @@
           <button
             mat-stroked-button
             type="button"
-            [disabled]="completingId() !== null || cancellingId() !== null"
+            [disabled]="completingId() !== null || cancellingId() !== null || stoppingId() !== null"
             [attr.aria-label]="'Cancelar ' + item.description"
             (click)="cancel(item)"
           >
             {{ cancellingId() === item.id ? 'Cancelando…' : 'Cancelar' }}
           </button>
+          @if (item.provenance === 'recurring-plan') {
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="completingId() !== null || cancellingId() !== null || stoppingId() !== null"
+            [attr.aria-label]="'Detener recurrencia ' + item.description"
+            (click)="stop(item)"
+          >
+            {{ stoppingId() === item.id ? 'Deteniendo…' : 'Detener recurrencia'
+            }}
+          </button>
+          }
         </mat-card-content>
       </mat-card>
     </li>
@@ -89,6 +104,10 @@
   <p class="feedback feedback-error" role="alert">{{ completionError() }}</p>
   } @if (cancellationError()) {
   <p class="feedback feedback-error" role="alert">{{ cancellationError() }}</p>
+  } @if (stoppingError()) {
+  <p class="feedback feedback-error" role="alert">{{ stoppingError() }}</p>
+  } @if (stoppingError()) {
+  <p class="feedback feedback-error" role="alert">{{ stoppingError() }}</p>
   }
 
   <a mat-button routerLink="/app/aquariums/current">Volver al acuario</a>

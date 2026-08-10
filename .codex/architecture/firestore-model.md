@@ -175,6 +175,16 @@ represents cancellation; when a delete is part of a batch that creates a
 same underlying UUID as the planned document only for correlation, while
 `PlannedCareWorkId` and `CareWorkId` remain distinct domain identities.
 
+## Accepted weekly recurring Care direction
+
+The next Care increment will persist a Care-specific `RecurringCarePlan` in a
+separate top-level `recurringCarePlans` collection. A plan will hold its owner,
+Aquarium, weekly anchor and reference to its sole outstanding concrete
+`PlannedCareWork`; it will not be nested in Aquarium or mixed into
+`plannedCareWorks`. The first recurring occurrence, later advancement and stop
+operation will use atomic Firestore operations. This is an accepted design
+direction, not an implemented collection or Rules contract yet.
+
 ## Current Measurement values
 
 The Aquarium Workspace answers which values are currently known for the active

@@ -36,6 +36,7 @@ export class PlanCareWork {
     return this.writer.recordPlanned({
       ...plannedCareWork,
       ownerKeeperId: keeper.id,
+      provenance: 'manual',
     });
   }
 }

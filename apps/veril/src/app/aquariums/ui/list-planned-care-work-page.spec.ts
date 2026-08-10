@@ -6,6 +6,7 @@ import { ActiveAquariumContextStorage } from '../application/active-aquarium-con
 import { CancelPlannedCareWork } from '../application/cancel-planned-care-work';
 import { CompletePlannedCareWork } from '../application/complete-planned-care-work';
 import { ListPlannedCareWork } from '../application/list-planned-care-work';
+import { StopRecurringCarePlan } from '../application/stop-recurring-care-plan';
 import { aquariumIdFrom } from '../domain/aquarium';
 import { ListPlannedCareWorkPage } from './list-planned-care-work-page';
 
@@ -15,12 +16,14 @@ const item = {
   description: 'Limpiar el skimmer',
   plannedFor: new Date('2026-08-10T10:00:00.000Z'),
   recordedAt: new Date('2026-08-09T10:00:00.000Z'),
+  provenance: 'manual' as const,
 };
 
 describe('ListPlannedCareWorkPage', () => {
   const execute = vi.fn();
   const complete = vi.fn();
   const cancel = vi.fn();
+  const stop = vi.fn();
   let includeActiveContext = true;
   const createComponent = createComponentFactory({
     component: ListPlannedCareWorkPage,
@@ -52,6 +55,7 @@ describe('ListPlannedCareWorkPage', () => {
                 useValue: { execute: complete },
               },
               { provide: CancelPlannedCareWork, useValue: { execute: cancel } },
+              { provide: StopRecurringCarePlan, useValue: { execute: stop } },
             ],
           },
         },
@@ -63,6 +67,7 @@ describe('ListPlannedCareWorkPage', () => {
     execute.mockReset();
     complete.mockReset();
     cancel.mockReset();
+    stop.mockReset();
     includeActiveContext = true;
   });
 

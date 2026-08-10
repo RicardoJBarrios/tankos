@@ -10,18 +10,31 @@ import {
   limit,
   orderBy,
   query,
+  runTransaction,
   setDoc,
   where,
   writeBatch,
 } from 'firebase/firestore';
 import { z } from 'zod';
-import { AquariumId, aquariumIdFrom } from '../domain/aquarium';
+import {
+  AquariumId,
+  aquariumIdFrom,
+  aquariumTimeZoneFrom,
+} from '../domain/aquarium';
 import { CareWork, careWorkIdFrom, createCareWork } from '../domain/care-work';
 import {
   createPlannedCareWork,
+  createPlannedCareWorkId,
   plannedCareWorkIdFrom,
 } from '../domain/planned-care-work';
 import { PlannedCareWork } from '../domain/planned-care-work';
+import {
+  RecurringCarePlan,
+  RecurringCarePlanId,
+  createRecurringCarePlan,
+  nextWeeklyOccurrence,
+  recurringCarePlanIdFrom,
+} from '../domain/recurring-care-plan';
 import {
   PlanCareWorkInput,
   CompletePlannedCareWorkInput,
@@ -31,17 +44,46 @@ import {
   PlannedCareWorkListItem,
   PlannedCareWorkReader,
   PlannedCareWorkWriter,
+  RecurringCarePlanStopper,
+  RecurringCarePlanWriter,
+  EstablishWeeklyRecurringCareInput,
 } from '../application/aquarium-ports';
 import { getFirebaseClient } from './firebase-client';
+import { aquariumDocument } from './firestore-aquarium-repository';
 import { careWorkDocument } from './firestore-care-work-repository';
 
-const plannedCareWorkDocument = z.object({
+const plannedCareWorkDocument = z
+  .object({
+    aquariumId: z.string().min(1),
+    ownerId: z.string().min(1),
+    description: z.string().min(1),
+    plannedFor: z.instanceof(Timestamp),
+    recordedAt: z.instanceof(Timestamp),
+    provenance: z.enum(['manual', 'recurring-plan']),
+    recurringCarePlanId: z.string().optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.provenance === 'manual' && value.recurringCarePlanId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Manual plan cannot have recurrence origin',
+      });
+    }
+    if (value.provenance === 'recurring-plan' && !value.recurringCarePlanId) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Recurring plan requires recurrence origin',
+      });
+    }
+  });
+
+const recurringCarePlanDocument = z.object({
   aquariumId: z.string().min(1),
   ownerId: z.string().min(1),
   description: z.string().min(1),
-  plannedFor: z.instanceof(Timestamp),
+  firstOccurrenceAt: z.instanceof(Timestamp),
   recordedAt: z.instanceof(Timestamp),
-  provenance: z.literal('manual'),
+  outstandingPlannedCareWorkId: z.string().min(1),
 });
 
 @Injectable()
@@ -50,7 +92,9 @@ export class FirestorePlannedCareWorkRepository
     PlannedCareWorkWriter,
     PlannedCareWorkReader,
     PlannedCareWorkCompleter,
-    PlannedCareWorkCanceller
+    PlannedCareWorkCanceller,
+    RecurringCarePlanWriter,
+    RecurringCarePlanStopper
 {
   async recordPlanned(input: PlanCareWorkInput): Promise<PlannedCareWork> {
     const { firestore } = getFirebaseClient();
@@ -73,7 +117,83 @@ export class FirestorePlannedCareWorkRepository
       plannedFor: dto.plannedFor.toDate(),
       recordedAt: dto.recordedAt.toDate(),
       provenance: dto.provenance,
+      ...(dto.recurringCarePlanId
+        ? {
+            recurringCarePlanId: recurringCarePlanIdFrom(
+              dto.recurringCarePlanId,
+            ),
+          }
+        : {}),
     });
+  }
+
+  async establish(
+    input: EstablishWeeklyRecurringCareInput,
+  ): Promise<RecurringCarePlan> {
+    const { firestore } = getFirebaseClient();
+    const aquariumReference = doc(firestore, 'aquariums', input.aquariumId);
+    const planReference = doc(firestore, 'recurringCarePlans', input.id);
+    const occurrenceReference = doc(
+      firestore,
+      'plannedCareWorks',
+      input.occurrenceId,
+    );
+
+    const plan = createRecurringCarePlan({
+      id: input.id,
+      aquariumId: input.aquariumId,
+      description: input.description,
+      firstOccurrenceAt: input.firstOccurrenceAt,
+      recordedAt: input.recordedAt,
+      outstandingPlannedCareWorkId: input.occurrenceId,
+      timeZone: input.timeZone,
+    });
+
+    await runTransaction(firestore, async (transaction) => {
+      const aquariumSnapshot = await transaction.get(aquariumReference);
+      const planSnapshot = await transaction.get(planReference);
+      const occurrenceSnapshot = await transaction.get(occurrenceReference);
+      if (!aquariumSnapshot.exists()) throw new Error('Aquarium not found');
+      if (planSnapshot.exists() || occurrenceSnapshot.exists()) {
+        throw new Error('Recurring Care already exists');
+      }
+      const aquarium = aquariumDocument.parse(aquariumSnapshot.data());
+      if (aquarium.ownerId !== input.ownerKeeperId) {
+        throw new Error('Aquarium is not owned by the keeper');
+      }
+      if (
+        aquarium.timeZone &&
+        aquariumTimeZoneFrom(aquarium.timeZone) !== input.timeZone
+      ) {
+        throw new Error('Aquarium time zone does not match the recurring plan');
+      }
+
+      const planDto = recurringCarePlanDocument.parse({
+        aquariumId: input.aquariumId,
+        ownerId: input.ownerKeeperId,
+        description: plan.description,
+        firstOccurrenceAt: Timestamp.fromDate(plan.firstOccurrenceAt),
+        recordedAt: Timestamp.fromDate(plan.recordedAt),
+        outstandingPlannedCareWorkId: input.occurrenceId,
+      });
+      const occurrenceDto = plannedCareWorkDocument.parse({
+        aquariumId: input.aquariumId,
+        ownerId: input.ownerKeeperId,
+        description: plan.description,
+        plannedFor: Timestamp.fromDate(plan.firstOccurrenceAt),
+        recordedAt: Timestamp.fromDate(plan.recordedAt),
+        provenance: 'recurring-plan',
+        recurringCarePlanId: input.id,
+      });
+
+      if (!aquarium.timeZone) {
+        transaction.update(aquariumReference, { timeZone: input.timeZone });
+      }
+      transaction.set(planReference, planDto);
+      transaction.set(occurrenceReference, occurrenceDto);
+    });
+
+    return plan;
   }
 
   async listOwned(
@@ -101,6 +221,14 @@ export class FirestorePlannedCareWorkRepository
         description: dto.description,
         plannedFor: dto.plannedFor.toDate(),
         recordedAt: dto.recordedAt.toDate(),
+        provenance: dto.provenance,
+        ...(dto.recurringCarePlanId
+          ? {
+              recurringCarePlanId: recurringCarePlanIdFrom(
+                dto.recurringCarePlanId,
+              ),
+            }
+          : {}),
       };
     });
   }
@@ -121,6 +249,10 @@ export class FirestorePlannedCareWorkRepository
       plannedDto.aquariumId !== input.aquariumId
     ) {
       throw new Error('Planned Care Work is not owned by the keeper');
+    }
+
+    if (plannedDto.provenance === 'recurring-plan') {
+      return this.completeRecurring(input, plannedDto);
     }
 
     const careWorkDto = careWorkDocument.parse({
@@ -164,6 +296,213 @@ export class FirestorePlannedCareWorkRepository
       throw new Error('Planned Care Work is not owned by the keeper');
     }
 
+    if (plannedDto.provenance === 'recurring-plan') {
+      await this.cancelRecurring(input, plannedDto);
+      return;
+    }
+
     await deleteDoc(plannedReference);
+  }
+
+  async stop(input: {
+    readonly id: RecurringCarePlanId;
+    readonly aquariumId: AquariumId;
+    readonly ownerKeeperId: string;
+  }): Promise<void> {
+    const { firestore } = getFirebaseClient();
+    const planReference = doc(firestore, 'recurringCarePlans', input.id);
+
+    await runTransaction(firestore, async (transaction) => {
+      const planSnapshot = await transaction.get(planReference);
+      if (!planSnapshot.exists()) throw new Error('Recurring Care not found');
+      const planDto = recurringCarePlanDocument.parse(planSnapshot.data());
+      if (
+        planDto.ownerId !== input.ownerKeeperId ||
+        planDto.aquariumId !== input.aquariumId
+      ) {
+        throw new Error('Recurring Care is not owned by the keeper');
+      }
+
+      const occurrenceReference = doc(
+        firestore,
+        'plannedCareWorks',
+        planDto.outstandingPlannedCareWorkId,
+      );
+      const occurrenceSnapshot = await transaction.get(occurrenceReference);
+      if (!occurrenceSnapshot.exists()) {
+        throw new Error('Recurring Care occurrence not found');
+      }
+      const occurrenceDto = plannedCareWorkDocument.parse(
+        occurrenceSnapshot.data(),
+      );
+      if (
+        occurrenceDto.recurringCarePlanId !== input.id ||
+        occurrenceDto.ownerId !== input.ownerKeeperId ||
+        occurrenceDto.aquariumId !== input.aquariumId
+      ) {
+        throw new Error('Recurring Care occurrence is not valid');
+      }
+
+      transaction.delete(occurrenceReference);
+      transaction.delete(planReference);
+    });
+  }
+
+  private async completeRecurring(
+    input: CompletePlannedCareWorkInput,
+    plannedDto: z.infer<typeof plannedCareWorkDocument>,
+  ): Promise<CareWork> {
+    const { firestore } = getFirebaseClient();
+    const plannedReference = doc(firestore, 'plannedCareWorks', input.id);
+    if (!plannedDto.recurringCarePlanId) {
+      throw new Error('Recurring Care occurrence has no plan origin');
+    }
+    const planId = recurringCarePlanIdFrom(plannedDto.recurringCarePlanId);
+    const planReference = doc(firestore, 'recurringCarePlans', planId);
+    const aquariumReference = doc(firestore, 'aquariums', input.aquariumId);
+    const careWorkReference = doc(firestore, 'careWorks', input.id);
+    const nextOccurrenceId = createPlannedCareWorkId();
+    const nextOccurrenceReference = doc(
+      firestore,
+      'plannedCareWorks',
+      nextOccurrenceId,
+    );
+
+    let result: CareWork | undefined;
+    await runTransaction(firestore, async (transaction) => {
+      const plannedSnapshot = await transaction.get(plannedReference);
+      const planSnapshot = await transaction.get(planReference);
+      const aquariumSnapshot = await transaction.get(aquariumReference);
+      if (
+        !plannedSnapshot.exists() ||
+        !planSnapshot.exists() ||
+        !aquariumSnapshot.exists()
+      ) {
+        throw new Error('Recurring Care occurrence is no longer available');
+      }
+      const current = plannedCareWorkDocument.parse(plannedSnapshot.data());
+      const plan = recurringCarePlanDocument.parse(planSnapshot.data());
+      const aquarium = aquariumDocument.parse(aquariumSnapshot.data());
+      if (
+        current.recurringCarePlanId !== planId ||
+        plan.outstandingPlannedCareWorkId !== input.id ||
+        plan.ownerId !== input.ownerKeeperId ||
+        plan.aquariumId !== input.aquariumId ||
+        aquarium.ownerId !== input.ownerKeeperId ||
+        !aquarium.timeZone
+      ) {
+        throw new Error('Recurring Care occurrence is stale or invalid');
+      }
+
+      const nextOccurrence = nextWeeklyOccurrence(
+        current.plannedFor.toDate(),
+        input.completedAt,
+        aquariumTimeZoneFrom(aquarium.timeZone),
+      );
+      const careWorkDto = careWorkDocument.parse({
+        aquariumId: current.aquariumId,
+        ownerId: current.ownerId,
+        description: current.description,
+        performedAt: Timestamp.fromDate(input.completedAt),
+        recordedAt: Timestamp.fromDate(input.completedAt),
+        provenance: 'manual',
+      });
+      const nextDto = plannedCareWorkDocument.parse({
+        aquariumId: current.aquariumId,
+        ownerId: current.ownerId,
+        description: current.description,
+        plannedFor: Timestamp.fromDate(nextOccurrence),
+        recordedAt: Timestamp.fromDate(input.completedAt),
+        provenance: 'recurring-plan',
+        recurringCarePlanId: planId,
+      });
+
+      transaction.set(careWorkReference, careWorkDto);
+      transaction.delete(plannedReference);
+      transaction.set(nextOccurrenceReference, nextDto);
+      transaction.update(planReference, {
+        outstandingPlannedCareWorkId: nextOccurrenceId,
+      });
+      result = createCareWork({
+        id: careWorkIdFrom(careWorkReference.id),
+        aquariumId: aquariumIdFrom(careWorkDto.aquariumId),
+        description: careWorkDto.description,
+        performedAt: careWorkDto.performedAt.toDate(),
+        recordedAt: careWorkDto.recordedAt.toDate(),
+        provenance: careWorkDto.provenance,
+      });
+    });
+
+    if (!result)
+      throw new Error('Recurring Care completion produced no result');
+    return result;
+  }
+
+  private async cancelRecurring(
+    input: CancelPlannedCareWorkInput,
+    plannedDto: z.infer<typeof plannedCareWorkDocument>,
+  ): Promise<void> {
+    const { firestore } = getFirebaseClient();
+    const plannedReference = doc(firestore, 'plannedCareWorks', input.id);
+    if (!plannedDto.recurringCarePlanId) {
+      throw new Error('Recurring Care occurrence has no plan origin');
+    }
+    const planId = recurringCarePlanIdFrom(plannedDto.recurringCarePlanId);
+    const planReference = doc(firestore, 'recurringCarePlans', planId);
+    const aquariumReference = doc(firestore, 'aquariums', input.aquariumId);
+    const nextOccurrenceId = createPlannedCareWorkId();
+    const nextOccurrenceReference = doc(
+      firestore,
+      'plannedCareWorks',
+      nextOccurrenceId,
+    );
+
+    await runTransaction(firestore, async (transaction) => {
+      const plannedSnapshot = await transaction.get(plannedReference);
+      const planSnapshot = await transaction.get(planReference);
+      const aquariumSnapshot = await transaction.get(aquariumReference);
+      if (
+        !plannedSnapshot.exists() ||
+        !planSnapshot.exists() ||
+        !aquariumSnapshot.exists()
+      ) {
+        throw new Error('Recurring Care occurrence is no longer available');
+      }
+      const current = plannedCareWorkDocument.parse(plannedSnapshot.data());
+      const plan = recurringCarePlanDocument.parse(planSnapshot.data());
+      const aquarium = aquariumDocument.parse(aquariumSnapshot.data());
+      if (
+        current.recurringCarePlanId !== planId ||
+        plan.outstandingPlannedCareWorkId !== input.id ||
+        plan.ownerId !== input.ownerKeeperId ||
+        plan.aquariumId !== input.aquariumId ||
+        aquarium.ownerId !== input.ownerKeeperId ||
+        !aquarium.timeZone
+      ) {
+        throw new Error('Recurring Care occurrence is stale or invalid');
+      }
+
+      const actionAt = input.actionAt ?? new Date();
+      const nextOccurrence = nextWeeklyOccurrence(
+        current.plannedFor.toDate(),
+        actionAt,
+        aquariumTimeZoneFrom(aquarium.timeZone),
+      );
+      const nextDto = plannedCareWorkDocument.parse({
+        aquariumId: current.aquariumId,
+        ownerId: current.ownerId,
+        description: current.description,
+        plannedFor: Timestamp.fromDate(nextOccurrence),
+        recordedAt: Timestamp.fromDate(actionAt),
+        provenance: 'recurring-plan',
+        recurringCarePlanId: planId,
+      });
+
+      transaction.delete(plannedReference);
+      transaction.set(nextOccurrenceReference, nextDto);
+      transaction.update(planReference, {
+        outstandingPlannedCareWorkId: nextOccurrenceId,
+      });
+    });
   }
 }

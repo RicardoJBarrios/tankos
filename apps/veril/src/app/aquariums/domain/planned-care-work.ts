@@ -23,7 +23,8 @@ export interface PlannedCareWork {
   readonly description: string;
   readonly plannedFor: Date;
   readonly recordedAt: Date;
-  readonly provenance: 'manual';
+  readonly provenance: 'manual' | 'recurring-plan';
+  readonly recurringCarePlanId?: string;
 }
 
 export function createPlannedCareWork(input: {
@@ -32,7 +33,8 @@ export function createPlannedCareWork(input: {
   readonly description: string;
   readonly plannedFor: Date;
   readonly recordedAt: Date;
-  readonly provenance: 'manual';
+  readonly provenance: 'manual' | 'recurring-plan';
+  readonly recurringCarePlanId?: string;
 }): PlannedCareWork {
   const description = input.description.trim();
 
@@ -46,6 +48,14 @@ export function createPlannedCareWork(input: {
 
   if (Number.isNaN(input.recordedAt.getTime())) {
     throw new Error('Planned Care Work recordedAt must be a valid date');
+  }
+
+  if (input.provenance === 'manual' && input.recurringCarePlanId) {
+    throw new Error('Manual Planned Care Work cannot have recurrence origin');
+  }
+
+  if (input.provenance === 'recurring-plan' && !input.recurringCarePlanId) {
+    throw new Error('Recurring Planned Care Work requires recurrence origin');
   }
 
   return { ...input, description };

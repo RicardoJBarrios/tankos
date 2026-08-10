@@ -16,6 +16,8 @@ import {
   PlannedCareWorkWriter,
   PlannedCareWorkCompleter,
   PlannedCareWorkCanceller,
+  RecurringCarePlanStopper,
+  RecurringCarePlanWriter,
 } from '../application/aquarium-ports';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 
@@ -71,6 +73,12 @@ export const PLANNED_CARE_WORK_COMPLETER =
 
 export const PLANNED_CARE_WORK_CANCELLER =
   new InjectionToken<PlannedCareWorkCanceller>('PLANNED_CARE_WORK_CANCELLER');
+
+export const RECURRING_CARE_PLAN_WRITER =
+  new InjectionToken<RecurringCarePlanWriter>('RECURRING_CARE_PLAN_WRITER');
+
+export const RECURRING_CARE_PLAN_STOPPER =
+  new InjectionToken<RecurringCarePlanStopper>('RECURRING_CARE_PLAN_STOPPER');
 
 export const ACTIVE_AQUARIUM_CONTEXT_STORAGE =
   new InjectionToken<ActiveAquariumContextStorage>(
