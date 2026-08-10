@@ -87,8 +87,9 @@ Measurement validity or historical meaning. Absence means that a future status
 read is `uninterpreted`.
 
 The five-slot target map is bounded and persisted with the Aquarium document.
-The `AquariumWorkspaceStore` may expose it as shared Dashboard configuration,
-while a future `Parameter Status` read model derives interpretation without
+The `AquariumWorkspaceStore` may expose it as shared Dashboard configuration.
+`Parameter Status` is an accepted application read model that derives a
+comparison from the latest known Measurement and explicit target without
 persisting status. This does not turn Aquarium into generic CRUD or make
 Measurement part of the Aquarium transaction boundary.
 

@@ -4,8 +4,12 @@ import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 import { ReadAquariumDashboardContext } from '../application/read-aquarium-dashboard-context';
 import { RemoveParameterTarget } from '../application/remove-parameter-target';
+import { ReviewCurrentMeasurements } from '../application/review-current-measurements';
 import { SaveParameterTarget } from '../application/save-parameter-target';
-import { AquariumDashboardContext } from '../application/aquarium-ports';
+import {
+  AquariumDashboardContext,
+  CurrentMeasurementValue,
+} from '../application/aquarium-ports';
 import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
 import { AquariumWorkspaceStore } from './aquarium-workspace-store';
 
@@ -23,12 +27,15 @@ describe('AquariumWorkspaceStore', () => {
   const read = vi.fn();
   const save = vi.fn();
   const remove = vi.fn();
+  const review = vi.fn();
   let context: ActiveAquariumContext;
 
   beforeEach(() => {
     read.mockReset();
     save.mockReset();
     remove.mockReset();
+    review.mockReset();
+    review.mockResolvedValue([]);
     const storage: ActiveAquariumContextStorage = {
       load: vi.fn(),
       save: vi.fn(),
@@ -43,6 +50,7 @@ describe('AquariumWorkspaceStore', () => {
         { provide: ReadAquariumDashboardContext, useValue: { execute: read } },
         { provide: SaveParameterTarget, useValue: { execute: save } },
         { provide: RemoveParameterTarget, useValue: { execute: remove } },
+        { provide: ReviewCurrentMeasurements, useValue: { execute: review } },
         { provide: ActiveAquariumContext, useValue: context },
       ],
     });
@@ -122,5 +130,102 @@ describe('AquariumWorkspaceStore', () => {
 
     expect(store.aquariumName()).toBe('Otro acuario');
     expect(store.hasTarget('temperature')).toBe(false);
+  });
+
+  it('derives status from current Measurements and targets in the Store', async () => {
+    const temperature: CurrentMeasurementValue = {
+      parameterId: 'temperature',
+      canonicalValue: 25.4,
+      canonicalUnit: 'celsius',
+      measuredAt: new Date('2026-08-10T10:00:00.000Z'),
+    };
+    read.mockResolvedValue(firstContext);
+    review.mockResolvedValue([temperature]);
+    const store = TestBed.inject(AquariumWorkspaceStore);
+
+    await store.load();
+
+    expect(store.currentMeasurements()).toEqual([temperature]);
+    expect(store.currentParameterStateFor('temperature')).toMatchObject({
+      measurement: temperature,
+      target: firstContext.parameterTargets.temperature,
+      interpretation: 'above',
+    });
+    expect(store.currentParameterStateFor('salinity')).toMatchObject({
+      measurement: null,
+      interpretation: undefined,
+    });
+  });
+
+  it('recomputes status after target edit and removal without refetching Measurements', async () => {
+    const temperature: CurrentMeasurementValue = {
+      parameterId: 'temperature',
+      canonicalValue: 25.4,
+      canonicalUnit: 'celsius',
+      measuredAt: new Date('2026-08-10T10:00:00.000Z'),
+    };
+    read.mockResolvedValue(firstContext);
+    review.mockResolvedValue([temperature]);
+    save.mockResolvedValue({
+      parameterId: 'temperature',
+      minimum: 20,
+      maximum: 22,
+    });
+    const store = TestBed.inject(AquariumWorkspaceStore);
+    await store.load();
+
+    await store.saveTarget('temperature', 20, 22);
+    expect(store.currentParameterStateFor('temperature').interpretation).toBe(
+      'above',
+    );
+    expect(review).toHaveBeenCalledTimes(1);
+
+    await store.removeTarget('temperature');
+    expect(store.currentParameterStateFor('temperature').interpretation).toBe(
+      'uninterpreted',
+    );
+    expect(review).toHaveBeenCalledTimes(1);
+  });
+
+  it('isolates current Measurement failure from Dashboard context', async () => {
+    read.mockResolvedValue(firstContext);
+    review.mockRejectedValue(new Error('reader unavailable'));
+    const store = TestBed.inject(AquariumWorkspaceStore);
+
+    await store.load();
+
+    expect(store.status()).toBe('ready');
+    expect(store.currentMeasurementsError()).toBe(true);
+    expect(store.currentMeasurementsLoading()).toBe(false);
+  });
+
+  it('resets current Measurements and derived state when Aquarium changes', async () => {
+    const temperature: CurrentMeasurementValue = {
+      parameterId: 'temperature',
+      canonicalValue: 25.4,
+      canonicalUnit: 'celsius',
+      measuredAt: new Date('2026-08-10T10:00:00.000Z'),
+    };
+    read.mockResolvedValueOnce(firstContext).mockResolvedValueOnce({
+      id: secondId,
+      name: AquariumName.create('Otro acuario'),
+      parameterTargets: {},
+    });
+    review.mockResolvedValueOnce([temperature]).mockResolvedValueOnce([]);
+    const store = TestBed.inject(AquariumWorkspaceStore);
+    await store.load();
+    expect(store.currentParameterStateFor('temperature').measurement).toEqual(
+      temperature,
+    );
+
+    context.select(secondId);
+    await store.reload();
+
+    expect(store.currentMeasurements()).toEqual([]);
+    expect(store.currentParameterStateFor('temperature')).toMatchObject({
+      measurement: null,
+      target: undefined,
+      interpretation: undefined,
+    });
   });
 });

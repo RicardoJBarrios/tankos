@@ -111,15 +111,16 @@ Rules are classified to avoid turning assumptions into code prematurely.
 - A persisted `Measurement` remains durable evidence regardless of age.
 - The age of a Measurement is derived from `measuredAt` and an explicit current
   instant; it is not persisted and does not mutate the Measurement.
-- Measurement cadence, freshness thresholds and target interpretation are
-  separate product decisions and are not implied by the Measurement catalogue.
+- Measurement cadence and freshness thresholds are separate product decisions
+  and are not implied by the Measurement catalogue. Parameter Status compares
+  only the latest known value with an explicit keeper target.
 
 ## Parameter policy
 
 - The MVP Parameter catalogue is closed and system-defined; users cannot add
   custom Parameters.
-- All five current Parameters are measurable and may become target candidates,
-  but no target or biological interpretation is accepted by default.
+- All five current Parameters are measurable and targetable, but no biological
+  interpretation is accepted by default.
 - A future Parameter Target belongs to Aquarium configuration and does not alter
   Measurement validity, provenance or historical meaning.
 - A Parameter Target is an optional keeper-owned interval identified by
@@ -128,8 +129,10 @@ Rules are classified to avoid turning assumptions into code prematurely.
 - The target map is persisted with Aquarium configuration. Absence means
   `uninterpreted`; there are no product defaults, target history or status
   persistence.
-- Parameter Status, when accepted, is derived application state and is not a
-  Fact, Domain Event or persisted Measurement state.
+- Parameter Status is derived application state, not a Fact, Domain Event or
+  persisted Measurement state. It classifies a known value as `below`,
+  `within`, `above` or `uninterpreted` against an explicit target; Measurement
+  Age remains independent and missing evidence has no value classification.
 
 ## Candidate invariants requiring validation
 

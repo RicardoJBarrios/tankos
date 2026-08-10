@@ -7,15 +7,18 @@ import { ActiveAquariumContext } from '../../aquariums/application/active-aquari
 import { RestoreActiveAquarium } from '../../aquariums/application/restore-active-aquarium';
 import { ReadAquariumDashboardContext } from '../../aquariums/application/read-aquarium-dashboard-context';
 import { RemoveParameterTarget } from '../../aquariums/application/remove-parameter-target';
+import { ReviewCurrentMeasurements } from '../../aquariums/application/review-current-measurements';
 import { SaveParameterTarget } from '../../aquariums/application/save-parameter-target';
 import { FirebaseKeeperSession } from '../../aquariums/infrastructure/firebase-keeper-session';
 import { FirestoreAquariumRepository } from '../../aquariums/infrastructure/firestore-aquarium-repository';
+import { FirestoreMeasurementRepository } from '../../aquariums/infrastructure/firestore-measurement-repository';
 import { SessionStorageActiveAquariumContextStorage } from '../../aquariums/infrastructure/session-storage-active-aquarium-context-storage';
 import {
   ACTIVE_AQUARIUM_CONTEXT_STORAGE,
   AQUARIUM_DASHBOARD_READER,
   AQUARIUM_REPOSITORY,
   KEEPER_SESSION,
+  CURRENT_MEASUREMENT_READER,
   PARAMETER_TARGET_WRITER,
 } from '../../aquariums/ui/aquarium-providers';
 import { AquariumWorkspaceStore } from '../../aquariums/ui/aquarium-workspace-store';
@@ -50,6 +53,10 @@ import { AquariumWorkspaceStore } from '../../aquariums/ui/aquarium-workspace-st
     },
     { provide: KEEPER_SESSION, useClass: FirebaseKeeperSession },
     {
+      provide: CURRENT_MEASUREMENT_READER,
+      useClass: FirestoreMeasurementRepository,
+    },
+    {
       provide: ReadAquariumDashboardContext,
       useFactory: () =>
         new ReadAquariumDashboardContext(
@@ -72,6 +79,15 @@ import { AquariumWorkspaceStore } from '../../aquariums/ui/aquarium-workspace-st
       useFactory: () =>
         new RemoveParameterTarget(
           inject(PARAMETER_TARGET_WRITER),
+          inject(KEEPER_SESSION),
+          inject(ActiveAquariumContext),
+        ),
+    },
+    {
+      provide: ReviewCurrentMeasurements,
+      useFactory: () =>
+        new ReviewCurrentMeasurements(
+          inject(CURRENT_MEASUREMENT_READER),
           inject(KEEPER_SESSION),
           inject(ActiveAquariumContext),
         ),

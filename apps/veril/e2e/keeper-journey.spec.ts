@@ -109,6 +109,21 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
   await expect(page.getByLabel('Acuario seleccionado')).toBeVisible();
   await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
+  await page.getByRole('link', { name: 'Objetivos de parámetros' }).click();
+  await expect(page.getByTestId('parameter-targets')).toContainText(
+    'Sin objetivo configurado',
+  );
+  await page
+    .getByRole('button', { name: 'Configurar objetivo' })
+    .first()
+    .click();
+  await page.getByLabel('Mínimo (°C)').fill('24');
+  await page.getByLabel('Máximo (°C)').fill('26');
+  await page.getByRole('button', { name: 'Guardar objetivo' }).click();
+  await expect(page.getByTestId('parameter-targets')).toContainText(
+    'Intervalo objetivo: 24 – 26 °C',
+  );
+  await page.getByRole('link', { name: 'Volver al acuario' }).click();
   await page.getByRole('link', { name: 'Registrar medición' }).click();
   await page.getByLabel('Valor').fill('25.4');
   await page.getByRole('button', { name: 'Guardar medición' }).click();
@@ -123,6 +138,9 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page.getByTestId('current-measurements')).toContainText(
     '25.4 °C',
   );
+  await expect(page.getByTestId('current-measurements')).toContainText(
+    'Dentro del objetivo',
+  );
   await expect(page.getByTestId('recent-activity-preview')).toContainText(
     'El coral está abierto.',
   );
@@ -134,31 +152,32 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   );
 
   await page.getByRole('link', { name: 'Objetivos de parámetros' }).click();
-  await expect(page.getByTestId('parameter-targets')).toContainText(
-    'Sin objetivo configurado',
-  );
-  await page
-    .getByRole('button', { name: 'Configurar objetivo' })
-    .first()
-    .click();
-  await page.getByLabel('Mínimo (°C)').fill('24');
-  await page.getByLabel('Máximo (°C)').fill('25');
-  await page.getByRole('button', { name: 'Guardar objetivo' }).click();
-  await expect(page.getByTestId('parameter-targets')).toContainText(
-    'Intervalo objetivo: 24 – 25 °C',
-  );
   await page.getByRole('button', { name: 'Editar objetivo' }).first().click();
-  await page.getByLabel('Mínimo (°C)').fill('24.5');
-  await page.getByLabel('Máximo (°C)').fill('25.5');
+  await page.getByLabel('Mínimo (°C)').fill('30');
+  await page.getByLabel('Máximo (°C)').fill('31');
   await page.getByRole('button', { name: 'Guardar objetivo' }).click();
   await expect(page.getByTestId('parameter-targets')).toContainText(
-    'Intervalo objetivo: 24.5 – 25.5 °C',
+    'Intervalo objetivo: 30 – 31 °C',
   );
+  await page.getByRole('link', { name: 'Volver al acuario' }).click();
+  await expect(page.getByTestId('current-measurements')).toContainText(
+    '25.4 °C',
+  );
+  await expect(page.getByTestId('current-measurements')).toContainText(
+    'Por debajo del objetivo',
+  );
+  await page.getByRole('link', { name: 'Objetivos de parámetros' }).click();
   await page.getByRole('button', { name: 'Eliminar objetivo' }).first().click();
   await expect(page.getByTestId('parameter-targets')).toContainText(
     'Sin objetivo configurado',
   );
   await page.getByRole('link', { name: 'Volver al acuario' }).click();
+  await expect(page.getByTestId('current-measurements')).toContainText(
+    '25.4 °C',
+  );
+  await expect(page.getByTestId('current-measurements')).toContainText(
+    'Sin objetivo configurado',
+  );
 
   await page.getByRole('link', { name: 'Ver mediciones' }).click();
   await expect(page).toHaveURL('/app/aquariums/measurements');

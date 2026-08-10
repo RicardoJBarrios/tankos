@@ -34,18 +34,21 @@ closed Parameter catalogue.
 
 - Record Measurement — accepted and implemented.
 - List Measurements — accepted and implemented.
-- Review Measurement Age — next accepted increment; presents derived age for
+- Review Measurement Age — accepted and implemented; presents derived age for
   the latest known value without classifying it as fresh or stale.
 - Correct Measurement — candidate.
 - Parameter History — candidate.
 - Configure Parameter Targets — implemented as optional Aquarium-owned keeper
   intervals; see [its specification](../specifications/configure-parameter-targets.md).
-- Review Parameter Status — deferred until interpretation and stale-data
-  semantics are accepted.
+- Review Parameter Status — implemented as a derived comparison of latest
+  evidence with keeper-owned targets; see
+  [its specification](../specifications/review-parameter-status.md).
 
 `Configure Parameter Targets` defines optional Aquarium-owned operating
 intervals; it does not introduce biological defaults or status interpretation.
-`Review Parameter Status` remains deferred.
+`Review Parameter Status` is implemented in the Workspace Store and remains
+derived; it does not introduce biological defaults, freshness thresholds or
+persisted status.
 
 Measurement remains an independent aggregate and does not become part of the
 Aquarium transaction boundary.

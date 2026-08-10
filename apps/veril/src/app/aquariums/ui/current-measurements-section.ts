@@ -2,98 +2,78 @@ import {
   ChangeDetectionStrategy,
   Component,
   Input,
-  OnInit,
   inject,
   signal,
 } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { ActiveAquariumContext } from '../application/active-aquarium-context';
-import { CurrentMeasurementValue } from '../application/aquarium-ports';
-import { ReviewCurrentMeasurements } from '../application/review-current-measurements';
+import { CurrentParameterState } from '../application/parameter-status';
 import { AquariumTimeZone } from '../domain/aquarium';
-import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
-import { FirestoreMeasurementRepository } from '../infrastructure/firestore-measurement-repository';
-import {
-  CURRENT_MEASUREMENT_READER,
-  KEEPER_SESSION,
-} from './aquarium-providers';
+import { RouterLink } from '@angular/router';
+import { AquariumWorkspaceStore } from './aquarium-workspace-store';
 import { measurementPresentationFor } from './measurement-presentations';
 import { formatAquariumDateTime } from './aquarium-date-time';
 import { measurementAgeFor } from './measurement-age';
 
-type SectionState = 'loading' | 'ready' | 'failure';
-
 @Component({
   selector: 'veril-current-measurements-section',
-  imports: [MatCardModule, MatProgressSpinnerModule],
+  imports: [
+    MatButtonModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    RouterLink,
+  ],
   templateUrl: './current-measurements-section.html',
   styleUrl: './current-measurements-section.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    {
-      provide: ReviewCurrentMeasurements,
-      useFactory: () =>
-        new ReviewCurrentMeasurements(
-          inject(CURRENT_MEASUREMENT_READER),
-          inject(KEEPER_SESSION),
-          inject(ActiveAquariumContext),
-        ),
-    },
-    {
-      provide: CURRENT_MEASUREMENT_READER,
-      useClass: FirestoreMeasurementRepository,
-    },
-    { provide: KEEPER_SESSION, useClass: FirebaseKeeperSession },
-  ],
 })
-export class CurrentMeasurementsSection implements OnInit {
+export class CurrentMeasurementsSection {
   @Input() timeZone?: AquariumTimeZone;
 
-  private readonly reviewCurrentMeasurements = inject(
-    ReviewCurrentMeasurements,
-  );
-
-  readonly state = signal<SectionState>('loading');
-  readonly values = signal<readonly CurrentMeasurementValue[]>([]);
+  readonly workspace = inject(AquariumWorkspaceStore);
   readonly now = signal(new Date());
 
-  ngOnInit(): void {
-    this.load();
-  }
-
-  label(item: CurrentMeasurementValue): string {
+  label(item: CurrentParameterState): string {
     return measurementPresentationFor(item.parameterId).label;
   }
 
-  unit(item: CurrentMeasurementValue): string {
+  unit(item: CurrentParameterState): string {
     return measurementPresentationFor(item.parameterId).unit;
   }
 
-  formatMeasuredAt(item: CurrentMeasurementValue): string {
-    return item.measuredAt
-      ? formatAquariumDateTime(item.measuredAt, this.timeZone)
+  formatMeasuredAt(item: CurrentParameterState): string {
+    return item.measurement?.measuredAt
+      ? formatAquariumDateTime(item.measurement.measuredAt, this.timeZone)
       : '';
   }
 
-  formatMeasurementAge(item: CurrentMeasurementValue): string {
-    return item.measuredAt
-      ? measurementAgeFor(item.measuredAt, this.now()).text
+  formatMeasurementAge(item: CurrentParameterState): string {
+    return item.measurement?.measuredAt
+      ? measurementAgeFor(item.measurement.measuredAt, this.now()).text
       : '';
+  }
+
+  targetText(item: CurrentParameterState): string {
+    return item.target
+      ? `Objetivo: ${item.target.minimum}–${item.target.maximum} ${this.unit(item)}`
+      : 'Sin objetivo configurado';
+  }
+
+  statusText(item: CurrentParameterState): string {
+    switch (item.interpretation) {
+      case 'below':
+        return 'Por debajo del objetivo';
+      case 'within':
+        return 'Dentro del objetivo';
+      case 'above':
+        return 'Por encima del objetivo';
+      default:
+        return '';
+    }
   }
 
   retry(): void {
-    this.state.set('loading');
-    this.load();
-  }
-
-  private load(): void {
-    this.reviewCurrentMeasurements.execute().then(
-      (values) => {
-        this.values.set(values);
-        this.state.set('ready');
-      },
-      () => this.state.set('failure'),
-    );
+    void this.workspace.loadCurrentMeasurements();
   }
 }

@@ -48,16 +48,18 @@ replace the historical collection or introduce a second source of truth.
 Future increments still require decisions about correction, retention and
 broader ownership semantics.
 
-The next small Measurement increment is `Review Measurement Age`: show the
-elapsed age of the latest known value without introducing freshness thresholds,
-target ranges or Parameter Status. Those interpretation decisions remain
-deferred until product evidence supports them.
+`Review Measurement Age` is implemented: it shows the elapsed age of the latest
+known value without introducing freshness thresholds. It remains independent of
+Parameter Status.
 
 `Configure Parameter Targets` is implemented as optional Aquarium-owned
 operating intervals without product-wide biological defaults; see
 [`configure-parameter-targets.md`](specifications/configure-parameter-targets.md).
-`Parameter Status` remains deferred until its interpretation and stale-data
-semantics are separately accepted.
+`Review Parameter Status` is implemented in
+[`review-parameter-status.md`](specifications/review-parameter-status.md). It
+compares latest evidence with keeper-owned targets without freshness thresholds
+or biological interpretation; the result remains derived in the Workspace
+Store and is not persisted.
 
 ## 3.1 Timeline — accepted first increment
 

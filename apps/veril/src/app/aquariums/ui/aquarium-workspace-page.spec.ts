@@ -60,6 +60,10 @@ describe('AquariumWorkspacePage', () => {
                 useValue: { execute: vi.fn() },
               },
               {
+                provide: ReviewCurrentMeasurements,
+                useValue: { execute: vi.fn().mockResolvedValue([]) },
+              },
+              {
                 provide: ActiveAquariumContext,
                 useFactory: () => createContext(contextSelected),
               },
@@ -68,19 +72,7 @@ describe('AquariumWorkspacePage', () => {
           },
         },
       ],
-      [
-        CurrentMeasurementsSection,
-        {
-          set: {
-            providers: [
-              {
-                provide: ReviewCurrentMeasurements,
-                useValue: { execute: vi.fn().mockResolvedValue([]) },
-              },
-            ],
-          },
-        },
-      ],
+      [CurrentMeasurementsSection, { set: { providers: [] } }],
       [
         RecentActivityPreview,
         {

@@ -79,8 +79,11 @@ Measurement validity rule. Absence means `uninterpreted`.
 
 ### Parameter Status
 
-A future application-derived interpretation of a Measurement against an
-explicit Parameter Target. It is not persisted domain evidence.
+An application-derived interpretation of the latest known Measurement against
+an explicit Parameter Target. Its value is `below`, `within`, `above` or
+`uninterpreted` when a Measurement exists; missing Measurement evidence has no
+value interpretation. It is not persisted domain evidence, health assessment,
+alert or notification.
 
 ### Sensor
 

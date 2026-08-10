@@ -86,16 +86,16 @@ collection for hypothetical scale.
 
 ## Status semantics
 
-When implemented, Parameter Status will be an application/read-model result:
+Parameter Status is an accepted application/read-model result:
 
 - value interpretation: `below`, `within`, `above` or `uninterpreted`;
-- evidence state: missing or known age;
+- missing evidence remains separate from interpretation;
 - no combined enum such as `stale-high`;
-- no status when the Aquarium has no configured target.
+- `uninterpreted` when a known Measurement has no configured target.
 
-An old Measurement remains valid historical evidence. A future status capability
-must close its freshness policy before presenting an old value as representative
-of the current Aquarium.
+An old Measurement remains valid historical evidence. Parameter Status keeps
+its age visible and presents latest evidence without claiming it represents the
+current physical Aquarium state; it defines no freshness threshold.
 
 ## Dashboard and Store
 
@@ -105,9 +105,10 @@ Current Measurements evolves incrementally:
 latest value → value + age → value + configured target → derived status
 ```
 
-Dashboard Attention remains future work. Parameter Status should belong to the
-scoped `AquariumWorkspaceStore` only when it becomes shared Dashboard state or
-has more than one consumer. No Store change is required by this policy.
+Dashboard Attention remains future work. Parameter Status belongs to the scoped
+`AquariumWorkspaceStore` because it combines Store-owned target configuration
+with the Dashboard's current Measurement state. It does not justify another
+Store or generic interpretation service.
 
 ## Next capability
 
@@ -117,8 +118,9 @@ ranges for the selected Aquarium without claiming biological authority or
 changing Measurements. Its Definition-of-Ready decisions are closed in
 [`configure-parameter-targets.md`](configure-parameter-targets.md).
 
-`Review Parameter Status` is not Ready until those decisions and the stale-data
-semantics are accepted.
+`Review Parameter Status` is accepted in
+[`review-parameter-status.md`](review-parameter-status.md). It keeps stale-data
+thresholds explicitly deferred.
 
 ## Deferred scope
 

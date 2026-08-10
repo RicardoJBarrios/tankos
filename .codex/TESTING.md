@@ -188,12 +188,19 @@ updates and removal plus anonymous, cross-owner, unknown-key, malformed-field
 and combined-update rejection. Spectator covers unconfigured and configured
 rows, canonical Units, interval validation, removal and no-context recovery.
 The canonical Playwright journey configures, edits and removes a target through
-the visible UI without asserting a future Parameter Status.
+the visible UI, then configures a temperature target, records one Measurement
+inside it, verifies `Dentro del objetivo`, edits the same target and verifies
+`Por debajo del objetivo` without recording another Measurement, and finally
+removes the target and verifies `Sin objetivo configurado`.
 
 The Aquarium Dashboard uses a scoped Signal Store for cross-section context and
-configuration state. Store tests verify selected-Aquarium loading, no-context
-recovery, derived flags and reset behavior. Section-only loading/error state
-remains covered by the existing component tests when it has no shared consumer.
+configuration state. It is also the single owner of Current Measurement loading,
+errors and derived `CurrentParameterState` values. Store tests verify selected-
+Aquarium loading, no-context recovery, independent Measurement failure, target
+join, target edit/removal recomputation without refetching and reset behavior.
+The presentational Current Measurements section covers loading, error, latest
+value, canonical Unit, target interval, comparison text, age, absolute time,
+missing target, missing evidence and navigation to target configuration.
 Open-Meteo adapter tests use Angular's `provideHttpClientTesting()` and
 `HttpTestingController`; they verify requests, query parameters, malformed
 responses, provider errors and transport timeout errors without live HTTP.

@@ -55,8 +55,8 @@ parameter and operating phase, but does not justify one product-wide threshold.
 
 This increment defines no target ranges. The external Aquarium corpus contains
 contextual recommendations and scenario-specific values, not a universal Veril
-policy. `Parameter Status` remains blocked until target ownership, provenance,
-and interpretation semantics are accepted.
+policy. Subsequent accepted capabilities define keeper-owned targets and
+Parameter Status; neither changes this increment's no-freshness policy.
 
 ## Ownership and architecture
 
@@ -94,7 +94,7 @@ required because this increment deliberately defines no threshold.
 
 - Parameter-specific or global freshness thresholds;
 - measurement cadence configuration;
-- target ranges and `Parameter Status`;
+- freshness thresholds and any status based on age;
 - Environmental Awareness;
 - Dashboard Attention;
 - Notifications and automation.

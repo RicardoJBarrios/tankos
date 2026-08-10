@@ -7,9 +7,12 @@
       <p class="eyebrow">Estado actual</p>
       <h3 id="current-measurements-title">Últimas mediciones</h3>
     </div>
+    <a mat-button routerLink="/app/aquariums/parameter-targets"
+      >Configurar objetivo</a
+    >
   </div>
 
-  @if (state() === 'loading') {
+  @if (workspace.currentMeasurementsLoading()) {
   <div class="feedback" role="status" aria-live="polite">
     <mat-progress-spinner
       mode="indeterminate"
@@ -18,26 +21,32 @@
     />
     <span>Cargando últimas mediciones…</span>
   </div>
-  } @else if (state() === 'failure') {
+  } @else if (workspace.currentMeasurementsError()) {
   <div class="feedback feedback-error" role="alert">
     <p>No se han podido cargar las últimas mediciones.</p>
     <button type="button" (click)="retry()">Reintentar</button>
   </div>
   } @else {
   <ul aria-label="Últimas mediciones">
-    @for (item of values(); track item.parameterId) {
+    @for (item of workspace.currentParameterStates(); track item.parameterId) {
     <li>
       <mat-card appearance="outlined">
         <mat-card-content>
           <span>{{ label(item) }}</span>
-          @if (item.canonicalValue === null) {
+          @if (item.measurement === null) {
           <strong>Sin datos</strong>
           } @else {
-          <strong>{{ item.canonicalValue }} {{ unit(item) }}</strong>
-          <time [attr.datetime]="item.measuredAt?.toISOString()">
+          <strong
+            >{{ item.measurement.canonicalValue }} {{ unit(item) }}</strong
+          >
+          <time [attr.datetime]="item.measurement.measuredAt?.toISOString()">
             {{ formatMeasuredAt(item) }}
           </time>
           <span>{{ formatMeasurementAge(item) }}</span>
+          }
+          <span>{{ targetText(item) }}</span>
+          @if (statusText(item); as status) {
+          <span>{{ status }}</span>
           }
         </mat-card-content>
       </mat-card>
