@@ -79,7 +79,10 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
 
   await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
   await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
-  await page.getByRole('link', { name: 'Planificar cuidado' }).click();
+  await page
+    .getByTestId('upcoming-care-preview')
+    .getByRole('link', { name: 'Planificar cuidado' })
+    .click();
   await page
     .getByLabel('¿Qué quieres hacer?')
     .fill('Limpiar la copa del skimmer.');
@@ -103,8 +106,35 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
     .getByRole('link', { name: 'Ver todos los cuidados planificados' })
     .click();
   await expect(page).toHaveURL('/app/aquariums/care/planned');
+  page.once('dialog', (dialog) => dialog.accept());
   await page
-    .getByRole('button', { name: 'Completar Limpiar la copa del skimmer.' })
+    .getByRole('button', { name: 'Cancelar Limpiar la copa del skimmer.' })
+    .click();
+  await expect(page.getByTestId('planned-care-work-list')).toContainText(
+    'No hay cuidados planificados',
+  );
+  await page.getByRole('link', { name: 'Volver al acuario' }).click();
+  await expect(page.getByTestId('upcoming-care-preview')).toContainText(
+    'No hay cuidados planificados',
+  );
+  await page
+    .getByTestId('upcoming-care-preview')
+    .getByRole('link', { name: 'Planificar cuidado' })
+    .click();
+  await page
+    .getByLabel('¿Qué quieres hacer?')
+    .fill('Limpiar la copa del skimmer mañana.');
+  await page.getByRole('button', { name: 'Guardar planificación' }).click();
+  await expect(
+    page.getByRole('status').filter({
+      hasText: 'Cuidado planificado correctamente.',
+    }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Ver cuidados planificados' }).click();
+  await page
+    .getByRole('button', {
+      name: 'Completar Limpiar la copa del skimmer mañana.',
+    })
     .click();
   await expect(page.getByTestId('planned-care-work-list')).toContainText(
     'No hay cuidados planificados',
@@ -116,7 +146,7 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   );
   await page.getByRole('link', { name: 'Ver cuidados' }).click();
   await expect(page.getByTestId('care-work-list')).toContainText(
-    'Limpiar la copa del skimmer.',
+    'Limpiar la copa del skimmer mañana.',
   );
   await page.getByRole('link', { name: 'Volver al acuario' }).click();
   await page.getByRole('link', { name: 'Ver toda la actividad' }).click();
@@ -126,7 +156,7 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   );
   await expect(page.getByTestId('recent-timeline')).toContainText('25.4 °C');
   await expect(page.getByTestId('recent-timeline')).toContainText(
-    'Limpiar la copa del skimmer.',
+    'Limpiar la copa del skimmer mañana.',
   );
 
   await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();

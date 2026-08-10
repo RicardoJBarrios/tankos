@@ -58,8 +58,9 @@ event is required.
 
 ## Explicitly deferred
 
-Recurrence, reminders, priority, categories, delegation, cancellation,
-notifications, automation, Dashboard and projections are outside this slice.
+Recurrence, reminders, priority, categories, delegation, notifications,
+automation, Dashboard and projections are outside this slice. Cancellation is
+defined separately by `cancel-planned-care-work.md`.
 
 ## Acceptance criteria
 

@@ -15,6 +15,7 @@ import {
   PlannedCareWorkReader,
   PlannedCareWorkWriter,
   PlannedCareWorkCompleter,
+  PlannedCareWorkCanceller,
 } from '../application/aquarium-ports';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 
@@ -67,6 +68,9 @@ export const PLANNED_CARE_WORK_READER =
 
 export const PLANNED_CARE_WORK_COMPLETER =
   new InjectionToken<PlannedCareWorkCompleter>('PLANNED_CARE_WORK_COMPLETER');
+
+export const PLANNED_CARE_WORK_CANCELLER =
+  new InjectionToken<PlannedCareWorkCanceller>('PLANNED_CARE_WORK_CANCELLER');
 
 export const ACTIVE_AQUARIUM_CONTEXT_STORAGE =
   new InjectionToken<ActiveAquariumContextStorage>(

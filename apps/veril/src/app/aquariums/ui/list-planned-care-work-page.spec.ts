@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
+import { CancelPlannedCareWork } from '../application/cancel-planned-care-work';
 import { CompletePlannedCareWork } from '../application/complete-planned-care-work';
 import { ListPlannedCareWork } from '../application/list-planned-care-work';
 import { aquariumIdFrom } from '../domain/aquarium';
@@ -19,6 +20,7 @@ const item = {
 describe('ListPlannedCareWorkPage', () => {
   const execute = vi.fn();
   const complete = vi.fn();
+  const cancel = vi.fn();
   let includeActiveContext = true;
   const createComponent = createComponentFactory({
     component: ListPlannedCareWorkPage,
@@ -49,6 +51,7 @@ describe('ListPlannedCareWorkPage', () => {
                 provide: CompletePlannedCareWork,
                 useValue: { execute: complete },
               },
+              { provide: CancelPlannedCareWork, useValue: { execute: cancel } },
             ],
           },
         },
@@ -59,6 +62,7 @@ describe('ListPlannedCareWorkPage', () => {
   beforeEach(() => {
     execute.mockReset();
     complete.mockReset();
+    cancel.mockReset();
     includeActiveContext = true;
   });
 
@@ -133,5 +137,71 @@ describe('ListPlannedCareWorkPage', () => {
     expect(spectator.query('[role="alert"]')?.textContent).toContain(
       'No se ha podido completar',
     );
+  });
+
+  it('confirms cancellation, shows pending and removes the plan', async () => {
+    const confirmation = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    execute.mockResolvedValue([item]);
+    const spectator = createComponent();
+    await spectator.fixture.whenStable();
+    spectator.detectChanges();
+
+    let resolveCancellation!: () => void;
+    cancel.mockImplementation(
+      () => new Promise<void>((resolve) => (resolveCancellation = resolve)),
+    );
+    const button = spectator.query(
+      'button[aria-label^="Cancelar"]',
+    ) as HTMLButtonElement;
+    const cancellation = spectator.click(button);
+    spectator.detectChanges();
+    expect(confirmation).toHaveBeenCalledWith(
+      '¿Cancelar "Limpiar el skimmer"?',
+    );
+    expect(cancel).toHaveBeenCalledWith(item.id);
+    expect(button.textContent).toContain('Cancelando');
+    expect(button.hasAttribute('disabled')).toBe(true);
+    resolveCancellation();
+    await cancellation;
+    spectator.detectChanges();
+    expect(spectator.query('.empty-state')?.textContent).toContain(
+      'No hay cuidados planificados',
+    );
+    confirmation.mockRestore();
+  });
+
+  it('keeps the plan and reports cancellation failures', async () => {
+    const confirmation = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    cancel.mockRejectedValue(new Error('offline'));
+    execute.mockResolvedValue([item]);
+    const spectator = createComponent();
+    await spectator.fixture.whenStable();
+    spectator.detectChanges();
+
+    await spectator.click(
+      spectator.query('button[aria-label^="Cancelar"]') as HTMLButtonElement,
+    );
+    spectator.detectChanges();
+    expect(spectator.query('.care-work-description')?.textContent).toContain(
+      'Limpiar el skimmer',
+    );
+    expect(spectator.query('[role="alert"]')?.textContent).toContain(
+      'No se ha podido cancelar',
+    );
+    confirmation.mockRestore();
+  });
+
+  it('does not cancel when confirmation is declined', async () => {
+    const confirmation = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    execute.mockResolvedValue([item]);
+    const spectator = createComponent();
+    await spectator.fixture.whenStable();
+    spectator.detectChanges();
+
+    await spectator.click(
+      spectator.query('button[aria-label^="Cancelar"]') as HTMLButtonElement,
+    );
+    expect(cancel).not.toHaveBeenCalled();
+    confirmation.mockRestore();
   });
 });

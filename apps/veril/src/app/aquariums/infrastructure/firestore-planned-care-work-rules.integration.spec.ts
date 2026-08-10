@@ -204,7 +204,7 @@ describe('plannedCareWorks Security Rules (Emulator Suite)', () => {
       (await writePlanned(createAquariumId(), aquariumId, owner.localId))
         .status,
     ).toBe(403);
-    expect((await deletePlanned(plannedId, owner.idToken)).status).toBe(403);
+    expect((await deletePlanned(plannedId, owner.idToken)).status).toBe(200);
     expect([401, 403]).toContain((await deletePlanned(plannedId)).status);
     expect((await deletePlanned(plannedId, other.idToken)).status).toBe(403);
   });
@@ -237,10 +237,11 @@ describe('plannedCareWorks Security Rules (Emulator Suite)', () => {
       ).toBe(200);
     }
 
-    // A direct delete is not a completion operation.
-    expect((await deletePlanned(planA, owner.idToken)).status).toBe(403);
+    // A direct owner delete represents cancellation, not completion.
+    expect((await deletePlanned(planA, owner.idToken)).status).toBe(200);
 
-    // A CareWork for another ID cannot authorize deleting this plan.
+    // A cancellation can coexist with an unrelated authorized Care Work write;
+    // the deletion itself is authorized by ownership, not by that other write.
     expect(
       (
         await commitBatch(
@@ -256,7 +257,7 @@ describe('plannedCareWorks Security Rules (Emulator Suite)', () => {
           owner.idToken,
         )
       ).status,
-    ).toBe(403);
+    ).toBe(200);
 
     // A plan in aquarium A cannot be completed by writing care in aquarium B.
     expect(

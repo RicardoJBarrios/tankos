@@ -1,7 +1,14 @@
 // @vitest-environment node
 
 import { signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from 'firebase/firestore';
 import { describe, expect, it } from 'vitest';
 import { AquariumName, createAquariumId } from '../domain/aquarium';
 import { plannedCareWorkIdFrom } from '../domain/planned-care-work';
@@ -86,6 +93,25 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
       expect(completedDocument.data()?.['performedAt'].toDate()).toEqual(
         new Date('2026-08-11T10:00:00.000Z'),
       );
+
+      await repository.cancel({
+        id: secondId,
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+      });
+      expect(
+        (await repository.listOwned(keeper.id, aquarium.id, 10)).map(
+          ({ id }) => id,
+        ),
+      ).toEqual([]);
+      const careWorks = await getDocs(
+        query(
+          collection(firestore, 'careWorks'),
+          where('ownerId', '==', keeper.id),
+          where('aquariumId', '==', aquarium.id),
+        ),
+      );
+      expect(careWorks.docs.map((entry) => entry.id)).not.toContain(secondId);
 
       await signOut(auth);
     },

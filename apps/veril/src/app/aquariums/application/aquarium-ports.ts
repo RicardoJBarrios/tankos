@@ -195,6 +195,16 @@ export interface PlannedCareWorkCompleter {
   complete(input: CompletePlannedCareWorkInput): Promise<CareWork>;
 }
 
+export interface CancelPlannedCareWorkInput {
+  readonly id: PlannedCareWorkId;
+  readonly aquariumId: AquariumId;
+  readonly ownerKeeperId: string;
+}
+
+export interface PlannedCareWorkCanceller {
+  cancel(input: CancelPlannedCareWorkInput): Promise<void>;
+}
+
 export interface PlannedCareWorkListItem {
   readonly id: PlannedCareWorkId;
   readonly description: string;

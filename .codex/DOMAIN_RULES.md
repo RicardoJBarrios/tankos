@@ -44,6 +44,12 @@ Rules are classified to avoid turning assumptions into code prematurely.
   reminders, correction, deletion and offline synchronization are deferred.
 - Recording Care Work does not automatically create a Domain Event.
 
+## Accepted rules for Planned Care Work
+
+- Planned work and completed Care Work remain separate records: completion
+  creates a Care Work fact and removes the plan atomically; cancellation removes
+  an unperformed plan without creating a Fact or Timeline item.
+
 ## Candidate invariants requiring validation
 
 Other business invariants remain unaccepted. The following hypotheses must be
@@ -53,8 +59,6 @@ enforce them:
 - Whether an Aquarium is the ownership boundary for Measurements.
 - Whether Measurements are immutable, editable or corrected by compensation.
 - Whether Livestock can belong to one or multiple Aquariums over time.
-- Whether planned work and completed Care Work share a lifecycle or remain
-  separate records.
 - Whether Water Change is a distinct domain Event.
 - Whether an Observation may correct, qualify or otherwise relate to a
   Measurement.

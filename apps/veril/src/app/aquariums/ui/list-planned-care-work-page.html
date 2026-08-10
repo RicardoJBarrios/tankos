@@ -65,11 +65,20 @@
           <button
             mat-stroked-button
             type="button"
-            [disabled]="completingId() !== null"
+            [disabled]="completingId() !== null || cancellingId() !== null"
             [attr.aria-label]="'Completar ' + item.description"
             (click)="complete(item)"
           >
             {{ completingId() === item.id ? 'Completando…' : 'Completar' }}
+          </button>
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="completingId() !== null || cancellingId() !== null"
+            [attr.aria-label]="'Cancelar ' + item.description"
+            (click)="cancel(item)"
+          >
+            {{ cancellingId() === item.id ? 'Cancelando…' : 'Cancelar' }}
           </button>
         </mat-card-content>
       </mat-card>
@@ -78,6 +87,8 @@
   </ul>
   } @if (completionError()) {
   <p class="feedback feedback-error" role="alert">{{ completionError() }}</p>
+  } @if (cancellationError()) {
+  <p class="feedback feedback-error" role="alert">{{ cancellationError() }}</p>
   }
 
   <a mat-button routerLink="/app/aquariums/current">Volver al acuario</a>

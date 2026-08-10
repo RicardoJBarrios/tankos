@@ -1,17 +1,20 @@
-# Candidate Lifecycle States
+# Lifecycle States
 
-No lifecycle is accepted yet. These diagrams identify questions that a use-case
-specification must resolve before implementation.
+Accepted lifecycles are identified explicitly. The remaining diagrams are
+candidate states that still require a use-case decision before implementation.
 
-## Care work
+## Planned Care Work
 
 ```text
-planned -> completed
-planned -> cancelled
+planned ── complete ──> CareWork
+planned ── cancel ────> removed
 ```
 
-Whether `completed` or `cancelled` can change, and whether other states exist,
-is pending.
+The planned intention has no persisted lifecycle status. Completion creates a
+durable `CareWork` fact and removes the intention atomically. Cancellation
+removes the unperformed intention without creating a Fact or Timeline item.
+This is the accepted lifecycle for the current Care capability; recurrence and
+durable cancellation history remain future decisions.
 
 ## Alert
 

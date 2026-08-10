@@ -108,9 +108,10 @@ Spectator tests cover no context, validation, pending, success, empty, results
 and recoverable errors. The canonical Playwright journey plans care work and
 verifies it in the planned-care list. `Complete Planned Care Work` adds
 application, UI and emulator coverage for the atomic creation of a Care Work
-and removal of its plan; Rules tests reject direct owner, anonymous and
-cross-owner deletion, unrelated and cross-Aquarium batches, mismatched source
-data and altered descriptions, while accepting only the matching atomic batch.
+and removal of its plan; Rules tests reject anonymous and cross-owner
+deletion, unrelated and cross-Aquarium completion batches, mismatched source
+data and altered descriptions, while accepting owner cancellation and the
+matching atomic batch.
 Playwright verifies the completed fact in the Care Work list and Timeline.
 
 `Review Upcoming Care Preview` reuses the Planned Care reader with a
@@ -121,6 +122,15 @@ section-level failures. The canonical Playwright journey verifies the empty
 preview, a newly planned item after returning to the Workspace, navigation to
 the full planned-care list and its disappearance after completion. It does not
 duplicate Rules or adapter authorization coverage.
+
+`Cancel Planned Care Work` adds application coverage for authentication,
+Active Context and the owner-scoped cancellation port. Its adapter integration
+coverage verifies deletion without creating a Care Work. Rules tests cover
+owner cancellation, anonymous/cross-owner denial and preservation of the
+completion integrity checks. Spectator tests cover confirmation, pending,
+success, declined confirmation and recoverable failure. The canonical
+Playwright journey cancels one plan, verifies its removal from the list and
+Workspace, then completes a separate plan to protect both branches.
 
 `Review Current Measurements` uses direct bounded queries against the immutable
 Measurement history. Application tests cover authentication, Active Context,

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import {
   Timestamp,
   collection,
+  deleteDoc,
   doc,
   documentId,
   getDoc,
@@ -24,7 +25,9 @@ import { PlannedCareWork } from '../domain/planned-care-work';
 import {
   PlanCareWorkInput,
   CompletePlannedCareWorkInput,
+  CancelPlannedCareWorkInput,
   PlannedCareWorkCompleter,
+  PlannedCareWorkCanceller,
   PlannedCareWorkListItem,
   PlannedCareWorkReader,
   PlannedCareWorkWriter,
@@ -46,7 +49,8 @@ export class FirestorePlannedCareWorkRepository
   implements
     PlannedCareWorkWriter,
     PlannedCareWorkReader,
-    PlannedCareWorkCompleter
+    PlannedCareWorkCompleter,
+    PlannedCareWorkCanceller
 {
   async recordPlanned(input: PlanCareWorkInput): Promise<PlannedCareWork> {
     const { firestore } = getFirebaseClient();
@@ -141,5 +145,25 @@ export class FirestorePlannedCareWorkRepository
       recordedAt: careWorkDto.recordedAt.toDate(),
       provenance: careWorkDto.provenance,
     });
+  }
+
+  async cancel(input: CancelPlannedCareWorkInput): Promise<void> {
+    const { firestore } = getFirebaseClient();
+    const plannedReference = doc(firestore, 'plannedCareWorks', input.id);
+    const plannedSnapshot = await getDoc(plannedReference);
+
+    if (!plannedSnapshot.exists()) {
+      throw new Error('Planned Care Work not found');
+    }
+
+    const plannedDto = plannedCareWorkDocument.parse(plannedSnapshot.data());
+    if (
+      plannedDto.ownerId !== input.ownerKeeperId ||
+      plannedDto.aquariumId !== input.aquariumId
+    ) {
+      throw new Error('Planned Care Work is not owned by the keeper');
+    }
+
+    await deleteDoc(plannedReference);
   }
 }

@@ -169,7 +169,9 @@ reads and creation. Completion uses an owner-scoped atomic batch that creates
 the corresponding `careWorks` document and deletes the planned document;
 Rules require both writes through `existsAfter` and verify the post-batch
 `ownerId`, `aquariumId` and `description` against the deleted plan through
-`getAfter`; direct deletion remains denied. The resulting document uses the
+`getAfter`. A direct delete is allowed only for the authenticated owner and
+represents cancellation; when a delete is part of a batch that creates a
+`CareWork` with the same ID, the completion checks remain required. The resulting document uses the
 same underlying UUID as the planned document only for correlation, while
 `PlannedCareWorkId` and `CareWorkId` remain distinct domain identities.
 

@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
+import { CancelPlannedCareWork } from '../application/cancel-planned-care-work';
 import { CompletePlannedCareWork } from '../application/complete-planned-care-work';
 import { ListPlannedCareWork } from '../application/list-planned-care-work';
 import { PlannedCareWorkListItem } from '../application/aquarium-ports';
@@ -17,6 +18,7 @@ import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session
 import { FirestorePlannedCareWorkRepository } from '../infrastructure/firestore-planned-care-work-repository';
 import {
   KEEPER_SESSION,
+  PLANNED_CARE_WORK_CANCELLER,
   PLANNED_CARE_WORK_COMPLETER,
   PLANNED_CARE_WORK_READER,
 } from './aquarium-providers';
@@ -62,10 +64,24 @@ type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
       provide: PLANNED_CARE_WORK_COMPLETER,
       useClass: FirestorePlannedCareWorkRepository,
     },
+    {
+      provide: CancelPlannedCareWork,
+      useFactory: () =>
+        new CancelPlannedCareWork(
+          inject(PLANNED_CARE_WORK_CANCELLER),
+          inject(KEEPER_SESSION),
+          inject(ActiveAquariumContext),
+        ),
+    },
+    {
+      provide: PLANNED_CARE_WORK_CANCELLER,
+      useClass: FirestorePlannedCareWorkRepository,
+    },
   ],
 })
 export class ListPlannedCareWorkPage implements OnInit {
   private readonly completePlannedCareWork = inject(CompletePlannedCareWork);
+  private readonly cancelPlannedCareWork = inject(CancelPlannedCareWork);
   private readonly listPlannedCareWork = inject(ListPlannedCareWork);
   private readonly activeContext = inject(ActiveAquariumContext);
 
@@ -74,6 +90,8 @@ export class ListPlannedCareWorkPage implements OnInit {
   readonly errorMessage = signal('');
   readonly completingId = signal<string | null>(null);
   readonly completionError = signal('');
+  readonly cancellingId = signal<string | null>(null);
+  readonly cancellationError = signal('');
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -90,7 +108,7 @@ export class ListPlannedCareWorkPage implements OnInit {
   }
 
   async complete(item: PlannedCareWorkListItem): Promise<void> {
-    if (this.completingId()) return;
+    if (this.completingId() || this.cancellingId()) return;
 
     this.completingId.set(item.id);
     this.completionError.set('');
@@ -104,6 +122,25 @@ export class ListPlannedCareWorkPage implements OnInit {
       );
     } finally {
       this.completingId.set(null);
+    }
+  }
+
+  async cancel(item: PlannedCareWorkListItem): Promise<void> {
+    if (this.completingId() || this.cancellingId()) return;
+    if (!window.confirm(`¿Cancelar "${item.description}"?`)) return;
+
+    this.cancellingId.set(item.id);
+    this.cancellationError.set('');
+    try {
+      await this.cancelPlannedCareWork.execute(item.id);
+      this.items.update((items) => items.filter(({ id }) => id !== item.id));
+      this.state.set(this.items().length === 0 ? 'empty' : 'success');
+    } catch {
+      this.cancellationError.set(
+        'No se ha podido cancelar el cuidado. Inténtalo de nuevo.',
+      );
+    } finally {
+      this.cancellingId.set(null);
     }
   }
 
