@@ -71,6 +71,12 @@ property needed when the first recurrence is established, not a Keeper or
 browser preference. Recurrence does not turn Aquarium into the transactional
 owner of its planned or completed Care records.
 
+An Aquarium may also own one approximate `AquariumLocation` containing rounded
+coordinates and a locality label. Configuration is a one-way owner-scoped
+transition for the current capability. Local Weather is an infrastructure-backed
+ephemeral read model and never becomes an Aquarium Measurement or Timeline
+source.
+
 ## Acceptance rule
 
 Promote a relationship to a domain rule only when a validated use case states

@@ -187,6 +187,18 @@ The IANA time-zone identifier that defines calendar-based Care scheduling for
 an Aquarium, for example `Atlantic/Canary`. It is not the current browser
 time zone, a raw UTC offset or a locale preference.
 
+### Aquarium location
+
+Approximate physical locality owned by an Aquarium. It contains rounded
+latitude, longitude and a locality label; it is not an exact address or a
+provider payload.
+
+### Local Weather
+
+Ephemeral provider-backed context containing outside current temperature and
+today's minimum and maximum. It is not a Measurement, Observation, Fact or
+Timeline source.
+
 ### Inspection
 
 A deliberate review of an Aquarium, Equipment item, Livestock or condition.

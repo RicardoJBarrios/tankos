@@ -163,6 +163,17 @@ cross-owner requests. Spectator covers loading, values, missing values and
 errors. The canonical Playwright journey records a Measurement, returns to the
 Workspace and observes its latest value.
 
+`Configure Aquarium Location and Review Local Weather` adds domain and
+application coverage for coordinate bounds, rounding, ownership and Active
+Context. Its emulator adapter test verifies owner-scoped configure-only
+persistence. Rules cover valid owner configuration, anonymous/cross-owner
+rejection and invalid coordinates. Open-Meteo adapters use deterministic
+fixtures for geocoding, Celsius weather mapping and malformed responses; the
+in-memory reader verifies its fifteen-minute TTL. Spectator covers search,
+explicit selection and already-configured state. The Playwright journey stubs
+both provider endpoints and verifies configuration plus rendered local weather;
+CI never calls the live provider.
+
 ## Browser journeys
 
 `pnpm nx e2e veril` runs the canonical Chromium journeys through visible UI

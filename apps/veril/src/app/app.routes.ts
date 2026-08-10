@@ -46,6 +46,14 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'aquariums/location',
+        loadComponent: () =>
+          import('./aquariums/ui/configure-aquarium-location-page').then(
+            ({ ConfigureAquariumLocationPage }) =>
+              ConfigureAquariumLocationPage,
+          ),
+      },
+      {
         path: 'aquariums/observations/new',
         loadComponent: () =>
           import('./aquariums/ui/record-observation-page').then(

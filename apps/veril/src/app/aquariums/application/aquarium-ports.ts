@@ -2,6 +2,7 @@ import {
   Aquarium,
   AquariumId,
   AquariumName,
+  AquariumLocation,
   AquariumTimeZone,
 } from '../domain/aquarium';
 import {
@@ -25,6 +26,7 @@ export interface AquariumListItem {
   readonly id: AquariumId;
   readonly name: AquariumName;
   readonly timeZone?: AquariumTimeZone;
+  readonly location?: AquariumLocation;
 }
 
 export interface KeeperSession {
@@ -58,6 +60,46 @@ export interface ConfigureAquariumTimeZoneInput {
 
 export interface AquariumTimeZoneConfigurer {
   configure(input: ConfigureAquariumTimeZoneInput): Promise<AquariumTimeZone>;
+}
+
+export interface ConfigureAquariumLocationInput {
+  readonly aquariumId: AquariumId;
+  readonly ownerKeeperId: string;
+  readonly location: AquariumLocation;
+}
+
+export interface AquariumLocationConfigurer {
+  configureLocation(
+    input: ConfigureAquariumLocationInput,
+  ): Promise<AquariumLocation>;
+}
+
+export interface LocationCandidate {
+  readonly latitude: number;
+  readonly longitude: number;
+  readonly displayName: string;
+  readonly country?: string;
+  readonly region?: string;
+  readonly suggestedTimeZone?: string;
+}
+
+export interface LocationSearch {
+  search(query: string): Promise<readonly LocationCandidate[]>;
+}
+
+export interface LocalWeather {
+  readonly currentTemperature: number;
+  readonly todayMinTemperature: number;
+  readonly todayMaxTemperature: number;
+  readonly observedAt?: Date;
+  readonly fetchedAt: Date;
+}
+
+export interface LocalWeatherReader {
+  read(
+    location: AquariumLocation,
+    options?: { readonly forceRefresh?: boolean },
+  ): Promise<LocalWeather>;
 }
 
 export interface RecordObservationInput {

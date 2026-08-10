@@ -3,6 +3,34 @@ import { expect, test } from '@playwright/test';
 test('a keeper can establish, select and record Aquarium evidence', async ({
   page,
 }) => {
+  await page.route('https://geocoding-api.open-meteo.com/**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        results: [
+          {
+            name: 'Santa Cruz de Tenerife',
+            admin1: 'Canarias',
+            country: 'España',
+            latitude: 28.12,
+            longitude: -16.46,
+            timezone: 'Atlantic/Canary',
+          },
+        ],
+      }),
+    }),
+  );
+  await page.route('https://api.open-meteo.com/**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        current: { temperature_2m: 24.1, time: 1786356000 },
+        daily: { temperature_2m_min: [19.2], temperature_2m_max: [27.8] },
+      }),
+    }),
+  );
   await page.goto('/');
   await page.getByRole('link', { name: 'Área privada' }).click();
   await page.getByRole('link', { name: 'Mis acuarios' }).click();
@@ -42,6 +70,24 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page.getByTestId('aquarium-time-zone')).toContainText(
     'Atlantic/Canary',
   );
+  await expect(page.getByTestId('aquarium-location-missing')).toContainText(
+    'Ubicación sin configurar',
+  );
+  await page.getByRole('link', { name: 'Configurar ubicación' }).click();
+  await page.getByLabel('Localidad').fill('Santa Cruz');
+  await page.getByRole('button', { name: 'Buscar ubicación' }).click();
+  await page
+    .getByRole('button', { name: 'Santa Cruz de Tenerife, Canarias, España' })
+    .click();
+  await page.getByRole('button', { name: 'Confirmar ubicación' }).click();
+  await expect(page.getByRole('status')).toContainText(
+    'Ubicación configurada correctamente.',
+  );
+  await page.getByRole('link', { name: 'Volver al acuario' }).first().click();
+  await expect(page.getByTestId('aquarium-location')).toContainText(
+    'Santa Cruz de Tenerife, Canarias, España',
+  );
+  await expect(page.getByTestId('local-weather')).toContainText('24.1 °C');
 
   await page
     .getByLabel('Registrar')

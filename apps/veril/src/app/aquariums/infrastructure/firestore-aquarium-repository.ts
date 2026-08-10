@@ -11,10 +11,11 @@ import {
   where,
 } from 'firebase/firestore';
 import { z } from 'zod';
-import { Aquarium } from '../domain/aquarium';
+import { Aquarium, AquariumLocation } from '../domain/aquarium';
 import {
   AquariumTimeZone,
   AquariumName,
+  AquariumLocation as AquariumLocationValue,
   aquariumIdFrom,
   aquariumTimeZoneFrom,
 } from '../domain/aquarium';
@@ -24,6 +25,8 @@ import {
   AquariumRepository,
   AquariumTimeZoneConfigurer,
   ConfigureAquariumTimeZoneInput,
+  AquariumLocationConfigurer,
+  ConfigureAquariumLocationInput,
   EstablishAquariumInput,
 } from '../application/aquarium-ports';
 import { getFirebaseClient } from './firebase-client';
@@ -34,6 +37,13 @@ export const aquariumDocument = z.object({
   establishedBy: z.string().min(1),
   establishedAt: z.instanceof(Timestamp),
   timeZone: z.string().optional(),
+  location: z
+    .object({
+      latitude: z.number().finite(),
+      longitude: z.number().finite(),
+      displayName: z.string().min(1),
+    })
+    .optional(),
 });
 
 function parseAquariumDocument(data: unknown) {
@@ -42,7 +52,11 @@ function parseAquariumDocument(data: unknown) {
 
 @Injectable()
 export class FirestoreAquariumRepository
-  implements AquariumRepository, AquariumReader, AquariumTimeZoneConfigurer
+  implements
+    AquariumRepository,
+    AquariumReader,
+    AquariumTimeZoneConfigurer,
+    AquariumLocationConfigurer
 {
   async establish(input: EstablishAquariumInput): Promise<Aquarium> {
     const { firestore } = getFirebaseClient();
@@ -62,7 +76,37 @@ export class FirestoreAquariumRepository
       ownerKeeperId: dto.ownerId,
       establishedAt: dto.establishedAt.toDate(),
       ...(dto.timeZone ? { timeZone: aquariumTimeZoneFrom(dto.timeZone) } : {}),
+      ...(dto.location
+        ? { location: AquariumLocationValue.create(dto.location) }
+        : {}),
     };
+  }
+
+  async configureLocation(
+    input: ConfigureAquariumLocationInput,
+  ): Promise<AquariumLocation> {
+    const { firestore } = getFirebaseClient();
+    const location = AquariumLocationValue.create(input.location);
+    const reference = doc(firestore, 'aquariums', input.aquariumId);
+
+    await runTransaction(firestore, async (transaction) => {
+      const snapshot = await transaction.get(reference);
+      if (!snapshot.exists()) {
+        throw new Error('Aquarium not found');
+      }
+
+      const dto = parseAquariumDocument(snapshot.data());
+      if (dto.ownerId !== input.ownerKeeperId) {
+        throw new Error('Aquarium is not owned by the keeper');
+      }
+      if (dto.location) {
+        throw new Error('Aquarium location is already configured');
+      }
+
+      transaction.update(reference, { location });
+    });
+
+    return location;
   }
 
   async configure(
@@ -112,6 +156,9 @@ export class FirestoreAquariumRepository
             ...(dto.timeZone
               ? { timeZone: aquariumTimeZoneFrom(dto.timeZone) }
               : {}),
+            ...(dto.location
+              ? { location: AquariumLocationValue.create(dto.location) }
+              : {}),
           },
           establishedAt: dto.establishedAt.toMillis(),
         };
@@ -152,6 +199,9 @@ export class FirestoreAquariumRepository
       id: aquariumIdFrom(snapshot.id),
       name: AquariumName.create(dto.name),
       ...(dto.timeZone ? { timeZone: aquariumTimeZoneFrom(dto.timeZone) } : {}),
+      ...(dto.location
+        ? { location: AquariumLocationValue.create(dto.location) }
+        : {}),
     };
   }
 }

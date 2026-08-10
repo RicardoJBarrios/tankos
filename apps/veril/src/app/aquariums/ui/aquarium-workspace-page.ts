@@ -10,13 +10,20 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ListMyAquariums } from '../application/list-my-aquariums';
-import { AquariumTimeZone } from '../domain/aquarium';
-import { AQUARIUM_REPOSITORY, KEEPER_SESSION } from './aquarium-providers';
+import { AquariumLocation, AquariumTimeZone } from '../domain/aquarium';
+import {
+  AQUARIUM_REPOSITORY,
+  KEEPER_SESSION,
+  LOCAL_WEATHER_READER,
+} from './aquarium-providers';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
 import { FirestoreAquariumRepository } from '../infrastructure/firestore-aquarium-repository';
 import { CurrentMeasurementsSection } from './current-measurements-section';
 import { RecentActivityPreview } from './recent-activity-preview';
 import { UpcomingCarePreview } from './upcoming-care-preview';
+import { LocalWeatherSection } from './local-weather-section';
+import { InMemoryLocalWeatherReader } from '../infrastructure/in-memory-local-weather-reader';
+import { OpenMeteoLocalWeatherReader } from '../infrastructure/open-meteo-local-weather-reader';
 
 type WorkspaceState = 'loading' | 'ready' | 'no-context' | 'failure';
 
@@ -26,6 +33,7 @@ type WorkspaceState = 'loading' | 'ready' | 'no-context' | 'failure';
     CurrentMeasurementsSection,
     RecentActivityPreview,
     UpcomingCarePreview,
+    LocalWeatherSection,
     MatButtonModule,
     MatProgressSpinnerModule,
     RouterLink,
@@ -44,6 +52,11 @@ type WorkspaceState = 'loading' | 'ready' | 'no-context' | 'failure';
     },
     { provide: AQUARIUM_REPOSITORY, useClass: FirestoreAquariumRepository },
     { provide: KEEPER_SESSION, useClass: FirebaseKeeperSession },
+    {
+      provide: LOCAL_WEATHER_READER,
+      useFactory: () =>
+        new InMemoryLocalWeatherReader(new OpenMeteoLocalWeatherReader()),
+    },
   ],
 })
 export class AquariumWorkspacePage implements OnInit {
@@ -53,6 +66,7 @@ export class AquariumWorkspacePage implements OnInit {
   readonly state = signal<WorkspaceState>('loading');
   readonly aquariumName = signal<string | null>(null);
   readonly aquariumTimeZone = signal<AquariumTimeZone | undefined>(undefined);
+  readonly aquariumLocation = signal<AquariumLocation | undefined>(undefined);
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -80,6 +94,7 @@ export class AquariumWorkspacePage implements OnInit {
 
       this.aquariumName.set(aquarium.name.value);
       this.aquariumTimeZone.set(aquarium.timeZone);
+      this.aquariumLocation.set(aquarium.location);
       this.state.set('ready');
     } catch {
       this.state.set('failure');

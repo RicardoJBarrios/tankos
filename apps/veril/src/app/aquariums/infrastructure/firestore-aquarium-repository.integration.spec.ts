@@ -183,4 +183,45 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
     },
     20000,
   );
+
+  emulatorTest(
+    'configures an approximate location once and reads it back',
+    async () => {
+      const session = new FirebaseKeeperSession();
+      const repository = new FirestoreAquariumRepository();
+      const keeper = await session.requireAuthenticatedKeeper();
+      const aquarium = await repository.establish({
+        id: createAquariumId(),
+        name: AquariumName.create('Acuario ubicación'),
+        ownerKeeperId: keeper.id,
+        establishedAt: new Date('2026-01-01T00:00:00.000Z'),
+      });
+      const location = await repository.configureLocation({
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        location: {
+          latitude: 28.123,
+          longitude: -16.456,
+          displayName: 'Santa Cruz de Tenerife, España',
+        },
+      });
+
+      expect(location).toEqual({
+        latitude: 28.12,
+        longitude: -16.46,
+        displayName: 'Santa Cruz de Tenerife, España',
+      });
+      await expect(
+        repository.configureLocation({
+          aquariumId: aquarium.id,
+          ownerKeeperId: keeper.id,
+          location,
+        }),
+      ).rejects.toThrow('already configured');
+      expect(
+        (await repository.getOwned(keeper.id, aquarium.id))?.location,
+      ).toEqual(location);
+    },
+    20000,
+  );
 });

@@ -18,6 +18,10 @@ discovered, selected and used for durable qualitative records.
 - List Observations — accepted and implemented.
 - Configure Aquarium Timezone — implemented for legacy Aquariums without a
   canonical timezone; changing an existing timezone remains out of scope.
+- Configure Aquarium Location — implemented as one-way approximate locality
+  configuration; correction and relocation remain out of scope.
+- Review Local Weather — implemented as an ephemeral provider-backed Workspace
+  read model with no Firestore persistence.
 
 These use cases share product language and the Aquarium as their subject, but
 they do not require a single large transaction boundary or a shared technical

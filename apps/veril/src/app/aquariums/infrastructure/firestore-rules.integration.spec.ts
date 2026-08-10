@@ -724,6 +724,87 @@ describe('Firestore Security Rules (Emulator Suite)', () => {
           )
         ).status,
       ).toBe(403);
+
+      expect(
+        (
+          await updateAquarium(
+            aquariumB,
+            undefined,
+            {
+              location: {
+                mapValue: {
+                  fields: {
+                    latitude: { doubleValue: 28.12 },
+                    longitude: { doubleValue: -16.46 },
+                    displayName: { stringValue: 'Anónimo' },
+                  },
+                },
+              },
+            },
+            ['location'],
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await updateAquarium(
+            aquariumB,
+            keeperA.idToken,
+            {
+              location: {
+                mapValue: {
+                  fields: {
+                    latitude: { doubleValue: 28.12 },
+                    longitude: { doubleValue: -16.46 },
+                    displayName: { stringValue: 'Santa Cruz, España' },
+                  },
+                },
+              },
+            },
+            ['location'],
+          )
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await updateAquarium(
+            aquariumB,
+            keeperB.idToken,
+            {
+              location: {
+                mapValue: {
+                  fields: {
+                    latitude: { doubleValue: 28.12 },
+                    longitude: { doubleValue: -16.46 },
+                    displayName: { stringValue: 'No autorizado' },
+                  },
+                },
+              },
+            },
+            ['location'],
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await updateAquarium(
+            otherOwnerAquarium,
+            keeperB.idToken,
+            {
+              location: {
+                mapValue: {
+                  fields: {
+                    latitude: { doubleValue: 91 },
+                    longitude: { doubleValue: -16.46 },
+                    displayName: { stringValue: 'Fuera de rango' },
+                  },
+                },
+              },
+            },
+            ['location'],
+          )
+        ).status,
+      ).toBe(403);
     },
     20000,
   );

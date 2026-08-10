@@ -38,6 +38,14 @@ making the domain depend on browser APIs.
   visible.
 - Whether Temporal becomes a dependency is pending; do not add it preemptively.
 
+## Local environmental context
+
+An optional approximate Aquarium location may be configured once by its owner.
+Direct Open-Meteo geocoding and forecast access remains behind infrastructure
+ports; responses are validated at that boundary, cached in memory for fifteen
+minutes and never persisted. Weather is contextual presentation, not domain
+evidence, and its failure remains isolated from Aquarium-owned workflows.
+
 ## Permission vocabulary
 
 No role catalogue is accepted. Establish authentication, authorization,

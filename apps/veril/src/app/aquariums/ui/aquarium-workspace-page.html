@@ -39,10 +39,23 @@
         Zona horaria sin configurar.
         <a routerLink="/app/aquariums/timezone">Configurar zona horaria</a>
       </p>
+      } @if (aquariumLocation(); as location) {
+      <p data-testid="aquarium-location">
+        <strong>Ubicación:</strong> {{ location.displayName }}
+      </p>
+      } @else {
+      <p data-testid="aquarium-location-missing">
+        Ubicación sin configurar.
+        <a routerLink="/app/aquariums/location">Configurar ubicación</a>
+      </p>
       }
     </div>
     <a mat-stroked-button routerLink="/app/aquariums">Cambiar de acuario</a>
   </header>
+
+  @if (aquariumLocation(); as location) {
+  <veril-local-weather-section [location]="location" />
+  }
 
   <veril-current-measurements-section [timeZone]="aquariumTimeZone()" />
 

@@ -19,6 +19,9 @@ import {
   RecurringCarePlanStopper,
   RecurringCarePlanWriter,
   AquariumTimeZoneConfigurer,
+  AquariumLocationConfigurer,
+  LocationSearch,
+  LocalWeatherReader,
 } from '../application/aquarium-ports';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 
@@ -30,6 +33,19 @@ export const AQUARIUM_TIME_ZONE_CONFIGURER =
   new InjectionToken<AquariumTimeZoneConfigurer>(
     'AQUARIUM_TIME_ZONE_CONFIGURER',
   );
+
+export const AQUARIUM_LOCATION_CONFIGURER =
+  new InjectionToken<AquariumLocationConfigurer>(
+    'AQUARIUM_LOCATION_CONFIGURER',
+  );
+
+export const LOCATION_SEARCH = new InjectionToken<LocationSearch>(
+  'LOCATION_SEARCH',
+);
+
+export const LOCAL_WEATHER_READER = new InjectionToken<LocalWeatherReader>(
+  'LOCAL_WEATHER_READER',
+);
 
 export const KEEPER_SESSION = new InjectionToken<KeeperSession>(
   'KEEPER_SESSION',

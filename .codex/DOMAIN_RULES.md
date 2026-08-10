@@ -93,6 +93,19 @@ Rules are classified to avoid turning assumptions into code prematurely.
   decision before any existing schedule semantics are changed.
 - The operation creates no Fact or Domain Event and is online-required.
 
+## Accepted rules for Aquarium Location and Local Weather
+
+- An Aquarium may transition from no location to one confirmed approximate
+  location. Coordinates are rounded to two decimals and remain within WGS84
+  latitude/longitude bounds; the locality label is non-empty.
+- Only the authenticated owner may configure a missing location. Correction and
+  physical relocation are separate future decisions.
+- Location configuration does not rewrite historical timestamps, Measurements,
+  Observations, Care Work or recurrence data.
+- Local Weather is an ephemeral external read model. It is not persisted,
+  treated as Aquarium evidence or included in Timeline; provider failure must
+  not block Aquarium-owned Workspace capabilities.
+
 ## Candidate invariants requiring validation
 
 Other business invariants remain unaccepted. The following hypotheses must be

@@ -27,6 +27,9 @@ remains a separate future decision.
 
 This increment closes the legacy browser-local fallback without opening
 timezone editing semantics.
+`Configure Aquarium Location` and `Review Local Weather` are implemented as a
+Spark-first contextual increment. Approximate location is owner-configured;
+weather remains an ephemeral cached external read and is not domain history.
 
 ## 3. Measurements — current capability
 

@@ -47,10 +47,52 @@ export class AquariumName {
   }
 }
 
+export interface AquariumLocation {
+  readonly latitude: number;
+  readonly longitude: number;
+  readonly displayName: string;
+}
+
+function roundLocationCoordinate(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
+}
+
+export const AquariumLocation = {
+  create(input: AquariumLocation): AquariumLocation {
+    if (
+      !Number.isFinite(input.latitude) ||
+      input.latitude < -90 ||
+      input.latitude > 90
+    ) {
+      throw new Error('Aquarium latitude must be between -90 and 90');
+    }
+
+    if (
+      !Number.isFinite(input.longitude) ||
+      input.longitude < -180 ||
+      input.longitude > 180
+    ) {
+      throw new Error('Aquarium longitude must be between -180 and 180');
+    }
+
+    const displayName = input.displayName.trim();
+    if (!displayName) {
+      throw new Error('Aquarium location display name must not be empty');
+    }
+
+    return {
+      latitude: roundLocationCoordinate(input.latitude),
+      longitude: roundLocationCoordinate(input.longitude),
+      displayName,
+    };
+  },
+};
+
 export interface Aquarium {
   readonly id: AquariumId;
   readonly name: AquariumName;
   readonly ownerKeeperId: string;
   readonly establishedAt: Date;
   readonly timeZone?: AquariumTimeZone;
+  readonly location?: AquariumLocation;
 }
