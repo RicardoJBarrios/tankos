@@ -42,10 +42,10 @@ application service and is not replaced by a store.
 
 ## Dashboard boundary
 
-This increment defines a Workspace, not a Dashboard. It contains Aquarium
-identity, navigation and the bounded latest known Measurements. It does not
-show health scores, alerts, charts, analytics, AI, planned care or other
-summaries.
+The operational surface is now accepted as an Aquarium Dashboard. It contains
+Aquarium identity, navigation, bounded current Measurements, recent Activity,
+pending Care and ephemeral external Weather context. It does not show health
+scores, biological alerts, charts, analytics, AI or automated actions.
 
 ## Current Measurements decision
 
@@ -72,9 +72,10 @@ coordinate their state.
 
 ## State management
 
-No Signal Store is required. The Workspace has no shared dynamic read state
-beyond Active Context, and its name is route-local state. Forms, history pages,
-pagination and recent activity remain capability-local.
+The scoped `AquariumWorkspaceStore` owns shared Dashboard context and
+configuration state. Forms, history pages, pagination and section-only loading
+state remain capability-local when they have no shared consumer. Weather cache
+ownership remains with its infrastructure adapter.
 
 ## Testing
 
@@ -86,9 +87,8 @@ the existing actions through visible links.
 
 ## Deferred scope
 
-Dashboard summaries, Timeline previews, route-embedded Aquarium IDs, shared
-workspace refresh state, Signal Store, planned care, offline workspace state
-and shell-level capability navigation remain deferred.
+Biological interpretation, Dashboard Attention, route-embedded Aquarium IDs,
+offline workspace state and shell-level capability navigation remain deferred.
 
 ## Definition of Ready
 
@@ -96,7 +96,7 @@ and shell-level capability navigation remain deferred.
 - Navigation model: Workspace only, Ready.
 - Active Context relationship: existing application state, Ready.
 - Persistence: no schema change, Ready.
-- Shared state: no store, Ready.
+- Shared state: scoped `AquariumWorkspaceStore`, Ready.
 - Current Measurements: direct Spark-first read, Ready.
 - Loading, failure and no-context behaviour: defined, Ready.
 - Testing and deferred scope: defined, Ready.

@@ -20,6 +20,7 @@ import {
 } from './aquarium-providers';
 import { measurementPresentationFor } from './measurement-presentations';
 import { formatAquariumDateTime } from './aquarium-date-time';
+import { measurementAgeFor } from './measurement-age';
 
 type SectionState = 'loading' | 'ready' | 'failure';
 
@@ -55,6 +56,7 @@ export class CurrentMeasurementsSection implements OnInit {
 
   readonly state = signal<SectionState>('loading');
   readonly values = signal<readonly CurrentMeasurementValue[]>([]);
+  readonly now = signal(new Date());
 
   ngOnInit(): void {
     this.load();
@@ -71,6 +73,12 @@ export class CurrentMeasurementsSection implements OnInit {
   formatMeasuredAt(item: CurrentMeasurementValue): string {
     return item.measuredAt
       ? formatAquariumDateTime(item.measuredAt, this.timeZone)
+      : '';
+  }
+
+  formatMeasurementAge(item: CurrentMeasurementValue): string {
+    return item.measuredAt
+      ? measurementAgeFor(item.measuredAt, this.now()).text
       : '';
   }
 

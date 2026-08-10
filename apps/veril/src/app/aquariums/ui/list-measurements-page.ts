@@ -26,6 +26,7 @@ import {
 } from './aquarium-providers';
 import { measurementPresentationFor } from './measurement-presentations';
 import { formatAquariumDateTime } from './aquarium-date-time';
+import { measurementAgeFor } from './measurement-age';
 
 type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
 
@@ -72,6 +73,7 @@ export class ListMeasurementsPage implements OnInit {
   readonly isLoadingMore = signal(false);
   readonly errorMessage = signal('');
   readonly timeZone = signal<AquariumTimeZone | undefined>(undefined);
+  readonly now = signal(new Date());
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -119,6 +121,10 @@ export class ListMeasurementsPage implements OnInit {
 
   formatMeasuredAt(item: MeasurementListItem): string {
     return formatAquariumDateTime(item.measuredAt, this.timeZone());
+  }
+
+  formatMeasurementAge(item: MeasurementListItem): string {
+    return measurementAgeFor(item.measuredAt, this.now()).text;
   }
 
   private async loadFirstPage(): Promise<void> {

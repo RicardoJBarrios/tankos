@@ -56,6 +56,7 @@ describe('CurrentMeasurementsSection', () => {
       },
     ]);
     const spectator = createComponent();
+    spectator.component.now.set(new Date('2026-08-10T12:00:00.000Z'));
     spectator.component.timeZone = aquariumTimeZoneFrom('Atlantic/Canary');
     await settle(spectator);
 
@@ -69,6 +70,9 @@ describe('CurrentMeasurementsSection', () => {
       spectator.query('[data-testid="current-measurements"]')?.textContent,
     ).toContain('Sin datos');
     expect(spectator.query('time')?.textContent).toContain('11:00');
+    expect(
+      spectator.query('[data-testid="current-measurements"]')?.textContent,
+    ).toContain('Hace 1 día');
   });
 
   it('shows a recoverable error', () => {

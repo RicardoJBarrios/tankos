@@ -34,8 +34,12 @@ closed Parameter catalogue.
 
 - Record Measurement — accepted and implemented.
 - List Measurements — accepted and implemented.
+- Review Measurement Age — next accepted increment; presents derived age for
+  the latest known value without classifying it as fresh or stale.
 - Correct Measurement — candidate.
 - Parameter History — candidate.
+- Configure Parameter Targets and Review Parameter Status — deferred until
+  target ownership, ranges and interpretation semantics are accepted.
 
 Measurement remains an independent aggregate and does not become part of the
 Aquarium transaction boundary.

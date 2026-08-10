@@ -160,8 +160,12 @@ Measurement history. Application tests cover authentication, Active Context,
 missing Parameters and infrastructure failure. Adapter integration covers the
 canonical latest query and malformed data; Rules cover owner, anonymous and
 cross-owner requests. Spectator covers loading, values, missing values and
-errors. The canonical Playwright journey records a Measurement, returns to the
-Workspace and observes its latest value.
+errors. The pure `measurementAgeFor` tests cover deterministic seconds,
+minutes, hours, days, future and invalid timestamps. Current Measurements and
+Measurement history reuse that helper; their Spectator tests verify age text,
+missing-data semantics and preservation of the absolute timestamp. The
+canonical Playwright journey records a Measurement, returns to the Workspace
+and observes its latest value.
 
 `Configure Aquarium Location and Review Local Weather` adds domain and
 application coverage for coordinate bounds, rounding, ownership and Active

@@ -106,6 +106,14 @@ Rules are classified to avoid turning assumptions into code prematurely.
   treated as Aquarium evidence or included in Timeline; provider failure must
   not block Aquarium-owned Workspace capabilities.
 
+## Measurement age
+
+- A persisted `Measurement` remains durable evidence regardless of age.
+- The age of a Measurement is derived from `measuredAt` and an explicit current
+  instant; it is not persisted and does not mutate the Measurement.
+- Measurement cadence, freshness thresholds and target interpretation are
+  separate product decisions and are not implied by the Measurement catalogue.
+
 ## Candidate invariants requiring validation
 
 Other business invariants remain unaccepted. The following hypotheses must be

@@ -113,12 +113,14 @@ describe('ListMeasurementsPage', () => {
     } satisfies MeasurementPage;
     execute.mockResolvedValue(page);
     const spectator = createComponent();
+    spectator.component.now.set(new Date('2026-08-10T12:00:00.000Z'));
     spectator.component.timeZone.set(aquariumTimeZoneFrom('Atlantic/Canary'));
     await settle(spectator);
 
     expect(spectator.query('li')?.textContent).toContain('Temperatura');
     expect(spectator.query('li')?.textContent).toContain('23.5 °C');
     expect(spectator.query('time')?.textContent).toContain('11:00');
+    expect(spectator.query('li')?.textContent).toContain('Hace 2 días');
     expect(spectator.query('button')?.textContent).toContain('Cargar más');
   });
 

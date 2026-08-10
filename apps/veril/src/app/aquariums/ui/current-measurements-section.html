@@ -37,6 +37,7 @@
           <time [attr.datetime]="item.measuredAt?.toISOString()">
             {{ formatMeasuredAt(item) }}
           </time>
+          <span>{{ formatMeasurementAge(item) }}</span>
           }
         </mat-card-content>
       </mat-card>

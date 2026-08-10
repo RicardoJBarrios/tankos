@@ -48,6 +48,11 @@ replace the historical collection or introduce a second source of truth.
 Future increments still require decisions about correction, retention and
 broader ownership semantics.
 
+The next small Measurement increment is `Review Measurement Age`: show the
+elapsed age of the latest known value without introducing freshness thresholds,
+target ranges or Parameter Status. Those interpretation decisions remain
+deferred until product evidence supports them.
+
 ## 3.1 Timeline — accepted first increment
 
 `Review Recent Timeline` is the first bounded Timeline increment. It combines
