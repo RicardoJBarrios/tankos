@@ -1,9 +1,12 @@
 import { z } from 'zod';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { timeout } from 'rxjs/operators';
 import {
   LocationCandidate,
   LocationSearch,
 } from '../application/aquarium-ports';
-import { fetchWithTimeout } from './fetch-with-timeout';
 
 const responseSchema = z.object({
   results: z
@@ -20,19 +23,23 @@ const responseSchema = z.object({
     .optional(),
 });
 
+@Injectable()
 export class OpenMeteoLocationSearch implements LocationSearch {
+  private readonly http = inject(HttpClient);
+
   async search(query: string): Promise<readonly LocationCandidate[]> {
-    const url = new URL('https://geocoding-api.open-meteo.com/v1/search');
-    url.searchParams.set('name', query);
-    url.searchParams.set('count', '5');
-    url.searchParams.set('language', 'es');
-
-    const response = await fetchWithTimeout(url);
-    if (!response.ok) {
-      throw new Error('Location search unavailable');
-    }
-
-    const data = responseSchema.parse(await response.json());
+    const data = responseSchema.parse(
+      await firstValueFrom(
+        this.http
+          .get<unknown>('https://geocoding-api.open-meteo.com/v1/search', {
+            params: new HttpParams()
+              .set('name', query)
+              .set('count', '5')
+              .set('language', 'es'),
+          })
+          .pipe(timeout({ first: 10_000 })),
+      ),
+    );
     return (data.results ?? []).map((result) => ({
       latitude: result.latitude,
       longitude: result.longitude,

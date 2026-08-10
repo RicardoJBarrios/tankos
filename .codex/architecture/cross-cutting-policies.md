@@ -112,3 +112,20 @@ independent of persistence and validation libraries where practical.
 - RxJS: streams, cancellation, event composition and interop with external APIs.
 
 Do not mix these as competing sources of truth.
+
+## Angular-first HTTP and workspace state
+
+All external HTTP in application and infrastructure runtime code uses Angular's
+HTTP stack. `HttpClient` is the current adapter API for imperative provider
+ports; `httpResource` remains available for a concrete reactive resource where
+its lifecycle is a better fit. Native `fetch`, hand-written XHR and third-party
+HTTP clients are forbidden. Angular HTTP preserves DI, interceptors and the
+official testing backend while provider adapters continue to validate DTOs with
+Zod.
+
+Shared Aquarium operational state starts from the scoped
+`AquariumWorkspaceStore`. It coordinates context/configuration state and
+reload semantics without replacing application use cases or Active Context
+persistence. Independent section-only presentation state may remain local when
+there is no shared consumer. The operational surface is a Dashboard by
+responsibility, not a generic widget platform.

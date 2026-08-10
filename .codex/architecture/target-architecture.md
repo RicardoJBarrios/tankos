@@ -81,6 +81,13 @@ Firebase Hosting + CDN
 cross-cutting configuration. The domain layer must not depend on Angular,
 Firebase, AngularFire, Zod or NgRx.
 
+Angular is the application framework boundary: external HTTP uses Angular's
+`HttpClient` (or `httpResource` only for a concrete reactive resource), and
+native `fetch` is not used by runtime application/infrastructure code. The
+Aquarium operational surface is a scoped Dashboard composed from explicit
+sections and coordinated by `AquariumWorkspaceStore`; it is not a generic
+widget engine or a global store.
+
 The preferred local feature shape is:
 
 ```text

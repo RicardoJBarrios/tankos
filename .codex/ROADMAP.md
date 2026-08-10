@@ -31,6 +31,11 @@ timezone editing semantics.
 Spark-first contextual increment. Approximate location is owner-configured;
 weather remains an ephemeral cached external read and is not domain history.
 
+The Aquarium operational surface is now classified as a Dashboard by
+responsibility. A scoped `AquariumWorkspaceStore` coordinates shared context
+and configuration state, while section-only state remains local when it has no
+shared consumer. Runtime external HTTP uses Angular `HttpClient`.
+
 ## 3. Measurements — current capability
 
 `Record Measurement` is accepted and implemented as the first increment of this

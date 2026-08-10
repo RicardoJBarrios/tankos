@@ -29,8 +29,10 @@ offline capability and App Check remain deferred.
 
 - Use NgRx Signals for shared or complex feature state; keep local state local.
 - Keep the current Active Context as a small application service plus a narrow
-  tab-scoped storage port. Signal Store is deferred: one `AquariumId` and its
-  three current consumers do not justify a feature store or storage-sync layer.
+  tab-scoped storage port. The Aquarium operational surface uses a scoped
+  `AquariumWorkspaceStore` for cross-section context and configuration state;
+  section-local presentation state remains local when it has no shared
+  consumer.
 - Use Zod at external boundaries and derive DTO types with `z.infer`.
 - Keep transport DTOs, domain models and view models separate.
 - Use Angular Material before creating custom UI primitives.
@@ -82,6 +84,11 @@ offline capability and App Check remain deferred.
 - Keep Security Rules deny-by-default and test them in emulators.
 - Keep administrative credentials and deployment secrets outside frontend code.
 - Treat guards as UX, never as authorization.
+- Prefer Angular-native framework facilities over lower-level browser
+  equivalents when Angular provides the capability.
+- The Aquarium operational surface is classified as a Dashboard because it
+  summarizes current values, pending Care, recent history, external context
+  and next actions. This does not create a generic widget framework.
 
 ## GitHub and delivery
 

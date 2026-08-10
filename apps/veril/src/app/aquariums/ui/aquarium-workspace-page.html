@@ -1,5 +1,5 @@
 <section aria-labelledby="aquarium-workspace-title" class="workspace">
-  @if (state() === 'loading') {
+  @if (workspace.status() === 'loading') {
   <div class="feedback" role="status" aria-live="polite">
     <mat-progress-spinner
       mode="indeterminate"
@@ -8,14 +8,14 @@
     />
     <span>Cargando acuario…</span>
   </div>
-  } @else if (state() === 'no-context') {
+  } @else if (workspace.status() === 'no-context') {
   <div class="feedback" role="status">
     <p>Primero selecciona un acuario para trabajar con él.</p>
     <a mat-flat-button color="primary" routerLink="/app/aquariums"
       >Volver a mis acuarios</a
     >
   </div>
-  } @else if (state() === 'failure') {
+  } @else if (workspace.status() === 'failure') {
   <div class="feedback" role="alert">
     <p>No se ha podido cargar el acuario seleccionado.</p>
     <a mat-flat-button color="primary" routerLink="/app/aquariums"
@@ -25,21 +25,19 @@
   } @else {
   <header class="workspace-heading">
     <div>
-      <p class="eyebrow">Acuario activo</p>
-      <h2 id="aquarium-workspace-title">{{ aquariumName() }}</h2>
-      <p>
-        Este es tu espacio de trabajo para registrar y consultar información.
-      </p>
-      @if (aquariumTimeZone()) {
+      <p class="eyebrow">Dashboard del acuario</p>
+      <h2 id="aquarium-workspace-title">{{ workspace.aquariumName() }}</h2>
+      <p>Consulta el estado, la actividad y las acciones de tu acuario.</p>
+      @if (workspace.aquariumTimeZone()) {
       <p data-testid="aquarium-time-zone">
-        <strong>Zona horaria:</strong> {{ aquariumTimeZone() }}
+        <strong>Zona horaria:</strong> {{ workspace.aquariumTimeZone() }}
       </p>
       } @else {
       <p data-testid="aquarium-time-zone-missing">
         Zona horaria sin configurar.
         <a routerLink="/app/aquariums/timezone">Configurar zona horaria</a>
       </p>
-      } @if (aquariumLocation(); as location) {
+      } @if (workspace.aquariumLocation(); as location) {
       <p data-testid="aquarium-location">
         <strong>Ubicación:</strong> {{ location.displayName }}
       </p>
@@ -53,15 +51,17 @@
     <a mat-stroked-button routerLink="/app/aquariums">Cambiar de acuario</a>
   </header>
 
-  @if (aquariumLocation(); as location) {
+  @if (workspace.aquariumLocation(); as location) {
   <veril-local-weather-section [location]="location" />
   }
 
-  <veril-current-measurements-section [timeZone]="aquariumTimeZone()" />
+  <veril-current-measurements-section
+    [timeZone]="workspace.aquariumTimeZone()"
+  />
 
-  <veril-recent-activity-preview [timeZone]="aquariumTimeZone()" />
+  <veril-recent-activity-preview [timeZone]="workspace.aquariumTimeZone()" />
 
-  <veril-upcoming-care-preview [timeZone]="aquariumTimeZone()" />
+  <veril-upcoming-care-preview [timeZone]="workspace.aquariumTimeZone()" />
 
   <div class="action-groups" aria-label="Acciones del acuario">
     <section aria-labelledby="aquarium-record-actions-title">

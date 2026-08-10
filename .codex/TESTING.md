@@ -174,6 +174,14 @@ explicit selection and already-configured state. The Playwright journey stubs
 both provider endpoints and verifies configuration plus rendered local weather;
 CI never calls the live provider.
 
+The Aquarium Dashboard uses a scoped Signal Store for cross-section context and
+configuration state. Store tests verify selected-Aquarium loading, no-context
+recovery, derived flags and reset behavior. Section-only loading/error state
+remains covered by the existing component tests when it has no shared consumer.
+Open-Meteo adapter tests use Angular's `provideHttpClientTesting()` and
+`HttpTestingController`; they verify requests, query parameters, malformed
+responses, provider errors and transport timeout errors without live HTTP.
+
 ## Browser journeys
 
 `pnpm nx e2e veril` runs the canonical Chromium journeys through visible UI

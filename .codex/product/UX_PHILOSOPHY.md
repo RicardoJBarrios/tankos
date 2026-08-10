@@ -70,10 +70,10 @@ internal DOM or CSS classes.
 ## Current Aquarium navigation
 
 Use `Mis acuarios` to establish, list and switch the current Aquarium. After a
-selection, enter the Aquarium Workspace as the operational context. Group its
+selection, enter the Aquarium Dashboard as the operational context. Group its
 actions by keeper intent: `Registrar` for new observations, measurements and
 care work, and `Consultar` for recent activity and the corresponding histories.
 This is a presentation grouping only; each capability keeps its own route and
-use case. The Workspace is not a Dashboard: it does not invent summaries,
-current values or analytics. Do not move every capability into the private
-shell.
+use case. The Dashboard summarizes already accepted current values, pending
+Care, recent history, external weather and next actions; it does not invent
+health scores or analytics. Do not move every capability into the private shell.

@@ -1,7 +1,10 @@
 import { z } from 'zod';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { timeout } from 'rxjs/operators';
 import { LocalWeatherReader } from '../application/aquarium-ports';
 import { AquariumLocation } from '../domain/aquarium';
-import { fetchWithTimeout } from './fetch-with-timeout';
 
 const responseSchema = z.object({
   current: z.object({
@@ -23,26 +26,30 @@ function observedAtFrom(value: number | string | undefined): Date | undefined {
   return undefined;
 }
 
+@Injectable()
 export class OpenMeteoLocalWeatherReader implements LocalWeatherReader {
+  private readonly http = inject(HttpClient);
+
   async read(
     location: AquariumLocation,
   ): Promise<Awaited<ReturnType<LocalWeatherReader['read']>>> {
-    const url = new URL('https://api.open-meteo.com/v1/forecast');
-    url.searchParams.set('latitude', String(location.latitude));
-    url.searchParams.set('longitude', String(location.longitude));
-    url.searchParams.set('current', 'temperature_2m');
-    url.searchParams.set('daily', 'temperature_2m_min,temperature_2m_max');
-    url.searchParams.set('temperature_unit', 'celsius');
-    url.searchParams.set('timezone', 'auto');
-    url.searchParams.set('forecast_days', '1');
-    url.searchParams.set('timeformat', 'unixtime');
-
-    const response = await fetchWithTimeout(url);
-    if (!response.ok) {
-      throw new Error('Local weather unavailable');
-    }
-
-    const data = responseSchema.parse(await response.json());
+    const data = responseSchema.parse(
+      await firstValueFrom(
+        this.http
+          .get<unknown>('https://api.open-meteo.com/v1/forecast', {
+            params: new HttpParams()
+              .set('latitude', String(location.latitude))
+              .set('longitude', String(location.longitude))
+              .set('current', 'temperature_2m')
+              .set('daily', 'temperature_2m_min,temperature_2m_max')
+              .set('temperature_unit', 'celsius')
+              .set('timezone', 'auto')
+              .set('forecast_days', '1')
+              .set('timeformat', 'unixtime'),
+          })
+          .pipe(timeout({ first: 10_000 })),
+      ),
+    );
     const fetchedAt = new Date();
     const observedAt = observedAtFrom(data.current.time);
 

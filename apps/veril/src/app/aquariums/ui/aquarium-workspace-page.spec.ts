@@ -16,6 +16,7 @@ import {
 import { CurrentMeasurementsSection } from './current-measurements-section';
 import { RecentActivityPreview } from './recent-activity-preview';
 import { UpcomingCarePreview } from './upcoming-care-preview';
+import { AquariumWorkspaceStore } from './aquarium-workspace-store';
 import { AquariumWorkspacePage } from './aquarium-workspace-page';
 
 const activeId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
@@ -54,6 +55,7 @@ describe('AquariumWorkspacePage', () => {
                 provide: ActiveAquariumContext,
                 useFactory: () => createContext(contextSelected),
               },
+              AquariumWorkspaceStore,
             ],
           },
         },
