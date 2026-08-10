@@ -50,6 +50,16 @@ export interface AquariumRepository {
   establish(input: EstablishAquariumInput): Promise<Aquarium>;
 }
 
+export interface ConfigureAquariumTimeZoneInput {
+  readonly aquariumId: AquariumId;
+  readonly ownerKeeperId: string;
+  readonly timeZone: AquariumTimeZone;
+}
+
+export interface AquariumTimeZoneConfigurer {
+  configure(input: ConfigureAquariumTimeZoneInput): Promise<AquariumTimeZone>;
+}
+
 export interface RecordObservationInput {
   readonly id: ObservationId;
   readonly aquariumId: AquariumId;

@@ -78,6 +78,21 @@ Rules are classified to avoid turning assumptions into code prematurely.
   future schedule does not authorize access to another Aquarium or create a
   historical Fact.
 
+## Accepted rules for Configure Aquarium Timezone
+
+- An authenticated owner may configure the `timeZone` of an Aquarium only when
+  it is currently absent.
+- Configuration requires explicit keeper confirmation of a valid IANA timezone
+  identifier. The browser timezone is only a proposal, never silent domain
+  truth.
+- Configuration changes presentation and future calendar authority; it does
+  not rewrite historical absolute instants or mutate Measurements,
+  Observations, Care Work, Planned Care Work or Recurring Care Plans.
+- Changing or clearing an existing Aquarium timezone is not part of this use
+  case. Correction and physical relocation require a separate accepted
+  decision before any existing schedule semantics are changed.
+- The operation creates no Fact or Domain Event and is online-required.
+
 ## Candidate invariants requiring validation
 
 Other business invariants remain unaccepted. The following hypotheses must be

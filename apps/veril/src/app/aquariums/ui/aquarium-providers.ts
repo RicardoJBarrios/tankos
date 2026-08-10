@@ -18,12 +18,18 @@ import {
   PlannedCareWorkCanceller,
   RecurringCarePlanStopper,
   RecurringCarePlanWriter,
+  AquariumTimeZoneConfigurer,
 } from '../application/aquarium-ports';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 
 export const AQUARIUM_REPOSITORY = new InjectionToken<
   AquariumRepository & AquariumReader
 >('AQUARIUM_REPOSITORY');
+
+export const AQUARIUM_TIME_ZONE_CONFIGURER =
+  new InjectionToken<AquariumTimeZoneConfigurer>(
+    'AQUARIUM_TIME_ZONE_CONFIGURER',
+  );
 
 export const KEEPER_SESSION = new InjectionToken<KeeperSession>(
   'KEEPER_SESSION',

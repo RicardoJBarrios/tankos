@@ -8,7 +8,11 @@ import { ListMyAquariums } from '../application/list-my-aquariums';
 import { ListPlannedCareWork } from '../application/list-planned-care-work';
 import { ReviewCurrentMeasurements } from '../application/review-current-measurements';
 import { ReviewRecentTimeline } from '../application/review-recent-timeline';
-import { AquariumName, aquariumIdFrom } from '../domain/aquarium';
+import {
+  AquariumName,
+  aquariumIdFrom,
+  aquariumTimeZoneFrom,
+} from '../domain/aquarium';
 import { CurrentMeasurementsSection } from './current-measurements-section';
 import { RecentActivityPreview } from './recent-activity-preview';
 import { UpcomingCarePreview } from './upcoming-care-preview';
@@ -119,6 +123,9 @@ describe('AquariumWorkspacePage', () => {
 
     expect(spectator.query('h2')?.textContent).toContain('Veril');
     expect(
+      spectator.query('[data-testid="aquarium-time-zone-missing"]'),
+    ).toBeTruthy();
+    expect(
       spectator.queryAll('h3').map((heading) => heading.textContent),
     ).toEqual([
       'Últimas mediciones',
@@ -135,5 +142,20 @@ describe('AquariumWorkspacePage', () => {
         'Ver toda la actividad',
       ]),
     );
+  });
+
+  it('shows the configured timezone without offering configuration', async () => {
+    contextSelected = true;
+    execute.mockResolvedValue([
+      { ...aquarium, timeZone: aquariumTimeZoneFrom('Atlantic/Canary') },
+    ]);
+    const spectator = createComponent();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    spectator.detectChanges();
+
+    expect(
+      spectator.query('[data-testid="aquarium-time-zone"]')?.textContent,
+    ).toContain('Atlantic/Canary');
+    expect(spectator.query('[data-testid="aquarium-time-zone"] a')).toBeFalsy();
   });
 });

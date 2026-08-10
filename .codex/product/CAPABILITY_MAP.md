@@ -16,6 +16,8 @@ discovered, selected and used for durable qualitative records.
 - Select Aquarium — accepted and implemented.
 - Record Observation — accepted and implemented.
 - List Observations — accepted and implemented.
+- Configure Aquarium Timezone — implemented for legacy Aquariums without a
+  canonical timezone; changing an existing timezone remains out of scope.
 
 These use cases share product language and the Aquarium as their subject, but
 they do not require a single large transaction boundary or a shared technical

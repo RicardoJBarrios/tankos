@@ -50,6 +50,28 @@ async function writeAquarium(
   );
 }
 
+async function updateAquarium(
+  id: string,
+  token: string | undefined,
+  fields: Record<string, unknown>,
+  updateMask = ['timeZone'],
+) {
+  const mask = updateMask
+    .map((field) => `updateMask.fieldPaths=${encodeURIComponent(field)}`)
+    .join('&');
+  return fetch(
+    `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/aquariums/${id}?${mask}`,
+    {
+      method: 'PATCH',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ fields }),
+    },
+  );
+}
+
 async function queryAquariums(ownerId: string, token?: string) {
   return fetch(
     'http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents:runQuery',
@@ -639,6 +661,69 @@ describe('Firestore Security Rules (Emulator Suite)', () => {
         keeperA.idToken,
       );
       expect(crossOwnerQuery.status).toBe(403);
+
+      const otherOwnerAquarium = createAquariumId();
+      expect(
+        (
+          await writeAquarium(
+            otherOwnerAquarium,
+            keeperB.localId,
+            keeperB.idToken,
+            'Acuario de otro keeper',
+          )
+        ).status,
+      ).toBe(200);
+
+      expect(
+        (
+          await updateAquarium(aquariumA, keeperA.idToken, {
+            timeZone: { stringValue: 'Atlantic/Canary' },
+          })
+        ).status,
+      ).toBe(200);
+      expect(
+        [401, 403].includes(
+          (
+            await updateAquarium(aquariumB, undefined, {
+              timeZone: { stringValue: 'Atlantic/Canary' },
+            })
+          ).status,
+        ),
+      ).toBe(true);
+      expect(
+        (
+          await updateAquarium(aquariumA, keeperB.idToken, {
+            timeZone: { stringValue: 'Europe/Madrid' },
+          })
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await updateAquarium(otherOwnerAquarium, keeperA.idToken, {
+            timeZone: { stringValue: 'Atlantic/Canary' },
+          })
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await updateAquarium(aquariumA, keeperA.idToken, {
+            timeZone: { stringValue: 'Europe/Madrid' },
+          })
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await updateAquarium(
+            aquariumA,
+            keeperA.idToken,
+            {
+              timeZone: { stringValue: 'Atlantic/Canary' },
+              name: { stringValue: 'Mutación no autorizada' },
+            },
+            ['timeZone', 'name'],
+          )
+        ).status,
+      ).toBe(403);
     },
     20000,
   );

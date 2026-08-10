@@ -38,6 +38,14 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'aquariums/timezone',
+        loadComponent: () =>
+          import('./aquariums/ui/configure-aquarium-time-zone-page').then(
+            ({ ConfigureAquariumTimeZonePage }) =>
+              ConfigureAquariumTimeZonePage,
+          ),
+      },
+      {
         path: 'aquariums/observations/new',
         loadComponent: () =>
           import('./aquariums/ui/record-observation-page').then(

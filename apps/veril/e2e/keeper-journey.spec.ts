@@ -28,6 +28,20 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
 
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Veril E2E' })).toBeVisible();
+  await expect(page.getByTestId('aquarium-time-zone-missing')).toContainText(
+    'Zona horaria sin configurar',
+  );
+  await page.getByRole('link', { name: 'Configurar zona horaria' }).click();
+  await page.locator('#aquarium-time-zone').fill('Atlantic/Canary');
+  await page.getByRole('checkbox').check();
+  await page.getByRole('button', { name: 'Configurar zona horaria' }).click();
+  await expect(page.getByRole('status')).toContainText(
+    'Zona horaria configurada correctamente.',
+  );
+  await page.getByRole('link', { name: 'Volver al acuario' }).first().click();
+  await expect(page.getByTestId('aquarium-time-zone')).toContainText(
+    'Atlantic/Canary',
+  );
 
   await page
     .getByLabel('Registrar')
@@ -200,7 +214,10 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
     .getByLabel('¿Qué quieres hacer cada semana?')
     .fill('Cambio semanal de agua.');
   await page.getByLabel('Primera fecha y hora').fill('2026-08-16T10:00');
-  await page.getByRole('checkbox').check();
+  await expect(page.getByRole('checkbox')).toHaveCount(0);
+  await expect(page.getByLabel('Zona horaria del acuario')).toHaveValue(
+    'Atlantic/Canary',
+  );
   await page.getByRole('button', { name: 'Programar cuidado semanal' }).click();
   await expect(page.getByRole('status')).toContainText(
     'Cuidado semanal programado correctamente.',

@@ -1,0 +1,87 @@
+<section
+  aria-labelledby="configure-aquarium-time-zone-title"
+  class="page-section"
+>
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title id="configure-aquarium-time-zone-title"
+        >Configurar zona horaria</mat-card-title
+      >
+      <mat-card-subtitle
+        >La zona horaria del acuario controla sus horas locales y la
+        programación de cuidados.</mat-card-subtitle
+      >
+    </mat-card-header>
+    <mat-card-content>
+      @if (state() === 'loading') {
+      <div class="feedback" role="status">Cargando el acuario…</div>
+      } @else if (state() === 'no-context') {
+      <p class="feedback" role="status">
+        Primero selecciona un acuario para configurar su zona horaria.
+      </p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums"
+        >Volver a mis acuarios</a
+      >
+      } @else if (state() === 'already-configured') {
+      <div class="feedback" role="status">
+        <p>La zona horaria de este acuario ya está configurada.</p>
+        <p><strong>Zona horaria:</strong> {{ configuredTimeZone() }}</p>
+      </div>
+      } @else if (state() === 'success') {
+      <div class="feedback feedback-success" role="status">
+        <p>Zona horaria configurada correctamente.</p>
+        <p><strong>Zona horaria:</strong> {{ configuredTimeZone() }}</p>
+      </div>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums/current"
+        >Volver al acuario</a
+      >
+      } @else if (state() === 'failure') {
+      <p class="feedback feedback-error" role="alert">
+        {{ errorMessage() || 'No se ha podido cargar el acuario seleccionado.'
+        }}
+      </p>
+      } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <mat-form-field appearance="outline">
+          <mat-label>Zona horaria</mat-label>
+          <input
+            matInput
+            id="aquarium-time-zone"
+            formControlName="timeZone"
+            list="aquarium-time-zones"
+            autocomplete="off"
+          />
+          <datalist id="aquarium-time-zones">
+            @for (timeZone of timeZones; track timeZone) {
+            <option [value]="timeZone"></option>
+            }
+          </datalist>
+          <mat-hint
+            >Se propone la zona de este dispositivo. Puedes elegir otra, por
+            ejemplo Atlantic/Canary.</mat-hint
+          >
+          @if (form.controls.timeZone.touched && form.controls.timeZone.invalid)
+          {
+          <mat-error>Indica una zona horaria.</mat-error>
+          }
+        </mat-form-field>
+        <label>
+          <input type="checkbox" formControlName="confirm" />
+          Confirmo que esta es la zona horaria física del acuario.
+        </label>
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="state() === 'saving'"
+        >
+          {{ state() === 'saving' ? 'Guardando…' : 'Configurar zona horaria' }}
+        </button>
+      </form>
+      }
+    </mat-card-content>
+    <mat-card-actions>
+      <a mat-button routerLink="/app/aquariums/current">Volver al acuario</a>
+    </mat-card-actions>
+  </mat-card>
+</section>

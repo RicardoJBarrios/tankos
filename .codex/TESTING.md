@@ -137,6 +137,15 @@ the legacy no-zone fallback and a DST transition. Affected Angular surfaces
 receive the resolved Aquarium timezone explicitly; their `datetime` attributes
 remain absolute ISO instants. Timezone tests must not rely on the CI host zone.
 
+`Configure Aquarium Timezone` adds application coverage for authentication,
+Active Context, IANA validation and the one-way already-configured rejection.
+Its emulator adapter coverage verifies the owner-scoped one-field update,
+malformed timezone rejection and first-writer transaction behavior. Rules tests
+cover owner, anonymous, cross-owner, already-configured and extra-field
+rejection paths. Angular and Playwright cover browser-timezone proposal,
+explicit confirmation, pending/success states and the configured Workspace
+presentation. No test rewrites historical instants or Care data.
+
 `Cancel Planned Care Work` adds application coverage for authentication,
 Active Context and the owner-scoped cancellation port. Its adapter integration
 coverage verifies deletion without creating a Care Work. Rules tests cover

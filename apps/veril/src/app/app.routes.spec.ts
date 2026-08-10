@@ -51,6 +51,14 @@ describe('appRoutes', () => {
     );
   });
 
+  it('defines the Configure Aquarium Timezone child route', () => {
+    const privateRoute = appRoutes.find((route) => route.path === 'app');
+
+    expect(privateRoute?.children?.map((route) => route.path)).toContain(
+      'aquariums/timezone',
+    );
+  });
+
   it('defines the Record Measurement child route', () => {
     const privateRoute = appRoutes.find((route) => route.path === 'app');
 

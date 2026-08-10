@@ -30,6 +30,16 @@
       <p>
         Este es tu espacio de trabajo para registrar y consultar información.
       </p>
+      @if (aquariumTimeZone()) {
+      <p data-testid="aquarium-time-zone">
+        <strong>Zona horaria:</strong> {{ aquariumTimeZone() }}
+      </p>
+      } @else {
+      <p data-testid="aquarium-time-zone-missing">
+        Zona horaria sin configurar.
+        <a routerLink="/app/aquariums/timezone">Configurar zona horaria</a>
+      </p>
+      }
     </div>
     <a mat-stroked-button routerLink="/app/aquariums">Cambiar de acuario</a>
   </header>

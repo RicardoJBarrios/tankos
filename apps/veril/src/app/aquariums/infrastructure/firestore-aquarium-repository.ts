@@ -6,12 +6,14 @@ import {
   doc,
   getDocs,
   query,
+  runTransaction,
   setDoc,
   where,
 } from 'firebase/firestore';
 import { z } from 'zod';
 import { Aquarium } from '../domain/aquarium';
 import {
+  AquariumTimeZone,
   AquariumName,
   aquariumIdFrom,
   aquariumTimeZoneFrom,
@@ -20,6 +22,8 @@ import {
   AquariumListItem,
   AquariumReader,
   AquariumRepository,
+  AquariumTimeZoneConfigurer,
+  ConfigureAquariumTimeZoneInput,
   EstablishAquariumInput,
 } from '../application/aquarium-ports';
 import { getFirebaseClient } from './firebase-client';
@@ -38,7 +42,7 @@ function parseAquariumDocument(data: unknown) {
 
 @Injectable()
 export class FirestoreAquariumRepository
-  implements AquariumRepository, AquariumReader
+  implements AquariumRepository, AquariumReader, AquariumTimeZoneConfigurer
 {
   async establish(input: EstablishAquariumInput): Promise<Aquarium> {
     const { firestore } = getFirebaseClient();
@@ -59,6 +63,33 @@ export class FirestoreAquariumRepository
       establishedAt: dto.establishedAt.toDate(),
       ...(dto.timeZone ? { timeZone: aquariumTimeZoneFrom(dto.timeZone) } : {}),
     };
+  }
+
+  async configure(
+    input: ConfigureAquariumTimeZoneInput,
+  ): Promise<AquariumTimeZone> {
+    const { firestore } = getFirebaseClient();
+    const timeZone = aquariumTimeZoneFrom(input.timeZone);
+    const reference = doc(firestore, 'aquariums', input.aquariumId);
+
+    await runTransaction(firestore, async (transaction) => {
+      const snapshot = await transaction.get(reference);
+      if (!snapshot.exists()) {
+        throw new Error('Aquarium not found');
+      }
+
+      const dto = parseAquariumDocument(snapshot.data());
+      if (dto.ownerId !== input.ownerKeeperId) {
+        throw new Error('Aquarium is not owned by the keeper');
+      }
+      if (dto.timeZone) {
+        throw new Error('Aquarium time zone is already configured');
+      }
+
+      transaction.update(reference, { timeZone });
+    });
+
+    return timeZone;
   }
 
   async listOwned(ownerKeeperId: string): Promise<readonly AquariumListItem[]> {

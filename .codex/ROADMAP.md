@@ -21,6 +21,12 @@ Observations`. Together they establish a private Aquarium context and the
 first durable qualitative evidence loop.
 They do not require public presentation, domain offline, App Check, E2E,
 Display, System, Equipment, Livestock or Timeline.
+`Configure Aquarium Timezone` is implemented as the one-way configuration of
+legacy Aquariums without a canonical timezone. Changing an existing timezone
+remains a separate future decision.
+
+This increment closes the legacy browser-local fallback without opening
+timezone editing semantics.
 
 ## 3. Measurements — current capability
 

@@ -7,6 +7,7 @@ import { EstablishAquariumInput } from '../application/aquarium-ports';
 import {
   AquariumName,
   aquariumIdFrom,
+  aquariumTimeZoneFrom,
   createAquariumId,
 } from '../domain/aquarium';
 import { getFirebaseClient } from './firebase-client';
@@ -95,6 +96,90 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
         (await repository.getOwned(keeperB.id, aquariumB.id))?.name.value,
       ).toBe('Acuario de B');
       await expect(repository.getOwned(keeperB.id, older.id)).rejects.toThrow();
+    },
+    20000,
+  );
+
+  emulatorTest(
+    'configures a missing timezone once without changing Aquarium data',
+    async () => {
+      const session = new FirebaseKeeperSession();
+      const repository = new FirestoreAquariumRepository();
+      const keeper = await session.requireAuthenticatedKeeper();
+      const aquarium = await repository.establish({
+        id: createAquariumId(),
+        name: AquariumName.create('Acuario timezone'),
+        ownerKeeperId: keeper.id,
+        establishedAt: new Date('2026-01-01T00:00:00.000Z'),
+      });
+
+      const configured = await repository.configure({
+        aquariumId: aquarium.id,
+        ownerKeeperId: keeper.id,
+        timeZone: aquariumTimeZoneFrom('Atlantic/Canary'),
+      });
+
+      expect(configured).toBe('Atlantic/Canary');
+      const { firestore } = getFirebaseClient();
+      const snapshot = await getDoc(doc(firestore, 'aquariums', aquarium.id));
+      expect(snapshot.data()).toMatchObject({
+        ownerId: keeper.id,
+        name: 'Acuario timezone',
+        timeZone: 'Atlantic/Canary',
+      });
+      expect(snapshot.data()?.['establishedAt'].toDate()).toEqual(
+        new Date('2026-01-01T00:00:00.000Z'),
+      );
+
+      await expect(
+        repository.configure({
+          aquariumId: aquarium.id,
+          ownerKeeperId: keeper.id,
+          timeZone: aquariumTimeZoneFrom('Europe/Madrid'),
+        }),
+      ).rejects.toThrow('already configured');
+    },
+    20000,
+  );
+
+  emulatorTest(
+    'allows exactly one winner for concurrent first configuration',
+    async () => {
+      const session = new FirebaseKeeperSession();
+      const repository = new FirestoreAquariumRepository();
+      const keeper = await session.requireAuthenticatedKeeper();
+      const aquarium = await repository.establish({
+        id: createAquariumId(),
+        name: AquariumName.create('Acuario concurrente'),
+        ownerKeeperId: keeper.id,
+        establishedAt: new Date(),
+      });
+
+      const results = await Promise.allSettled([
+        repository.configure({
+          aquariumId: aquarium.id,
+          ownerKeeperId: keeper.id,
+          timeZone: aquariumTimeZoneFrom('Atlantic/Canary'),
+        }),
+        repository.configure({
+          aquariumId: aquarium.id,
+          ownerKeeperId: keeper.id,
+          timeZone: aquariumTimeZoneFrom('Europe/Madrid'),
+        }),
+      ]);
+
+      expect(
+        results.filter((result) => result.status === 'fulfilled'),
+      ).toHaveLength(1);
+      expect(
+        results.filter((result) => result.status === 'rejected'),
+      ).toHaveLength(1);
+      const { firestore } = getFirebaseClient();
+      const snapshot = await getDoc(doc(firestore, 'aquariums', aquarium.id));
+      expect(['Atlantic/Canary', 'Europe/Madrid']).toContain(
+        snapshot.data()?.['timeZone'],
+      );
+      expect(snapshot.data()?.['name']).toBe('Acuario concurrente');
     },
     20000,
   );
