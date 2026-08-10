@@ -19,15 +19,19 @@ import {
 } from '../application/planned-care-timing';
 import { StopRecurringCarePlan } from '../application/stop-recurring-care-plan';
 import { PlannedCareWorkListItem } from '../application/aquarium-ports';
+import { AquariumTimeZone } from '../domain/aquarium';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
+import { FirestoreAquariumRepository } from '../infrastructure/firestore-aquarium-repository';
 import { FirestorePlannedCareWorkRepository } from '../infrastructure/firestore-planned-care-work-repository';
 import {
+  AQUARIUM_REPOSITORY,
   KEEPER_SESSION,
   PLANNED_CARE_WORK_CANCELLER,
   PLANNED_CARE_WORK_COMPLETER,
   PLANNED_CARE_WORK_READER,
   RECURRING_CARE_PLAN_STOPPER,
 } from './aquarium-providers';
+import { formatAquariumDateTime } from './aquarium-date-time';
 
 type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
 
@@ -57,6 +61,7 @@ type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
       useClass: FirestorePlannedCareWorkRepository,
     },
     { provide: KEEPER_SESSION, useClass: FirebaseKeeperSession },
+    { provide: AQUARIUM_REPOSITORY, useClass: FirestoreAquariumRepository },
     {
       provide: CompletePlannedCareWork,
       useFactory: () =>
@@ -104,6 +109,10 @@ export class ListPlannedCareWorkPage implements OnInit {
   private readonly stopRecurringCarePlan = inject(StopRecurringCarePlan);
   private readonly listPlannedCareWork = inject(ListPlannedCareWork);
   private readonly activeContext = inject(ActiveAquariumContext);
+  private readonly aquariumReader = inject(AQUARIUM_REPOSITORY, {
+    optional: true,
+  });
+  private readonly keeperSession = inject(KEEPER_SESSION, { optional: true });
 
   readonly state = signal<PageState>('loading');
   readonly items = signal<readonly PlannedCareWorkListItem[]>([]);
@@ -115,6 +124,7 @@ export class ListPlannedCareWorkPage implements OnInit {
   readonly stoppingId = signal<string | null>(null);
   readonly stoppingError = signal('');
   readonly now = signal(new Date());
+  readonly timeZone = signal<AquariumTimeZone | undefined>(undefined);
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -200,10 +210,7 @@ export class ListPlannedCareWorkPage implements OnInit {
   }
 
   formatPlannedFor(item: PlannedCareWorkListItem): string {
-    return new Intl.DateTimeFormat('es-ES', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(item.plannedFor);
+    return formatAquariumDateTime(item.plannedFor, this.timeZone());
   }
 
   timing(item: PlannedCareWorkListItem): PlannedCareTiming {
@@ -218,6 +225,7 @@ export class ListPlannedCareWorkPage implements OnInit {
   private async load(): Promise<void> {
     try {
       this.now.set(new Date());
+      await this.loadTimeZone();
       const items = await this.listPlannedCareWork.execute();
       this.items.set(items);
       this.state.set(items.length === 0 ? 'empty' : 'success');
@@ -227,5 +235,15 @@ export class ListPlannedCareWorkPage implements OnInit {
       );
       this.state.set('failure');
     }
+  }
+
+  private async loadTimeZone(): Promise<void> {
+    if (!this.aquariumReader || !this.keeperSession) return;
+    const aquariumId = this.activeContext.get();
+    if (!aquariumId) return;
+    const keeper = await this.keeperSession.requireAuthenticatedKeeper();
+    const aquarium = await this.aquariumReader.getOwned(keeper.id, aquariumId);
+    if (!aquarium) throw new Error('Aquarium not found');
+    this.timeZone.set(aquarium.timeZone);
   }
 }

@@ -15,10 +15,17 @@ import {
   MeasurementCursor,
   MeasurementListItem,
 } from '../application/aquarium-ports';
+import { AquariumTimeZone } from '../domain/aquarium';
+import { FirestoreAquariumRepository } from '../infrastructure/firestore-aquarium-repository';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
 import { FirestoreMeasurementRepository } from '../infrastructure/firestore-measurement-repository';
-import { KEEPER_SESSION, MEASUREMENT_READER } from './aquarium-providers';
+import {
+  AQUARIUM_REPOSITORY,
+  KEEPER_SESSION,
+  MEASUREMENT_READER,
+} from './aquarium-providers';
 import { measurementPresentationFor } from './measurement-presentations';
+import { formatAquariumDateTime } from './aquarium-date-time';
 
 type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
 
@@ -47,18 +54,24 @@ type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
       provide: MEASUREMENT_READER,
       useClass: FirestoreMeasurementRepository,
     },
+    { provide: AQUARIUM_REPOSITORY, useClass: FirestoreAquariumRepository },
     { provide: KEEPER_SESSION, useClass: FirebaseKeeperSession },
   ],
 })
 export class ListMeasurementsPage implements OnInit {
   private readonly listMeasurements = inject(ListMeasurements);
   private readonly activeContext = inject(ActiveAquariumContext);
+  private readonly aquariumReader = inject(AQUARIUM_REPOSITORY, {
+    optional: true,
+  });
+  private readonly keeperSession = inject(KEEPER_SESSION, { optional: true });
 
   readonly state = signal<PageState>('loading');
   readonly items = signal<readonly MeasurementListItem[]>([]);
   readonly nextCursor = signal<MeasurementCursor | undefined>(undefined);
   readonly isLoadingMore = signal(false);
   readonly errorMessage = signal('');
+  readonly timeZone = signal<AquariumTimeZone | undefined>(undefined);
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -105,14 +118,12 @@ export class ListMeasurementsPage implements OnInit {
   }
 
   formatMeasuredAt(item: MeasurementListItem): string {
-    return new Intl.DateTimeFormat('es-ES', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(item.measuredAt);
+    return formatAquariumDateTime(item.measuredAt, this.timeZone());
   }
 
   private async loadFirstPage(): Promise<void> {
     try {
+      await this.loadTimeZone();
       const page = await this.listMeasurements.execute();
       this.items.set(page.items);
       this.nextCursor.set(page.nextCursor);
@@ -123,5 +134,15 @@ export class ListMeasurementsPage implements OnInit {
       );
       this.state.set('failure');
     }
+  }
+
+  private async loadTimeZone(): Promise<void> {
+    if (!this.aquariumReader || !this.keeperSession) return;
+    const aquariumId = this.activeContext.get();
+    if (!aquariumId) return;
+    const keeper = await this.keeperSession.requireAuthenticatedKeeper();
+    const aquarium = await this.aquariumReader.getOwned(keeper.id, aquariumId);
+    if (!aquarium) throw new Error('Aquarium not found');
+    this.timeZone.set(aquarium.timeZone);
   }
 }

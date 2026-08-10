@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  Input,
   OnInit,
   inject,
   signal,
@@ -16,9 +17,11 @@ import {
   PlannedCareTiming,
 } from '../application/planned-care-timing';
 import { PlannedCareWorkListItem } from '../application/aquarium-ports';
+import { AquariumTimeZone } from '../domain/aquarium';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
 import { FirestorePlannedCareWorkRepository } from '../infrastructure/firestore-planned-care-work-repository';
 import { KEEPER_SESSION, PLANNED_CARE_WORK_READER } from './aquarium-providers';
+import { formatAquariumDateTime } from './aquarium-date-time';
 
 const UPCOMING_CARE_PREVIEW_LIMIT = 3;
 type PreviewState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
@@ -52,6 +55,8 @@ type PreviewState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
   ],
 })
 export class UpcomingCarePreview implements OnInit {
+  @Input() timeZone?: AquariumTimeZone;
+
   private readonly listPlannedCareWork = inject(ListPlannedCareWork);
   private readonly activeContext = inject(ActiveAquariumContext);
 
@@ -75,10 +80,7 @@ export class UpcomingCarePreview implements OnInit {
   }
 
   formatPlannedFor(item: PlannedCareWorkListItem): string {
-    return new Intl.DateTimeFormat('es-ES', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(item.plannedFor);
+    return formatAquariumDateTime(item.plannedFor, this.timeZone);
   }
 
   timing(item: PlannedCareWorkListItem): PlannedCareTiming {

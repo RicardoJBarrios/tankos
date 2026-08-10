@@ -51,8 +51,10 @@ remain future decisions.
 - Complete Planned Care Work — accepted and implemented.
 - Cancel Planned Care Work — accepted and implemented.
 - Establish Weekly Recurring Care — accepted and implemented.
-- Review Due Care — Definition of Ready; derived overdue/upcoming awareness is
-  the next implementation increment.
+- Review Due Care — accepted and implemented; derived overdue/upcoming
+  awareness remains presentation state.
+- Aquarium-local Time Presentation — accepted and implemented as a
+  cross-cutting presentation policy.
 - Monthly recurrence, multiple weekdays, editing and pause — deferred.
 
 ### Timeline — future increments

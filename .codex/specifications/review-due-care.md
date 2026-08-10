@@ -59,10 +59,12 @@ Due classification compares absolute `Date` instants and never compares naive
 local strings. Recurring Care has already resolved DST-sensitive local times
 into `plannedFor`; review does not repeat recurrence resolution.
 
-This increment does not change the existing date/time display contract or add a
-timezone query. A future timezone-aware presentation change must use the
-Aquarium's authoritative IANA timezone in the application/UI read path rather
-than the browser timezone, but that is a separate decision.
+This increment did not change the date/time display contract or add a timezone
+query. The accepted follow-up policy is defined in
+[aquarium-local-time-presentation.md](aquarium-local-time-presentation.md): configured Aquariums must use their
+authoritative IANA timezone for user-visible timestamps; legacy Aquariums
+without one remain an explicit browser-timezone compatibility case until their
+timezone is established.
 
 ## Persistence and cost
 
@@ -100,7 +102,8 @@ accepted.
 
 Notification permission, reminder offsets, Push/FCM transport, trusted
 background scheduling, cancellation/completion delivery guarantees and
-timezone-aware date presentation remain outside this increment.
+timezone-aware date presentation was outside this increment and is specified
+separately.
 
 ## Definition of Ready
 

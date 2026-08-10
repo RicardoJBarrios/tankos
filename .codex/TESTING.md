@@ -131,6 +131,12 @@ canonical Playwright journey uses a deterministic past timestamp and verifies
 the overdue meaning through both surfaces. It does not add a query, persistence
 or Rules test because due-awareness derives from already-loaded Planned Care.
 
+Aquarium-local time presentation uses deterministic `Intl.DateTimeFormat` tests
+with explicit IANA zones, including Atlantic/Canary, travel-zone comparisons,
+the legacy no-zone fallback and a DST transition. Affected Angular surfaces
+receive the resolved Aquarium timezone explicitly; their `datetime` attributes
+remain absolute ISO instants. Timezone tests must not rely on the CI host zone.
+
 `Cancel Planned Care Work` adds application coverage for authentication,
 Active Context and the owner-scoped cancellation port. Its adapter integration
 coverage verifies deletion without creating a Care Work. Rules tests cover

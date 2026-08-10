@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 import { ListPlannedCareWork } from '../application/list-planned-care-work';
-import { aquariumIdFrom } from '../domain/aquarium';
+import { aquariumIdFrom, aquariumTimeZoneFrom } from '../domain/aquarium';
 import { UpcomingCarePreview } from './upcoming-care-preview';
 
 const aquariumId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
@@ -91,6 +91,7 @@ describe('UpcomingCarePreview', () => {
   it('renders up to three ordered items and the planned date', async () => {
     execute.mockResolvedValue(items);
     const spectator = createComponent();
+    spectator.component.timeZone = aquariumTimeZoneFrom('Atlantic/Canary');
     await spectator.fixture.whenStable();
     spectator.detectChanges();
 
@@ -101,6 +102,7 @@ describe('UpcomingCarePreview', () => {
     );
     expect(spectator.query('time')?.textContent).toContain('Previsto para');
     expect(spectator.query('.care-timing')?.textContent).toContain('Pendiente');
+    expect(spectator.query('time')?.textContent).toContain('11:00');
   });
 
   it('shows overdue text without changing the planned timestamp', async () => {

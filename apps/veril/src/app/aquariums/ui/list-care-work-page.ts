@@ -12,9 +12,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { CareWorkListItem } from '../application/aquarium-ports';
 import { ListCareWork } from '../application/list-care-work';
+import { AquariumTimeZone } from '../domain/aquarium';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
+import { FirestoreAquariumRepository } from '../infrastructure/firestore-aquarium-repository';
 import { FirestoreCareWorkRepository } from '../infrastructure/firestore-care-work-repository';
-import { CARE_WORK_READER, KEEPER_SESSION } from './aquarium-providers';
+import {
+  AQUARIUM_REPOSITORY,
+  CARE_WORK_READER,
+  KEEPER_SESSION,
+} from './aquarium-providers';
+import { formatAquariumDateTime } from './aquarium-date-time';
 
 type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
 
@@ -40,16 +47,22 @@ type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
         ),
     },
     { provide: CARE_WORK_READER, useClass: FirestoreCareWorkRepository },
+    { provide: AQUARIUM_REPOSITORY, useClass: FirestoreAquariumRepository },
     { provide: KEEPER_SESSION, useClass: FirebaseKeeperSession },
   ],
 })
 export class ListCareWorkPage implements OnInit {
   private readonly listCareWork = inject(ListCareWork);
   private readonly activeContext = inject(ActiveAquariumContext);
+  private readonly aquariumReader = inject(AQUARIUM_REPOSITORY, {
+    optional: true,
+  });
+  private readonly keeperSession = inject(KEEPER_SESSION, { optional: true });
 
   readonly state = signal<PageState>('loading');
   readonly items = signal<readonly CareWorkListItem[]>([]);
   readonly errorMessage = signal('');
+  readonly timeZone = signal<AquariumTimeZone | undefined>(undefined);
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -66,14 +79,12 @@ export class ListCareWorkPage implements OnInit {
   }
 
   formatPerformedAt(item: CareWorkListItem): string {
-    return new Intl.DateTimeFormat('es-ES', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(item.performedAt);
+    return formatAquariumDateTime(item.performedAt, this.timeZone());
   }
 
   private async loadCareWork(): Promise<void> {
     try {
+      await this.loadTimeZone();
       const items = await this.listCareWork.execute();
       this.items.set(items);
       this.state.set(items.length === 0 ? 'empty' : 'success');
@@ -83,5 +94,15 @@ export class ListCareWorkPage implements OnInit {
       );
       this.state.set('failure');
     }
+  }
+
+  private async loadTimeZone(): Promise<void> {
+    if (!this.aquariumReader || !this.keeperSession) return;
+    const aquariumId = this.activeContext.get();
+    if (!aquariumId) return;
+    const keeper = await this.keeperSession.requireAuthenticatedKeeper();
+    const aquarium = await this.aquariumReader.getOwned(keeper.id, aquariumId);
+    if (!aquarium) throw new Error('Aquarium not found');
+    this.timeZone.set(aquarium.timeZone);
   }
 }

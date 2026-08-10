@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  Input,
   OnInit,
   inject,
   signal,
@@ -10,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { CurrentMeasurementValue } from '../application/aquarium-ports';
 import { ReviewCurrentMeasurements } from '../application/review-current-measurements';
+import { AquariumTimeZone } from '../domain/aquarium';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
 import { FirestoreMeasurementRepository } from '../infrastructure/firestore-measurement-repository';
 import {
@@ -17,6 +19,7 @@ import {
   KEEPER_SESSION,
 } from './aquarium-providers';
 import { measurementPresentationFor } from './measurement-presentations';
+import { formatAquariumDateTime } from './aquarium-date-time';
 
 type SectionState = 'loading' | 'ready' | 'failure';
 
@@ -44,6 +47,8 @@ type SectionState = 'loading' | 'ready' | 'failure';
   ],
 })
 export class CurrentMeasurementsSection implements OnInit {
+  @Input() timeZone?: AquariumTimeZone;
+
   private readonly reviewCurrentMeasurements = inject(
     ReviewCurrentMeasurements,
   );
@@ -65,10 +70,7 @@ export class CurrentMeasurementsSection implements OnInit {
 
   formatMeasuredAt(item: CurrentMeasurementValue): string {
     return item.measuredAt
-      ? new Intl.DateTimeFormat('es-ES', {
-          dateStyle: 'short',
-          timeStyle: 'short',
-        }).format(item.measuredAt)
+      ? formatAquariumDateTime(item.measuredAt, this.timeZone)
       : '';
   }
 

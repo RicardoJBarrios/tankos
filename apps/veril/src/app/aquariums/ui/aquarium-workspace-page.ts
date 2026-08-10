@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ListMyAquariums } from '../application/list-my-aquariums';
+import { AquariumTimeZone } from '../domain/aquarium';
 import { AQUARIUM_REPOSITORY, KEEPER_SESSION } from './aquarium-providers';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
 import { FirestoreAquariumRepository } from '../infrastructure/firestore-aquarium-repository';
@@ -51,6 +52,7 @@ export class AquariumWorkspacePage implements OnInit {
 
   readonly state = signal<WorkspaceState>('loading');
   readonly aquariumName = signal<string | null>(null);
+  readonly aquariumTimeZone = signal<AquariumTimeZone | undefined>(undefined);
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -77,6 +79,7 @@ export class AquariumWorkspacePage implements OnInit {
       }
 
       this.aquariumName.set(aquarium.name.value);
+      this.aquariumTimeZone.set(aquarium.timeZone);
       this.state.set('ready');
     } catch {
       this.state.set('failure');

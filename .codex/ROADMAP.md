@@ -47,8 +47,9 @@ truth. Complete pagination and materialization remain deferred.
 Care records. Planning, completing and cancelling concrete Planned Care Work
 are also implemented without a generic Task lifecycle. Weekly recurring Care
 is implemented as a Care-specific calendar definition plus one concrete
-outstanding occurrence. The next ready increment is `Review Due Care`, a
-derived presentation of overdue and upcoming plans. Reminders, monthly rules,
+outstanding occurrence. `Review Due Care` is implemented as a derived
+presentation of overdue and upcoming plans. Aquarium-local time presentation
+is now an implemented cross-cutting policy. Reminders, monthly rules,
 multiple weekdays, editing, pause, notifications and Maintenance subtypes
 remain future decisions. Completed Care Work is included in the bounded recent
 Timeline read but remains its own source of truth.

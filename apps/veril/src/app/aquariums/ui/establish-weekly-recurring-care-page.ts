@@ -19,7 +19,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { EstablishWeeklyRecurringCare } from '../application/establish-weekly-recurring-care';
-import { aquariumTimeZoneFrom } from '../domain/aquarium';
+import { AquariumTimeZone, aquariumTimeZoneFrom } from '../domain/aquarium';
 import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session';
 import { FirestoreAquariumRepository } from '../infrastructure/firestore-aquarium-repository';
 import {
@@ -28,6 +28,7 @@ import {
   RECURRING_CARE_PLAN_WRITER,
 } from './aquarium-providers';
 import { FirestorePlannedCareWorkRepository } from '../infrastructure/firestore-planned-care-work-repository';
+import { formatAquariumDateTimeLocal } from './aquarium-date-time';
 
 type PageState =
   | 'loading'
@@ -42,10 +43,9 @@ function defaultTimeZone(): string {
   return new Intl.DateTimeFormat().resolvedOptions().timeZone || '';
 }
 
-function defaultDateTime(): string {
+function defaultDateTime(timeZone?: AquariumTimeZone): string {
   const now = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
+  return formatAquariumDateTimeLocal(now, timeZone);
 }
 
 @Component({
@@ -172,6 +172,9 @@ export class EstablishWeeklyRecurringCarePage implements OnInit {
         this.aquariumTimeZone.set(aquarium.timeZone);
         this.form.controls.timeZone.setValue(aquarium.timeZone);
       }
+      this.form.controls.firstOccurrenceLocal.setValue(
+        defaultDateTime(aquarium.timeZone),
+      );
       this.state.set('ready');
     } catch {
       this.state.set('failure');

@@ -9,7 +9,7 @@ import {
   ObservationTimelineItem,
   ReviewRecentTimeline,
 } from '../application/review-recent-timeline';
-import { aquariumIdFrom } from '../domain/aquarium';
+import { aquariumIdFrom, aquariumTimeZoneFrom } from '../domain/aquarium';
 import { RecentActivityPreview } from './recent-activity-preview';
 
 const aquariumId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
@@ -116,6 +116,7 @@ describe('RecentActivityPreview', () => {
   it('renders at most three recent items and links to full activity', async () => {
     execute.mockResolvedValue([observation, measurement, careWork]);
     const spectator = createComponent();
+    spectator.component.timeZone = aquariumTimeZoneFrom('Atlantic/Canary');
     await settle(spectator);
 
     expect(spectator.queryAll('li')).toHaveLength(3);
@@ -125,6 +126,7 @@ describe('RecentActivityPreview', () => {
     expect(
       spectator.query('[data-testid="recent-activity-preview"]')?.textContent,
     ).toContain('23.5 °C');
+    expect(spectator.queryAll('time')[0]?.textContent).toContain('11:00');
     expect(
       spectator.query('a[href="/app/aquariums/timeline"]')?.textContent,
     ).toContain('Ver toda la actividad');

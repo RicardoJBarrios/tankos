@@ -5,7 +5,7 @@ import { ActiveAquariumContext } from '../application/active-aquarium-context';
 import { ActiveAquariumContextStorage } from '../application/active-aquarium-context-storage';
 import { ListObservations } from '../application/list-observations';
 import { ObservationListItem } from '../application/aquarium-ports';
-import { aquariumIdFrom } from '../domain/aquarium';
+import { aquariumIdFrom, aquariumTimeZoneFrom } from '../domain/aquarium';
 import { ListObservationsPage } from './list-observations-page';
 
 const aquariumId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
@@ -101,6 +101,7 @@ describe('ListObservationsPage', () => {
   it('renders qualitative evidence and its recorded time', async () => {
     execute.mockResolvedValue([item]);
     const spectator = createComponent();
+    spectator.component.timeZone.set(aquariumTimeZoneFrom('Atlantic/Canary'));
     await settle(spectator);
 
     expect(spectator.query('li')?.textContent).toContain(
@@ -109,6 +110,7 @@ describe('ListObservationsPage', () => {
     expect(spectator.query('time')?.getAttribute('datetime')).toBe(
       item.recordedAt.toISOString(),
     );
+    expect(spectator.query('time')?.textContent).toContain('11:00');
   });
 
   it('shows a recoverable error', async () => {

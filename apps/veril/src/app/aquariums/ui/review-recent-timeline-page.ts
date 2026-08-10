@@ -17,7 +17,9 @@ import {
   ReviewRecentTimeline,
   TimelineItem,
 } from '../application/review-recent-timeline';
+import { AquariumTimeZone } from '../domain/aquarium';
 import {
+  AQUARIUM_REPOSITORY,
   KEEPER_SESSION,
   TIMELINE_MEASUREMENT_READER,
   TIMELINE_OBSERVATION_READER,
@@ -27,7 +29,9 @@ import { FirebaseKeeperSession } from '../infrastructure/firebase-keeper-session
 import { FirestoreMeasurementRepository } from '../infrastructure/firestore-measurement-repository';
 import { FirestoreObservationRepository } from '../infrastructure/firestore-observation-repository';
 import { FirestoreCareWorkRepository } from '../infrastructure/firestore-care-work-repository';
+import { FirestoreAquariumRepository } from '../infrastructure/firestore-aquarium-repository';
 import { measurementPresentationFor } from './measurement-presentations';
+import { formatAquariumDateTime } from './aquarium-date-time';
 
 type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
 
@@ -63,16 +67,22 @@ type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
       useClass: FirestoreMeasurementRepository,
     },
     { provide: CARE_WORK_READER, useClass: FirestoreCareWorkRepository },
+    { provide: AQUARIUM_REPOSITORY, useClass: FirestoreAquariumRepository },
     { provide: KEEPER_SESSION, useClass: FirebaseKeeperSession },
   ],
 })
 export class ReviewRecentTimelinePage implements OnInit {
   private readonly reviewTimeline = inject(ReviewRecentTimeline);
   private readonly activeContext = inject(ActiveAquariumContext);
+  private readonly aquariumReader = inject(AQUARIUM_REPOSITORY, {
+    optional: true,
+  });
+  private readonly keeperSession = inject(KEEPER_SESSION, { optional: true });
 
   readonly state = signal<PageState>('loading');
   readonly items = signal<readonly TimelineItem[]>([]);
   readonly errorMessage = signal('');
+  readonly timeZone = signal<AquariumTimeZone | undefined>(undefined);
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -109,14 +119,12 @@ export class ReviewRecentTimelinePage implements OnInit {
   }
 
   formatDate(date: Date): string {
-    return new Intl.DateTimeFormat('es-ES', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(date);
+    return formatAquariumDateTime(date, this.timeZone());
   }
 
   private async loadTimeline(): Promise<void> {
     try {
+      await this.loadTimeZone();
       const items = await this.reviewTimeline.execute();
       this.items.set(items);
       this.state.set(items.length === 0 ? 'empty' : 'success');
@@ -126,5 +134,15 @@ export class ReviewRecentTimelinePage implements OnInit {
       );
       this.state.set('failure');
     }
+  }
+
+  private async loadTimeZone(): Promise<void> {
+    if (!this.aquariumReader || !this.keeperSession) return;
+    const aquariumId = this.activeContext.get();
+    if (!aquariumId) return;
+    const keeper = await this.keeperSession.requireAuthenticatedKeeper();
+    const aquarium = await this.aquariumReader.getOwned(keeper.id, aquariumId);
+    if (!aquarium) throw new Error('Aquarium not found');
+    this.timeZone.set(aquarium.timeZone);
   }
 }

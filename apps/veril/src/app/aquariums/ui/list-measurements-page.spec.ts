@@ -8,7 +8,7 @@ import {
   MeasurementListItem,
   MeasurementPage,
 } from '../application/aquarium-ports';
-import { aquariumIdFrom } from '../domain/aquarium';
+import { aquariumIdFrom, aquariumTimeZoneFrom } from '../domain/aquarium';
 import { ListMeasurementsPage } from './list-measurements-page';
 
 const aquariumId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
@@ -113,10 +113,12 @@ describe('ListMeasurementsPage', () => {
     } satisfies MeasurementPage;
     execute.mockResolvedValue(page);
     const spectator = createComponent();
+    spectator.component.timeZone.set(aquariumTimeZoneFrom('Atlantic/Canary'));
     await settle(spectator);
 
     expect(spectator.query('li')?.textContent).toContain('Temperatura');
     expect(spectator.query('li')?.textContent).toContain('23.5 °C');
+    expect(spectator.query('time')?.textContent).toContain('11:00');
     expect(spectator.query('button')?.textContent).toContain('Cargar más');
   });
 

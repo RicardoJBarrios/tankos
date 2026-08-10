@@ -7,7 +7,7 @@ import { CancelPlannedCareWork } from '../application/cancel-planned-care-work';
 import { CompletePlannedCareWork } from '../application/complete-planned-care-work';
 import { ListPlannedCareWork } from '../application/list-planned-care-work';
 import { StopRecurringCarePlan } from '../application/stop-recurring-care-plan';
-import { aquariumIdFrom } from '../domain/aquarium';
+import { aquariumIdFrom, aquariumTimeZoneFrom } from '../domain/aquarium';
 import { ListPlannedCareWorkPage } from './list-planned-care-work-page';
 
 const aquariumId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
@@ -91,6 +91,7 @@ describe('ListPlannedCareWorkPage', () => {
 
     execute.mockResolvedValueOnce([item]);
     const populated = createComponent();
+    populated.component.timeZone.set(aquariumTimeZoneFrom('Atlantic/Canary'));
     await populated.fixture.whenStable();
     populated.detectChanges();
     expect(
@@ -98,6 +99,7 @@ describe('ListPlannedCareWorkPage', () => {
     ).toContain('Limpiar el skimmer');
     expect(populated.query('time')?.textContent).toContain('Previsto para');
     expect(populated.query('.care-timing')?.textContent).toContain('Pendiente');
+    expect(populated.query('time')?.textContent).toContain('11:00');
   });
 
   it('shows overdue text for a past plan', async () => {

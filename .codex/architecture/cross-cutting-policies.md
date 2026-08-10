@@ -24,7 +24,14 @@ making the domain depend on browser APIs.
   selected transport.
 - Convert to domain time types through a mapper; do not leak Firebase Timestamp
   into domain code.
-- Display using the user's timezone and locale.
+- Display user-visible timestamps that describe an Aquarium, its evidence or
+  its Care using the Aquarium's authoritative IANA time zone and the
+  application's Spanish locale. A legacy Aquarium without `timeZone` is an
+  explicit compatibility exception: its UI may use the browser time zone
+  until the Aquarium timezone is established, but must not present that value
+  as Aquarium-local.
+- The accepted presentation scope is specified in
+  [`aquarium-local-time-presentation.md`](../specifications/aquarium-local-time-presentation.md).
 - For calendar commitments such as recurring Care, calculate from the
   Aquarium's authoritative IANA time zone. UI may localize language and show a
   user-local equivalent, but must keep the Aquarium schedule and its zone

@@ -1,6 +1,7 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/vitest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ReviewCurrentMeasurements } from '../application/review-current-measurements';
+import { aquariumTimeZoneFrom } from '../domain/aquarium';
 import { CurrentMeasurementsSection } from './current-measurements-section';
 
 describe('CurrentMeasurementsSection', () => {
@@ -55,6 +56,7 @@ describe('CurrentMeasurementsSection', () => {
       },
     ]);
     const spectator = createComponent();
+    spectator.component.timeZone = aquariumTimeZoneFrom('Atlantic/Canary');
     await settle(spectator);
 
     expect(
@@ -66,6 +68,7 @@ describe('CurrentMeasurementsSection', () => {
     expect(
       spectator.query('[data-testid="current-measurements"]')?.textContent,
     ).toContain('Sin datos');
+    expect(spectator.query('time')?.textContent).toContain('11:00');
   });
 
   it('shows a recoverable error', () => {

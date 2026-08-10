@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  Input,
   OnInit,
   inject,
   signal,
@@ -17,6 +18,7 @@ import {
   ReviewRecentTimeline,
   TimelineItem,
 } from '../application/review-recent-timeline';
+import { AquariumTimeZone } from '../domain/aquarium';
 import {
   CARE_WORK_READER,
   KEEPER_SESSION,
@@ -28,6 +30,7 @@ import { FirestoreCareWorkRepository } from '../infrastructure/firestore-care-wo
 import { FirestoreMeasurementRepository } from '../infrastructure/firestore-measurement-repository';
 import { FirestoreObservationRepository } from '../infrastructure/firestore-observation-repository';
 import { measurementPresentationFor } from './measurement-presentations';
+import { formatAquariumDateTime } from './aquarium-date-time';
 
 const RECENT_ACTIVITY_PREVIEW_LIMIT = 3;
 type PreviewState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
@@ -68,6 +71,8 @@ type PreviewState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
   ],
 })
 export class RecentActivityPreview implements OnInit {
+  @Input() timeZone?: AquariumTimeZone;
+
   private readonly reviewTimeline = inject(ReviewRecentTimeline);
   private readonly activeContext = inject(ActiveAquariumContext);
 
@@ -110,10 +115,7 @@ export class RecentActivityPreview implements OnInit {
   }
 
   formatDate(date: Date): string {
-    return new Intl.DateTimeFormat('es-ES', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(date);
+    return formatAquariumDateTime(date, this.timeZone);
   }
 
   private async load(): Promise<void> {

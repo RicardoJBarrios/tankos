@@ -9,7 +9,7 @@ import {
   CareWorkTimelineItem,
   ReviewRecentTimeline,
 } from '../application/review-recent-timeline';
-import { aquariumIdFrom } from '../domain/aquarium';
+import { aquariumIdFrom, aquariumTimeZoneFrom } from '../domain/aquarium';
 import { ReviewRecentTimelinePage } from './review-recent-timeline-page';
 
 const aquariumId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
@@ -110,6 +110,7 @@ describe('ReviewRecentTimelinePage', () => {
   it('renders mixed results with their semantic labels', async () => {
     execute.mockResolvedValue([observation, measurement, careWork]);
     const spectator = createComponent();
+    spectator.component.timeZone.set(aquariumTimeZoneFrom('Atlantic/Canary'));
     await settle(spectator);
 
     expect(
@@ -130,6 +131,7 @@ describe('ReviewRecentTimelinePage', () => {
     expect(spectator.queryAll('time')[2]?.getAttribute('datetime')).toBe(
       '2026-08-08T08:00:00.000Z',
     );
+    expect(spectator.queryAll('time')[0]?.textContent).toContain('11:00');
   });
 
   it('shows an actionable empty state', async () => {
