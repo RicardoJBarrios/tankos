@@ -163,6 +163,7 @@ export class FirestoreMeasurementRepository
     ownerKeeperId: string,
     aquariumId: AquariumId,
     cursor?: MeasurementCursor,
+    requestedPageSize?: number,
   ): Promise<MeasurementPage> {
     const { firestore } = getFirebaseClient();
     const measurements = collection(firestore, 'measurements');
@@ -175,7 +176,10 @@ export class FirestoreMeasurementRepository
         orderBy('recordedAt', 'desc'),
         orderBy(documentId(), 'asc'),
       ),
-      request: cursor ? { cursor, pageSize: MEASUREMENT_PAGE_SIZE } : undefined,
+      request:
+        cursor || requestedPageSize
+          ? { ...(cursor ? { cursor } : {}), pageSize: requestedPageSize }
+          : undefined,
       decodeCursor: (value) => {
         const decoded = decodeCursor(value as MeasurementCursor);
         return [

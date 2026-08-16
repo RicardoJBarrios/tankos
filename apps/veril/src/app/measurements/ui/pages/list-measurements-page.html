@@ -80,16 +80,14 @@
 
   @if (errorMessage()) {
   <p class="feedback feedback-error" role="alert">{{ errorMessage() }}</p>
-  } @if (nextCursor()) {
-  <button
-    mat-stroked-button
-    type="button"
-    (click)="loadMore()"
-    [disabled]="isLoadingMore()"
-  >
-    {{ isLoadingMore() ? 'Cargando…' : 'Cargar más' }}
-  </button>
   }
+  <veril-pagination-controls
+    [hasNextPage]="!!nextCursor()"
+    [isLoading]="isLoadingMore()"
+    [pageSize]="pageSize()"
+    (nextPage)="loadMore()"
+    (pageSizeChange)="changePageSize($event)"
+  />
 
   <a mat-button routerLink="/app/aquariums/measurements/new"
     >Registrar medición</a
