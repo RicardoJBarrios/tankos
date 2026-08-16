@@ -83,6 +83,8 @@ claims or species-specific husbandry values.
   reviewed draft and creates the next immutable revision.
 - Editorial history exposes published revisions as read-only documentary
   records without allowing historical content to be changed.
+- Editorial keepers can retire the current profile while preserving its
+  published revision history for traceability.
 
 ## Deferred scope
 

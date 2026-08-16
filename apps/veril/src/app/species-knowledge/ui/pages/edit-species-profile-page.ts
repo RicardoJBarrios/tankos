@@ -14,6 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { GetPublishedSpeciesProfile } from '../../application/get-published-species-profile';
 import { PublishSpeciesProfileDraft } from '../../application/publish-species-profile-draft';
 import { ReviewSpeciesProfileDraft } from '../../application/review-species-profile-draft';
+import { RetireSpeciesProfile } from '../../application/retire-species-profile';
 import {
   SpeciesProfile,
   SpeciesProfileDraft,
@@ -25,6 +26,7 @@ import {
   SPECIES_PROFILE_DRAFT_WRITER,
   SPECIES_PROFILE_PUBLISHER,
   SPECIES_PROFILE_REVIEWER,
+  SPECIES_PROFILE_RETIRER,
 } from '../providers';
 
 @Component({
@@ -60,6 +62,9 @@ export class EditSpeciesProfilePage implements OnInit {
   private readonly reviewDraftUseCase = new ReviewSpeciesProfileDraft(
     inject(SPECIES_PROFILE_REVIEWER),
   );
+  private readonly retireProfileUseCase = new RetireSpeciesProfile(
+    inject(SPECIES_PROFILE_RETIRER),
+  );
   private readonly route = inject(ActivatedRoute);
   readonly state = signal<
     | 'loading'
@@ -68,6 +73,7 @@ export class EditSpeciesProfilePage implements OnInit {
     | 'saved'
     | 'publishing'
     | 'published'
+    | 'retired'
     | 'failure'
   >('loading');
   readonly profile = signal<SpeciesProfile | null>(null);
@@ -125,6 +131,18 @@ export class EditSpeciesProfilePage implements OnInit {
       this.errorMessage.set(
         'No se ha podido marcar el borrador como revisado.',
       );
+      this.state.set('failure');
+    }
+  }
+
+  async retireProfile(): Promise<void> {
+    const current = this.profile();
+    if (!current) return;
+    try {
+      await this.retireProfileUseCase.execute(current.id);
+      this.state.set('retired');
+    } catch {
+      this.errorMessage.set('No se ha podido retirar el perfil.');
       this.state.set('failure');
     }
   }

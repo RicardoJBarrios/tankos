@@ -60,6 +60,10 @@
       <p class="success" role="status">Borrador guardado.</p>
       } @if (state() === 'published') {
       <p class="success" role="status">Revisión publicada.</p>
+      } @if (state() === 'retired') {
+      <p class="success" role="status">
+        Perfil retirado. El historial permanece disponible.
+      </p>
       } @if (state() === 'failure') {
       <p class="error" role="alert">{{ errorMessage() }}</p>
       }
@@ -86,6 +90,9 @@
         (click)="publishDraft()"
       >
         {{ state() === 'publishing' ? 'Publicando…' : 'Publicar revisión' }}
+      </button>
+      <button mat-button type="button" (click)="retireProfile()">
+        Retirar perfil
       </button>
     </mat-card-content>
   </mat-card>

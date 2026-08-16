@@ -40,4 +40,8 @@ export interface SpeciesProfileReviewer {
   reviewDraft(id: SpeciesProfileId): Promise<void>;
 }
 
+export interface SpeciesProfileRetirer {
+  retireProfile(id: SpeciesProfileId): Promise<void>;
+}
+
 export type { SpeciesProfileDraftStatus };

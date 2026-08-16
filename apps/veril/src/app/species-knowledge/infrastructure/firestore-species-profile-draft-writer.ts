@@ -14,6 +14,7 @@ import {
   SpeciesProfileDraftWriter,
   SpeciesProfilePublisher,
   SpeciesProfileReviewer,
+  SpeciesProfileRetirer,
 } from '../application/ports';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { speciesProfileIdFrom } from '../domain/species-profile';
@@ -70,7 +71,8 @@ export class FirestoreSpeciesProfileDraftWriter
     SpeciesProfileDraftWriter,
     SpeciesProfileDraftReader,
     SpeciesProfilePublisher,
-    SpeciesProfileReviewer
+    SpeciesProfileReviewer,
+    SpeciesProfileRetirer
 {
   async saveDraft(draft: Omit<SpeciesProfileDraft, 'status'>): Promise<void> {
     const validDraft = speciesProfileDraft.parse(draft);
@@ -125,6 +127,17 @@ export class FirestoreSpeciesProfileDraftWriter
     await setDoc(
       draftRef,
       { status: 'reviewed', updatedAt: serverTimestamp() },
+      { merge: true },
+    );
+  }
+
+  async retireProfile(
+    id: ReturnType<typeof speciesProfileIdFrom>,
+  ): Promise<void> {
+    const { firestore } = getFirebaseClient();
+    await setDoc(
+      doc(firestore, 'speciesProfiles', id),
+      { status: 'retired' },
       { merge: true },
     );
   }

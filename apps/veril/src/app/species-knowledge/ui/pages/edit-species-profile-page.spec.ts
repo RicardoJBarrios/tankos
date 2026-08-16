@@ -12,6 +12,7 @@ import {
   SPECIES_PROFILE_DRAFT_WRITER,
   SPECIES_PROFILE_PUBLISHER,
   SPECIES_PROFILE_REVIEWER,
+  SPECIES_PROFILE_RETIRER,
 } from '../providers';
 import { EditSpeciesProfilePage } from './edit-species-profile-page';
 
@@ -53,6 +54,10 @@ describe('EditSpeciesProfilePage', () => {
       { provide: SPECIES_PROFILE_DRAFT_READER, useValue: { getDraft } },
       { provide: SPECIES_PROFILE_PUBLISHER, useValue: { publishDraft } },
       { provide: SPECIES_PROFILE_REVIEWER, useValue: { reviewDraft: vi.fn() } },
+      {
+        provide: SPECIES_PROFILE_RETIRER,
+        useValue: { retireProfile: vi.fn() },
+      },
       {
         provide: ActivatedRoute,
         useValue: { snapshot: { paramMap: { get: () => profile.id } } },

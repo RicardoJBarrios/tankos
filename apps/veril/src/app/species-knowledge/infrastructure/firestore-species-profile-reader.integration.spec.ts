@@ -245,6 +245,18 @@ describe('FirestoreSpeciesProfileReader (Emulator Suite)', () => {
       ).data(),
     ).toMatchObject({ status: 'published' });
 
+    await writer.retireProfile(draft.speciesProfileId);
+    expect(
+      (
+        await getDoc(doc(firestore, 'speciesProfiles', draft.speciesProfileId))
+      ).data(),
+    ).toMatchObject({ status: 'retired' });
+    await expect(
+      new FirestoreSpeciesProfileRevisionReader().listRevisions(
+        draft.speciesProfileId,
+      ),
+    ).resolves.toHaveLength(1);
+
     await signOut(auth);
   });
 });

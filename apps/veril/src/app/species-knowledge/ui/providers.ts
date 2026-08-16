@@ -6,6 +6,7 @@ import {
   SpeciesProfilePublisher,
   SpeciesProfileReviewer,
   SpeciesProfileRevisionReader,
+  SpeciesProfileRetirer,
 } from '../application/ports';
 
 export const PUBLISHED_SPECIES_PROFILE_READER =
@@ -29,3 +30,6 @@ export const SPECIES_PROFILE_REVISION_READER =
   new InjectionToken<SpeciesProfileRevisionReader>(
     'SPECIES_PROFILE_REVISION_READER',
   );
+
+export const SPECIES_PROFILE_RETIRER =
+  new InjectionToken<SpeciesProfileRetirer>('SPECIES_PROFILE_RETIRER');

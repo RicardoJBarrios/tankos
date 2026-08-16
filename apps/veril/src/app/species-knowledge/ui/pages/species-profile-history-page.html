@@ -19,7 +19,73 @@
       <p>No hay revisiones históricas disponibles.</p>
     </mat-card-content>
   </mat-card>
-  } @else { @for (revision of revisions(); track revision.revision.id) {
+  } @else { @if (revisions().length > 1) {
+  <mat-card appearance="outlined">
+    <mat-card-content class="comparison-controls">
+      <p>Comparar revisiones</p>
+      <mat-form-field appearance="outline">
+        <mat-label>Revisión anterior</mat-label>
+        <mat-select
+          [value]="leftRevisionId()"
+          (selectionChange)="leftRevisionId.set($event.value)"
+        >
+          @for (revision of revisions(); track revision.revision.id) {
+          <mat-option [value]="revision.revision.id"
+            >{{ revision.revision.id }}</mat-option
+          >
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Revisión posterior</mat-label>
+        <mat-select
+          [value]="rightRevisionId()"
+          (selectionChange)="rightRevisionId.set($event.value)"
+        >
+          @for (revision of revisions(); track revision.revision.id) {
+          <mat-option [value]="revision.revision.id"
+            >{{ revision.revision.id }}</mat-option
+          >
+          }
+        </mat-select>
+      </mat-form-field>
+      @if (comparison(); as compared) {
+      <div class="comparison-grid">
+        <article>
+          <h3>{{ compared.left.revision.id }}</h3>
+          <p>{{ compared.left.displayName }}</p>
+          <div
+            class="markdown-content"
+            [innerHTML]="markdownToHtml(compared.left.description)"
+          ></div>
+          @for (section of compared.left.sections; track section.key) {
+          <h4>{{ section.title }}</h4>
+          <div
+            class="markdown-content"
+            [innerHTML]="markdownToHtml(section.content)"
+          ></div>
+          }
+        </article>
+        <article>
+          <h3>{{ compared.right.revision.id }}</h3>
+          <p>{{ compared.right.displayName }}</p>
+          <div
+            class="markdown-content"
+            [innerHTML]="markdownToHtml(compared.right.description)"
+          ></div>
+          @for (section of compared.right.sections; track section.key) {
+          <h4>{{ section.title }}</h4>
+          <div
+            class="markdown-content"
+            [innerHTML]="markdownToHtml(section.content)"
+          ></div>
+          }
+        </article>
+      </div>
+      }
+    </mat-card-content>
+  </mat-card>
+  } @for (revision of revisions(); track revision.revision.id) {
   <mat-card appearance="outlined">
     <mat-card-header>
       <mat-card-title>Revisión {{ revision.revision.id }}</mat-card-title>
