@@ -7,7 +7,9 @@
   <mat-card appearance="outlined">
     <mat-card-content>
       @if (state() === 'success') {
-      <p role="status">Sesión iniciada. Ya puedes continuar.</p>
+      <p role="status">
+        Sesión iniciada. Ya puedes continuar con esta superficie.
+      </p>
       } @else {
       <form (ngSubmit)="submit()">
         <mat-form-field appearance="outline">

@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  afterNextRender,
   inject,
   signal,
 } from '@angular/core';
@@ -37,6 +38,10 @@ export class EditorialSignInPage {
   readonly state = signal<'ready' | 'saving' | 'success' | 'failure'>('ready');
   readonly errorMessage = signal('');
 
+  constructor() {
+    afterNextRender(() => void this.restoreExistingSession());
+  }
+
   async submit(): Promise<void> {
     this.state.set('saving');
     try {
@@ -44,9 +49,13 @@ export class EditorialSignInPage {
         this.email(),
         this.password(),
       );
-      if (!(await this.authentication.isKeeper())) {
+      const hasRequiredAccess =
+        this.accessType === 'editorial'
+          ? await this.authentication.isEditorialKeeper()
+          : await this.authentication.isKeeper();
+      if (!hasRequiredAccess) {
         await this.authentication.signOut();
-        throw new Error('La cuenta no tiene el rol keeper.');
+        throw new Error('La cuenta no tiene el acceso requerido.');
       }
       this.state.set('success');
       const redirectTo = this.route.snapshot.data['redirectTo'] as
@@ -55,6 +64,23 @@ export class EditorialSignInPage {
     } catch {
       this.errorMessage.set('No se ha podido iniciar la sesión.');
       this.state.set('failure');
+    }
+  }
+
+  private async restoreExistingSession(): Promise<void> {
+    try {
+      const hasRequiredAccess =
+        this.accessType === 'editorial'
+          ? await this.authentication.isEditorialKeeper()
+          : await this.authentication.isKeeper();
+      if (hasRequiredAccess) {
+        this.state.set('success');
+        const redirectTo = this.route.snapshot.data['redirectTo'] as
+          string | undefined;
+        if (redirectTo) await this.router.navigateByUrl(redirectTo);
+      }
+    } catch {
+      // The sign-in form remains available when there is no valid session.
     }
   }
 }
