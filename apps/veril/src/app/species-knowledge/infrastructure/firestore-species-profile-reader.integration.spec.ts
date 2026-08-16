@@ -56,6 +56,14 @@ describe('FirestoreSpeciesProfileReader (Emulator Suite)', () => {
       scientificName: speciesProfileFixtures.clownfish.scientificName,
       status: 'published',
       description: speciesProfileFixtures.clownfish.description,
+      sections: speciesProfileFixtures.clownfish.sections,
+      sources: speciesProfileFixtures.clownfish.sources,
+      revision: {
+        id: speciesProfileFixtures.clownfish.revision.id,
+        publishedAt: new Date(
+          speciesProfileFixtures.clownfish.revision.publishedAt,
+        ),
+      },
     });
   });
 });

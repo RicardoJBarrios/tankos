@@ -23,6 +23,22 @@
       <p class="scientific-name">{{ profile()!.scientificName }}</p>
       }
       <p>{{ profile()!.description }}</p>
+      @for (section of profile()!.sections; track section.key) {
+      <section>
+        <h3>{{ section.title }}</h3>
+        <p>{{ section.content }}</p>
+      </section>
+      }
+      <h3>Fuentes</h3>
+      <ul>
+        @for (source of profile()!.sources; track source.id) {
+        <li>
+          <a [href]="source.url" target="_blank" rel="noreferrer"
+            >{{ source.title }}</a
+          >
+        </li>
+        }
+      </ul>
     </mat-card-content>
   </mat-card>
   <a mat-button routerLink="/app/aquariums/livestock">Volver al livestock</a>

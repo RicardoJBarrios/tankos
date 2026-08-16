@@ -12,6 +12,24 @@ const profile: SpeciesProfile = {
   scientificName: 'Amphiprion ocellaris',
   status: 'published',
   description: 'Contenido documental de prueba.',
+  sections: [
+    {
+      key: 'identification',
+      title: 'Identificación',
+      content: 'Contenido de identificación pendiente de revisión editorial.',
+    },
+  ],
+  sources: [
+    {
+      id: 'fixture-source-1',
+      title: 'Fuente documental de prueba',
+      url: 'https://example.test/species/clownfish',
+    },
+  ],
+  revision: {
+    id: 'fixture-revision-1',
+    publishedAt: new Date('2026-08-16T00:00:00.000Z'),
+  },
 };
 
 describe('SpeciesProfilePage', () => {
@@ -56,6 +74,10 @@ describe('SpeciesProfilePage', () => {
     );
     expect(spectator.query('mat-card')?.textContent).toContain(
       'Contenido documental de prueba.',
+    );
+    expect(spectator.query('h3')?.textContent).toContain('Identificación');
+    expect(spectator.query('a')?.textContent).toContain(
+      'Fuente documental de prueba',
     );
   });
 });

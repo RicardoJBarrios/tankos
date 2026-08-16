@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import {
+  Timestamp,
   collection,
   doc,
   getDoc,
@@ -20,6 +21,29 @@ const speciesProfileDocument = z.object({
   displayName: z.string().min(1),
   scientificName: z.string().optional(),
   description: z.string().min(1),
+  sections: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        title: z.string().min(1),
+        content: z.string().min(1),
+      }),
+    )
+    .min(1),
+  sources: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        title: z.string().min(1),
+        url: z.string().url(),
+        publishedAt: z.instanceof(Timestamp).optional(),
+      }),
+    )
+    .min(1),
+  revision: z.object({
+    id: z.string().min(1),
+    publishedAt: z.instanceof(Timestamp),
+  }),
   status: z.enum(['published', 'retired']),
 });
 
@@ -57,6 +81,19 @@ export class FirestoreSpeciesProfileReader implements PublishedSpeciesProfileRea
       ...(dto.scientificName ? { scientificName: dto.scientificName } : {}),
       status: dto.status,
       description: dto.description,
+      sections: dto.sections,
+      sources: dto.sources.map((source) => ({
+        id: source.id,
+        title: source.title,
+        url: source.url,
+        ...(source.publishedAt
+          ? { publishedAt: source.publishedAt.toDate() }
+          : {}),
+      })),
+      revision: {
+        id: dto.revision.id,
+        publishedAt: dto.revision.publishedAt.toDate(),
+      },
     };
   }
 }
