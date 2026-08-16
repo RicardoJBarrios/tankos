@@ -1,0 +1,50 @@
+<section aria-labelledby="editorial-sign-in-title" class="page-section">
+  <p class="eyebrow">Conocimiento compartido</p>
+  <h2 id="editorial-sign-in-title">Acceso editorial</h2>
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      @if (state() === 'success') {
+      <p role="status">
+        Sesión iniciada. Ya puedes continuar con la superficie editorial.
+      </p>
+      } @else {
+      <form (ngSubmit)="submit()">
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            type="email"
+            name="email"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)"
+            required
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Contraseña</mat-label>
+          <input
+            matInput
+            type="password"
+            name="password"
+            [ngModel]="password()"
+            (ngModelChange)="password.set($event)"
+            required
+          />
+        </mat-form-field>
+        @if (state() === 'failure') {
+        <p class="error" role="alert">{{ errorMessage() }}</p>
+        }
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="state() === 'saving'"
+        >
+          {{ state() === 'saving' ? 'Iniciando sesión…' : 'Iniciar sesión' }}
+        </button>
+      </form>
+      }
+      <a mat-button routerLink="/">Volver</a>
+    </mat-card-content>
+  </mat-card>
+</section>

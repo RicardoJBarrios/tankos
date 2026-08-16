@@ -1,0 +1,49 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { AUTHENTICATION_SESSION } from '../../../shared/ui/providers';
+
+@Component({
+  selector: 'veril-editorial-sign-in-page',
+  imports: [
+    FormsModule,
+    MatButtonModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    RouterLink,
+  ],
+  templateUrl: './editorial-sign-in-page.html',
+  styleUrl: './editorial-sign-in-page.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class EditorialSignInPage {
+  private readonly authentication = inject(AUTHENTICATION_SESSION);
+  readonly email = signal('');
+  readonly password = signal('');
+  readonly state = signal<'ready' | 'saving' | 'success' | 'failure'>('ready');
+  readonly errorMessage = signal('');
+
+  async submit(): Promise<void> {
+    this.state.set('saving');
+    try {
+      await this.authentication.signInWithPassword(
+        this.email(),
+        this.password(),
+      );
+      this.state.set('success');
+    } catch {
+      this.errorMessage.set('No se ha podido iniciar la sesión editorial.');
+      this.state.set('failure');
+    }
+  }
+}
