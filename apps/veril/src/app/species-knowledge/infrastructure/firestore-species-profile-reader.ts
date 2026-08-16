@@ -1,13 +1,25 @@
 import { Injectable } from '@angular/core';
-import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  orderBy,
+  query,
+  where,
+} from 'firebase/firestore';
 import { z } from 'zod';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
-import { speciesProfileIdFrom } from '../domain/species-profile';
+import {
+  SpeciesProfileId,
+  speciesProfileIdFrom,
+} from '../domain/species-profile';
 import { PublishedSpeciesProfileReader } from '../application/ports';
 
 const speciesProfileDocument = z.object({
   displayName: z.string().min(1),
   scientificName: z.string().optional(),
+  description: z.string().min(1),
   status: z.enum(['published', 'retired']),
 });
 
@@ -31,5 +43,20 @@ export class FirestoreSpeciesProfileReader implements PublishedSpeciesProfileRea
         status: dto.status,
       };
     });
+  }
+
+  async getPublished(id: SpeciesProfileId) {
+    const { firestore } = getFirebaseClient();
+    const snapshot = await getDoc(doc(firestore, 'speciesProfiles', id));
+    if (!snapshot.exists()) return null;
+    const dto = speciesProfileDocument.parse(snapshot.data());
+    if (dto.status !== 'published') return null;
+    return {
+      id,
+      displayName: dto.displayName,
+      ...(dto.scientificName ? { scientificName: dto.scientificName } : {}),
+      status: dto.status,
+      description: dto.description,
+    };
   }
 }

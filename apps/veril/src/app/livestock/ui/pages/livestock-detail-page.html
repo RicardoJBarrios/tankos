@@ -24,6 +24,15 @@
             {{ speciesProfile()?.displayName ?? 'Especie no disponible' }} @if
             (speciesProfile()?.scientificName) {
             <span> · {{ speciesProfile()?.scientificName }}</span>
+            } @if (speciesProfile()) {
+            <a
+              mat-button
+              [routerLink]="[
+                '/app/species-knowledge',
+                item()!.speciesProfileId
+              ]"
+              >Consultar ficha de especie</a
+            >
             }
           </dd>
         </div>

@@ -98,6 +98,13 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'species-knowledge/:id',
+        loadComponent: () =>
+          import('./species-knowledge/ui/pages/species-profile-page').then(
+            ({ SpeciesProfilePage }) => SpeciesProfilePage,
+          ),
+      },
+      {
         path: 'aquariums/observations/new',
         loadComponent: () =>
           import('./observations/ui/pages/record-observation-page').then(

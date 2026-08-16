@@ -1,0 +1,30 @@
+<section aria-labelledby="species-profile-title" class="page-section">
+  @if (state() === 'loading') {
+  <div class="loading" role="status">
+    <mat-progress-spinner mode="indeterminate" diameter="32" />Cargando perfil…
+  </div>
+  } @else if (state() === 'failure' || !profile()) {
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <p class="error" role="alert">
+        No se ha podido cargar el perfil de especie.
+      </p>
+      <a mat-button routerLink="/app/aquariums/livestock"
+        >Volver al livestock</a
+      >
+    </mat-card-content>
+  </mat-card>
+  } @else {
+  <p class="eyebrow">Conocimiento compartido</p>
+  <h2 id="species-profile-title">{{ profile()!.displayName }}</h2>
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      @if (profile()!.scientificName) {
+      <p class="scientific-name">{{ profile()!.scientificName }}</p>
+      }
+      <p>{{ profile()!.description }}</p>
+    </mat-card-content>
+  </mat-card>
+  <a mat-button routerLink="/app/aquariums/livestock">Volver al livestock</a>
+  }
+</section>

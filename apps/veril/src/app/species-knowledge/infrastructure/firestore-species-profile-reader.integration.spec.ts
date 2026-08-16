@@ -8,6 +8,7 @@ import {
   speciesProfileFixtures,
 } from './fixtures/species-profiles';
 import { FirestoreSpeciesProfileReader } from './firestore-species-profile-reader';
+import { speciesProfileIdFrom } from '../domain/species-profile';
 
 const emulatorTest = process.env['FIRESTORE_EMULATOR_HOST'] ? it : it.skip;
 
@@ -40,5 +41,21 @@ describe('FirestoreSpeciesProfileReader (Emulator Suite)', () => {
         },
       ),
     ).rejects.toThrow();
+  });
+
+  emulatorTest('reads the published encyclopedic content', async () => {
+    await seedSpeciesProfileFixtures();
+
+    const profile = await new FirestoreSpeciesProfileReader().getPublished(
+      speciesProfileIdFrom(speciesProfileFixtures.clownfish.id),
+    );
+
+    expect(profile).toEqual({
+      id: speciesProfileIdFrom(speciesProfileFixtures.clownfish.id),
+      displayName: speciesProfileFixtures.clownfish.displayName,
+      scientificName: speciesProfileFixtures.clownfish.scientificName,
+      status: 'published',
+      description: speciesProfileFixtures.clownfish.description,
+    });
   });
 });

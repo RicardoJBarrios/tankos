@@ -8,11 +8,13 @@ export const speciesProfileFixtures = {
     id: '123e4567-e89b-42d3-a456-426614174100',
     displayName: 'Pez payaso',
     scientificName: 'Amphiprion ocellaris',
+    description: 'Contenido documental de prueba para el perfil publicado.',
   },
   retiredWrasse: {
     id: '123e4567-e89b-42d3-a456-426614174101',
     displayName: 'Lábrido retirado',
     scientificName: 'Halichoeres ficticius',
+    description: 'Contenido documental de prueba para el perfil retirado.',
   },
 } as const;
 
@@ -33,6 +35,7 @@ export async function seedSpeciesProfileFixtures(): Promise<void> {
       .set({
         displayName: speciesProfileFixtures.clownfish.displayName,
         scientificName: speciesProfileFixtures.clownfish.scientificName,
+        description: speciesProfileFixtures.clownfish.description,
         status: 'published',
       }),
     firestore
@@ -41,6 +44,7 @@ export async function seedSpeciesProfileFixtures(): Promise<void> {
       .set({
         displayName: speciesProfileFixtures.retiredWrasse.displayName,
         scientificName: speciesProfileFixtures.retiredWrasse.scientificName,
+        description: speciesProfileFixtures.retiredWrasse.description,
         status: 'retired',
       }),
   ]);
