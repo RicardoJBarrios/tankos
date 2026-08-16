@@ -29,6 +29,7 @@ import {
   RECURRING_CARE_PLAN_WRITER,
 } from '../providers';
 import { formatAquariumDateTimeLocal } from '../../../shared/ui/aquarium-date-time';
+import { systemClock } from '../../../shared/application/clock';
 
 type PageState =
   | 'loading'
@@ -44,7 +45,7 @@ function defaultTimeZone(): string {
 }
 
 function defaultDateTime(timeZone?: AquariumTimeZone): string {
-  const now = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const now = new Date(systemClock.now().getTime() + 7 * 24 * 60 * 60 * 1000);
   return formatAquariumDateTimeLocal(now, timeZone);
 }
 
