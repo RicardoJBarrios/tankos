@@ -1,4 +1,5 @@
 import { Route } from '@angular/router';
+import { keeperAccessGuard } from './shared/ui/guards/keeper-access.guard';
 
 export const appRoutes: Route[] = [
   {
@@ -33,6 +34,7 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'app',
+    canActivate: [keeperAccessGuard],
     loadComponent: () =>
       import('./shells/private-shell/private-shell').then(
         ({ PrivateShell }) => PrivateShell,

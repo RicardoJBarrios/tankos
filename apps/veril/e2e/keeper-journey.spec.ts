@@ -423,7 +423,28 @@ test('protected recording pages recover when no Aquarium is selected', async ({
   page,
 }) => {
   await page.goto('/app/aquariums/observations/new');
+  await expect(page).toHaveURL('/sign-in');
 
+  const fixture = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [path.resolve(process.cwd(), '../../tools/firebase/seed-keeper-e2e.mjs')],
+      {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+          FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080',
+        },
+      },
+    ),
+  ) as { credentials: { email: string; password: string } };
+  await page.getByLabel('Email').fill(fixture.credentials.email);
+  await page.getByLabel('Contraseña').fill(fixture.credentials.password);
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  await expect(page).toHaveURL('/app/aquariums');
+
+  await page.goto('/app/aquariums/observations/new');
   await expect(page.locator('form')).toBeHidden();
   await expect(
     page.getByRole('status').filter({
