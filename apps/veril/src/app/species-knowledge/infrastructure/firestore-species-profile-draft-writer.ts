@@ -13,6 +13,7 @@ import {
   SpeciesProfileDraftReader,
   SpeciesProfileDraftWriter,
   SpeciesProfilePublisher,
+  SpeciesProfileReviewer,
 } from '../application/ports';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { speciesProfileIdFrom } from '../domain/species-profile';
@@ -59,7 +60,7 @@ const persistedSpeciesProfileDraft = z.object({
       }),
     )
     .min(1),
-  status: z.enum(['draft', 'published']),
+  status: z.enum(['draft', 'reviewed', 'published']),
   updatedAt: z.instanceof(Timestamp).optional(),
 });
 
@@ -68,9 +69,10 @@ export class FirestoreSpeciesProfileDraftWriter
   implements
     SpeciesProfileDraftWriter,
     SpeciesProfileDraftReader,
-    SpeciesProfilePublisher
+    SpeciesProfilePublisher,
+    SpeciesProfileReviewer
 {
-  async saveDraft(draft: SpeciesProfileDraft): Promise<void> {
+  async saveDraft(draft: Omit<SpeciesProfileDraft, 'status'>): Promise<void> {
     const validDraft = speciesProfileDraft.parse(draft);
     const { firestore } = getFirebaseClient();
     await setDoc(
@@ -92,9 +94,10 @@ export class FirestoreSpeciesProfileDraftWriter
     const snapshot = await getDoc(doc(firestore, 'speciesProfileDrafts', id));
     if (!snapshot.exists()) return null;
     const persisted = persistedSpeciesProfileDraft.parse(snapshot.data());
-    if (persisted.status !== 'draft') return null;
+    if (persisted.status === 'published') return null;
     return {
       speciesProfileId: speciesProfileIdFrom(persisted.speciesProfileId),
+      status: persisted.status,
       displayName: persisted.displayName,
       ...(persisted.scientificName
         ? { scientificName: persisted.scientificName }
@@ -108,6 +111,24 @@ export class FirestoreSpeciesProfileDraftWriter
     };
   }
 
+  async reviewDraft(
+    id: ReturnType<typeof speciesProfileIdFrom>,
+  ): Promise<void> {
+    const { firestore } = getFirebaseClient();
+    const draftRef = doc(firestore, 'speciesProfileDrafts', id);
+    const snapshot = await getDoc(draftRef);
+    if (!snapshot.exists()) throw new Error('Species Profile draft not found');
+    const persisted = persistedSpeciesProfileDraft.parse(snapshot.data());
+    if (persisted.status !== 'draft') {
+      throw new Error('Only a draft can be reviewed');
+    }
+    await setDoc(
+      draftRef,
+      { status: 'reviewed', updatedAt: serverTimestamp() },
+      { merge: true },
+    );
+  }
+
   async publishDraft(
     draft: Parameters<SpeciesProfilePublisher['publishDraft']>[0],
     revisionId: string,
@@ -115,6 +136,17 @@ export class FirestoreSpeciesProfileDraftWriter
   ): Promise<void> {
     const validDraft = speciesProfileDraft.parse(draft);
     const { firestore } = getFirebaseClient();
+    const draftSnapshot = await getDoc(
+      doc(firestore, 'speciesProfileDrafts', validDraft.speciesProfileId),
+    );
+    if (!draftSnapshot.exists())
+      throw new Error('Species Profile draft not found');
+    const persistedDraft = persistedSpeciesProfileDraft.parse(
+      draftSnapshot.data(),
+    );
+    if (persistedDraft.status !== 'reviewed') {
+      throw new Error('Only a reviewed draft can be published');
+    }
     const batch = writeBatch(firestore);
     const profileRef = doc(
       firestore,

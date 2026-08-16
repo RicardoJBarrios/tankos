@@ -4,6 +4,7 @@ import {
   SpeciesProfileDraftReader,
   SpeciesProfileDraftWriter,
   SpeciesProfilePublisher,
+  SpeciesProfileReviewer,
 } from '../application/ports';
 
 export const PUBLISHED_SPECIES_PROFILE_READER =
@@ -19,3 +20,6 @@ export const SPECIES_PROFILE_DRAFT_READER =
 
 export const SPECIES_PROFILE_PUBLISHER =
   new InjectionToken<SpeciesProfilePublisher>('SPECIES_PROFILE_PUBLISHER');
+
+export const SPECIES_PROFILE_REVIEWER =
+  new InjectionToken<SpeciesProfileReviewer>('SPECIES_PROFILE_REVIEWER');

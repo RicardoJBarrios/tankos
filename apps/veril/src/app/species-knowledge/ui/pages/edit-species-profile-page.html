@@ -72,9 +72,17 @@
         {{ state() === 'saving' ? 'Guardando…' : 'Guardar borrador' }}
       </button>
       <button
+        mat-button
+        type="button"
+        [disabled]="draftStatus() !== 'draft'"
+        (click)="reviewDraft()"
+      >
+        Marcar como revisado
+      </button>
+      <button
         mat-stroked-button
         type="button"
-        [disabled]="state() === 'publishing'"
+        [disabled]="draftStatus() !== 'reviewed' || state() === 'publishing'"
         (click)="publishDraft()"
       >
         {{ state() === 'publishing' ? 'Publicando…' : 'Publicar revisión' }}

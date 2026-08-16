@@ -187,6 +187,7 @@ describe('FirestoreSpeciesProfileReader (Emulator Suite)', () => {
       speciesProfileId: speciesProfileIdFrom(
         speciesProfileFixtures.clownfish.id,
       ),
+      status: 'reviewed' as const,
       displayName: 'Pez payaso publicado',
       scientificName: speciesProfileFixtures.clownfish.scientificName,
       description: 'Nueva descripción publicada en **Markdown**.',
@@ -195,6 +196,7 @@ describe('FirestoreSpeciesProfileReader (Emulator Suite)', () => {
     };
 
     await writer.saveDraft(draft);
+    await writer.reviewDraft(draft.speciesProfileId);
     expect(await writer.getDraft(draft.speciesProfileId)).toEqual(draft);
 
     const publishedAt = new Date('2026-08-16T12:00:00.000Z');

@@ -4,6 +4,7 @@ import {
   SPECIES_PROFILE_DRAFT_READER,
   SPECIES_PROFILE_DRAFT_WRITER,
   SPECIES_PROFILE_PUBLISHER,
+  SPECIES_PROFILE_REVIEWER,
 } from '../../species-knowledge/ui/providers';
 
 export const EDITORIAL_PROVIDERS: Provider[] = [
@@ -17,6 +18,10 @@ export const EDITORIAL_PROVIDERS: Provider[] = [
   },
   {
     provide: SPECIES_PROFILE_PUBLISHER,
+    useExisting: FirestoreSpeciesProfileDraftWriter,
+  },
+  {
+    provide: SPECIES_PROFILE_REVIEWER,
     useExisting: FirestoreSpeciesProfileDraftWriter,
   },
 ];

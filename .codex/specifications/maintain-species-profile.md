@@ -79,6 +79,8 @@ claims or species-specific husbandry values.
 
 - Editorial keepers can sign in with a persistent Firebase account and save a
   Markdown draft without changing the published profile.
+- Editorial keepers can mark a draft as `reviewed`; publication only accepts a
+  reviewed draft and creates the next immutable revision.
 
 ## Deferred scope
 

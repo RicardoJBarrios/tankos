@@ -2,6 +2,7 @@ import {
   SpeciesProfile,
   SpeciesProfileId,
   SpeciesProfileDraft,
+  SpeciesProfileDraftStatus,
   SpeciesProfileReference,
 } from '../domain/species-profile';
 
@@ -16,7 +17,7 @@ export interface PublishedSpeciesProfileReader {
 }
 
 export interface SpeciesProfileDraftWriter {
-  saveDraft(draft: SpeciesProfileDraft): Promise<void>;
+  saveDraft(draft: Omit<SpeciesProfileDraft, 'status'>): Promise<void>;
 }
 
 export interface SpeciesProfileDraftReader {
@@ -30,3 +31,9 @@ export interface SpeciesProfilePublisher {
     publishedAt: Date,
   ): Promise<void>;
 }
+
+export interface SpeciesProfileReviewer {
+  reviewDraft(id: SpeciesProfileId): Promise<void>;
+}
+
+export type { SpeciesProfileDraftStatus };
