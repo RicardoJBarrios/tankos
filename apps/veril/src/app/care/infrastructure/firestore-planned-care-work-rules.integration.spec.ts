@@ -49,6 +49,7 @@ async function queryPlanned(
       body: JSON.stringify({
         structuredQuery: {
           from: [{ collectionId: 'plannedCareWorks' }],
+          limit: 10,
           where: {
             compositeFilter: {
               op: 'AND',

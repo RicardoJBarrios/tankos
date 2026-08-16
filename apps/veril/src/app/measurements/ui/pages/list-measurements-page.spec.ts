@@ -144,7 +144,10 @@ describe('ListMeasurementsPage', () => {
 
   it('allows a bounded page size change and reloads from the first page', async () => {
     execute
-      .mockResolvedValueOnce({ items: [item], nextCursor: 'next-page' as never })
+      .mockResolvedValueOnce({
+        items: [item],
+        nextCursor: 'next-page' as never,
+      })
       .mockResolvedValueOnce({ items: [] });
     const spectator = createComponent();
     await settle(spectator);

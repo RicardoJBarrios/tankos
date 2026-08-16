@@ -6,6 +6,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   query,
   where,
 } from 'firebase/firestore';
@@ -116,6 +117,7 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
           collection(firestore, 'careWorks'),
           where('ownerId', '==', keeper.id),
           where('aquariumId', '==', aquarium.id),
+          limit(10),
         ),
       );
       expect(careWorks.docs.map((entry) => entry.id)).not.toContain(secondId);
