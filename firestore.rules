@@ -6,6 +6,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isKeeper() {
+      return isAuthenticated()
+        && request.auth.token.isKeeper == true;
+    }
+
     function isEditorialKeeper() {
       return isAuthenticated()
         && request.auth.token.editorialAdmin == true
@@ -13,7 +18,7 @@ service cloud.firestore {
     }
 
     function isOwner(data) {
-      return isAuthenticated() && data.ownerId == request.auth.uid;
+      return isKeeper() && data.ownerId == request.auth.uid;
     }
 
     function isValidLocation(location) {
@@ -73,7 +78,7 @@ service cloud.firestore {
     }
 
     match /aquariums/{aquariumId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'ownerId',
           'name',
@@ -132,7 +137,7 @@ service cloud.firestore {
     }
 
     match /observations/{observationId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId',
           'ownerId',
@@ -159,7 +164,7 @@ service cloud.firestore {
     }
 
     match /measurements/{measurementId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId',
           'ownerId',
@@ -222,7 +227,7 @@ service cloud.firestore {
     }
 
     match /careWorks/{careWorkId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId',
           'ownerId',
@@ -254,7 +259,7 @@ service cloud.firestore {
     }
 
     match /plannedCareWorks/{plannedCareWorkId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId',
           'ownerId',
@@ -322,7 +327,7 @@ service cloud.firestore {
     }
 
     match /recurringCarePlans/{recurringCarePlanId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId',
           'ownerId',
@@ -381,7 +386,7 @@ service cloud.firestore {
     }
 
     match /livestock/{livestockId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId', 'ownerId', 'speciesProfileId', 'category',
           'representation', 'displayName', 'lifecycle', 'associatedAt',

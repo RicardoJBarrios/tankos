@@ -12,8 +12,9 @@ Rules are classified to avoid turning assumptions into code prematurely.
 
 ## Accepted rules for Establish an Aquarium
 
-- An authenticated keeper may establish any number of independent private
-  Aquariums. Each Aquarium has one owning keeper in this first version.
+- A user with the Firebase custom claim `isKeeper: true` may establish any
+  number of independent private Aquariums. Each Aquarium has one owning keeper
+  in this first version; authentication without that claim is not sufficient.
 - Establishment requires only an Aquarium name. It creates no Display, System,
   Equipment, Livestock or public representation.
 - An Aquarium name is non-empty after surrounding whitespace is trimmed; no

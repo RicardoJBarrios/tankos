@@ -5,7 +5,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -28,6 +28,8 @@ import { AUTHENTICATION_SESSION } from '../../../shared/ui/providers';
 })
 export class EditorialSignInPage {
   private readonly authentication = inject(AUTHENTICATION_SESSION);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   readonly email = signal('');
   readonly password = signal('');
   readonly state = signal<'ready' | 'saving' | 'success' | 'failure'>('ready');
@@ -40,7 +42,14 @@ export class EditorialSignInPage {
         this.email(),
         this.password(),
       );
+      if (!(await this.authentication.isKeeper())) {
+        await this.authentication.signOut();
+        throw new Error('La cuenta no tiene el rol keeper.');
+      }
       this.state.set('success');
+      const redirectTo = this.route.snapshot.data['redirectTo'] as
+        string | undefined;
+      if (redirectTo) await this.router.navigateByUrl(redirectTo);
     } catch {
       this.errorMessage.set('No se ha podido iniciar la sesión editorial.');
       this.state.set('failure');

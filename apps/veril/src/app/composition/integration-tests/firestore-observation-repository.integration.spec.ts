@@ -9,6 +9,7 @@ import {
 } from '../../shared/domain/aquarium-reference';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { FirebaseKeeperSession } from '../../shared/infrastructure/firebase-keeper-session';
+import { signInAsKeeper } from '../../shared/infrastructure/fixtures/keeper-accounts';
 import { FirestoreAquariumRepository } from '../../aquarium-management/infrastructure/firestore-aquarium-repository';
 import { FirestoreObservationRepository } from '../../observations/infrastructure/firestore-observation-repository';
 import {
@@ -26,6 +27,7 @@ describe('FirestoreObservationRepository (Emulator Suite)', () => {
   emulatorTest(
     'persists an observation for the authenticated keeper and Aquarium',
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const keeper = await session.requireAuthenticatedKeeper();
       const aquariumRepository = new FirestoreAquariumRepository();
@@ -72,6 +74,7 @@ describe('FirestoreObservationRepository (Emulator Suite)', () => {
   emulatorTest(
     'lists only the active Aquarium observations in deterministic order',
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const keeper = await session.requireAuthenticatedKeeper();
       const aquarium = await new FirestoreAquariumRepository().establish({
@@ -142,6 +145,7 @@ describe('FirestoreObservationRepository (Emulator Suite)', () => {
   emulatorTest(
     'returns a bounded recent Observation source page',
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const keeper = await session.requireAuthenticatedKeeper();
       const aquarium = await new FirestoreAquariumRepository().establish({

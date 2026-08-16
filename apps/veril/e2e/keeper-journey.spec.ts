@@ -5,6 +5,22 @@ import { expect, test } from '@playwright/test';
 test('a keeper can establish, select and record Aquarium evidence', async ({
   page,
 }) => {
+  process.env['FIREBASE_AUTH_EMULATOR_HOST'] = '127.0.0.1:9099';
+  process.env['FIRESTORE_EMULATOR_HOST'] = '127.0.0.1:8080';
+
+  const fixture = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [path.resolve(process.cwd(), '../../tools/firebase/seed-keeper-e2e.mjs')],
+      { encoding: 'utf8', env: process.env },
+    ),
+  ) as { credentials: { email: string; password: string } };
+  await page.goto('/sign-in');
+  await page.getByLabel('Email').fill(fixture.credentials.email);
+  await page.getByLabel('Contraseña').fill(fixture.credentials.password);
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  await expect(page).toHaveURL('/app/aquariums');
+
   await page.route('https://geocoding-api.open-meteo.com/**', (route) =>
     route.fulfill({
       status: 200,

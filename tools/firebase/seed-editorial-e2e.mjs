@@ -50,7 +50,10 @@ try {
     emailVerified: true,
   });
 }
-await auth.setCustomUserClaims(user.uid, { editorialAdmin: true });
+await auth.setCustomUserClaims(user.uid, {
+  editorialAdmin: true,
+  isKeeper: true,
+});
 
 const publishedAt = new Date('2026-08-16T00:00:00.000Z');
 await firestore

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createAquariumId } from '../../shared/domain/aquarium-reference';
+import { createIdToken, createKeeperIdToken } from './fixtures/keeper-accounts';
 
 const emulatorTest =
   process.env['FIRESTORE_EMULATOR_HOST'] &&
@@ -7,21 +8,8 @@ const emulatorTest =
     ? it
     : it.skip;
 
-const authUrl =
-  'http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo-veril-api-key';
-
 async function createKeeper() {
-  const response = await fetch(authUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ returnSecureToken: true }),
-  });
-  const result = (await response.json()) as {
-    localId: string;
-    idToken: string;
-  };
-
-  return result;
+  return createKeeperIdToken();
 }
 
 async function writeAquarium(
@@ -411,6 +399,24 @@ async function writeCareWork(
 }
 
 describe('Firestore Security Rules (Emulator Suite)', () => {
+  emulatorTest(
+    'denies Aquarium creation without the isKeeper claim',
+    async () => {
+      const user = await createIdToken('user-without-keeper-claim');
+
+      expect(
+        (
+          await writeAquarium(
+            createAquariumId(),
+            user.localId,
+            user.idToken,
+            'No autorizado',
+          )
+        ).status,
+      ).toBe(403);
+    },
+  );
+
   emulatorTest(
     'allow independent Aquariums and isolate owners',
     async () => {

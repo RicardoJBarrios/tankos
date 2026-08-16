@@ -2,6 +2,14 @@ import { Route } from '@angular/router';
 
 export const appRoutes: Route[] = [
   {
+    path: 'sign-in',
+    data: { redirectTo: '/app/aquariums' },
+    loadComponent: () =>
+      import('./species-knowledge/ui/pages/editorial-sign-in-page').then(
+        ({ EditorialSignInPage }) => EditorialSignInPage,
+      ),
+  },
+  {
     path: 'editorial/sign-in',
     loadComponent: () =>
       import('./species-knowledge/ui/pages/editorial-sign-in-page').then(

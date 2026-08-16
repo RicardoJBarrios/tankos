@@ -12,6 +12,7 @@ import { ActiveAquariumContext } from '../../shared/application/active-aquarium-
 import { ActiveAquariumContextStorage } from '../../shared/application/active-aquarium-context-storage';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { FirebaseKeeperSession } from '../../shared/infrastructure/firebase-keeper-session';
+import { signInAsKeeper } from '../../shared/infrastructure/fixtures/keeper-accounts';
 import {
   seedSpeciesProfileFixtures,
   speciesProfileFixtures,
@@ -35,6 +36,7 @@ describe('Livestock composition (Emulator Suite)', () => {
     async () => {
       await seedSpeciesProfileFixtures();
 
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const keeper = await session.requireAuthenticatedKeeper();
       const aquariumRepository = new FirestoreAquariumRepository();

@@ -78,6 +78,7 @@ function adminAuth() {
 export async function createEditorialKeeperToken(): Promise<string> {
   return adminAuth().createCustomToken(editorialKeeperCredentials.uid, {
     editorialAdmin: true,
+    isKeeper: true,
   });
 }
 
@@ -102,7 +103,10 @@ export async function seedEditorialKeeperAccount(): Promise<UserRecord> {
     });
   }
 
-  await auth.setCustomUserClaims(user.uid, { editorialAdmin: true });
+  await auth.setCustomUserClaims(user.uid, {
+    editorialAdmin: true,
+    isKeeper: true,
+  });
   return user;
 }
 

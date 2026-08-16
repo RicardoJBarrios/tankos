@@ -20,6 +20,7 @@ import { createRecurringCarePlanId } from '../../care/domain/recurring-care-plan
 import { FirestoreAquariumRepository } from '../../aquarium-management/infrastructure/firestore-aquarium-repository';
 import { FirestorePlannedCareWorkRepository } from '../../care/infrastructure/firestore-planned-care-work-repository';
 import { FirebaseKeeperSession } from '../../shared/infrastructure/firebase-keeper-session';
+import { signInAsKeeper } from '../../shared/infrastructure/fixtures/keeper-accounts';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 
 const emulatorTest =
@@ -32,6 +33,7 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
   emulatorTest(
     'persists and lists planned work separately with deterministic ordering',
     async () => {
+      await signInAsKeeper();
       const keeper =
         await new FirebaseKeeperSession().requireAuthenticatedKeeper();
       const aquarium = await new FirestoreAquariumRepository().establish({
@@ -126,6 +128,7 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
   emulatorTest(
     'establishes, advances, cancels and stops a weekly recurring plan atomically',
     async () => {
+      await signInAsKeeper();
       const keeper =
         await new FirebaseKeeperSession().requireAuthenticatedKeeper();
       const aquarium = await new FirestoreAquariumRepository().establish({
@@ -210,6 +213,7 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
         (await getDoc(doc(firestore, 'recurringCarePlans', planId))).exists(),
       ).toBe(false);
       await signOut(auth);
+      await signInAsKeeper();
     },
     20000,
   );
