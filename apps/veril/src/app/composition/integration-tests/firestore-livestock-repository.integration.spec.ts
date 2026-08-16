@@ -13,9 +13,9 @@ import { ActiveAquariumContextStorage } from '../../shared/application/active-aq
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { FirebaseKeeperSession } from '../../shared/infrastructure/firebase-keeper-session';
 import {
-  seedPublishedSpeciesProfiles,
+  seedSpeciesProfileFixtures,
   speciesProfileFixtures,
-} from './fixtures/species-profiles';
+} from '../../species-knowledge/infrastructure/fixtures/species-profiles';
 
 const emulatorTest =
   process.env['FIRESTORE_EMULATOR_HOST'] &&
@@ -33,7 +33,7 @@ describe('Livestock composition (Emulator Suite)', () => {
   emulatorTest(
     'completes add, transfer and soft removal with published species fixtures',
     async () => {
-      await seedPublishedSpeciesProfiles();
+      await seedSpeciesProfileFixtures();
 
       const session = new FirebaseKeeperSession();
       const keeper = await session.requireAuthenticatedKeeper();
