@@ -21,6 +21,7 @@
       <mat-card appearance="outlined"
         ><mat-card-content
           ><h3>{{ item.displayName }}</h3>
+          <p>Especie: {{ speciesProfileNameFor(item.speciesProfileId) }}</p>
           <p>
             {{ item.lifecycle === 'active' ? 'Activo' : 'Retirado' }} · {{
             item.representation === 'individual' ? 'Individuo' : 'Grupo' }}

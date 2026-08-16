@@ -11,8 +11,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ListLivestockHistory } from '../../application/list-livestock-history';
-import { LivestockListItem } from '../../application/ports';
-import { KEEPER_SESSION, LIVESTOCK_READER } from '../providers';
+import {
+  LivestockListItem,
+  SpeciesProfileOption,
+} from '../../application/ports';
+import {
+  KEEPER_SESSION,
+  LIVESTOCK_READER,
+  LIVESTOCK_SPECIES_PROFILE_CATALOG,
+} from '../providers';
 
 @Component({
   selector: 'veril-livestock-history-page',
@@ -39,10 +46,14 @@ import { KEEPER_SESSION, LIVESTOCK_READER } from '../providers';
 })
 export class LivestockHistoryPage implements OnInit {
   private readonly listHistory = inject(ListLivestockHistory);
+  private readonly speciesProfileCatalog = inject(
+    LIVESTOCK_SPECIES_PROFILE_CATALOG,
+  );
   readonly state = signal<'loading' | 'success' | 'empty' | 'failure'>(
     'loading',
   );
   readonly items = signal<readonly LivestockListItem[]>([]);
+  readonly speciesProfiles = signal<readonly SpeciesProfileOption[]>([]);
 
   ngOnInit(): void {
     void this.load();
@@ -50,11 +61,22 @@ export class LivestockHistoryPage implements OnInit {
 
   private async load(): Promise<void> {
     try {
-      const items = await this.listHistory.execute();
+      const [items, speciesProfiles] = await Promise.all([
+        this.listHistory.execute(),
+        this.speciesProfileCatalog.listPublished(),
+      ]);
       this.items.set(items);
+      this.speciesProfiles.set(speciesProfiles);
       this.state.set(items.length ? 'success' : 'empty');
     } catch {
       this.state.set('failure');
     }
+  }
+
+  speciesProfileNameFor(id: string): string {
+    return (
+      this.speciesProfiles().find((profile) => profile.id === id)
+        ?.displayName ?? 'Especie no disponible'
+    );
   }
 }

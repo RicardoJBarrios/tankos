@@ -70,6 +70,7 @@
             {{ item.category === 'fish' ? 'Pez' : item.category === 'coral' ?
             'Coral' : 'Otro' }}
           </p>
+          <p>Especie: {{ speciesProfileNameFor(item.speciesProfileId) }}</p>
           <small
             >Estado: {{ item.lifecycle === 'active' ? 'Activo' : 'Retirado'
             }}</small
