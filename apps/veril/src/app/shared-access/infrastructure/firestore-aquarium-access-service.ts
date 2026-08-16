@@ -22,6 +22,7 @@ import {
 import { createUuidV4 } from '../../shared/domain/uuid-v4';
 import { systemClock } from '../../shared/application/clock';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
+import { pageSizeFor } from '../../shared/application/pagination';
 
 const INVITATION_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -70,7 +71,7 @@ export class FirestoreAquariumAccessService implements AquariumAccessService {
         collection(firestore, 'aquariumAccessGrants'),
         where('aquariumId', '==', input.aquariumId),
         where('ownerId', '==', input.ownerId),
-        limit(100),
+        limit(pageSizeFor()),
       ),
     );
     return snapshot.docs.map((entry) => {
@@ -128,7 +129,7 @@ export class FirestoreAquariumAccessService implements AquariumAccessService {
         query(
           collection(firestore, collectionName),
           where('aquariumId', '==', input.aquariumId),
-          limit(50),
+          limit(pageSizeFor()),
         ),
       );
       sections[permission as AquariumAccessPermission] = snapshot.size;

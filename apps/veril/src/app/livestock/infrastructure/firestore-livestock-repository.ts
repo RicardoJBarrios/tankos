@@ -19,6 +19,7 @@ import {
   aquariumIdFrom,
 } from '../../shared/domain/aquarium-reference';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
+import { pageSizeFor } from '../../shared/application/pagination';
 import { SpeciesProfileId } from '../domain/livestock';
 import {
   Livestock,
@@ -132,7 +133,7 @@ export class FirestoreLivestockRepository
         where('lifecycle', '==', 'active'),
         orderBy('displayName', 'asc'),
         orderBy(documentId(), 'asc'),
-        limit(100),
+        limit(pageSizeFor()),
       ),
     );
     const result: LivestockListItem[] = [];
@@ -162,7 +163,7 @@ export class FirestoreLivestockRepository
         where('ownerId', '==', ownerKeeperId),
         orderBy('updatedAt', 'desc'),
         orderBy(documentId(), 'asc'),
-        limit(200),
+        limit(pageSizeFor()),
       ),
     );
     return snapshot.docs.map((entry) =>

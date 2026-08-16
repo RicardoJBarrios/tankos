@@ -235,6 +235,7 @@ async function queryAquariums(ownerId: string, token?: string) {
       body: JSON.stringify({
         structuredQuery: {
           from: [{ collectionId: 'aquariums' }],
+          limit: 50,
           where: {
             fieldFilter: {
               field: { fieldPath: 'ownerId' },
@@ -264,6 +265,7 @@ async function queryObservations(
       body: JSON.stringify({
         structuredQuery: {
           from: [{ collectionId: 'observations' }],
+          limit: 50,
           where: {
             compositeFilter: {
               op: 'AND',
@@ -371,6 +373,7 @@ async function queryMeasurements(
       body: JSON.stringify({
         structuredQuery: {
           from: [{ collectionId: 'measurements' }],
+          limit: 50,
           where: {
             compositeFilter: {
               op: 'AND',
@@ -470,6 +473,7 @@ async function queryCareWorks(
       body: JSON.stringify({
         structuredQuery: {
           from: [{ collectionId: 'careWorks' }],
+          limit: 50,
           where: {
             compositeFilter: {
               op: 'AND',

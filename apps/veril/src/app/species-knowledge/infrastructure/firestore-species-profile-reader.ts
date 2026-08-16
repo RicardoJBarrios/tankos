@@ -5,12 +5,14 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   orderBy,
   query,
   where,
 } from 'firebase/firestore';
 import { z } from 'zod';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
+import { pageSizeFor } from '../../shared/application/pagination';
 import {
   SpeciesProfileId,
   speciesProfileIdFrom,
@@ -56,6 +58,7 @@ export class FirestoreSpeciesProfileReader implements PublishedSpeciesProfileRea
         collection(firestore, 'speciesProfiles'),
         where('status', '==', 'published'),
         orderBy('displayName', 'asc'),
+        limit(pageSizeFor()),
       ),
     );
     return snapshot.docs.map((entry) => {

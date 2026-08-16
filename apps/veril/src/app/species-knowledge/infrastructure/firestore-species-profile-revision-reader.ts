@@ -3,6 +3,7 @@ import {
   Timestamp,
   collection,
   getDocs,
+  limit,
   orderBy,
   query,
   where,
@@ -11,6 +12,7 @@ import { z } from 'zod';
 import { SpeciesProfileRevisionReader } from '../application/ports';
 import { SpeciesProfileId } from '../domain/species-profile';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
+import { pageSizeFor } from '../../shared/application/pagination';
 
 const speciesProfileRevisionDocument = z.object({
   speciesProfileId: z.string().uuid(),
@@ -52,6 +54,7 @@ export class FirestoreSpeciesProfileRevisionReader implements SpeciesProfileRevi
         collection(firestore, 'speciesProfileRevisions'),
         where('speciesProfileId', '==', id),
         orderBy('revision.publishedAt', 'desc'),
+        limit(pageSizeFor()),
       ),
     );
     return snapshot.docs.map((entry) => {

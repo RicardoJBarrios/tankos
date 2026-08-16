@@ -6,6 +6,12 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function hasBoundedListQuery() {
+      return request.query.limit != null
+        && request.query.limit > 0
+        && request.query.limit <= 50;
+    }
+
     function isKeeper() {
       return isAuthenticated()
         && request.auth.token.firebase.sign_in_provider != 'anonymous'
@@ -109,7 +115,8 @@ service cloud.firestore {
         && request.resource.data.createdAt is timestamp
       );
 
-      allow read: if isOwner(resource.data) || resource.data.granteeUserId == request.auth.uid;
+      allow get: if isOwner(resource.data) || resource.data.granteeUserId == request.auth.uid;
+      allow list: if hasBoundedListQuery() && isOwner(resource.data);
       allow update: if isOwner(resource.data)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'revokedAt'])
         && request.resource.data.status == 'revoked'
@@ -141,7 +148,7 @@ service cloud.firestore {
           resource.data.ownerId == request.auth.uid
           || (resource.data.status == 'active' && resource.data.expiresAt > request.time)
         );
-      allow list: if isOwner(resource.data);
+      allow list: if hasBoundedListQuery() && isOwner(resource.data);
       allow update: if (
           isOwner(resource.data)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
@@ -245,7 +252,8 @@ service cloud.firestore {
           || isValidLocation(request.resource.data.location)
         );
 
-      allow read: if isOwner(resource.data) || hasReadGrant(aquariumId, 'aquarium');
+      allow get: if isOwner(resource.data) || hasReadGrant(aquariumId, 'aquarium');
+      allow list: if hasBoundedListQuery() && (isOwner(resource.data) || hasReadGrant(aquariumId, 'aquarium'));
       allow update: if isOwner(resource.data)
         && request.resource.data.keys().hasAll([
           'ownerId',
@@ -300,7 +308,8 @@ service cloud.firestore {
         && request.resource.data.content.size() > 0
         && request.resource.data.recordedAt is timestamp;
 
-      allow read: if canReadAquarium(resource.data.aquariumId, 'observations');
+      allow get: if canReadAquarium(resource.data.aquariumId, 'observations');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'observations');
       allow update: if false;
       allow delete: if false;
     }
@@ -364,7 +373,8 @@ service cloud.firestore {
         && request.resource.data.recordedAt is timestamp
         && request.resource.data.provenance == 'manual';
 
-      allow read: if canReadAquarium(resource.data.aquariumId, 'measurements');
+      allow get: if canReadAquarium(resource.data.aquariumId, 'measurements');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'measurements');
       allow update, delete: if false;
     }
 
@@ -396,7 +406,8 @@ service cloud.firestore {
         && request.resource.data.recordedAt is timestamp
         && request.resource.data.provenance == 'manual';
 
-      allow read: if canReadAquarium(resource.data.aquariumId, 'careWorks');
+      allow get: if canReadAquarium(resource.data.aquariumId, 'careWorks');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'careWorks');
       allow update, delete: if false;
     }
 
@@ -440,8 +451,9 @@ service cloud.firestore {
           )
         );
 
-      allow read: if !exists(/databases/$(database)/documents/plannedCareWorks/$(plannedCareWorkId))
+      allow get: if !exists(/databases/$(database)/documents/plannedCareWorks/$(plannedCareWorkId))
         || canReadAquarium(resource.data.aquariumId, 'plannedCareWorks');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'plannedCareWorks');
       allow update: if false;
       allow delete: if isOwner(resource.data)
         && (
@@ -498,8 +510,9 @@ service cloud.firestore {
         && existsAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId))
         && getAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId)).data.recurringCarePlanId == recurringCarePlanId;
 
-      allow read: if !exists(/databases/$(database)/documents/recurringCarePlans/$(recurringCarePlanId))
+      allow get: if !exists(/databases/$(database)/documents/recurringCarePlans/$(recurringCarePlanId))
         || canReadAquarium(resource.data.aquariumId, 'recurringCarePlans');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'recurringCarePlans');
       allow update: if isOwner(resource.data)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['outstandingPlannedCareWorkId'])
         && request.resource.data.outstandingPlannedCareWorkId is string
@@ -512,8 +525,9 @@ service cloud.firestore {
     }
 
     match /speciesProfiles/{speciesProfileId} {
-      allow read: if resource.data.status == 'published'
+      allow get: if resource.data.status == 'published'
         || isEditorialKeeper();
+      allow list: if hasBoundedListQuery() && (resource.data.status == 'published' || isEditorialKeeper());
       allow write: if isEditorialKeeper();
     }
 
@@ -522,8 +536,9 @@ service cloud.firestore {
     }
 
     match /speciesProfileRevisions/{revisionId} {
-      allow read: if resource.data.status == 'published'
+      allow get: if resource.data.status == 'published'
         || isEditorialKeeper();
+      allow list: if hasBoundedListQuery() && (resource.data.status == 'published' || isEditorialKeeper());
       allow write: if isEditorialKeeper();
     }
 
@@ -550,7 +565,8 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
         && exists(/databases/$(database)/documents/speciesProfiles/$(request.resource.data.speciesProfileId))
         && get(/databases/$(database)/documents/speciesProfiles/$(request.resource.data.speciesProfileId)).data.status == 'published';
-      allow read: if canReadAquarium(resource.data.aquariumId, 'livestock');
+      allow get: if canReadAquarium(resource.data.aquariumId, 'livestock');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'livestock');
       allow update: if isOwner(resource.data)
         && request.resource.data.ownerId == resource.data.ownerId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
