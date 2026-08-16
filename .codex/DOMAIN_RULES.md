@@ -7,8 +7,24 @@ Rules are classified to avoid turning assumptions into code prematurely.
 
 - A keeper may own or manage zero, one or many independent Aquariums.
 - Each Aquarium is an independent aggregate root.
-- In the first version, each Aquarium has one owning keeper; collaboration,
-  memberships and roles are deferred.
+- In the first version, each Aquarium has one owning keeper. The owner may
+  grant explicit read-only access to selected Aquarium resources for another
+  authenticated user.
+
+## Accepted rules for delegated Aquarium access
+
+- A delegated access grant belongs to exactly one Aquarium and one grantee.
+- The owner chooses the readable resource categories independently: Aquarium
+  metadata, Measurements, Observations, Care Work, Planned Care Work or
+  Livestock.
+- A delegated grantee cannot create, update, delete, transfer or revoke any
+  Aquarium data or access grant.
+- The owner may revoke a grant. Revocation is retained for traceability and
+  immediately prevents further reads.
+- Delegated access is scoped to the selected Aquarium and does not grant
+  access to the owner's other Aquariums.
+- Firebase custom claims remain global capabilities; per-Aquarium grants are
+  persisted relationships and are not encoded as claims.
 
 ## Accepted rules for Establish an Aquarium
 
@@ -186,7 +202,6 @@ The following are intentionally unresolved:
 - The accepted Livestock slice represents both individuals and groups; species
   taxonomy remains unresolved.
 - Whether a Measurement can be corrected through a compensating Event.
-- Whether users can share an Aquarium and at what permission levels.
 - Which parameters are mandatory for each type of Aquarium.
 - Which domain Events may be created offline.
 

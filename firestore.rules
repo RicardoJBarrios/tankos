@@ -21,6 +21,70 @@ service cloud.firestore {
       return isKeeper() && data.ownerId == request.auth.uid;
     }
 
+    function grantId(aquariumId, userId) {
+      return aquariumId + '_' + userId;
+    }
+
+    function hasReadGrant(aquariumId, permission) {
+      return isAuthenticated()
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && exists(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid)))
+        && get(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid))).data.status == 'active'
+        && get(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid))).data.permissions[permission] == true;
+    }
+
+    function canReadAquarium(aquariumId, permission) {
+      return isOwner(resource.data) || hasReadGrant(aquariumId, permission);
+    }
+
+    function isValidGrantPermissions(permissions) {
+      return permissions is map
+        && permissions.keys().hasOnly([
+          'aquarium',
+          'measurements',
+          'observations',
+          'careWorks',
+          'plannedCareWorks',
+          'recurringCarePlans',
+          'livestock'
+        ])
+        && (!permissions.keys().hasAll(['aquarium']) || permissions.aquarium is bool)
+        && (!permissions.keys().hasAll(['measurements']) || permissions.measurements is bool)
+        && (!permissions.keys().hasAll(['observations']) || permissions.observations is bool)
+        && (!permissions.keys().hasAll(['careWorks']) || permissions.careWorks is bool)
+        && (!permissions.keys().hasAll(['plannedCareWorks']) || permissions.plannedCareWorks is bool)
+        && (!permissions.keys().hasAll(['recurringCarePlans']) || permissions.recurringCarePlans is bool)
+        && (!permissions.keys().hasAll(['livestock']) || permissions.livestock is bool);
+    }
+
+    match /aquariumAccessGrants/{grantDocumentId} {
+      allow create: if isKeeper()
+        && request.resource.data.keys().hasOnly([
+          'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
+          'status', 'createdAt', 'revokedAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
+          'status', 'createdAt'
+        ])
+        && grantDocumentId == grantId(request.resource.data.aquariumId, request.resource.data.granteeUserId)
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.granteeUserId != request.auth.uid
+        && request.resource.data.granteeUserId is string
+        && request.resource.data.status == 'active'
+        && isValidGrantPermissions(request.resource.data.permissions)
+        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
+        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
+        && request.resource.data.createdAt is timestamp;
+
+      allow read: if isOwner(resource.data) || resource.data.granteeUserId == request.auth.uid;
+      allow update: if isOwner(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'revokedAt'])
+        && request.resource.data.status == 'revoked'
+        && request.resource.data.revokedAt is timestamp;
+      allow delete: if false;
+    }
+
     function isValidLocation(location) {
       return location is map
         && location.keys().hasOnly(['latitude', 'longitude', 'displayName'])
@@ -103,7 +167,7 @@ service cloud.firestore {
           || isValidLocation(request.resource.data.location)
         );
 
-      allow read: if isOwner(resource.data);
+      allow read: if isOwner(resource.data) || hasReadGrant(aquariumId, 'aquarium');
       allow update: if isOwner(resource.data)
         && request.resource.data.keys().hasAll([
           'ownerId',
@@ -158,7 +222,7 @@ service cloud.firestore {
         && request.resource.data.content.size() > 0
         && request.resource.data.recordedAt is timestamp;
 
-      allow read: if isOwner(resource.data);
+      allow read: if canReadAquarium(resource.data.aquariumId, 'observations');
       allow update: if false;
       allow delete: if false;
     }
@@ -222,7 +286,7 @@ service cloud.firestore {
         && request.resource.data.recordedAt is timestamp
         && request.resource.data.provenance == 'manual';
 
-      allow read: if isOwner(resource.data);
+      allow read: if canReadAquarium(resource.data.aquariumId, 'measurements');
       allow update, delete: if false;
     }
 
@@ -254,7 +318,7 @@ service cloud.firestore {
         && request.resource.data.recordedAt is timestamp
         && request.resource.data.provenance == 'manual';
 
-      allow read: if isOwner(resource.data);
+      allow read: if canReadAquarium(resource.data.aquariumId, 'careWorks');
       allow update, delete: if false;
     }
 
@@ -299,7 +363,7 @@ service cloud.firestore {
         );
 
       allow read: if !exists(/databases/$(database)/documents/plannedCareWorks/$(plannedCareWorkId))
-        || isOwner(resource.data);
+        || canReadAquarium(resource.data.aquariumId, 'plannedCareWorks');
       allow update: if false;
       allow delete: if isOwner(resource.data)
         && (
@@ -357,7 +421,7 @@ service cloud.firestore {
         && getAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId)).data.recurringCarePlanId == recurringCarePlanId;
 
       allow read: if !exists(/databases/$(database)/documents/recurringCarePlans/$(recurringCarePlanId))
-        || isOwner(resource.data);
+        || canReadAquarium(resource.data.aquariumId, 'recurringCarePlans');
       allow update: if isOwner(resource.data)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['outstandingPlannedCareWorkId'])
         && request.resource.data.outstandingPlannedCareWorkId is string
@@ -408,7 +472,7 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
         && exists(/databases/$(database)/documents/speciesProfiles/$(request.resource.data.speciesProfileId))
         && get(/databases/$(database)/documents/speciesProfiles/$(request.resource.data.speciesProfileId)).data.status == 'published';
-      allow read: if isOwner(resource.data);
+      allow read: if canReadAquarium(resource.data.aquariumId, 'livestock');
       allow update: if isOwner(resource.data)
         && request.resource.data.ownerId == resource.data.ownerId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
