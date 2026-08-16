@@ -3,6 +3,13 @@ import { keeperAccessGuard } from './shared/ui/guards/keeper-access.guard';
 
 export const appRoutes: Route[] = [
   {
+    path: 'shared/aquariums/:aquariumId',
+    loadComponent: () =>
+      import('./shared-access/ui/shared-aquarium-page').then(
+        ({ SharedAquariumPage }) => SharedAquariumPage,
+      ),
+  },
+  {
     path: 'sign-in',
     data: { accessType: 'private', redirectTo: '/app/aquariums' },
     loadComponent: () =>
