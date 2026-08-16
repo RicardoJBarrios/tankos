@@ -2,12 +2,14 @@ import { ActiveAquariumContext } from '../../shared/application/active-aquarium-
 import { KeeperSession, LivestockWriter } from './ports';
 import { createLivestock, createLivestockId } from '../domain/livestock';
 import { SpeciesProfileId } from './ports';
+import { Clock, systemClock } from '../../shared/application/clock';
 
 export class AddLivestock {
   constructor(
     private readonly writer: LivestockWriter,
     private readonly session: KeeperSession,
     private readonly context: ActiveAquariumContext,
+    private readonly clock: Clock = systemClock,
   ) {}
 
   async execute(input: {
@@ -19,7 +21,7 @@ export class AddLivestock {
     const keeper = await this.session.requireAuthenticatedKeeper();
     const aquariumId = this.context.get();
     if (!aquariumId) throw new Error('Aquarium context is required');
-    const now = new Date();
+    const now = this.clock.now();
     const livestock = createLivestock({
       id: createLivestockId(),
       aquariumId,

@@ -19,8 +19,9 @@ import {
   OBSERVATION_READER,
 } from '../providers';
 import { formatAquariumDateTime } from '../../../shared/ui/aquarium-date-time';
+import { AsyncListPageState } from '../../../shared/ui/page-state';
 
-type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
+type PageState = AsyncListPageState;
 
 @Component({
   selector: 'veril-list-observations-page',

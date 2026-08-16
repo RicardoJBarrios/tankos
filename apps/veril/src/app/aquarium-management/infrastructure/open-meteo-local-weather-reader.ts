@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { timeout } from 'rxjs/operators';
 import { LocalWeatherReader } from '../application/ports';
 import { AquariumLocation } from '../domain/aquarium';
+import { systemClock } from '../../shared/application/clock';
 
 const responseSchema = z.object({
   current: z.object({
@@ -50,7 +51,7 @@ export class OpenMeteoLocalWeatherReader implements LocalWeatherReader {
           .pipe(timeout({ first: 10_000 })),
       ),
     );
-    const fetchedAt = new Date();
+    const fetchedAt = systemClock.now();
     const observedAt = observedAtFrom(data.current.time);
 
     return {

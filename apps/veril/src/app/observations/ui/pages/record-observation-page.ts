@@ -18,8 +18,9 @@ import { MatInputModule } from '@angular/material/input';
 import { RecordObservation } from '../../application/record-observation';
 import { ActiveAquariumContext } from '../../../shared/application/active-aquarium-context';
 import { KEEPER_SESSION, OBSERVATION_WRITER } from '../providers';
+import { FormPageState } from '../../../shared/ui/page-state';
 
-type PageState = 'ready' | 'saving' | 'success' | 'error';
+type PageState = FormPageState;
 
 @Component({
   selector: 'veril-record-observation-page',

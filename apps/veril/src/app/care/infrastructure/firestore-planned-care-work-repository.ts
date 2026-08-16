@@ -50,6 +50,7 @@ import {
 } from '../application/ports';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { careWorkDocument } from './firestore-care-work-repository';
+import { systemClock } from '../../shared/application/clock';
 
 const aquariumOwnershipDocument = z
   .object({
@@ -488,7 +489,7 @@ export class FirestorePlannedCareWorkRepository
         throw new Error('Recurring Care occurrence is stale or invalid');
       }
 
-      const actionAt = input.actionAt ?? new Date();
+      const actionAt = input.actionAt ?? systemClock.now();
       const nextOccurrence = nextWeeklyOccurrence(
         current.plannedFor.toDate(),
         actionAt,

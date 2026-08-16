@@ -5,12 +5,14 @@ import {
 } from '../domain/observation';
 import { ActiveAquariumContext } from '../../shared/application/active-aquarium-context';
 import { KeeperSession, ObservationWriter } from './ports';
+import { Clock, systemClock } from '../../shared/application/clock';
 
 export class RecordObservation {
   constructor(
     private readonly writer: ObservationWriter,
     private readonly keeperSession: KeeperSession,
     private readonly activeContext: ActiveAquariumContext,
+    private readonly clock: Clock = systemClock,
   ) {}
 
   async execute(content: string): Promise<Observation> {
@@ -25,7 +27,7 @@ export class RecordObservation {
       id: createObservationId(),
       aquariumId,
       content,
-      recordedAt: new Date(),
+      recordedAt: this.clock.now(),
     });
 
     return this.writer.record({

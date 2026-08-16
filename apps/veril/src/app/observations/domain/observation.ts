@@ -1,12 +1,12 @@
 import { AquariumId } from '../../shared/domain/aquarium-reference';
-import { isUuidV4 } from '../../shared/domain/uuid-v4';
+import { createUuidV4, isUuidV4 } from '../../shared/domain/uuid-v4';
 
 export type ObservationId = string & {
   readonly __observationId: unique symbol;
 };
 
 export function createObservationId(): ObservationId {
-  return crypto.randomUUID() as ObservationId;
+  return createUuidV4() as ObservationId;
 }
 
 export function observationIdFrom(value: string): ObservationId {

@@ -17,8 +17,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { EstablishAquarium } from '../../application/establish-aquarium';
 import { AQUARIUM_REPOSITORY, KEEPER_SESSION } from '../providers';
+import { FormPageState } from '../../../shared/ui/page-state';
 
-type PageState = 'ready' | 'saving' | 'success' | 'error';
+type PageState = FormPageState;
 
 @Component({
   selector: 'veril-establish-aquarium-page',

@@ -29,8 +29,10 @@ import {
   RECURRING_CARE_PLAN_STOPPER,
 } from '../providers';
 import { formatAquariumDateTime } from '../../../shared/ui/aquarium-date-time';
+import { AsyncListPageState } from '../../../shared/ui/page-state';
+import { systemClock } from '../../../shared/application/clock';
 
-type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
+type PageState = AsyncListPageState;
 
 @Component({
   selector: 'veril-list-planned-care-work-page',
@@ -105,7 +107,7 @@ export class ListPlannedCareWorkPage implements OnInit {
   readonly cancellationError = signal('');
   readonly stoppingId = signal<string | null>(null);
   readonly stoppingError = signal('');
-  readonly now = signal(new Date());
+  readonly now = signal(systemClock.now());
   readonly timeZone = signal<AquariumTimeZone | undefined>(undefined);
 
   ngOnInit(): void {
@@ -206,7 +208,7 @@ export class ListPlannedCareWorkPage implements OnInit {
 
   private async load(): Promise<void> {
     try {
-      this.now.set(new Date());
+      this.now.set(systemClock.now());
       await this.loadTimeZone();
       const items = await this.listPlannedCareWork.execute();
       this.items.set(items);

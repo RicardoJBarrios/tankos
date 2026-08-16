@@ -15,6 +15,7 @@ import { RouterLink } from '@angular/router';
 import { parameterPresentationFor } from '../../../shared/ui/parameter-presentation';
 import { formatAquariumDateTime } from '../../../shared/ui/aquarium-date-time';
 import { measurementAgeFor } from '../utils/measurement-age';
+import { systemClock } from '../../../shared/application/clock';
 
 @Component({
   selector: 'veril-current-measurements-section',
@@ -35,7 +36,7 @@ export class CurrentMeasurementsSection {
   @Input() loadFailed = false;
   @Output() readonly retryRequested = new EventEmitter<void>();
 
-  readonly now = signal(new Date());
+  readonly now = signal(systemClock.now());
 
   label(item: CurrentParameterState): string {
     return parameterPresentationFor(item.parameterId).label;

@@ -1,5 +1,5 @@
 import type { AquariumId } from '../../shared/domain/aquarium-reference';
-import { isUuidV4 } from '../../shared/domain/uuid-v4';
+import { createUuidV4, isUuidV4 } from '../../shared/domain/uuid-v4';
 
 export const PARAMETER_IDS = [
   'temperature',
@@ -34,7 +34,7 @@ const CANONICAL_UNITS: Readonly<Record<ParameterId, UnitId>> = {
 };
 
 export function createMeasurementId(): MeasurementId {
-  return crypto.randomUUID() as MeasurementId;
+  return createUuidV4() as MeasurementId;
 }
 
 export function measurementIdFrom(value: string): MeasurementId {

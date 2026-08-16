@@ -7,18 +7,20 @@ import {
 } from '../domain/measurement';
 import { ActiveAquariumContext } from '../../shared/application/active-aquarium-context';
 import { KeeperSession, MeasurementWriter } from './ports';
+import { Clock, systemClock } from '../../shared/application/clock';
 
 export class RecordMeasurement {
   constructor(
     private readonly writer: MeasurementWriter,
     private readonly keeperSession: KeeperSession,
     private readonly activeContext: ActiveAquariumContext,
+    private readonly clock: Clock = systemClock,
   ) {}
 
   async execute(
     parameterId: ParameterId,
     value: number,
-    measuredAt = new Date(),
+    measuredAt = this.clock.now(),
   ): Promise<Measurement> {
     const keeper = await this.keeperSession.requireAuthenticatedKeeper();
     const aquariumId = this.activeContext.get();
@@ -37,7 +39,7 @@ export class RecordMeasurement {
       canonicalValue: value,
       canonicalUnit: unit,
       measuredAt,
-      recordedAt: new Date(),
+      recordedAt: this.clock.now(),
       provenance: 'manual',
     });
 

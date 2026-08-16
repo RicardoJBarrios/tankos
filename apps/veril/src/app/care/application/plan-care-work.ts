@@ -5,12 +5,14 @@ import {
 } from '../domain/planned-care-work';
 import { ActiveAquariumContext } from '../../shared/application/active-aquarium-context';
 import { KeeperSession, PlannedCareWorkWriter } from './ports';
+import { Clock, systemClock } from '../../shared/application/clock';
 
 export class PlanCareWork {
   constructor(
     private readonly writer: PlannedCareWorkWriter,
     private readonly keeperSession: KeeperSession,
     private readonly activeContext: ActiveAquariumContext,
+    private readonly clock: Clock = systemClock,
   ) {}
 
   async execute(
@@ -29,7 +31,7 @@ export class PlanCareWork {
       aquariumId,
       description,
       plannedFor,
-      recordedAt: new Date(),
+      recordedAt: this.clock.now(),
       provenance: 'manual',
     });
 

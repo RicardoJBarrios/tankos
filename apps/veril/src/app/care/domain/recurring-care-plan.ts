@@ -4,14 +4,14 @@ import {
   aquariumTimeZoneFrom,
 } from '../../shared/domain/aquarium-reference';
 import { PlannedCareWorkId } from './planned-care-work';
-import { isUuidV4 } from '../../shared/domain/uuid-v4';
+import { createUuidV4, isUuidV4 } from '../../shared/domain/uuid-v4';
 
 export type RecurringCarePlanId = string & {
   readonly __recurringCarePlanId: unique symbol;
 };
 
 export function createRecurringCarePlanId(): RecurringCarePlanId {
-  return crypto.randomUUID() as RecurringCarePlanId;
+  return createUuidV4() as RecurringCarePlanId;
 }
 
 export function recurringCarePlanIdFrom(value: string): RecurringCarePlanId {

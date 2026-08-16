@@ -24,8 +24,10 @@ import {
 import { parameterPresentationFor } from '../../../shared/ui/parameter-presentation';
 import { formatAquariumDateTime } from '../../../shared/ui/aquarium-date-time';
 import { measurementAgeFor } from '../utils/measurement-age';
+import { systemClock } from '../../../shared/application/clock';
+import { AsyncListPageState } from '../../../shared/ui/page-state';
 
-type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
+type PageState = AsyncListPageState;
 
 @Component({
   selector: 'veril-list-measurements-page',
@@ -67,7 +69,7 @@ export class ListMeasurementsPage implements OnInit {
   readonly isLoadingMore = signal(false);
   readonly errorMessage = signal('');
   readonly timeZone = signal<AquariumTimeZone | undefined>(undefined);
-  readonly now = signal(new Date());
+  readonly now = signal(systemClock.now());
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {

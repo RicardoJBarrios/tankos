@@ -21,8 +21,9 @@ import { AquariumTimeZone } from '../../../shared/domain/aquarium-reference';
 import { TIMELINE_AQUARIUM_CONTEXT_READER, KEEPER_SESSION } from '../providers';
 import { parameterPresentationFor } from '../../../shared/ui/parameter-presentation';
 import { formatAquariumDateTime } from '../../../shared/ui/aquarium-date-time';
+import { AsyncListPageState } from '../../../shared/ui/page-state';
 
-type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
+type PageState = AsyncListPageState;
 
 @Component({
   selector: 'veril-review-recent-timeline-page',

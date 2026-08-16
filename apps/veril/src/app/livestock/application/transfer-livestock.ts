@@ -2,12 +2,14 @@ import { ActiveAquariumContext } from '../../shared/application/active-aquarium-
 import { KeeperSession, LivestockWriter } from './ports';
 import { AquariumId } from '../../shared/domain/aquarium-reference';
 import { LivestockId } from '../domain/livestock';
+import { Clock, systemClock } from '../../shared/application/clock';
 
 export class TransferLivestock {
   constructor(
     private readonly writer: LivestockWriter,
     private readonly session: KeeperSession,
     private readonly context: ActiveAquariumContext,
+    private readonly clock: Clock = systemClock,
   ) {}
   async execute(id: LivestockId, toAquariumId: AquariumId): Promise<void> {
     const keeper = await this.session.requireAuthenticatedKeeper();
@@ -18,7 +20,7 @@ export class TransferLivestock {
       fromAquariumId,
       toAquariumId,
       ownerKeeperId: keeper.id,
-      updatedAt: new Date(),
+      updatedAt: this.clock.now(),
     });
   }
 }

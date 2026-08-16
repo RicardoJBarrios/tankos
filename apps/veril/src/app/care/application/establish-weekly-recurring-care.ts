@@ -10,12 +10,14 @@ import {
 } from '../domain/recurring-care-plan';
 import { ActiveAquariumContext } from '../../shared/application/active-aquarium-context';
 import { KeeperSession, RecurringCarePlanWriter } from './ports';
+import { Clock, systemClock } from '../../shared/application/clock';
 
 export class EstablishWeeklyRecurringCare {
   constructor(
     private readonly writer: RecurringCarePlanWriter,
     private readonly keeperSession: KeeperSession,
     private readonly activeContext: ActiveAquariumContext,
+    private readonly clock: Clock = systemClock,
   ) {}
 
   async execute(
@@ -34,7 +36,7 @@ export class EstablishWeeklyRecurringCare {
       aquariumId,
       description,
       firstOccurrenceAt,
-      recordedAt: new Date(),
+      recordedAt: this.clock.now(),
       outstandingPlannedCareWorkId: createPlannedCareWorkId(),
       timeZone: zone,
     });

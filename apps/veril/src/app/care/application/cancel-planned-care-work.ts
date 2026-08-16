@@ -1,12 +1,14 @@
 import { PlannedCareWorkId } from '../domain/planned-care-work';
 import { ActiveAquariumContext } from '../../shared/application/active-aquarium-context';
 import { KeeperSession, PlannedCareWorkCanceller } from './ports';
+import { Clock, systemClock } from '../../shared/application/clock';
 
 export class CancelPlannedCareWork {
   constructor(
     private readonly canceller: PlannedCareWorkCanceller,
     private readonly keeperSession: KeeperSession,
     private readonly activeContext: ActiveAquariumContext,
+    private readonly clock: Clock = systemClock,
   ) {}
 
   async execute(plannedCareWorkId: PlannedCareWorkId): Promise<void> {
@@ -21,7 +23,7 @@ export class CancelPlannedCareWork {
       id: plannedCareWorkId,
       aquariumId,
       ownerKeeperId: keeper.id,
-      actionAt: new Date(),
+      actionAt: this.clock.now(),
     });
   }
 }

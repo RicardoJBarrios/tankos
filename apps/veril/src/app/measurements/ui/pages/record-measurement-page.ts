@@ -23,16 +23,12 @@ import {
   PARAMETER_PRESENTATIONS,
   parameterPresentationFor,
 } from '../../../shared/ui/parameter-presentation';
+import { currentDateTimeLocal } from '../../../shared/ui/date-time-input';
+import { FormPageState } from '../../../shared/ui/page-state';
 
 const parameters = PARAMETER_PRESENTATIONS;
 
-type PageState = 'ready' | 'saving' | 'success' | 'error';
-
-function currentDateTimeLocal(): string {
-  const now = new Date();
-  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
-}
+type PageState = FormPageState;
 
 @Component({
   selector: 'veril-record-measurement-page',

@@ -1,10 +1,10 @@
-import { isUuidV4 } from './uuid-v4';
+import { createUuidV4, isUuidV4 } from './uuid-v4';
 import { isParameterId, ParameterId } from './parameter-reference';
 
 export type AquariumId = string & { readonly __aquariumId: unique symbol };
 
 export function createAquariumId(): AquariumId {
-  return crypto.randomUUID() as AquariumId;
+  return createUuidV4() as AquariumId;
 }
 
 export function aquariumIdFrom(value: string): AquariumId {

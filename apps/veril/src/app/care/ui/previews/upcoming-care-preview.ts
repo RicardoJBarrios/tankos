@@ -20,6 +20,7 @@ import { PlannedCareWorkListItem } from '../../application/ports';
 import { AquariumTimeZone } from '../../../shared/domain/aquarium-reference';
 import { KEEPER_SESSION, PLANNED_CARE_WORK_READER } from '../providers';
 import { formatAquariumDateTime } from '../../../shared/ui/aquarium-date-time';
+import { systemClock } from '../../../shared/application/clock';
 
 const UPCOMING_CARE_PREVIEW_LIMIT = 3;
 type PreviewState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
@@ -56,7 +57,7 @@ export class UpcomingCarePreview implements OnInit {
   readonly state = signal<PreviewState>('loading');
   readonly items = signal<readonly PlannedCareWorkListItem[]>([]);
   readonly errorMessage = signal('');
-  readonly now = signal(new Date());
+  readonly now = signal(systemClock.now());
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -87,7 +88,7 @@ export class UpcomingCarePreview implements OnInit {
 
   private async load(): Promise<void> {
     try {
-      this.now.set(new Date());
+      this.now.set(systemClock.now());
       const items = await this.listPlannedCareWork.execute(
         UPCOMING_CARE_PREVIEW_LIMIT,
       );

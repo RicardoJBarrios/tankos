@@ -1,5 +1,6 @@
 import { LocalWeather, LocalWeatherReader } from '../application/ports';
 import { AquariumLocation } from '../domain/aquarium';
+import { systemClock } from '../../shared/application/clock';
 
 export class InMemoryLocalWeatherReader implements LocalWeatherReader {
   private readonly entries = new Map<
@@ -9,7 +10,7 @@ export class InMemoryLocalWeatherReader implements LocalWeatherReader {
 
   constructor(
     private readonly delegate: LocalWeatherReader,
-    private readonly now: () => Date = () => new Date(),
+    private readonly now: () => Date = () => systemClock.now(),
     private readonly ttlMs = 15 * 60 * 1000,
   ) {}
 

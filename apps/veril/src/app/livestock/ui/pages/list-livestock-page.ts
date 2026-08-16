@@ -18,8 +18,9 @@ import {
   LIVESTOCK_READER,
   LIVESTOCK_WRITER,
 } from '../providers';
+import { AsyncListPageState } from '../../../shared/ui/page-state';
 
-type PageState = 'loading' | 'empty' | 'success' | 'failure' | 'no-context';
+type PageState = AsyncListPageState;
 
 @Component({
   selector: 'veril-list-livestock-page',

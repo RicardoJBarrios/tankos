@@ -18,14 +18,10 @@ import { MatInputModule } from '@angular/material/input';
 import { ActiveAquariumContext } from '../../../shared/application/active-aquarium-context';
 import { RecordCareWork } from '../../application/record-care-work';
 import { CARE_WORK_WRITER, KEEPER_SESSION } from '../providers';
+import { currentDateTimeLocal } from '../../../shared/ui/date-time-input';
+import { FormPageState } from '../../../shared/ui/page-state';
 
-type PageState = 'ready' | 'saving' | 'success' | 'error';
-
-function currentDateTimeLocal(): string {
-  const now = new Date();
-  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
-}
+type PageState = FormPageState;
 
 @Component({
   selector: 'veril-record-care-work-page',
