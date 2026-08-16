@@ -23,6 +23,16 @@ Sections are content containers, not a licence to infer husbandry claims. The
 editorial workflow is responsible for deciding which claims belong in each
 section and how they are evidenced.
 
+## Authoring and rendering
+
+The editorial representation of `description` and section `content` is
+Markdown. Markdown is the source of truth and is persisted as Markdown so it
+can be reviewed, versioned and edited without coupling the content to the DOM.
+
+The keeper experience parses Markdown to HTML at the presentation boundary.
+Generated HTML must be rendered through Angular's sanitization path; raw
+Markdown or unsanitized HTML must never be inserted into the document.
+
 ## Initial section keys
 
 The initial template reserves these keys without requiring every profile to

@@ -22,11 +22,17 @@
       @if (profile()!.scientificName) {
       <p class="scientific-name">{{ profile()!.scientificName }}</p>
       }
-      <p>{{ profile()!.description }}</p>
+      <div
+        class="markdown-content"
+        [innerHTML]="markdownToHtml(profile()!.description)"
+      ></div>
       @for (section of profile()!.sections; track section.key) {
       <section>
         <h3>{{ section.title }}</h3>
-        <p>{{ section.content }}</p>
+        <div
+          class="markdown-content"
+          [innerHTML]="markdownToHtml(section.content)"
+        ></div>
       </section>
       }
       <h3>Fuentes</h3>

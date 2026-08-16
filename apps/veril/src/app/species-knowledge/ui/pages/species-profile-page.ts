@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { GetPublishedSpeciesProfile } from '../../application/get-published-species-profile';
 import { SpeciesProfile } from '../../application/ports';
 import { PUBLISHED_SPECIES_PROFILE_READER } from '../providers';
+import { markdownToHtml } from '../markdown-to-html';
 
 @Component({
   selector: 'veril-species-profile-page',
@@ -39,6 +40,10 @@ export class SpeciesProfilePage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   readonly state = signal<'loading' | 'success' | 'failure'>('loading');
   readonly profile = signal<SpeciesProfile | null>(null);
+
+  markdownToHtml(markdown: string): string {
+    return markdownToHtml(markdown);
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
