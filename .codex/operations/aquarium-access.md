@@ -23,8 +23,8 @@ The grant is active or revoked. Revocation preserves the grant document and
 immediately blocks further reads. A grantee can never write Aquarium data or
 grant documents.
 
-The owner-facing management flow still requires an invitation/identity
-decision: the application must resolve a veterinarian or provider to a
-Firebase user account without asking owners to copy technical UIDs. Until that
-flow exists, grants should be created through a controlled application service
-or fixture, not by exposing a UID field in the user interface.
+The owner-facing flow uses an invitation code. The owner creates the invitation
+and shares the code with the veterinarian or provider. That person signs in to
+their existing Firebase account and accepts the invitation; Firestore binds
+the grant to the authenticated UID. No email-to-UID lookup, UID input or
+backend function is required.

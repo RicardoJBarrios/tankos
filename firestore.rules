@@ -58,10 +58,11 @@ service cloud.firestore {
     }
 
     match /aquariumAccessGrants/{grantDocumentId} {
-      allow create: if isKeeper()
+      allow create: if (
+        isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
-          'status', 'createdAt', 'revokedAt'
+          'status', 'createdAt', 'revokedAt', 'invitationCode'
         ])
         && request.resource.data.keys().hasAll([
           'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
@@ -75,13 +76,60 @@ service cloud.firestore {
         && isValidGrantPermissions(request.resource.data.permissions)
         && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
         && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
-        && request.resource.data.createdAt is timestamp;
+        && request.resource.data.createdAt is timestamp
+      ) || (
+        isAuthenticated()
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && request.resource.data.keys().hasOnly([
+          'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
+          'status', 'createdAt', 'revokedAt', 'invitationCode'
+        ])
+        && request.resource.data.keys().hasAll([
+          'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
+          'status', 'createdAt'
+        ])
+        && grantDocumentId == grantId(request.resource.data.aquariumId, request.auth.uid)
+        && request.resource.data.granteeUserId == request.auth.uid
+        && request.resource.data.invitationCode is string
+        && request.resource.data.ownerId != request.auth.uid
+        && request.resource.data.status == 'active'
+        && isValidGrantPermissions(request.resource.data.permissions)
+        && exists(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode))
+        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.status == 'active'
+        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.aquariumId == request.resource.data.aquariumId
+        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.ownerId == request.resource.data.ownerId
+        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.permissions == request.resource.data.permissions
+        && request.resource.data.createdAt is timestamp
+      );
 
       allow read: if isOwner(resource.data) || resource.data.granteeUserId == request.auth.uid;
       allow update: if isOwner(resource.data)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'revokedAt'])
         && request.resource.data.status == 'revoked'
         && request.resource.data.revokedAt is timestamp;
+      allow delete: if false;
+    }
+
+    match /aquariumAccessInvitations/{invitationCode} {
+      allow create: if isKeeper()
+        && request.resource.data.keys().hasOnly([
+          'aquariumId', 'ownerId', 'permissions', 'status', 'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'aquariumId', 'ownerId', 'permissions', 'status', 'createdAt'
+        ])
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.status == 'active'
+        && isValidGrantPermissions(request.resource.data.permissions)
+        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
+        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
+        && request.resource.data.createdAt is timestamp;
+      allow read: if isAuthenticated()
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && (resource.data.ownerId == request.auth.uid || resource.data.status == 'active');
+      allow update: if isOwner(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status == 'revoked';
       allow delete: if false;
     }
 

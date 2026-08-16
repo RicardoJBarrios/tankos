@@ -38,16 +38,15 @@ async function writeAquarium(
   );
 }
 
-async function grantAquariumReadAccess(
+async function createAquariumInvitation(
   aquariumId: string,
   ownerId: string,
-  granteeUserId: string,
+  invitationCode: string,
   ownerToken: string,
   permissions: Record<string, boolean>,
 ) {
-  const grantId = `${aquariumId}_${granteeUserId}`;
   return fetch(
-    `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/aquariumAccessGrants/${grantId}`,
+    `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/aquariumAccessInvitations/${invitationCode}`,
     {
       method: 'PATCH',
       headers: {
@@ -58,7 +57,47 @@ async function grantAquariumReadAccess(
         fields: {
           aquariumId: { stringValue: aquariumId },
           ownerId: { stringValue: ownerId },
+          permissions: {
+            mapValue: {
+              fields: Object.fromEntries(
+                Object.entries(permissions).map(([key, value]) => [
+                  key,
+                  { booleanValue: value },
+                ]),
+              ),
+            },
+          },
+          status: { stringValue: 'active' },
+          createdAt: { timestampValue: new Date().toISOString() },
+        },
+      }),
+    },
+  );
+}
+
+async function acceptAquariumInvitation(
+  aquariumId: string,
+  ownerId: string,
+  granteeUserId: string,
+  invitationCode: string,
+  granteeToken: string,
+  permissions: Record<string, boolean>,
+) {
+  const grantId = `${aquariumId}_${granteeUserId}`;
+  return fetch(
+    `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/aquariumAccessGrants/${grantId}`,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${granteeToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fields: {
+          aquariumId: { stringValue: aquariumId },
+          ownerId: { stringValue: ownerId },
           granteeUserId: { stringValue: granteeUserId },
+          invitationCode: { stringValue: invitationCode },
           permissions: {
             mapValue: {
               fields: Object.fromEntries(
@@ -483,11 +522,23 @@ describe('Firestore Security Rules (Emulator Suite)', () => {
       ).toBe(200);
       expect(
         (
-          await grantAquariumReadAccess(
+          await createAquariumInvitation(
+            aquariumId,
+            owner.localId,
+            'invite-measurements',
+            owner.idToken,
+            { aquarium: true, measurements: true },
+          )
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await acceptAquariumInvitation(
             aquariumId,
             owner.localId,
             viewer.localId,
-            owner.idToken,
+            'invite-measurements',
+            viewer.idToken,
             { aquarium: true, measurements: true },
           )
         ).status,
