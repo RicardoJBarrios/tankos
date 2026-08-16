@@ -29,21 +29,22 @@ linking, recovery and durable human identity are deferred.
 
 ## Core concepts
 
-| Concept        | Definition and responsibility                                                                                                                                                        | Classification                                                                       | Status               |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | -------------------- |
-| Aquarium       | The managed care system to which care, records, life and supporting systems are related. It is the aggregate root and the center of meaning.                                         | Aggregate root; Entity                                                               | accepted             |
-| Display        | A physical, observable water-and-life area related to an Aquarium.                                                                                                                   | Entity only if a use case needs identity or lifecycle; otherwise descriptive concept | hypothesis           |
-| System         | A coherent set of physical, biological or technical elements that supports an Aquarium. It is not automatically an aggregate or a database hierarchy.                                | Domain concept; possible Entity only when needed                                     | hypothesis           |
-| Equipment      | A device or item that supports, observes or acts on an Aquarium or System. It is not a controller authority, sensor record or automation by itself.                                  | Entity only when identity/lifecycle is needed                                        | hypothesis           |
-| Livestock      | Organisms cared for in relation to an Aquarium. Individual/group identity, association and lifecycle are unresolved.                                                                 | Entity only when a use case needs it                                                 | hypothesis           |
-| Measurement    | Quantitative, durable evidence about a Parameter at a time.                                                                                                                          | Independently persisted aggregate; durable Fact                                      | accepted             |
-| Observation    | Qualitative, durable evidence about an observed subject or condition.                                                                                                                | Independently persisted aggregate; durable Fact                                      | accepted             |
-| Fact           | Durable, immutable, attributable evidence accepted by the system. It retains provenance and occurrence or recording time; it does not claim complete certainty about Aquarium state. | Conceptual evidence category                                                         | accepted             |
-| Event          | A Fact whose occurrence has independent domain meaning in an accepted use case. It classifies that Fact; it is not a second generic record.                                          | Domain occurrence; not every Fact becomes an Event                                   | candidate per event  |
-| Interpretation | A human or derived assessment of Facts, Observations or Events.                                                                                                                      | Derived assessment; never replaces source evidence                                   | accepted distinction |
-| Knowledge      | Curated, attributable understanding used to inform care, such as a documented procedure or source reference. It is not automatically a rule, Fact or Event.                          | Documentary/reference concept                                                        | accepted distinction |
-| Timeline       | A chronological read model that helps review evidence and relevant occurrences for an Aquarium.                                                                                      | Read Model                                                                           | accepted concept     |
-| Active Context | The application scope from which a person views or operates on an Aquarium.                                                                                                          | Application context; not a domain model element                                      | accepted             |
+| Concept         | Definition and responsibility                                                                                                                                                        | Classification                                                                       | Status                  |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ----------------------- |
+| Aquarium        | The managed care system to which care, records, life and supporting systems are related. It is the aggregate root and the center of meaning.                                         | Aggregate root; Entity                                                               | accepted                |
+| Display         | A physical, observable water-and-life area related to an Aquarium.                                                                                                                   | Entity only if a use case needs identity or lifecycle; otherwise descriptive concept | hypothesis              |
+| System          | A coherent set of physical, biological or technical elements that supports an Aquarium. It is not automatically an aggregate or a database hierarchy.                                | Domain concept; possible Entity only when needed                                     | hypothesis              |
+| Equipment       | A device or item that supports, observes or acts on an Aquarium or System. It is not a controller authority, sensor record or automation by itself.                                  | Entity only when identity/lifecycle is needed                                        | hypothesis              |
+| Species Profile | Globally shared, curated and attributable encyclopedic knowledge about a species, reusable by many Livestock records.                                                                | Knowledge/documentary record; not Aquarium state                                     | accepted distinction    |
+| Livestock       | Aquarium-specific record for one organism or group, linked to a Species Profile and carrying association and lifecycle.                                                              | Entity with identity and lifecycle                                                   | accepted first workflow |
+| Measurement     | Quantitative, durable evidence about a Parameter at a time.                                                                                                                          | Independently persisted aggregate; durable Fact                                      | accepted                |
+| Observation     | Qualitative, durable evidence about an observed subject or condition.                                                                                                                | Independently persisted aggregate; durable Fact                                      | accepted                |
+| Fact            | Durable, immutable, attributable evidence accepted by the system. It retains provenance and occurrence or recording time; it does not claim complete certainty about Aquarium state. | Conceptual evidence category                                                         | accepted                |
+| Event           | A Fact whose occurrence has independent domain meaning in an accepted use case. It classifies that Fact; it is not a second generic record.                                          | Domain occurrence; not every Fact becomes an Event                                   | candidate per event     |
+| Interpretation  | A human or derived assessment of Facts, Observations or Events.                                                                                                                      | Derived assessment; never replaces source evidence                                   | accepted distinction    |
+| Knowledge       | Curated, attributable understanding used to inform care, such as a documented procedure or source reference. It is not automatically a rule, Fact or Event.                          | Documentary/reference concept                                                        | accepted distinction    |
+| Timeline        | A chronological read model that helps review evidence and relevant occurrences for an Aquarium.                                                                                      | Read Model                                                                           | accepted concept        |
+| Active Context  | The application scope from which a person views or operates on an Aquarium.                                                                                                          | Application context; not a domain model element                                      | accepted                |
 
 ## Relationship model
 
@@ -53,6 +54,14 @@ Aquarium [aggregate root]
   ├─ may be supported by System(s)             [cardinality pending]
   ├─ may relate to Equipment and Livestock     [rules pending]
   └─ is the subject of care records and history
+
+Species Profile [global documentary knowledge]
+  └─ may be referenced by many Livestock records
+
+Livestock [Aquarium-specific entity]
+  ├─ represents one individual or a group
+  ├─ references one Species Profile
+  └─ has Aquarium association and lifecycle history
 
 Measurements, Observations and Events describe or occur in relation to an
 Aquarium and, when relevant, a more specific subject. Timeline projects them.

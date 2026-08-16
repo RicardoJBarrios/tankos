@@ -1,0 +1,18 @@
+import { Provider } from '@angular/core';
+import { AquariumDashboardStore } from '../../composition/aquarium-dashboard/aquarium-dashboard-store';
+import { PRIVATE_SHARED_PROVIDERS } from './providers/shared.providers';
+import { PRIVATE_AQUARIUM_MANAGEMENT_PROVIDERS } from './providers/aquarium-management.providers';
+import { PRIVATE_MEASUREMENT_PROVIDERS } from './providers/measurements.providers';
+import { PRIVATE_OBSERVATION_PROVIDERS } from './providers/observations.providers';
+import { PRIVATE_CARE_PROVIDERS } from './providers/care.providers';
+import { PRIVATE_TIMELINE_PROVIDERS } from './providers/timeline.providers';
+
+export const PRIVATE_SHELL_PROVIDERS: Provider[] = [
+  ...PRIVATE_SHARED_PROVIDERS,
+  ...PRIVATE_AQUARIUM_MANAGEMENT_PROVIDERS,
+  ...PRIVATE_MEASUREMENT_PROVIDERS,
+  ...PRIVATE_OBSERVATION_PROVIDERS,
+  ...PRIVATE_CARE_PROVIDERS,
+  ...PRIVATE_TIMELINE_PROVIDERS,
+  AquariumDashboardStore,
+];

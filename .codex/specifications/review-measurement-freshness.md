@@ -64,10 +64,10 @@ Parameter Status; neither changes this increment's no-freshness policy.
 application/UI read-model derivation and is not a Domain Event, Fact, Entity,
 Value Object or persisted Aquarium state.
 
-The existing `AquariumWorkspaceStore` remains sufficient for this increment:
-the age is used only by the Current Measurements section and has no second
-consumer. Current Measurement data is not duplicated into the Store merely for
-symmetry. Weather is not combined with age in this slice.
+The existing `AquariumDashboardStore` supplies current Measurement state to the
+presentational Current Measurements section. Age remains a section-local
+derivation because it has no second consumer; it is not added to Store state.
+Weather is not combined with age in this slice.
 
 ## Persistence and cost
 

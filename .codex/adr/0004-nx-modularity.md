@@ -16,15 +16,28 @@ Keep `apps/veril` as the composition root. Extract Nx libraries only when a real
 feature, ownership boundary or reuse case exists. Organize libraries by domain
 scope and by `feature`, `data-access`, `ui` or `util` type.
 
-Enforce allowed dependencies with Nx tags and ESLint module boundaries. Domains
-depend on themselves and narrowly owned shared capabilities; cross-domain
-orchestration belongs in the application or an explicit public contract.
+Enforce allowed dependencies with Nx tags and ESLint module boundaries once
+contexts are Nx projects. While the code remains inside the single `veril`
+application, use Sheriff to enforce the same context/layer policy at file and
+directory level. Domain UI cannot import infrastructure. Domains depend on
+themselves and narrowly owned shared-kernel capabilities; cross-domain
+presentation orchestration belongs under `composition`, while concrete adapter
+wiring belongs to shell composition-root providers grouped by consuming
+context.
+
+Application ports and InjectionTokens are owned by the context that consumes
+them. A provider in the composition root may bind such a consumer-owned port to
+an adapter from another context. This binding does not authorize a direct
+context-to-context import in domain, application, infrastructure or UI code.
 
 ## Consequences
 
 - The project can start small and acquire boundaries incrementally.
 - Tagging projects and replacing legacy constraints must be one coherent change.
 - `shared` requires explicit ownership and cannot become a general dumping ground.
+- Shells remain thin and cannot own domain UI, use cases or read models.
+- Integration tests that intentionally exercise more than one adapter are an
+  explicit `composition/integration-tests` layer, not production UI.
 
 ## Alternatives considered
 

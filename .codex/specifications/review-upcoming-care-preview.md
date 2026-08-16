@@ -5,7 +5,7 @@
 ## Product value
 
 An authenticated keeper with an active Aquarium can see the next planned care
-actions without leaving the Aquarium Workspace. This improves orientation and
+actions without leaving the Aquarium Dashboard. This improves orientation and
 reduces navigation while keeping planning and completion as separate use cases.
 
 ## Scope

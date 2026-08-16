@@ -42,10 +42,13 @@ The meaning of detection, acknowledgement, severity and resolution is pending.
 ## Livestock association
 
 ```text
-associated -> no longer associated
+active ── transfer ──> active in another Aquarium
+active ── remove ────> removed
 ```
 
-Transfer, loss, removal, grouping and historical retention are pending.
+Transfer preserves the previous Aquarium association and lifecycle history.
+Removal is a soft delete: the record remains available for traceability but is
+not active. Further lifecycle states are deferred.
 
 ## Equipment association
 

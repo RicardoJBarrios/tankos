@@ -19,28 +19,28 @@ export const appRoutes: Route[] = [
         path: 'aquariums',
         pathMatch: 'full',
         loadComponent: () =>
-          import('./aquariums/ui/list-my-aquariums-page').then(
+          import('./aquarium-management/ui/pages/list-my-aquariums-page').then(
             ({ ListMyAquariumsPage }) => ListMyAquariumsPage,
           ),
       },
       {
         path: 'aquariums/new',
         loadComponent: () =>
-          import('./aquariums/ui/establish-aquarium-page').then(
+          import('./aquarium-management/ui/pages/establish-aquarium-page').then(
             ({ EstablishAquariumPage }) => EstablishAquariumPage,
           ),
       },
       {
         path: 'aquariums/current',
         loadComponent: () =>
-          import('./aquariums/ui/aquarium-workspace-page').then(
-            ({ AquariumWorkspacePage }) => AquariumWorkspacePage,
+          import('./composition/aquarium-dashboard/aquarium-dashboard-page').then(
+            ({ AquariumDashboardPage }) => AquariumDashboardPage,
           ),
       },
       {
         path: 'aquariums/timezone',
         loadComponent: () =>
-          import('./aquariums/ui/configure-aquarium-time-zone-page').then(
+          import('./aquarium-management/ui/pages/configure-aquarium-time-zone-page').then(
             ({ ConfigureAquariumTimeZonePage }) =>
               ConfigureAquariumTimeZonePage,
           ),
@@ -48,7 +48,7 @@ export const appRoutes: Route[] = [
       {
         path: 'aquariums/location',
         loadComponent: () =>
-          import('./aquariums/ui/configure-aquarium-location-page').then(
+          import('./aquarium-management/ui/pages/configure-aquarium-location-page').then(
             ({ ConfigureAquariumLocationPage }) =>
               ConfigureAquariumLocationPage,
           ),
@@ -56,7 +56,7 @@ export const appRoutes: Route[] = [
       {
         path: 'aquariums/parameter-targets',
         loadComponent: () =>
-          import('./aquariums/ui/configure-parameter-targets-page').then(
+          import('./aquarium-management/ui/pages/configure-parameter-targets-page').then(
             ({ ConfigureParameterTargetsPage }) =>
               ConfigureParameterTargetsPage,
           ),
@@ -64,56 +64,56 @@ export const appRoutes: Route[] = [
       {
         path: 'aquariums/observations/new',
         loadComponent: () =>
-          import('./aquariums/ui/record-observation-page').then(
+          import('./observations/ui/pages/record-observation-page').then(
             ({ RecordObservationPage }) => RecordObservationPage,
           ),
       },
       {
         path: 'aquariums/observations',
         loadComponent: () =>
-          import('./aquariums/ui/list-observations-page').then(
+          import('./observations/ui/pages/list-observations-page').then(
             ({ ListObservationsPage }) => ListObservationsPage,
           ),
       },
       {
         path: 'aquariums/measurements',
         loadComponent: () =>
-          import('./aquariums/ui/list-measurements-page').then(
+          import('./measurements/ui/pages/list-measurements-page').then(
             ({ ListMeasurementsPage }) => ListMeasurementsPage,
           ),
       },
       {
         path: 'aquariums/timeline',
         loadComponent: () =>
-          import('./aquariums/ui/review-recent-timeline-page').then(
+          import('./timeline/ui/pages/review-recent-timeline-page').then(
             ({ ReviewRecentTimelinePage }) => ReviewRecentTimelinePage,
           ),
       },
       {
         path: 'aquariums/measurements/new',
         loadComponent: () =>
-          import('./aquariums/ui/record-measurement-page').then(
+          import('./measurements/ui/pages/record-measurement-page').then(
             ({ RecordMeasurementPage }) => RecordMeasurementPage,
           ),
       },
       {
         path: 'aquariums/care/new',
         loadComponent: () =>
-          import('./aquariums/ui/record-care-work-page').then(
+          import('./care/ui/pages/record-care-work-page').then(
             ({ RecordCareWorkPage }) => RecordCareWorkPage,
           ),
       },
       {
         path: 'aquariums/care/planned/new',
         loadComponent: () =>
-          import('./aquariums/ui/plan-care-work-page').then(
+          import('./care/ui/pages/plan-care-work-page').then(
             ({ PlanCareWorkPage }) => PlanCareWorkPage,
           ),
       },
       {
         path: 'aquariums/care/recurring/new',
         loadComponent: () =>
-          import('./aquariums/ui/establish-weekly-recurring-care-page').then(
+          import('./care/ui/pages/establish-weekly-recurring-care-page').then(
             ({ EstablishWeeklyRecurringCarePage }) =>
               EstablishWeeklyRecurringCarePage,
           ),
@@ -121,14 +121,14 @@ export const appRoutes: Route[] = [
       {
         path: 'aquariums/care/planned',
         loadComponent: () =>
-          import('./aquariums/ui/list-planned-care-work-page').then(
+          import('./care/ui/pages/list-planned-care-work-page').then(
             ({ ListPlannedCareWorkPage }) => ListPlannedCareWorkPage,
           ),
       },
       {
         path: 'aquariums/care',
         loadComponent: () =>
-          import('./aquariums/ui/list-care-work-page').then(
+          import('./care/ui/pages/list-care-work-page').then(
             ({ ListCareWorkPage }) => ListCareWorkPage,
           ),
       },

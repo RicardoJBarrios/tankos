@@ -85,8 +85,8 @@ Angular is the application framework boundary: external HTTP uses Angular's
 `HttpClient` (or `httpResource` only for a concrete reactive resource), and
 native `fetch` is not used by runtime application/infrastructure code. The
 Aquarium operational surface is a scoped Dashboard composed from explicit
-sections and coordinated by `AquariumWorkspaceStore`; it is not a generic
-widget engine or a global store.
+domain sections and coordinated by `AquariumDashboardStore`; it is not a
+generic widget engine or a global store.
 
 The preferred local feature shape is:
 
@@ -96,7 +96,36 @@ apps/veril/src/app/<domain>/
   application/
   infrastructure/
   ui/
+    pages/       # routable context-owned screens
+    sections/    # embedded context-owned sections
+    previews/    # compact context-owned summaries
+    utils/       # UI-only formatting and presentation helpers
+
+apps/veril/src/app/composition/<experience>/
+  # cross-context pages and presentation orchestration
+
+apps/veril/src/app/shells/<shell>/
+  # layout, route outlet, restoration and composition-root providers only
 ```
+
+UI remains owned by the context whose language it presents, even when a
+cross-context page embeds it. For example, current Measurement presentation
+belongs to `measurements/ui`; the Aquarium Dashboard only supplies its inputs
+and handles its outputs. A shell must not become the home of domain pages,
+stores, use cases or integration tests.
+
+Every Angular component keeps its template and stylesheet beside its TypeScript
+file, using `templateUrl` and `styleUrl`. Inline `template` and `styles` are not
+used. Component tests stay beside the component as well; when a UI area grows,
+its elements are grouped under the semantic folders above rather than added to
+the context root.
+
+Each context owns its application ports and Angular provider tokens. A
+consuming context describes external data through its own narrow port; the
+shell binds that port to a concrete adapter. `shared` is reserved for an
+explicit shared kernel such as identifiers, Parameter references, active
+Aquarium context and authenticated Keeper session—not a registry of every
+context's repositories.
 
 Extract a domain into `libs/<domain>/` only when ownership, reuse or a boundary
 justifies an Nx project.
@@ -356,6 +385,17 @@ The app may depend on shared and its own scope. Domain libraries may depend on
 their own scope and narrowly owned shared libraries. ESLint module boundaries
 must enforce the policy. `shared` must have explicit ownership and must not become
 a global dumping ground.
+
+Until contexts become separate Nx projects, [Sheriff](../../sheriff.config.ts)
+enforces the equivalent intra-application boundary. It assigns context and
+layer tags to the current screaming-architecture directories, checks the
+explicit context dependency map, and runs as the `veril:architecture` target.
+The `veril:lint` target depends on that target, so a normal lint run cannot
+silently bypass the architectural check. No bounded context is allowed to
+import another bounded context directly. Cross-context pages live under
+`composition`; adapters are bound to consumer-owned ports in shell composition
+providers. A new context dependency is a design failure unless it is first
+represented by one of those explicit boundaries.
 
 ## 12. Testing strategy
 

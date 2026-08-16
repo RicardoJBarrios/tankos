@@ -17,7 +17,7 @@ completed Care Work fact.
 
 ## Main flow
 
-1. The keeper opens `Planificar cuidado` from the Aquarium Workspace.
+1. The keeper opens `Planificar cuidado` from the Aquarium Dashboard.
 2. The keeper enters a description and planned date/time.
 3. Veril persists a new `PlannedCareWork` in `plannedCareWorks`.
 4. The keeper can open the planned-care list and see the intention.

@@ -30,7 +30,7 @@ offline capability and App Check remain deferred.
 - Use NgRx Signals for shared or complex feature state; keep local state local.
 - Keep the current Active Context as a small application service plus a narrow
   tab-scoped storage port. The Aquarium operational surface uses a scoped
-  `AquariumWorkspaceStore` for cross-section context and configuration state;
+  `AquariumDashboardStore` for cross-section context and configuration state;
   section-local presentation state remains local when it has no shared
   consumer.
 - Use Zod at external boundaries and derive DTO types with `z.infer`.

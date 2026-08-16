@@ -9,7 +9,7 @@ Aquarium without interpreting them as a health diagnosis or freshness claim.
 
 ## Scope
 
-The Aquarium Workspace shows the five closed Parameters with their latest known
+The Aquarium Dashboard shows the five closed Parameters with their latest known
 canonical value, canonical Unit and `measuredAt`. A Parameter without a
 Measurement is shown as `Sin datos`. Charts, ranges, alerts, trends, Timeline,
 AI and interpretation remain out of scope.

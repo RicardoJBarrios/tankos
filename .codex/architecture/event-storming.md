@@ -5,28 +5,32 @@ needs without adopting CQRS, event sourcing or any implementation pattern.
 
 ## Commands
 
-| Command             | Intent                                               | Status                         |
-| ------------------- | ---------------------------------------------------- | ------------------------------ |
-| Establish Aquarium  | Create a private, durable Aquarium context.          | accepted                       |
-| Record Measurement  | Record a Parameter value.                            | candidate                      |
-| Record Observation  | Record a note relevant to care.                      | candidate                      |
-| Record Care Work    | Record an intentional care action already performed. | accepted; first Care increment |
-| Plan care work      | Record an intention to perform care.                 | candidate                      |
-| Complete care work  | Record the outcome of planned care.                  | pending                        |
-| Associate Livestock | Relate Livestock to an Aquarium.                     | candidate                      |
-| Associate Equipment | Relate Equipment to an Aquarium or System.           | candidate                      |
+| Command                  | Intent                                               | Status                              |
+| ------------------------ | ---------------------------------------------------- | ----------------------------------- |
+| Establish Aquarium       | Create a private, durable Aquarium context.          | accepted                            |
+| Record Measurement       | Record a Parameter value.                            | candidate                           |
+| Record Observation       | Record a note relevant to care.                      | candidate                           |
+| Record Care Work         | Record an intentional care action already performed. | accepted; first Care increment      |
+| Plan care work           | Record an intention to perform care.                 | candidate                           |
+| Complete care work       | Record the outcome of planned care.                  | pending                             |
+| Associate Livestock      | Relate Livestock to an Aquarium.                     | accepted; first Livestock increment |
+| Maintain Species Profile | Curate and publish shared species knowledge.         | accepted; editorial workflow        |
+| Associate Equipment      | Relate Equipment to an Aquarium or System.           | candidate                           |
 
 ## Domain Events
 
-| Domain Event          | Meaning                                              | Status                                         |
-| --------------------- | ---------------------------------------------------- | ---------------------------------------------- |
-| `AquariumEstablished` | A private Aquarium became available for care.        | accepted                                       |
-| `MeasurementRecorded` | A Parameter value was recorded.                      | candidate                                      |
-| `ObservationRecorded` | A care-relevant note was recorded.                   | candidate                                      |
-| `CareWorkPlanned`     | An intention to perform care was recorded.           | candidate                                      |
-| `CareWorkCompleted`   | Care work was recorded as complete.                  | future; not automatic for every Care Work Fact |
-| `LivestockAssociated` | Livestock was associated with an Aquarium.           | candidate                                      |
-| `EquipmentAssociated` | Equipment was associated with an Aquarium or System. | candidate                                      |
+| Domain Event              | Meaning                                               | Status                                         |
+| ------------------------- | ----------------------------------------------------- | ---------------------------------------------- |
+| `AquariumEstablished`     | A private Aquarium became available for care.         | accepted                                       |
+| `MeasurementRecorded`     | A Parameter value was recorded.                       | candidate                                      |
+| `ObservationRecorded`     | A care-relevant note was recorded.                    | candidate                                      |
+| `CareWorkPlanned`         | An intention to perform care was recorded.            | candidate                                      |
+| `CareWorkCompleted`       | Care work was recorded as complete.                   | future; not automatic for every Care Work Fact |
+| `LivestockAssociated`     | Livestock was associated with an Aquarium.            | accepted                                       |
+| `LivestockTransferred`    | Livestock moved between keeper-owned Aquariums.       | accepted                                       |
+| `LivestockRemoved`        | Livestock was soft-removed while retaining history.   | accepted                                       |
+| `SpeciesProfilePublished` | A reviewed Species Profile revision became canonical. | accepted                                       |
+| `EquipmentAssociated`     | Equipment was associated with an Aquarium or System.  | candidate                                      |
 
 ## Domain event policy
 
@@ -63,7 +67,7 @@ unhappen.
 | Consult Parameter history      | Interpret recorded values over time.   | candidate                                        |
 | Consult planned care work      | Understand what care is intended.      | candidate                                        |
 | Consult care history           | Review relevant past information.      | candidate                                        |
-| Consult Livestock associations | Understand care context for organisms. | candidate                                        |
+| Consult Livestock associations | Understand care context for organisms. | accepted; first Livestock increment              |
 
 Queries do not imply separate read models. Introduce a different model only if a
 validated use case and measured need justify it.

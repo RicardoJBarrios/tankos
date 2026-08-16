@@ -23,17 +23,26 @@ Aquarium. It is not automatically an aggregate, a hierarchy or a storage model.
 
 ### Livestock
 
-Living organisms kept in an Aquarium, including fish, coral and other organisms.
+An Aquarium-specific record for one organism or a group of organisms, including
+fish, coral and other organisms. It has its own identity, Aquarium association
+and lifecycle; it is not the species documentation itself.
+
+### Species Profile
+
+An encyclopedic, globally shared documentary record for a species. It contains
+curated and attributable general knowledge intended to describe the species
+objectively and may be referenced by many Livestock records. It is not an
+Aquarium occurrence, individual/group record or lifecycle.
 
 ### Fish
 
-A livestock category representing a fish specimen or group. The final grouping
-and identification model is not yet defined.
+A Livestock category representing a fish individual or group, such as one
+clownfish specimen or a group of fish.
 
 ### Coral
 
-A livestock category representing coral. The final taxonomy and fragment model
-are not yet defined.
+A Livestock category representing a coral individual or group. A zoanthus
+colony is represented as a group in the first Livestock workflow.
 
 ### Equipment
 

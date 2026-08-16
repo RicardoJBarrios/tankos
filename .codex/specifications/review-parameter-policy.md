@@ -106,7 +106,7 @@ latest value → value + age → value + configured target → derived status
 ```
 
 Dashboard Attention remains future work. Parameter Status belongs to the scoped
-`AquariumWorkspaceStore` because it combines Store-owned target configuration
+`AquariumDashboardStore` because it combines Store-owned target configuration
 with the Dashboard's current Measurement state. It does not justify another
 Store or generic interpretation service.
 

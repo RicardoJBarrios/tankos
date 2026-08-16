@@ -60,7 +60,7 @@ It combines the existing `CurrentMeasurementValue`, the optional
 closed-catalogue Parameter. It exposes no Firestore, DTO or presentation-label
 types.
 
-`AquariumWorkspaceStore` becomes the single Dashboard owner of:
+`AquariumDashboardStore` becomes the single Dashboard owner of:
 
 - Aquarium context and target configuration;
 - current Measurement values and their independent loading/error state; and

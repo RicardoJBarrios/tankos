@@ -32,7 +32,7 @@ Spark-first contextual increment. Approximate location is owner-configured;
 weather remains an ephemeral cached external read and is not domain history.
 
 The Aquarium operational surface is now classified as a Dashboard by
-responsibility. A scoped `AquariumWorkspaceStore` coordinates shared context
+responsibility. A scoped `AquariumDashboardStore` coordinates shared context
 and configuration state, while section-only state remains local when it has no
 shared consumer. Runtime external HTTP uses Angular `HttpClient`.
 
@@ -90,9 +90,12 @@ source of truth.
 
 ## 6. Livestock and Equipment
 
-Add Fish and Coral only after Aquarium ownership is stable. Impact: historical
-identity, transfer rules, UI composition and likely new feature/data-access code.
-Risk: premature taxonomy and grouping complexity.
+The first Livestock increment is accepted now that Aquarium ownership is stable:
+individuals and groups can be associated, transferred between owned Aquariums
+and soft-removed while preserving traceability. Implement it before Equipment;
+keep taxonomy, broader lifecycle states and source-record associations deferred.
+Equipment remains a separate future decision because its ownership, state and
+sharing rules are different.
 
 ## 7. Public presentation and portability
 

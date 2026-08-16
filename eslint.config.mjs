@@ -1,9 +1,11 @@
 import nx from '@nx/eslint-plugin';
+import sheriff from '@softarc/eslint-plugin-sheriff';
 
 export default [
   ...nx.configs['flat/base'],
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
+  sheriff.configs.all,
   {
     ignores: [
       '**/dist',

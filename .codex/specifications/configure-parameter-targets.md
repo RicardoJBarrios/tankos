@@ -154,22 +154,22 @@ the UI.
 
 ## Store and application boundary
 
-`AquariumWorkspaceStore` owns the shared Dashboard target state under the
-accepted Store-first policy. It exposes configured targets, `targetFor` and
-`hasTarget` only; it does not derive `below`, `within` or `above` yet and it
-does not call Firestore directly.
+`ConfigureParameterTargetsPage` owns its editing state and the target snapshot
+needed by that capability. It invokes Aquarium application use cases directly;
+the Dashboard Store does not acquire target-mutation methods merely to serve a
+separate route. `AquariumDashboardStore` reads targets only as part of its own
+Dashboard context and uses them to derive Parameter Status.
 
 The flow is:
 
 ```text
-UI → AquariumWorkspaceStore → application use case → port → adapter
-                                      ↓
-                              Store updates context
+UI → Aquarium application use case → consumer-owned port → adapter
+ ↓
+local target snapshot updates after success
 ```
 
-Forms and validation errors remain capability-local. No Signal Store beyond
-the existing scoped Workspace Store, no CQRS, no projections and no Nx
-library are needed.
+Forms, validation errors and mutation state remain capability-local. No extra
+Signal Store, CQRS projection or Nx library is needed.
 
 ## UX
 

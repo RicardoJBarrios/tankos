@@ -104,7 +104,7 @@ Rules are classified to avoid turning assumptions into code prematurely.
   Observations, Care Work or recurrence data.
 - Local Weather is an ephemeral external read model. It is not persisted,
   treated as Aquarium evidence or included in Timeline; provider failure must
-  not block Aquarium-owned Workspace capabilities.
+  not block Aquarium operational capabilities.
 
 ## Measurement age
 
@@ -142,7 +142,8 @@ enforce them:
 
 - Whether an Aquarium is the ownership boundary for Measurements.
 - Whether Measurements are immutable, editable or corrected by compensation.
-- Whether Livestock can belong to one or multiple Aquariums over time.
+- Livestock belongs to one Aquarium at a time; an accepted transfer records the
+  previous association and moves it to another Aquarium owned by the keeper.
 - Whether Water Change is a distinct domain Event.
 - Whether an Observation may correct, qualify or otherwise relate to a
   Measurement.
@@ -167,7 +168,11 @@ These are likely to matter but must wait for concrete features:
 - Controller safety limits and automation authorization.
 - Alert severity, acknowledgement and resolution.
 - Shared equipment ownership and permissions.
-- Livestock transfer, grouping and identification history.
+- Livestock transfer, grouping and identification history are governed by the
+  accepted Add Livestock specification; further lifecycle states remain future.
+- Species Profiles are globally shared documentary Knowledge, not owned by a
+  keeper or Aquarium. Their objective claims require attribution and an
+  editorial/source policy before publication behavior is implemented.
 - Conflict policy for concurrent edits to domain records.
 
 ## Unknown rules
@@ -176,7 +181,8 @@ The following are intentionally unresolved:
 
 - Whether `Display` requires its own identity or lifecycle within the Aquarium
   aggregate.
-- Whether Fish or Coral can be represented as groups as well as individuals.
+- The accepted Livestock slice represents both individuals and groups; species
+  taxonomy remains unresolved.
 - Whether a Measurement can be corrected through a compensating Event.
 - Whether users can share an Aquarium and at what permission levels.
 - Which parameters are mandatory for each type of Aquarium.

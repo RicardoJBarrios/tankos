@@ -4,7 +4,7 @@ export default defineConfig({
   root: import.meta.dirname,
   test: {
     environment: 'node',
-    include: ['src/app/aquariums/infrastructure/**/*.integration.spec.ts'],
+    include: ['src/app/**/*.integration.spec.ts'],
     fileParallelism: false,
   },
 });

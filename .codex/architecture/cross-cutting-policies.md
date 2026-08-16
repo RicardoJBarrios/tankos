@@ -124,7 +124,7 @@ official testing backend while provider adapters continue to validate DTOs with
 Zod.
 
 Shared Aquarium operational state starts from the scoped
-`AquariumWorkspaceStore`. It coordinates context/configuration state and
+`AquariumDashboardStore`. It coordinates context/configuration state and
 reload semantics without replacing application use cases or Active Context
 persistence. Independent section-only presentation state may remain local when
 there is no shared consumer. The operational surface is a Dashboard by

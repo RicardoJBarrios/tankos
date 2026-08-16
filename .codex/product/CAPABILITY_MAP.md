@@ -6,6 +6,13 @@ still be delivered incrementally.
 
 ## Current capability
 
+### Species Knowledge
+
+Global, shared Species Profiles provide curated and attributable documentary
+knowledge for Livestock identification. Published profiles are reusable across
+Aquariums; editorial maintenance, revision history and publication authority
+are explicit concerns and are not Aquarium-owned data.
+
 ### Aquarium Management
 
 Provides the keeper with a private Aquarium context that can be created,
@@ -46,7 +53,7 @@ closed Parameter catalogue.
 
 `Configure Parameter Targets` defines optional Aquarium-owned operating
 intervals; it does not introduce biological defaults or status interpretation.
-`Review Parameter Status` is implemented in the Workspace Store and remains
+`Review Parameter Status` is implemented in the Dashboard Store and remains
 derived; it does not introduce biological defaults, freshness thresholds or
 persisted status.
 
@@ -87,8 +94,12 @@ source of truth.
 
 ### Livestock
 
-Manage the organisms associated with an Aquarium once identity, grouping,
-transfers and lifecycle are validated.
+Manage individual or grouped organisms associated with an Aquarium and link
+them to globally shared Species Profiles. The first accepted increment supports
+owner-scoped association, transfer between owned Aquariums, lifecycle history
+and soft removal with traceability. Taxonomy, additional lifecycle states,
+Species Profile editorial workflow and source-record associations remain
+deferred.
 
 ### Equipment
 

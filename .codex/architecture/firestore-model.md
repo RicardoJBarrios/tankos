@@ -187,7 +187,7 @@ direction, not an implemented collection or Rules contract yet.
 
 ## Current Measurement values
 
-The Aquarium Workspace answers which values are currently known for the active
+The Aquarium Dashboard answers which values are currently known for the active
 Aquarium directly from immutable `Measurement` documents. This is a read
 concern, not a new domain Aggregate: Measurements remain the source of truth.
 

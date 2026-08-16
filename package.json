@@ -49,6 +49,8 @@
     "@oxc-project/runtime": "^0.115.0",
     "@playwright/test": "^1.36.0",
     "@schematics/angular": "20.3.27",
+    "@softarc/eslint-plugin-sheriff": "0.19.6",
+    "@softarc/sheriff-core": "0.19.6",
     "@swc-node/register": "1.11.1",
     "@swc/core": "1.15.8",
     "@swc/helpers": "0.5.23",
