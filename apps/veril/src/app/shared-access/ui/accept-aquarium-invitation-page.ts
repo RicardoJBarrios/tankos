@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { Timestamp, doc, getDoc, setDoc } from 'firebase/firestore';
+import { Timestamp, doc, runTransaction } from 'firebase/firestore';
+import { systemClock } from '../../shared/application/clock';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 
 @Component({
@@ -23,28 +24,47 @@ export class AcceptAquariumInvitationPage {
       const { auth, firestore } = getFirebaseClient();
       const user = auth.currentUser;
       if (!user || user.isAnonymous || !invitationCode) throw new Error();
-      const invitation = await getDoc(
-        doc(firestore, 'aquariumAccessInvitations', invitationCode),
-      );
-      if (!invitation.exists() || invitation.data()['status'] !== 'active')
-        throw new Error();
-      const data = invitation.data();
-      await setDoc(
-        doc(
+      await runTransaction(firestore, async (transaction) => {
+        const invitationReference = doc(
           firestore,
-          'aquariumAccessGrants',
-          `${data['aquariumId']}_${user.uid}`,
-        ),
-        {
-          aquariumId: data['aquariumId'],
-          ownerId: data['ownerId'],
-          granteeUserId: user.uid,
+          'aquariumAccessInvitations',
           invitationCode,
-          permissions: data['permissions'],
-          status: 'active',
-          createdAt: Timestamp.now(),
-        },
-      );
+        );
+        const invitation = await transaction.get(invitationReference);
+        if (!invitation.exists()) throw new Error();
+        const data = invitation.data();
+        const expiresAt = data['expiresAt'];
+        if (
+          data['status'] !== 'active' ||
+          !(expiresAt instanceof Timestamp) ||
+          expiresAt.toMillis() <= systemClock.now().getTime()
+        ) {
+          throw new Error();
+        }
+
+        const now = Timestamp.fromDate(systemClock.now());
+        transaction.set(
+          doc(
+            firestore,
+            'aquariumAccessGrants',
+            `${data['aquariumId']}_${user.uid}`,
+          ),
+          {
+            aquariumId: data['aquariumId'],
+            ownerId: data['ownerId'],
+            granteeUserId: user.uid,
+            invitationCode,
+            permissions: data['permissions'],
+            status: 'active',
+            createdAt: now,
+          },
+        );
+        transaction.update(invitationReference, {
+          status: 'consumed',
+          redeemedBy: user.uid,
+          redeemedAt: now,
+        });
+      });
       this.state.set('success');
       this.message.set('Invitación aceptada.');
     } catch {

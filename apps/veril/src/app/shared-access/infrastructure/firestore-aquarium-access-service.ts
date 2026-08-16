@@ -20,7 +20,10 @@ import {
   SharedAquariumView,
 } from '../application/ports';
 import { createUuidV4 } from '../../shared/domain/uuid-v4';
+import { systemClock } from '../../shared/application/clock';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
+
+const INVITATION_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 
 const permissionsSchema = z.record(
   z.enum(AQUARIUM_ACCESS_PERMISSIONS),
@@ -43,12 +46,16 @@ export class FirestoreAquariumAccessService implements AquariumAccessService {
   }) {
     const code = createUuidV4();
     const { firestore } = getFirebaseClient();
+    const now = systemClock.now();
     await setDoc(doc(firestore, 'aquariumAccessInvitations', code), {
       aquariumId: input.aquariumId,
       ownerId: input.ownerId,
       permissions: input.permissions,
       status: 'active',
-      createdAt: Timestamp.now(),
+      createdAt: Timestamp.fromDate(now),
+      expiresAt: Timestamp.fromDate(
+        new Date(now.getTime() + INVITATION_LIFETIME_MS),
+      ),
     });
     return { code, permissions: input.permissions };
   }
@@ -63,6 +70,7 @@ export class FirestoreAquariumAccessService implements AquariumAccessService {
         collection(firestore, 'aquariumAccessGrants'),
         where('aquariumId', '==', input.aquariumId),
         where('ownerId', '==', input.ownerId),
+        limit(100),
       ),
     );
     return snapshot.docs.map((entry) => {

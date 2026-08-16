@@ -24,7 +24,17 @@ immediately blocks further reads. A grantee can never write Aquarium data or
 grant documents.
 
 The owner-facing flow uses an invitation code. The owner creates the invitation
-and shares the code with the veterinarian or provider. That person signs in to
-their existing Firebase account and accepts the invitation; Firestore binds
-the grant to the authenticated UID. No email-to-UID lookup, UID input or
-backend function is required.
+and shares the code with the veterinarian or provider. The code expires after
+seven days and is consumed atomically with grant creation, so it can bind only
+one accepted grant. An invitation code can be resolved directly, but active
+invitations cannot be listed by grantees.
+
+That person signs in to their existing Firebase account and accepts the
+invitation; Firestore binds the grant to the authenticated UID. No
+email-to-UID lookup, UID input or backend function is required for this
+bounded flow.
+
+Firestore Rules do not provide a reliable global rate limiter or DDoS control.
+Before production scale, abuse quotas and request throttling must be enforced
+at a server-side boundary or managed edge service; client-side limits are only
+UX safeguards.

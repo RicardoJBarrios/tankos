@@ -69,6 +69,11 @@ async function createAquariumInvitation(
           },
           status: { stringValue: 'active' },
           createdAt: { timestampValue: new Date().toISOString() },
+          expiresAt: {
+            timestampValue: new Date(
+              Date.now() + 24 * 60 * 60 * 1000,
+            ).toISOString(),
+          },
         },
       }),
     },
@@ -85,32 +90,54 @@ async function acceptAquariumInvitation(
 ) {
   const grantId = `${aquariumId}_${granteeUserId}`;
   return fetch(
-    `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/aquariumAccessGrants/${grantId}`,
+    'http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents:commit',
     {
-      method: 'PATCH',
+      method: 'POST',
       headers: {
         Authorization: `Bearer ${granteeToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        fields: {
-          aquariumId: { stringValue: aquariumId },
-          ownerId: { stringValue: ownerId },
-          granteeUserId: { stringValue: granteeUserId },
-          invitationCode: { stringValue: invitationCode },
-          permissions: {
-            mapValue: {
-              fields: Object.fromEntries(
-                Object.entries(permissions).map(([key, value]) => [
-                  key,
-                  { booleanValue: value },
-                ]),
-              ),
+        writes: [
+          {
+            update: {
+              name: `projects/demo-veril/databases/(default)/documents/aquariumAccessGrants/${grantId}`,
+              fields: {
+                aquariumId: { stringValue: aquariumId },
+                ownerId: { stringValue: ownerId },
+                granteeUserId: { stringValue: granteeUserId },
+                invitationCode: { stringValue: invitationCode },
+                permissions: {
+                  mapValue: {
+                    fields: Object.fromEntries(
+                      Object.entries(permissions).map(([key, value]) => [
+                        key,
+                        { booleanValue: value },
+                      ]),
+                    ),
+                  },
+                },
+                status: { stringValue: 'active' },
+                createdAt: { timestampValue: new Date().toISOString() },
+              },
             },
+            currentDocument: { exists: false },
           },
-          status: { stringValue: 'active' },
-          createdAt: { timestampValue: new Date().toISOString() },
-        },
+          {
+            update: {
+              name: `projects/demo-veril/databases/(default)/documents/aquariumAccessInvitations/${invitationCode}`,
+              fields: {
+                status: { stringValue: 'consumed' },
+                redeemedBy: { stringValue: granteeUserId },
+                redeemedAt: { timestampValue: new Date().toISOString() },
+              },
+            },
+            updateMask: {
+              fieldPaths: ['status', 'redeemedBy', 'redeemedAt'],
+            },
+            currentDocument: { exists: true },
+          },
+        ],
       }),
     },
   );
@@ -589,11 +616,32 @@ describe('Firestore Security Rules (Emulator Suite)', () => {
       ).toBe(403);
       expect(
         (
+          await fetch(
+            'http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/aquariumAccessInvitations',
+            { headers: { Authorization: `Bearer ${viewer.idToken}` } },
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
           await writeAquarium(
             createAquariumId(),
             viewer.localId,
             viewer.idToken,
             'No puede escribir',
+          )
+        ).status,
+      ).toBe(403);
+      const secondViewer = await createIdToken('aquarium-viewer-second');
+      expect(
+        (
+          await acceptAquariumInvitation(
+            aquariumId,
+            owner.localId,
+            secondViewer.localId,
+            'invite-measurements',
+            secondViewer.idToken,
+            { aquarium: true, measurements: true },
           )
         ).status,
       ).toBe(403);
