@@ -75,10 +75,15 @@ claims or species-specific husbandry values.
 - Removing or transferring Livestock does not remove or alter the Species
   Profile.
 
+## Delivered scope
+
+- Editorial keepers can sign in with a persistent Firebase account and save a
+  Markdown draft without changing the published profile.
+
 ## Deferred scope
 
 - ordinary keeper editing or proposals;
-- administrative role implementation;
+- draft review and publication;
 - full species taxonomy and synonym management;
 - automatic biological recommendations;
 - species-specific Parameter Targets;

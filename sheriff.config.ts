@@ -38,6 +38,10 @@ modules['apps/veril/src/app/composition/integration-tests'] = [
   'context:composition',
   'layer:integration',
 ];
+modules['apps/veril/src/app/composition/editorial'] = [
+  'context:composition',
+  'layer:composition',
+];
 modules['apps/veril/src/app/composition/<feature>'] = [
   'context:composition',
   'layer:ui',

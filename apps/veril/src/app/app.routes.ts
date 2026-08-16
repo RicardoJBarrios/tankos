@@ -1,4 +1,5 @@
 import { Route } from '@angular/router';
+import { EDITORIAL_PROVIDERS } from './composition/editorial/editorial.providers';
 
 export const appRoutes: Route[] = [
   {
@@ -6,6 +7,14 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('./species-knowledge/ui/pages/editorial-sign-in-page').then(
         ({ EditorialSignInPage }) => EditorialSignInPage,
+      ),
+  },
+  {
+    path: 'editorial/species-knowledge/:id',
+    providers: EDITORIAL_PROVIDERS,
+    loadComponent: () =>
+      import('./species-knowledge/ui/pages/edit-species-profile-page').then(
+        ({ EditSpeciesProfilePage }) => EditSpeciesProfilePage,
       ),
   },
   {

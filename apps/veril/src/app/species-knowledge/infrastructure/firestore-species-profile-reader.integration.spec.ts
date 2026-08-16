@@ -5,7 +5,7 @@ import {
   signInWithCustomToken,
   signOut,
 } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { describe, expect, it } from 'vitest';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import {
@@ -15,6 +15,7 @@ import {
 } from './fixtures/species-profiles';
 import { FirestoreSpeciesProfileReader } from './firestore-species-profile-reader';
 import { speciesProfileIdFrom } from '../domain/species-profile';
+import { FirestoreSpeciesProfileDraftWriter } from './firestore-species-profile-draft-writer';
 
 const emulatorTest = process.env['FIRESTORE_EMULATOR_HOST'] ? it : it.skip;
 
@@ -103,6 +104,76 @@ describe('FirestoreSpeciesProfileReader (Emulator Suite)', () => {
         },
       ),
     ).resolves.toBeUndefined();
+
+    await signOut(auth);
+  });
+
+  emulatorTest(
+    'stores editorial changes in a separate draft document',
+    async () => {
+      await seedSpeciesProfileFixtures();
+      const { auth, firestore } = getFirebaseClient();
+      await signInWithCustomToken(auth, await createEditorialKeeperToken());
+
+      await new FirestoreSpeciesProfileDraftWriter().saveDraft({
+        speciesProfileId: speciesProfileIdFrom(
+          speciesProfileFixtures.clownfish.id,
+        ),
+        displayName: 'Pez payaso revisado',
+        scientificName: speciesProfileFixtures.clownfish.scientificName,
+        description: 'Descripción en **Markdown**.',
+        sections: speciesProfileFixtures.clownfish.sections,
+        sources: speciesProfileFixtures.clownfish.sources.map((source) => ({
+          ...source,
+          publishedAt: new Date('2026-08-16T00:00:00.000Z'),
+        })),
+      });
+
+      const draft = await getDoc(
+        doc(
+          firestore,
+          'speciesProfileDrafts',
+          speciesProfileFixtures.clownfish.id,
+        ),
+      );
+      expect(draft.data()).toMatchObject({
+        speciesProfileId: speciesProfileFixtures.clownfish.id,
+        displayName: 'Pez payaso revisado',
+        description: 'Descripción en **Markdown**.',
+        status: 'draft',
+      });
+      expect(
+        (
+          await getDoc(
+            doc(
+              firestore,
+              'speciesProfiles',
+              speciesProfileFixtures.clownfish.id,
+            ),
+          )
+        ).data()?.['status'],
+      ).toBe('published');
+
+      await signOut(auth);
+    },
+  );
+
+  emulatorTest('rejects draft writes from anonymous users', async () => {
+    await seedSpeciesProfileFixtures();
+    const { auth } = getFirebaseClient();
+    await signInAnonymously(auth);
+
+    await expect(
+      new FirestoreSpeciesProfileDraftWriter().saveDraft({
+        speciesProfileId: speciesProfileIdFrom(
+          speciesProfileFixtures.clownfish.id,
+        ),
+        displayName: 'No autorizado',
+        description: 'No autorizado',
+        sections: speciesProfileFixtures.clownfish.sections,
+        sources: speciesProfileFixtures.clownfish.sources,
+      }),
+    ).rejects.toThrow();
 
     await signOut(auth);
   });

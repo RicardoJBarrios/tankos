@@ -36,6 +36,15 @@ export interface SpeciesProfile extends SpeciesProfileReference {
   readonly revision: SpeciesProfileRevision;
 }
 
+export interface SpeciesProfileDraft {
+  readonly speciesProfileId: SpeciesProfileId;
+  readonly displayName: string;
+  readonly scientificName?: string;
+  readonly description: string;
+  readonly sections: readonly SpeciesProfileSection[];
+  readonly sources: readonly SpeciesProfileSource[];
+}
+
 export interface SpeciesProfileReference {
   readonly id: SpeciesProfileId;
   readonly displayName: string;

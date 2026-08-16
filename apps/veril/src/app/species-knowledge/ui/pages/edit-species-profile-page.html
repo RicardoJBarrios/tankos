@@ -1,0 +1,78 @@
+<section aria-labelledby="edit-species-profile-title" class="page-section">
+  <p class="eyebrow">Edición editorial</p>
+  <h2 id="edit-species-profile-title">Perfil de especie</h2>
+
+  @if (state() === 'loading') {
+  <p role="status">Cargando perfil…</p>
+  } @else if (state() === 'failure' || !profile()) {
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <p class="error" role="alert">
+        {{ errorMessage() || 'No se puede abrir este perfil editorial.' }}
+      </p>
+      <a mat-button routerLink="/editorial/sign-in"
+        >Volver al acceso editorial</a
+      >
+    </mat-card-content>
+  </mat-card>
+  } @else {
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <p>
+        Los cambios se guardan como borrador y no modifican la versión
+        publicada.
+      </p>
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre visible</mat-label>
+        <input
+          matInput
+          [ngModel]="displayName()"
+          (ngModelChange)="displayName.set($event)"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre científico</mat-label>
+        <input
+          matInput
+          [ngModel]="scientificName()"
+          (ngModelChange)="scientificName.set($event)"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Descripción (Markdown)</mat-label>
+        <textarea
+          matInput
+          rows="8"
+          [ngModel]="description()"
+          (ngModelChange)="description.set($event)"
+        ></textarea>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Identificación (Markdown)</mat-label>
+        <textarea
+          matInput
+          rows="8"
+          [ngModel]="sectionContent()"
+          (ngModelChange)="sectionContent.set($event)"
+        ></textarea>
+      </mat-form-field>
+      @if (state() === 'saved') {
+      <p class="success" role="status">Borrador guardado.</p>
+      } @if (state() === 'failure') {
+      <p class="error" role="alert">{{ errorMessage() }}</p>
+      }
+      <button
+        mat-flat-button
+        type="button"
+        [disabled]="state() === 'saving'"
+        (click)="saveDraft()"
+      >
+        {{ state() === 'saving' ? 'Guardando…' : 'Guardar borrador' }}
+      </button>
+    </mat-card-content>
+  </mat-card>
+  <a mat-button [routerLink]="['/app/species-knowledge', profile()!.id]"
+    >Ver versión publicada</a
+  >
+  }
+</section>

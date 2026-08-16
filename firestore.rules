@@ -370,6 +370,10 @@ service cloud.firestore {
       allow write: if isEditorialKeeper();
     }
 
+    match /speciesProfileDrafts/{speciesProfileId} {
+      allow read, write: if isEditorialKeeper();
+    }
+
     match /livestock/{livestockId} {
       allow create: if isAuthenticated()
         && request.resource.data.keys().hasOnly([

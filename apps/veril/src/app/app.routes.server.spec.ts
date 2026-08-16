@@ -17,6 +17,13 @@ describe('serverRoutes', () => {
     );
   });
 
+  it('keeps editorial editing client-rendered', () => {
+    expect(serverRoutes).toContainEqual({
+      path: 'editorial/species-knowledge/**',
+      renderMode: RenderMode.Client,
+    });
+  });
+
   it('prerenders public routes by default', () => {
     expect(serverRoutes).toContainEqual({
       path: '**',
