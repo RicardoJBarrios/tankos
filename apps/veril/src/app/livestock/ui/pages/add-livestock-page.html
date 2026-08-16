@@ -1,0 +1,70 @@
+<section aria-labelledby="add-livestock-title" class="page-section">
+  <p class="eyebrow">Seres vivos</p>
+  <h2 id="add-livestock-title">Añadir livestock</h2>
+  <mat-card appearance="outlined"
+    ><mat-card-content>
+      @if (state() === 'success') {
+      <p role="status">Registro añadido correctamente.</p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums/livestock"
+        >Ver livestock</a
+      >
+      } @else {
+      <form (ngSubmit)="submit()">
+        <mat-form-field appearance="outline"
+          ><mat-label>Nombre del registro</mat-label
+          ><input
+            matInput
+            name="displayName"
+            [ngModel]="displayName()"
+            (ngModelChange)="displayName.set($event)"
+            required
+            placeholder="Ej. Nemo o Colonia de zoanthus"
+        /></mat-form-field>
+        <mat-form-field appearance="outline"
+          ><mat-label>ID del perfil de especie</mat-label
+          ><input
+            matInput
+            name="speciesProfileId"
+            [ngModel]="speciesProfileId()"
+            (ngModelChange)="speciesProfileId.set($event)"
+            required
+        /></mat-form-field>
+        <label
+          >Tipo de representación<select
+            name="representation"
+            [ngModel]="representation()"
+            (ngModelChange)="representation.set($event)"
+          >
+            <option value="individual">Individuo</option>
+            <option value="group">Grupo</option>
+          </select></label
+        >
+        <label
+          >Categoría<select
+            name="category"
+            [ngModel]="category()"
+            (ngModelChange)="category.set($event)"
+          >
+            <option value="fish">Pez</option>
+            <option value="coral">Coral</option>
+            <option value="other">Otro</option>
+          </select></label
+        >
+        @if (state() === 'failure') {
+        <p class="error" role="alert">{{ errorMessage() }}</p>
+        }
+        <div class="actions">
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="state() === 'saving'"
+          >
+            {{ state() === 'saving' ? 'Guardando…' : 'Guardar registro' }}</button
+          ><a mat-button routerLink="/app/aquariums/livestock">Cancelar</a>
+        </div>
+      </form>
+      }
+    </mat-card-content></mat-card
+  >
+</section>

@@ -62,6 +62,21 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'aquariums/livestock',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./livestock/ui/pages/list-livestock-page').then(
+            ({ ListLivestockPage }) => ListLivestockPage,
+          ),
+      },
+      {
+        path: 'aquariums/livestock/new',
+        loadComponent: () =>
+          import('./livestock/ui/pages/add-livestock-page').then(
+            ({ AddLivestockPage }) => AddLivestockPage,
+          ),
+      },
+      {
         path: 'aquariums/observations/new',
         loadComponent: () =>
           import('./observations/ui/pages/record-observation-page').then(

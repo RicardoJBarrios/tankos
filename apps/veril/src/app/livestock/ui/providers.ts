@@ -1,6 +1,8 @@
 import { InjectionToken } from '@angular/core';
 import { LivestockReader, LivestockWriter } from '../application/ports';
 
+export { KEEPER_SESSION } from '../../shared/ui/providers';
+
 export const LIVESTOCK_READER = new InjectionToken<LivestockReader>(
   'LIVESTOCK_READER',
 );

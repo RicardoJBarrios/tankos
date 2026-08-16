@@ -1,0 +1,76 @@
+<section aria-labelledby="livestock-title" class="page-section">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Seres vivos</p>
+      <h2 id="livestock-title">Livestock</h2>
+    </div>
+    <a mat-stroked-button routerLink="/app/aquariums/livestock/new"
+      >Añadir registro</a
+    >
+  </div>
+
+  @if (state() === 'no-context') {
+  <mat-card appearance="outlined" class="empty-state"
+    ><mat-card-content>
+      <p role="status">
+        Primero selecciona un acuario para consultar su livestock.
+      </p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums"
+        >Volver a mis acuarios</a
+      >
+    </mat-card-content></mat-card
+  >
+  } @else if (state() === 'loading') {
+  <div class="loading-state" role="status" aria-live="polite">
+    <mat-progress-spinner mode="indeterminate" diameter="32" /><span
+      >Cargando livestock…</span
+    >
+  </div>
+  } @else if (state() === 'failure') {
+  <div class="feedback feedback-error" role="alert">
+    <p>{{ errorMessage() }}</p>
+    <button mat-stroked-button type="button" (click)="retry()">
+      Reintentar
+    </button>
+  </div>
+  } @else if (state() === 'empty') {
+  <mat-card appearance="outlined" class="empty-state"
+    ><mat-card-content>
+      <p>Aún no hay seres vivos registrados en este acuario.</p>
+      <a
+        mat-flat-button
+        color="primary"
+        routerLink="/app/aquariums/livestock/new"
+        >Añadir registro</a
+      >
+    </mat-card-content></mat-card
+  >
+  } @else {
+  <ul aria-label="Livestock del acuario">
+    @for (item of items(); track item.id) {
+    <li>
+      <mat-card appearance="outlined"
+        ><mat-card-content>
+          <div class="item-heading">
+            <h3>{{ item.displayName }}</h3>
+            <span
+              >{{ item.representation === 'individual' ? 'Individuo' : 'Grupo'
+              }}</span
+            >
+          </div>
+          <p>
+            {{ item.category === 'fish' ? 'Pez' : item.category === 'coral' ?
+            'Coral' : 'Otro' }}
+          </p>
+          <small
+            >Estado: {{ item.lifecycle === 'active' ? 'Activo' : 'Retirado'
+            }}</small
+          >
+        </mat-card-content></mat-card
+      >
+    </li>
+    }
+  </ul>
+  }
+  <a mat-button routerLink="/app/aquariums">Volver a mis acuarios</a>
+</section>
