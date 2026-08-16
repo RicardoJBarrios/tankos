@@ -22,12 +22,19 @@ export interface Livestock {
   readonly id: LivestockId;
   readonly speciesProfileId: SpeciesProfileId;
   readonly aquariumId: AquariumId;
+  readonly associationHistory: readonly LivestockAssociation[];
   readonly category: LivestockCategory;
   readonly representation: LivestockRepresentation;
   readonly displayName: string;
   readonly lifecycle: LivestockLifecycle;
   readonly associatedAt: Date;
   readonly updatedAt: Date;
+}
+
+export interface LivestockAssociation {
+  readonly aquariumId: AquariumId;
+  readonly associatedAt: Date;
+  readonly endedAt?: Date;
 }
 
 export function createLivestock(
@@ -39,6 +46,10 @@ export function createLivestock(
     throw new Error('Livestock associatedAt must be a valid date');
   if (Number.isNaN(input.updatedAt.getTime()))
     throw new Error('Livestock updatedAt must be a valid date');
+  if (input.associationHistory.length !== 1)
+    throw new Error('Livestock must start with one aquarium association');
+  if (input.associationHistory[0].aquariumId !== input.aquariumId)
+    throw new Error('Livestock current aquarium must match its history');
   return { ...input, displayName, lifecycle: 'active' };
 }
 
@@ -51,7 +62,22 @@ export function transferLivestock(
     throw new Error('Removed Livestock cannot be transferred');
   if (Number.isNaN(updatedAt.getTime()))
     throw new Error('Livestock updatedAt must be a valid date');
-  return { ...livestock, aquariumId, updatedAt };
+  if (livestock.aquariumId === aquariumId)
+    throw new Error('Livestock is already in this Aquarium');
+  const previous =
+    livestock.associationHistory[livestock.associationHistory.length - 1];
+  if (!previous || previous.endedAt)
+    throw new Error('Livestock association history is invalid');
+  return {
+    ...livestock,
+    aquariumId,
+    associationHistory: [
+      ...livestock.associationHistory.slice(0, -1),
+      { ...previous, endedAt: updatedAt },
+      { aquariumId, associatedAt: updatedAt },
+    ],
+    updatedAt,
+  };
 }
 
 export function removeLivestock(
@@ -63,4 +89,19 @@ export function removeLivestock(
   if (Number.isNaN(updatedAt.getTime()))
     throw new Error('Livestock updatedAt must be a valid date');
   return { ...livestock, lifecycle: 'removed', updatedAt };
+}
+
+export function restoreLivestock(input: Livestock): Livestock {
+  const active = createLivestock({
+    id: input.id,
+    aquariumId: input.aquariumId,
+    speciesProfileId: input.speciesProfileId,
+    associationHistory: input.associationHistory,
+    category: input.category,
+    representation: input.representation,
+    displayName: input.displayName,
+    associatedAt: input.associatedAt,
+    updatedAt: input.updatedAt,
+  });
+  return { ...active, lifecycle: input.lifecycle };
 }

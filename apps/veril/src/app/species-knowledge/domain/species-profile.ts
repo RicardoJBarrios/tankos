@@ -11,6 +11,10 @@ export function speciesProfileIdFrom(value: string): SpeciesProfileId {
 
 export type SpeciesProfileStatus = 'published' | 'retired';
 
+export interface SpeciesProfile extends SpeciesProfileReference {
+  readonly description: string;
+}
+
 export interface SpeciesProfileReference {
   readonly id: SpeciesProfileId;
   readonly displayName: string;

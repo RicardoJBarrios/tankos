@@ -4,20 +4,10 @@ import {
   LivestockCategory,
   LivestockId,
   LivestockRepresentation,
-  SpeciesProfileId,
 } from '../domain/livestock';
 export type { KeeperSession } from '../../shared/application/keeper-session';
 
-export interface SpeciesProfileReference {
-  readonly id: SpeciesProfileId;
-  readonly displayName: string;
-  readonly scientificName?: string;
-  readonly status: 'published' | 'retired';
-}
-
-export interface SpeciesProfileReader {
-  getPublished(id: SpeciesProfileId): Promise<SpeciesProfileReference | null>;
-}
+export type SpeciesProfileId = string;
 
 export interface CreateLivestockInput {
   readonly id: LivestockId;
@@ -27,6 +17,7 @@ export interface CreateLivestockInput {
   readonly category: LivestockCategory;
   readonly representation: LivestockRepresentation;
   readonly displayName: string;
+  readonly associationHistory: Livestock['associationHistory'];
   readonly associatedAt: Date;
   readonly updatedAt: Date;
 }
@@ -48,9 +39,7 @@ export interface LivestockWriter {
   }): Promise<void>;
 }
 
-export interface LivestockListItem extends Livestock {
-  readonly speciesProfile: SpeciesProfileReference;
-}
+export type LivestockListItem = Livestock;
 
 export interface LivestockReader {
   listActiveOwned(
@@ -61,4 +50,8 @@ export interface LivestockReader {
     ownerKeeperId: string,
     id: LivestockId,
   ): Promise<LivestockListItem | null>;
+}
+
+export interface LivestockAquariumReader {
+  owns(ownerKeeperId: string, aquariumId: AquariumId): Promise<boolean>;
 }

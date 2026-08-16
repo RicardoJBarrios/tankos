@@ -78,6 +78,8 @@ export const config: SheriffConfig = {
       'context:measurements',
       'context:observations',
       'context:timeline',
+      'context:livestock',
+      'context:species-knowledge',
       'context:shared',
     ],
     'context:shells': [
@@ -87,6 +89,8 @@ export const config: SheriffConfig = {
       'context:measurements',
       'context:observations',
       'context:timeline',
+      'context:livestock',
+      'context:species-knowledge',
       'context:shared',
       'context:composition',
     ],
