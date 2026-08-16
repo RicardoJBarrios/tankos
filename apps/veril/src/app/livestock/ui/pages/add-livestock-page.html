@@ -8,7 +8,9 @@
       <a mat-flat-button color="primary" routerLink="/app/aquariums/livestock"
         >Ver livestock</a
       >
-      } @else {
+      } @else { @if (loadingOptions()) {
+      <p role="status">Cargando perfiles de especie…</p>
+      }
       <form (ngSubmit)="submit()">
         <mat-form-field appearance="outline"
           ><mat-label>Nombre del registro</mat-label
@@ -20,15 +22,25 @@
             required
             placeholder="Ej. Nemo o Colonia de zoanthus"
         /></mat-form-field>
-        <mat-form-field appearance="outline"
-          ><mat-label>ID del perfil de especie</mat-label
-          ><input
-            matInput
+        <label
+          >Perfil de especie<select
             name="speciesProfileId"
             [ngModel]="speciesProfileId()"
             (ngModelChange)="speciesProfileId.set($event)"
             required
-        /></mat-form-field>
+          >
+            <option value="" disabled>Selecciona una especie</option>
+            @for (profile of profiles(); track profile.id) {
+            <option [value]="profile.id">
+              {{ profile.displayName }}{{ profile.scientificName ? ' · ' +
+              profile.scientificName : '' }}
+            </option>
+            }
+          </select></label
+        >
+        <p class="context">
+          Perfiles publicados y compartidos para todos los acuarios.
+        </p>
         <label
           >Tipo de representación<select
             name="representation"

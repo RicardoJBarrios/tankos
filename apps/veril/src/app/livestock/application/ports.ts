@@ -9,6 +9,25 @@ export type { KeeperSession } from '../../shared/application/keeper-session';
 
 export type SpeciesProfileId = string;
 
+export interface SpeciesProfileOption {
+  readonly id: SpeciesProfileId;
+  readonly displayName: string;
+  readonly scientificName?: string;
+}
+
+export interface SpeciesProfileCatalog {
+  listPublished(): Promise<readonly SpeciesProfileOption[]>;
+}
+
+export interface AquariumOption {
+  readonly id: AquariumId;
+  readonly displayName: string;
+}
+
+export interface AquariumCatalog {
+  listOwned(ownerKeeperId: string): Promise<readonly AquariumOption[]>;
+}
+
 export interface CreateLivestockInput {
   readonly id: LivestockId;
   readonly aquariumId: AquariumId;

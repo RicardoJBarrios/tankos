@@ -4,9 +4,14 @@
       <p class="eyebrow">Seres vivos</p>
       <h2 id="livestock-title">Livestock</h2>
     </div>
-    <a mat-stroked-button routerLink="/app/aquariums/livestock/new"
-      >Añadir registro</a
-    >
+    <div class="actions">
+      <a mat-stroked-button routerLink="/app/aquariums/livestock/new"
+        >Añadir registro</a
+      >
+      <a mat-stroked-button routerLink="/app/aquariums/livestock/transfer"
+        >Transferir</a
+      >
+    </div>
   </div>
 
   @if (state() === 'no-context') {

@@ -1,0 +1,60 @@
+<section aria-labelledby="transfer-livestock-title" class="page-section">
+  <p class="eyebrow">Seres vivos</p>
+  <h2 id="transfer-livestock-title">Transferir livestock</h2>
+  <mat-card appearance="outlined"
+    ><mat-card-content>
+      @if (state() === 'loading') {
+      <p role="status">Cargando registros…</p>
+      } @else if (state() === 'success') {
+      <p role="status">
+        Transferencia realizada. El registro conserva su historial.
+      </p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums/livestock"
+        >Ver livestock</a
+      >
+      } @else if (state() === 'failure') {
+      <p class="error" role="alert">{{ errorMessage() }}</p>
+      <a mat-button routerLink="/app/aquariums/livestock">Volver</a> } @else {
+      <form (ngSubmit)="submit()">
+        <label
+          >Registro<select
+            name="livestock"
+            [ngModel]="livestockId()"
+            (ngModelChange)="livestockId.set($event)"
+            required
+          >
+            @for (item of items(); track item.id) {
+            <option [value]="item.id">{{ item.displayName }}</option>
+            }
+          </select></label
+        >
+        <label
+          >Acuario destino<select
+            name="aquarium"
+            [ngModel]="aquariumId()"
+            (ngModelChange)="aquariumId.set($event)"
+            required
+          >
+            @for (aquarium of aquariums(); track aquarium.id) {
+            <option [value]="aquarium.id">{{ aquarium.displayName }}</option>
+            }
+          </select></label
+        >
+        @if (!items().length || !aquariums().length) {
+        <p>No hay registros activos o acuarios destino disponibles.</p>
+        }
+        <div class="actions">
+          <button
+            mat-flat-button
+            color="primary"
+            type="submit"
+            [disabled]="state() === 'saving' || !items().length || !aquariums().length"
+          >
+            Transferir</button
+          ><a mat-button routerLink="/app/aquariums/livestock">Cancelar</a>
+        </div>
+      </form>
+      }
+    </mat-card-content></mat-card
+  >
+</section>
