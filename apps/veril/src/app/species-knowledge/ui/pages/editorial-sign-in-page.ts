@@ -51,7 +51,7 @@ export class EditorialSignInPage {
       );
       const hasRequiredAccess =
         this.accessType === 'authentication'
-          ? true
+          ? await this.authentication.isAuthenticated()
           : this.accessType === 'editorial'
             ? await this.authentication.isEditorialKeeper()
             : await this.authentication.isKeeper();
@@ -73,7 +73,7 @@ export class EditorialSignInPage {
     try {
       const hasRequiredAccess =
         this.accessType === 'authentication'
-          ? true
+          ? await this.authentication.isAuthenticated()
           : this.accessType === 'editorial'
             ? await this.authentication.isEditorialKeeper()
             : await this.authentication.isKeeper();

@@ -1,10 +1,7 @@
 <div class="pagination-controls" aria-label="Paginación">
   <label>
     <span>Elementos por página</span>
-    <select
-      [value]="pageSize()"
-      (change)="changePageSize($any($event.target).value)"
-    >
+    <select [ngModel]="pageSize()" (ngModelChange)="changePageSize($event)">
       @for (option of pageSizeOptions; track option) {
       <option [value]="option">{{ option }}</option>
       }

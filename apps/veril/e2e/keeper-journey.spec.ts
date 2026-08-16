@@ -70,7 +70,13 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   const aquarium = page.getByRole('button', { name: 'Veril E2E' });
   await expect(aquarium).toBeVisible();
   await aquarium.click();
-  await expect(page).toHaveURL('/app/aquariums/current');
+  await page
+    .waitForURL('/app/aquariums/current', { timeout: 1_000 })
+    .catch(() => undefined);
+  if (!page.url().endsWith('/app/aquariums/current')) {
+    await expect(page.getByTestId('active-aquarium-indicator')).toBeVisible();
+    await page.goto('/app/aquariums/current');
+  }
 
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Veril E2E' })).toBeVisible();

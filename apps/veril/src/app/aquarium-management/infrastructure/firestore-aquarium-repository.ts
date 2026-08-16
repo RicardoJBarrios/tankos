@@ -340,6 +340,7 @@ export class FirestoreAquariumRepository
         collection(firestore, 'aquariums'),
         where('ownerId', '==', ownerKeeperId),
         where(documentId(), '==', aquariumId),
+        limit(1),
       ),
     );
 

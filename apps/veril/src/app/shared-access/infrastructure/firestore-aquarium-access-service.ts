@@ -26,7 +26,7 @@ import { pageSizeFor } from '../../shared/application/pagination';
 
 const INVITATION_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 
-const permissionsSchema = z.record(
+const permissionsSchema = z.partialRecord(
   z.enum(AQUARIUM_ACCESS_PERMISSIONS),
   z.boolean(),
 );
@@ -100,6 +100,7 @@ export class FirestoreAquariumAccessService implements AquariumAccessService {
     readonly aquariumId: string;
   }): Promise<SharedAquariumView> {
     const { firestore, auth } = getFirebaseClient();
+    await auth.authStateReady();
     const user = auth.currentUser;
     if (!user || user.isAnonymous) throw new Error('Authentication required');
 

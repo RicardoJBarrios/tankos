@@ -27,7 +27,7 @@ export class PaginationControls {
   readonly pageSizeChange = output<number>();
   readonly pageSizeOptions = [10, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE];
 
-  changePageSize(value: string): void {
+  changePageSize(value: string | number): void {
     this.pageSizeChange.emit(pageSizeFor({ pageSize: Number(value) }));
   }
 }

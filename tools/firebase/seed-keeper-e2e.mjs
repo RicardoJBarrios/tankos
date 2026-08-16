@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -7,8 +8,9 @@ const app =
   initializeApp({ projectId: 'demo-veril' }, 'veril-keeper-e2e');
 const auth = getAuth(app);
 const firestore = getFirestore(app);
+const runId = randomUUID().slice(0, 8);
 const credentials = {
-  email: 'keeper@example.test',
+  email: `keeper-${runId}@example.test`,
   password: 'keeper-password',
 };
 
@@ -22,7 +24,7 @@ try {
   });
 } catch {
   user = await auth.createUser({
-    uid: 'e2e-keeper',
+    uid: `e2e-keeper-${runId}`,
     ...credentials,
     emailVerified: true,
   });

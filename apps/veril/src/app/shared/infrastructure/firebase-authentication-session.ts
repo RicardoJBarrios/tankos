@@ -18,6 +18,12 @@ export class FirebaseAuthenticationSession implements AuthenticationSession {
     await signOut(getFirebaseClient().auth);
   }
 
+  async isAuthenticated(): Promise<boolean> {
+    const { auth } = getFirebaseClient();
+    await auth.authStateReady();
+    return auth.currentUser !== null && !auth.currentUser.isAnonymous;
+  }
+
   async isKeeper(): Promise<boolean> {
     const { auth } = getFirebaseClient();
     await auth.authStateReady();
