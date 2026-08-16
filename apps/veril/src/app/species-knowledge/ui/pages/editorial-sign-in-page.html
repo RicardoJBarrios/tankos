@@ -1,12 +1,13 @@
-<section aria-labelledby="editorial-sign-in-title" class="page-section">
+<section aria-labelledby="sign-in-title" class="page-section">
   <p class="eyebrow">Conocimiento compartido</p>
-  <h2 id="editorial-sign-in-title">Acceso editorial</h2>
+  <h2 id="sign-in-title">
+    {{ accessType === 'editorial' ? 'Acceso editorial' : 'Acceso al área
+    privada' }}
+  </h2>
   <mat-card appearance="outlined">
     <mat-card-content>
       @if (state() === 'success') {
-      <p role="status">
-        Sesión iniciada. Ya puedes continuar con la superficie editorial.
-      </p>
+      <p role="status">Sesión iniciada. Ya puedes continuar.</p>
       } @else {
       <form (ngSubmit)="submit()">
         <mat-form-field appearance="outline">

@@ -30,6 +30,8 @@ export class EditorialSignInPage {
   private readonly authentication = inject(AUTHENTICATION_SESSION);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  readonly accessType = this.route.snapshot.data['accessType'] as
+    'private' | 'editorial' | undefined;
   readonly email = signal('');
   readonly password = signal('');
   readonly state = signal<'ready' | 'saving' | 'success' | 'failure'>('ready');
@@ -51,7 +53,7 @@ export class EditorialSignInPage {
         string | undefined;
       if (redirectTo) await this.router.navigateByUrl(redirectTo);
     } catch {
-      this.errorMessage.set('No se ha podido iniciar la sesión editorial.');
+      this.errorMessage.set('No se ha podido iniciar la sesión.');
       this.state.set('failure');
     }
   }

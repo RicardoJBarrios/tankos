@@ -4,7 +4,7 @@ import { keeperAccessGuard } from './shared/ui/guards/keeper-access.guard';
 export const appRoutes: Route[] = [
   {
     path: 'sign-in',
-    data: { redirectTo: '/app/aquariums' },
+    data: { accessType: 'private', redirectTo: '/app/aquariums' },
     loadComponent: () =>
       import('./species-knowledge/ui/pages/editorial-sign-in-page').then(
         ({ EditorialSignInPage }) => EditorialSignInPage,
@@ -12,6 +12,7 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'editorial/sign-in',
+    data: { accessType: 'editorial' },
     loadComponent: () =>
       import('./species-knowledge/ui/pages/editorial-sign-in-page').then(
         ({ EditorialSignInPage }) => EditorialSignInPage,
