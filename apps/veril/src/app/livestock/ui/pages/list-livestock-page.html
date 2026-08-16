@@ -76,6 +76,9 @@
             }}</small
           >
           @if (item.lifecycle === 'active') {
+          <a mat-button [routerLink]="['/app/aquariums/livestock', item.id]"
+            >Ver ficha</a
+          >
           <button mat-button type="button" (click)="remove(item.id)">
             Retirar
           </button>

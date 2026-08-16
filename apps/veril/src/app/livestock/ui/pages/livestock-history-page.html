@@ -20,7 +20,11 @@
     <li>
       <mat-card appearance="outlined"
         ><mat-card-content
-          ><h3>{{ item.displayName }}</h3>
+          ><h3>
+            <a [routerLink]="['/app/aquariums/livestock', item.id]"
+              >{{ item.displayName }}</a
+            >
+          </h3>
           <p>Especie: {{ speciesProfileNameFor(item.speciesProfileId) }}</p>
           <p>
             {{ item.lifecycle === 'active' ? 'Activo' : 'Retirado' }} · {{

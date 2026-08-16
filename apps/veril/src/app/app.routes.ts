@@ -91,6 +91,13 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'aquariums/livestock/:id',
+        loadComponent: () =>
+          import('./livestock/ui/pages/livestock-detail-page').then(
+            ({ LivestockDetailPage }) => LivestockDetailPage,
+          ),
+      },
+      {
         path: 'aquariums/observations/new',
         loadComponent: () =>
           import('./observations/ui/pages/record-observation-page').then(
