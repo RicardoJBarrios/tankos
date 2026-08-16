@@ -3,6 +3,21 @@ import { keeperAccessGuard } from './shared/ui/guards/keeper-access.guard';
 
 export const appRoutes: Route[] = [
   {
+    path: 'access/sign-in',
+    data: { accessType: 'authentication', redirectTo: '/access/accept' },
+    loadComponent: () =>
+      import('./species-knowledge/ui/pages/editorial-sign-in-page').then(
+        ({ EditorialSignInPage }) => EditorialSignInPage,
+      ),
+  },
+  {
+    path: 'access/accept',
+    loadComponent: () =>
+      import('./shared-access/ui/accept-aquarium-invitation-page').then(
+        ({ AcceptAquariumInvitationPage }) => AcceptAquariumInvitationPage,
+      ),
+  },
+  {
     path: 'shared/aquariums/:aquariumId',
     loadComponent: () =>
       import('./shared-access/ui/shared-aquarium-page').then(
@@ -68,6 +83,13 @@ export const appRoutes: Route[] = [
         loadComponent: () =>
           import('./composition/aquarium-dashboard/aquarium-dashboard-page').then(
             ({ AquariumDashboardPage }) => AquariumDashboardPage,
+          ),
+      },
+      {
+        path: 'aquariums/access',
+        loadComponent: () =>
+          import('./shared-access/ui/pages/manage-aquarium-access-page').then(
+            ({ ManageAquariumAccessPage }) => ManageAquariumAccessPage,
           ),
       },
       {

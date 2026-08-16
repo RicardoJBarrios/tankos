@@ -32,7 +32,7 @@ export class EditorialSignInPage {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly accessType = this.route.snapshot.data['accessType'] as
-    'private' | 'editorial' | undefined;
+    'private' | 'editorial' | 'authentication' | undefined;
   readonly email = signal('');
   readonly password = signal('');
   readonly state = signal<'ready' | 'saving' | 'success' | 'failure'>('ready');
@@ -50,9 +50,11 @@ export class EditorialSignInPage {
         this.password(),
       );
       const hasRequiredAccess =
-        this.accessType === 'editorial'
-          ? await this.authentication.isEditorialKeeper()
-          : await this.authentication.isKeeper();
+        this.accessType === 'authentication'
+          ? true
+          : this.accessType === 'editorial'
+            ? await this.authentication.isEditorialKeeper()
+            : await this.authentication.isKeeper();
       if (!hasRequiredAccess) {
         await this.authentication.signOut();
         throw new Error('La cuenta no tiene el acceso requerido.');
@@ -70,9 +72,11 @@ export class EditorialSignInPage {
   private async restoreExistingSession(): Promise<void> {
     try {
       const hasRequiredAccess =
-        this.accessType === 'editorial'
-          ? await this.authentication.isEditorialKeeper()
-          : await this.authentication.isKeeper();
+        this.accessType === 'authentication'
+          ? true
+          : this.accessType === 'editorial'
+            ? await this.authentication.isEditorialKeeper()
+            : await this.authentication.isKeeper();
       if (hasRequiredAccess) {
         this.state.set('success');
         const redirectTo = this.route.snapshot.data['redirectTo'] as

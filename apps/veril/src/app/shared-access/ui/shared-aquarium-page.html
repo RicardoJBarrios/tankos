@@ -3,9 +3,23 @@
   <p role="status">Cargando acuario…</p>
   } @else if (state() === 'failure') {
   <p class="error" role="alert">No tienes acceso a este acuario.</p>
+  <p>
+    Si has recibido una invitación,
+    <a routerLink="/access/sign-in">inicia sesión</a>
+    con tu cuenta y acéptala desde el código recibido.
+  </p>
   } @else if (aquarium(); as currentAquarium) {
   <p class="eyebrow">Acuario compartido · solo lectura</p>
-  <h2 id="shared-aquarium-title">{{ currentAquarium.name }}</h2>
+  <h2 id="shared-aquarium-title">{{ currentAquarium.aquariumName }}</h2>
   <p>Solo se muestran las secciones para las que tienes permiso.</p>
+  <ul>
+    @for (section of sectionKeys; track section) { @if
+    (sectionCount(currentAquarium, section) !== undefined) {
+    <li>
+      {{ section }}: {{ sectionCount(currentAquarium, section) }} registros
+      disponibles
+    </li>
+    } }
+  </ul>
   }
 </section>

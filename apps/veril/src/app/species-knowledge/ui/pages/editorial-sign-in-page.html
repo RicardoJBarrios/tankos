@@ -1,8 +1,8 @@
 <section aria-labelledby="sign-in-title" class="page-section">
   <p class="eyebrow">Conocimiento compartido</p>
   <h2 id="sign-in-title">
-    {{ accessType === 'editorial' ? 'Acceso editorial' : 'Acceso al área
-    privada' }}
+    {{ accessType === 'editorial' ? 'Acceso editorial' : accessType ===
+    'authentication' ? 'Iniciar sesión' : 'Acceso al área privada' }}
   </h2>
   <mat-card appearance="outlined">
     <mat-card-content>
