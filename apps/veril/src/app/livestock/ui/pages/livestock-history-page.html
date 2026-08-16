@@ -1,0 +1,45 @@
+<section aria-labelledby="livestock-history-title" class="page-section">
+  <p class="eyebrow">Trazabilidad</p>
+  <h2 id="livestock-history-title">Historial de livestock</h2>
+  @if (state() === 'loading') {
+  <div class="loading" role="status">
+    <mat-progress-spinner mode="indeterminate" diameter="32" />Cargando
+    historial…
+  </div>
+  } @else if (state() === 'failure') {
+  <p class="error" role="alert">No se ha podido cargar el historial.</p>
+  } @else if (state() === 'empty') {
+  <mat-card appearance="outlined"
+    ><mat-card-content
+      ><p>No hay registros históricos.</p></mat-card-content
+    ></mat-card
+  >
+  } @else {
+  <ul>
+    @for (item of items(); track item.id) {
+    <li>
+      <mat-card appearance="outlined"
+        ><mat-card-content
+          ><h3>{{ item.displayName }}</h3>
+          <p>
+            {{ item.lifecycle === 'active' ? 'Activo' : 'Retirado' }} · {{
+            item.representation === 'individual' ? 'Individuo' : 'Grupo' }}
+          </p>
+          <ol>
+            @for (association of item.associationHistory; track
+            association.associatedAt) {
+            <li>
+              {{ association.aquariumId }} · {{ association.associatedAt |
+              date:'mediumDate' }}{{ association.endedAt ? ' – ' +
+              (association.endedAt | date:'mediumDate') : ' – actual' }}
+            </li>
+            }
+          </ol></mat-card-content
+        ></mat-card
+      >
+    </li>
+    }
+  </ul>
+  }
+  <a mat-button routerLink="/app/aquariums/livestock">Volver al livestock</a>
+</section>

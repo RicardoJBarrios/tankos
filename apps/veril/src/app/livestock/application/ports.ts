@@ -69,6 +69,7 @@ export interface LivestockReader {
     ownerKeeperId: string,
     id: LivestockId,
   ): Promise<LivestockListItem | null>;
+  listAllOwned(ownerKeeperId: string): Promise<readonly LivestockListItem[]>;
 }
 
 export interface LivestockAquariumReader {

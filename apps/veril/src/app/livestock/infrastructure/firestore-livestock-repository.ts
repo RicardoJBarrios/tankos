@@ -152,6 +152,24 @@ export class FirestoreLivestockRepository
     return snapshot.exists() && snapshot.data()?.['ownerId'] === ownerKeeperId;
   }
 
+  async listAllOwned(
+    ownerKeeperId: string,
+  ): Promise<readonly LivestockListItem[]> {
+    const { firestore } = getFirebaseClient();
+    const snapshot = await getDocs(
+      query(
+        collection(firestore, 'livestock'),
+        where('ownerId', '==', ownerKeeperId),
+        orderBy('updatedAt', 'desc'),
+        orderBy(documentId(), 'asc'),
+        limit(200),
+      ),
+    );
+    return snapshot.docs.map((entry) =>
+      fromDto(entry.id, livestockDocument.parse(entry.data())),
+    );
+  }
+
   async transfer(
     input: Parameters<LivestockWriter['transfer']>[0],
   ): Promise<Livestock> {
