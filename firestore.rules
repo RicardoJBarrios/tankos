@@ -374,6 +374,12 @@ service cloud.firestore {
       allow read, write: if isEditorialKeeper();
     }
 
+    match /speciesProfileRevisions/{revisionId} {
+      allow read: if resource.data.status == 'published'
+        || isEditorialKeeper();
+      allow write: if isEditorialKeeper();
+    }
+
     match /livestock/{livestockId} {
       allow create: if isAuthenticated()
         && request.resource.data.keys().hasOnly([

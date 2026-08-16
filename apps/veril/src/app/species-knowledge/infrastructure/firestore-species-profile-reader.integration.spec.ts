@@ -177,4 +177,61 @@ describe('FirestoreSpeciesProfileReader (Emulator Suite)', () => {
 
     await signOut(auth);
   });
+
+  emulatorTest('publishes a draft as a new immutable revision', async () => {
+    await seedSpeciesProfileFixtures();
+    const { auth, firestore } = getFirebaseClient();
+    await signInWithCustomToken(auth, await createEditorialKeeperToken());
+    const writer = new FirestoreSpeciesProfileDraftWriter();
+    const draft = {
+      speciesProfileId: speciesProfileIdFrom(
+        speciesProfileFixtures.clownfish.id,
+      ),
+      displayName: 'Pez payaso publicado',
+      scientificName: speciesProfileFixtures.clownfish.scientificName,
+      description: 'Nueva descripción publicada en **Markdown**.',
+      sections: speciesProfileFixtures.clownfish.sections,
+      sources: speciesProfileFixtures.clownfish.sources,
+    };
+
+    await writer.saveDraft(draft);
+    expect(await writer.getDraft(draft.speciesProfileId)).toEqual(draft);
+
+    const publishedAt = new Date('2026-08-16T12:00:00.000Z');
+    await writer.publishDraft(draft, 'revision-2', publishedAt);
+
+    expect(
+      (
+        await getDoc(doc(firestore, 'speciesProfiles', draft.speciesProfileId))
+      ).data(),
+    ).toMatchObject({
+      displayName: 'Pez payaso publicado',
+      description: 'Nueva descripción publicada en **Markdown**.',
+      revision: { id: 'revision-2' },
+      status: 'published',
+    });
+    expect(
+      (
+        await getDoc(
+          doc(
+            firestore,
+            'speciesProfileRevisions',
+            `${draft.speciesProfileId}_revision-2`,
+          ),
+        )
+      ).data(),
+    ).toMatchObject({
+      speciesProfileId: draft.speciesProfileId,
+      revision: { id: 'revision-2' },
+    });
+    expect(
+      (
+        await getDoc(
+          doc(firestore, 'speciesProfileDrafts', draft.speciesProfileId),
+        )
+      ).data(),
+    ).toMatchObject({ status: 'published' });
+
+    await signOut(auth);
+  });
 });

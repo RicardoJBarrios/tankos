@@ -8,7 +8,9 @@ import {
 } from '../../application/ports';
 import {
   PUBLISHED_SPECIES_PROFILE_READER,
+  SPECIES_PROFILE_DRAFT_READER,
   SPECIES_PROFILE_DRAFT_WRITER,
+  SPECIES_PROFILE_PUBLISHER,
 } from '../providers';
 import { EditSpeciesProfilePage } from './edit-species-profile-page';
 
@@ -33,7 +35,9 @@ const profile: SpeciesProfile = {
 
 describe('EditSpeciesProfilePage', () => {
   const getPublished = vi.fn();
+  const getDraft = vi.fn();
   const saveDraft = vi.fn();
+  const publishDraft = vi.fn();
   const reader: PublishedSpeciesProfileReader = {
     listPublished: vi.fn(),
     getPublished,
@@ -45,6 +49,8 @@ describe('EditSpeciesProfilePage', () => {
       provideRouter([]),
       { provide: PUBLISHED_SPECIES_PROFILE_READER, useValue: reader },
       { provide: SPECIES_PROFILE_DRAFT_WRITER, useValue: writer },
+      { provide: SPECIES_PROFILE_DRAFT_READER, useValue: { getDraft } },
+      { provide: SPECIES_PROFILE_PUBLISHER, useValue: { publishDraft } },
       {
         provide: ActivatedRoute,
         useValue: { snapshot: { paramMap: { get: () => profile.id } } },
@@ -55,8 +61,11 @@ describe('EditSpeciesProfilePage', () => {
   beforeEach(() => {
     getPublished.mockReset();
     getPublished.mockResolvedValue(profile);
+    getDraft.mockResolvedValue(null);
     saveDraft.mockReset();
     saveDraft.mockResolvedValue(undefined);
+    publishDraft.mockReset();
+    publishDraft.mockResolvedValue(undefined);
   });
 
   async function settle(spectator: Spectator<EditSpeciesProfilePage>) {

@@ -1,9 +1,21 @@
 import { Injectable } from '@angular/core';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import {
+  Timestamp,
+  doc,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+  writeBatch,
+} from 'firebase/firestore';
 import { z } from 'zod';
 import { SpeciesProfileDraft } from '../domain/species-profile';
-import { SpeciesProfileDraftWriter } from '../application/ports';
+import {
+  SpeciesProfileDraftReader,
+  SpeciesProfileDraftWriter,
+  SpeciesProfilePublisher,
+} from '../application/ports';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
+import { speciesProfileIdFrom } from '../domain/species-profile';
 
 const speciesProfileDraft = z.object({
   speciesProfileId: z.string().uuid(),
@@ -31,8 +43,33 @@ const speciesProfileDraft = z.object({
     .min(1),
 });
 
+const persistedSpeciesProfileDraft = z.object({
+  speciesProfileId: z.string().uuid(),
+  displayName: z.string().min(1),
+  scientificName: z.string().optional(),
+  description: z.string().min(1),
+  sections: speciesProfileDraft.shape.sections,
+  sources: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        title: z.string().min(1),
+        url: z.string().url(),
+        publishedAt: z.instanceof(Timestamp).optional(),
+      }),
+    )
+    .min(1),
+  status: z.enum(['draft', 'published']),
+  updatedAt: z.instanceof(Timestamp).optional(),
+});
+
 @Injectable()
-export class FirestoreSpeciesProfileDraftWriter implements SpeciesProfileDraftWriter {
+export class FirestoreSpeciesProfileDraftWriter
+  implements
+    SpeciesProfileDraftWriter,
+    SpeciesProfileDraftReader,
+    SpeciesProfilePublisher
+{
   async saveDraft(draft: SpeciesProfileDraft): Promise<void> {
     const validDraft = speciesProfileDraft.parse(draft);
     const { firestore } = getFirebaseClient();
@@ -48,5 +85,68 @@ export class FirestoreSpeciesProfileDraftWriter implements SpeciesProfileDraftWr
         })),
       },
     );
+  }
+
+  async getDraft(id: ReturnType<typeof speciesProfileIdFrom>) {
+    const { firestore } = getFirebaseClient();
+    const snapshot = await getDoc(doc(firestore, 'speciesProfileDrafts', id));
+    if (!snapshot.exists()) return null;
+    const persisted = persistedSpeciesProfileDraft.parse(snapshot.data());
+    if (persisted.status !== 'draft') return null;
+    return {
+      speciesProfileId: speciesProfileIdFrom(persisted.speciesProfileId),
+      displayName: persisted.displayName,
+      ...(persisted.scientificName
+        ? { scientificName: persisted.scientificName }
+        : {}),
+      description: persisted.description,
+      sections: persisted.sections,
+      sources: persisted.sources.map(({ publishedAt, ...source }) => ({
+        ...source,
+        ...(publishedAt ? { publishedAt: publishedAt.toDate() } : {}),
+      })),
+    };
+  }
+
+  async publishDraft(
+    draft: Parameters<SpeciesProfilePublisher['publishDraft']>[0],
+    revisionId: string,
+    publishedAt: Date,
+  ): Promise<void> {
+    const validDraft = speciesProfileDraft.parse(draft);
+    const { firestore } = getFirebaseClient();
+    const batch = writeBatch(firestore);
+    const profileRef = doc(
+      firestore,
+      'speciesProfiles',
+      validDraft.speciesProfileId,
+    );
+    const revisionRef = doc(
+      firestore,
+      'speciesProfileRevisions',
+      `${validDraft.speciesProfileId}_${revisionId}`,
+    );
+    const content = {
+      displayName: validDraft.displayName,
+      ...(validDraft.scientificName
+        ? { scientificName: validDraft.scientificName }
+        : {}),
+      description: validDraft.description,
+      sections: validDraft.sections,
+      sources: validDraft.sources,
+      status: 'published' as const,
+      revision: { id: revisionId, publishedAt },
+    };
+    batch.set(revisionRef, {
+      speciesProfileId: validDraft.speciesProfileId,
+      ...content,
+    });
+    batch.set(profileRef, content);
+    batch.set(
+      doc(firestore, 'speciesProfileDrafts', validDraft.speciesProfileId),
+      { status: 'published', publishedAt, updatedAt: serverTimestamp() },
+      { merge: true },
+    );
+    await batch.commit();
   }
 }

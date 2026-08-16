@@ -58,6 +58,8 @@
       </mat-form-field>
       @if (state() === 'saved') {
       <p class="success" role="status">Borrador guardado.</p>
+      } @if (state() === 'published') {
+      <p class="success" role="status">Revisión publicada.</p>
       } @if (state() === 'failure') {
       <p class="error" role="alert">{{ errorMessage() }}</p>
       }
@@ -68,6 +70,14 @@
         (click)="saveDraft()"
       >
         {{ state() === 'saving' ? 'Guardando…' : 'Guardar borrador' }}
+      </button>
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="state() === 'publishing'"
+        (click)="publishDraft()"
+      >
+        {{ state() === 'publishing' ? 'Publicando…' : 'Publicar revisión' }}
       </button>
     </mat-card-content>
   </mat-card>

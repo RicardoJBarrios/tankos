@@ -12,12 +12,14 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { GetPublishedSpeciesProfile } from '../../application/get-published-species-profile';
-import { SpeciesProfile } from '../../application/ports';
+import { PublishSpeciesProfileDraft } from '../../application/publish-species-profile-draft';
+import { SpeciesProfile, SpeciesProfileDraft } from '../../application/ports';
 import {
-  SPECIES_PROFILE_DRAFT_WRITER,
   PUBLISHED_SPECIES_PROFILE_READER,
+  SPECIES_PROFILE_DRAFT_READER,
+  SPECIES_PROFILE_DRAFT_WRITER,
+  SPECIES_PROFILE_PUBLISHER,
 } from '../providers';
-import { SpeciesProfileDraft } from '../../domain/species-profile';
 
 @Component({
   selector: 'veril-edit-species-profile-page',
@@ -45,10 +47,20 @@ import { SpeciesProfileDraft } from '../../domain/species-profile';
 export class EditSpeciesProfilePage implements OnInit {
   private readonly getProfile = inject(GetPublishedSpeciesProfile);
   private readonly draftWriter = inject(SPECIES_PROFILE_DRAFT_WRITER);
-  private readonly route = inject(ActivatedRoute);
-  readonly state = signal<'loading' | 'ready' | 'saving' | 'saved' | 'failure'>(
-    'loading',
+  private readonly draftReader = inject(SPECIES_PROFILE_DRAFT_READER);
+  private readonly publishDraftUseCase = new PublishSpeciesProfileDraft(
+    inject(SPECIES_PROFILE_PUBLISHER),
   );
+  private readonly route = inject(ActivatedRoute);
+  readonly state = signal<
+    | 'loading'
+    | 'ready'
+    | 'saving'
+    | 'saved'
+    | 'publishing'
+    | 'published'
+    | 'failure'
+  >('loading');
   readonly profile = signal<SpeciesProfile | null>(null);
   readonly displayName = signal('');
   readonly scientificName = signal('');
@@ -70,23 +82,23 @@ export class EditSpeciesProfilePage implements OnInit {
     if (!current) return;
     this.state.set('saving');
     try {
-      const draft: SpeciesProfileDraft = {
-        speciesProfileId: current.id,
-        displayName: this.displayName().trim(),
-        ...(this.scientificName().trim()
-          ? { scientificName: this.scientificName().trim() }
-          : {}),
-        description: this.description().trim(),
-        sections: current.sections.map((section, index) => ({
-          ...section,
-          ...(index === 0 ? { content: this.sectionContent().trim() } : {}),
-        })),
-        sources: current.sources,
-      };
-      await this.draftWriter.saveDraft(draft);
+      await this.draftWriter.saveDraft(this.createDraft(current));
       this.state.set('saved');
     } catch {
       this.errorMessage.set('No se ha podido guardar el borrador.');
+      this.state.set('failure');
+    }
+  }
+
+  async publishDraft(): Promise<void> {
+    const current = this.profile();
+    if (!current) return;
+    this.state.set('publishing');
+    try {
+      await this.publishDraftUseCase.execute(this.createDraft(current));
+      this.state.set('published');
+    } catch {
+      this.errorMessage.set('No se ha podido publicar la revisión.');
       this.state.set('failure');
     }
   }
@@ -99,14 +111,32 @@ export class EditSpeciesProfilePage implements OnInit {
         return;
       }
       this.profile.set(profile);
-      this.displayName.set(profile.displayName);
-      this.scientificName.set(profile.scientificName ?? '');
-      this.description.set(profile.description);
-      this.sectionContent.set(profile.sections[0]?.content ?? '');
+      const draft = await this.draftReader.getDraft(profile.id);
+      const baseline = draft ?? profile;
+      this.displayName.set(baseline.displayName);
+      this.scientificName.set(baseline.scientificName ?? '');
+      this.description.set(baseline.description);
+      this.sectionContent.set(baseline.sections[0]?.content ?? '');
       this.state.set('ready');
     } catch {
       this.errorMessage.set('No se ha podido cargar el perfil editorial.');
       this.state.set('failure');
     }
+  }
+
+  private createDraft(current: SpeciesProfile): SpeciesProfileDraft {
+    return {
+      speciesProfileId: current.id,
+      displayName: this.displayName().trim(),
+      ...(this.scientificName().trim()
+        ? { scientificName: this.scientificName().trim() }
+        : {}),
+      description: this.description().trim(),
+      sections: current.sections.map((section, index) => ({
+        ...section,
+        ...(index === 0 ? { content: this.sectionContent().trim() } : {}),
+      })),
+      sources: current.sources,
+    };
   }
 }
