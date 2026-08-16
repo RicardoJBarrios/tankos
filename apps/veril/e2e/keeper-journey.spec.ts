@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
 import { expect, test } from '@playwright/test';
 
 test('a keeper can establish, select and record Aquarium evidence', async ({
@@ -326,6 +328,78 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
     .click();
   await expect(page.getByTestId('planned-care-work-list')).toContainText(
     'No hay cuidados planificados',
+  );
+});
+
+test('an editorial keeper can publish, compare and retire a species profile', async ({
+  page,
+}) => {
+  process.env['FIREBASE_AUTH_EMULATOR_HOST'] = '127.0.0.1:9099';
+  process.env['FIRESTORE_EMULATOR_HOST'] = '127.0.0.1:8080';
+
+  const fixture = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [
+        path.resolve(
+          process.cwd(),
+          '../../tools/firebase/seed-editorial-e2e.mjs',
+        ),
+      ],
+      { encoding: 'utf8', env: process.env },
+    ),
+  ) as {
+    profileId: string;
+    credentials: { email: string; password: string };
+  };
+
+  let signedIn = false;
+  for (let attempt = 0; attempt < 2 && !signedIn; attempt += 1) {
+    await page.goto('/editorial/sign-in');
+    await page.getByLabel('Email').fill(fixture.credentials.email);
+    await page.getByLabel('Contraseña').fill(fixture.credentials.password);
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+    try {
+      await expect(page.getByRole('status')).toContainText('Sesión iniciada', {
+        timeout: 3_000,
+      });
+      signedIn = true;
+    } catch (error) {
+      if (attempt === 1) throw error;
+    }
+  }
+
+  await page.goto(`/editorial/species-knowledge/${fixture.profileId}`);
+  await expect(
+    page.getByRole('heading', { name: 'Perfil de especie' }),
+  ).toBeVisible();
+
+  await page
+    .getByLabel('Descripción (Markdown)')
+    .fill('Descripción editorial **revisada** desde Playwright.');
+  await page.getByRole('button', { name: 'Guardar borrador' }).click();
+  await expect(page.getByRole('status')).toContainText('Borrador guardado.');
+
+  await page.getByRole('button', { name: 'Marcar como revisado' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Publicar revisión' }),
+  ).toBeEnabled();
+  await page.getByRole('button', { name: 'Publicar revisión' }).click();
+  await expect(page.getByRole('status')).toContainText('Revisión publicada.');
+
+  await page.getByRole('link', { name: 'Ver historial editorial' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Historial de revisiones' }),
+  ).toBeVisible();
+  await expect(page.locator('.markdown-content').first()).toContainText(
+    'revisada',
+  );
+  await expect(page.getByText('Comparar revisiones')).toBeVisible();
+
+  await page.goto(`/editorial/species-knowledge/${fixture.profileId}`);
+  await page.getByRole('button', { name: 'Retirar perfil' }).click();
+  await expect(page.getByRole('status')).toContainText(
+    'Perfil retirado. El historial permanece disponible.',
   );
 });
 

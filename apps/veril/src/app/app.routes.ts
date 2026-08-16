@@ -1,5 +1,4 @@
 import { Route } from '@angular/router';
-import { EDITORIAL_PROVIDERS } from './composition/editorial/editorial.providers';
 
 export const appRoutes: Route[] = [
   {
@@ -10,19 +9,11 @@ export const appRoutes: Route[] = [
       ),
   },
   {
-    path: 'editorial/species-knowledge/:id',
-    providers: EDITORIAL_PROVIDERS,
-    loadComponent: () =>
-      import('./species-knowledge/ui/pages/edit-species-profile-page').then(
-        ({ EditSpeciesProfilePage }) => EditSpeciesProfilePage,
-      ),
-  },
-  {
-    path: 'editorial/species-knowledge/:id/history',
-    providers: EDITORIAL_PROVIDERS,
-    loadComponent: () =>
-      import('./species-knowledge/ui/pages/species-profile-history-page').then(
-        ({ SpeciesProfileHistoryPage }) => SpeciesProfileHistoryPage,
+    path: 'editorial/species-knowledge',
+    loadChildren: () =>
+      import('./composition/editorial/editorial.routes').then(
+        ({ EDITORIAL_SPECIES_KNOWLEDGE_ROUTES }) =>
+          EDITORIAL_SPECIES_KNOWLEDGE_ROUTES,
       ),
   },
   {

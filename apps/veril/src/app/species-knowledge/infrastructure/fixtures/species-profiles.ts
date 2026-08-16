@@ -1,5 +1,5 @@
 import { getApps, initializeApp } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
+import { getAuth, UserRecord } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
 const projectId = 'demo-veril';
@@ -55,6 +55,12 @@ export const speciesProfileFixtures = {
   },
 } as const;
 
+export const editorialKeeperCredentials = {
+  uid: 'editorial-keeper',
+  email: 'editorial-keeper@example.test',
+  password: 'editorial-keeper-password',
+} as const;
+
 function adminFirestore() {
   const app =
     getApps().find((candidate) => candidate.name === 'veril-fixtures') ??
@@ -62,13 +68,42 @@ function adminFirestore() {
   return getFirestore(app);
 }
 
-export async function createEditorialKeeperToken(): Promise<string> {
+function adminAuth() {
   const app =
     getApps().find((candidate) => candidate.name === 'veril-fixtures') ??
     initializeApp({ projectId }, 'veril-fixtures');
-  return getAuth(app).createCustomToken('editorial-keeper', {
+  return getAuth(app);
+}
+
+export async function createEditorialKeeperToken(): Promise<string> {
+  return adminAuth().createCustomToken(editorialKeeperCredentials.uid, {
     editorialAdmin: true,
   });
+}
+
+export async function seedEditorialKeeperAccount(): Promise<UserRecord> {
+  const auth = adminAuth();
+  let user: UserRecord;
+
+  try {
+    user = await auth.getUser(editorialKeeperCredentials.uid);
+    user = await auth.updateUser(user.uid, {
+      email: editorialKeeperCredentials.email,
+      password: editorialKeeperCredentials.password,
+      emailVerified: true,
+      disabled: false,
+    });
+  } catch {
+    user = await auth.createUser({
+      uid: editorialKeeperCredentials.uid,
+      email: editorialKeeperCredentials.email,
+      password: editorialKeeperCredentials.password,
+      emailVerified: true,
+    });
+  }
+
+  await auth.setCustomUserClaims(user.uid, { editorialAdmin: true });
+  return user;
 }
 
 export async function seedSpeciesProfileFixtures(): Promise<void> {
