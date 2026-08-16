@@ -81,6 +81,8 @@ claims or species-specific husbandry values.
   Markdown draft without changing the published profile.
 - Editorial keepers can mark a draft as `reviewed`; publication only accepts a
   reviewed draft and creates the next immutable revision.
+- Editorial history exposes published revisions as read-only documentary
+  records without allowing historical content to be changed.
 
 ## Deferred scope
 

@@ -18,6 +18,14 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'editorial/species-knowledge/:id/history',
+    providers: EDITORIAL_PROVIDERS,
+    loadComponent: () =>
+      import('./species-knowledge/ui/pages/species-profile-history-page').then(
+        ({ SpeciesProfileHistoryPage }) => SpeciesProfileHistoryPage,
+      ),
+  },
+  {
     path: '',
     loadComponent: () =>
       import('./shells/public-shell/public-shell').then(

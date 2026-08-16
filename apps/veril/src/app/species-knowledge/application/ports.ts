@@ -16,6 +16,10 @@ export interface PublishedSpeciesProfileReader {
   getPublished(id: SpeciesProfileId): Promise<SpeciesProfile | null>;
 }
 
+export interface SpeciesProfileRevisionReader {
+  listRevisions(id: SpeciesProfileId): Promise<readonly SpeciesProfile[]>;
+}
+
 export interface SpeciesProfileDraftWriter {
   saveDraft(draft: Omit<SpeciesProfileDraft, 'status'>): Promise<void>;
 }

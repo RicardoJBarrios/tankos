@@ -16,6 +16,7 @@ import {
 import { FirestoreSpeciesProfileReader } from './firestore-species-profile-reader';
 import { speciesProfileIdFrom } from '../domain/species-profile';
 import { FirestoreSpeciesProfileDraftWriter } from './firestore-species-profile-draft-writer';
+import { FirestoreSpeciesProfileRevisionReader } from './firestore-species-profile-revision-reader';
 
 const emulatorTest = process.env['FIRESTORE_EMULATOR_HOST'] ? it : it.skip;
 
@@ -201,6 +202,16 @@ describe('FirestoreSpeciesProfileReader (Emulator Suite)', () => {
 
     const publishedAt = new Date('2026-08-16T12:00:00.000Z');
     await writer.publishDraft(draft, 'revision-2', publishedAt);
+
+    const revisions =
+      await new FirestoreSpeciesProfileRevisionReader().listRevisions(
+        draft.speciesProfileId,
+      );
+    expect(revisions[0]).toMatchObject({
+      id: draft.speciesProfileId,
+      displayName: draft.displayName,
+      revision: { id: 'revision-2', publishedAt },
+    });
 
     expect(
       (
