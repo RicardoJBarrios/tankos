@@ -1,9 +1,15 @@
 // @vitest-environment node
 
+import {
+  signInAnonymously,
+  signInWithCustomToken,
+  signOut,
+} from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { describe, expect, it } from 'vitest';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import {
+  createEditorialKeeperToken,
   seedSpeciesProfileFixtures,
   speciesProfileFixtures,
 } from './fixtures/species-profiles';
@@ -30,7 +36,11 @@ describe('FirestoreSpeciesProfileReader (Emulator Suite)', () => {
 
   emulatorTest('rejects client writes to global profiles', async () => {
     await seedSpeciesProfileFixtures();
-    const { firestore } = getFirebaseClient();
+    const { auth, firestore } = getFirebaseClient();
+    await signInAnonymously(auth);
+
+    const profiles = await new FirestoreSpeciesProfileReader().listPublished();
+    expect(profiles).toHaveLength(1);
 
     await expect(
       setDoc(
@@ -41,6 +51,8 @@ describe('FirestoreSpeciesProfileReader (Emulator Suite)', () => {
         },
       ),
     ).rejects.toThrow();
+
+    await signOut(auth);
   });
 
   emulatorTest('reads the published encyclopedic content', async () => {
@@ -65,5 +77,33 @@ describe('FirestoreSpeciesProfileReader (Emulator Suite)', () => {
         ),
       },
     });
+  });
+
+  emulatorTest('allows an editorial keeper to maintain a profile', async () => {
+    await seedSpeciesProfileFixtures();
+    const { auth, firestore } = getFirebaseClient();
+    await signInWithCustomToken(auth, await createEditorialKeeperToken());
+
+    await expect(
+      setDoc(
+        doc(firestore, 'speciesProfiles', speciesProfileFixtures.clownfish.id),
+        {
+          displayName: speciesProfileFixtures.clownfish.displayName,
+          scientificName: speciesProfileFixtures.clownfish.scientificName,
+          description: speciesProfileFixtures.clownfish.description,
+          sections: speciesProfileFixtures.clownfish.sections,
+          sources: speciesProfileFixtures.clownfish.sources,
+          revision: {
+            id: speciesProfileFixtures.clownfish.revision.id,
+            publishedAt: new Date(
+              speciesProfileFixtures.clownfish.revision.publishedAt,
+            ),
+          },
+          status: 'published',
+        },
+      ),
+    ).resolves.toBeUndefined();
+
+    await signOut(auth);
   });
 });

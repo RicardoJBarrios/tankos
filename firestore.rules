@@ -6,6 +6,12 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isEditorialKeeper() {
+      return isAuthenticated()
+        && request.auth.token.editorialAdmin == true
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
     function isOwner(data) {
       return isAuthenticated() && data.ownerId == request.auth.uid;
     }
@@ -359,8 +365,9 @@ service cloud.firestore {
     }
 
     match /speciesProfiles/{speciesProfileId} {
-      allow read: if resource.data.status == 'published';
-      allow write: if false;
+      allow read: if resource.data.status == 'published'
+        || isEditorialKeeper();
+      allow write: if isEditorialKeeper();
     }
 
     match /livestock/{livestockId} {

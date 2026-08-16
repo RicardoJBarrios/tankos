@@ -1,4 +1,5 @@
 import { getApps, initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 
 const projectId = 'demo-veril';
@@ -59,6 +60,15 @@ function adminFirestore() {
     getApps().find((candidate) => candidate.name === 'veril-fixtures') ??
     initializeApp({ projectId }, 'veril-fixtures');
   return getFirestore(app);
+}
+
+export async function createEditorialKeeperToken(): Promise<string> {
+  const app =
+    getApps().find((candidate) => candidate.name === 'veril-fixtures') ??
+    initializeApp({ projectId }, 'veril-fixtures');
+  return getAuth(app).createCustomToken('editorial-keeper', {
+    editorialAdmin: true,
+  });
 }
 
 export async function seedSpeciesProfileFixtures(): Promise<void> {

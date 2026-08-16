@@ -47,6 +47,8 @@ it must not be replaced with inferred values.
 ## Boundary rules
 
 - Only `published` profiles are returned to the normal keeper experience.
+- Published profiles are readable by anonymous users; editing requires a
+  persistent keeper with the `editorialAdmin: true` Firebase custom claim.
 - A profile revision is immutable once published.
 - Sources are part of the knowledge record, not Livestock data.
 - Livestock may reference the profile identity without copying its content.

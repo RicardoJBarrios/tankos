@@ -171,8 +171,9 @@ These are likely to matter but must wait for concrete features:
 - Livestock transfer, grouping and identification history are governed by the
   accepted Add Livestock specification; further lifecycle states remain future.
 - Species Profiles are globally shared documentary Knowledge, not owned by a
-  keeper or Aquarium. Their objective claims require attribution and an
-  editorial/source policy before publication behavior is implemented.
+  keeper or Aquarium. Published content is publicly readable; maintenance is
+  restricted to a persistent keeper with the Firebase `editorialAdmin: true`
+  custom claim, and objective claims require attribution.
 - Conflict policy for concurrent edits to domain records.
 
 ## Unknown rules

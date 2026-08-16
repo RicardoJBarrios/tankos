@@ -15,8 +15,19 @@ Aquarium and are readable wherever a Livestock record references them.
 
 Ordinary keepers cannot publish or silently overwrite Species Profiles. Profile
 maintenance belongs to an editorial authority that is separate from Aquarium
-ownership. The exact administrative role and authentication mechanism are
-deferred until an editorial surface is implemented.
+ownership. The editorial authority is a persistent keeper account carrying the
+Firebase custom claim `editorialAdmin: true`.
+
+### Access policy
+
+- An anonymous user may read published Species Profiles.
+- A signed-in, persistent keeper with the Firebase custom claim
+  `editorialAdmin: true` is the editorial keeper authorized to maintain
+  profiles.
+- An anonymous user and an authenticated keeper without that claim cannot
+  create, update, publish, retire or delete a profile.
+- The claim is assigned only from a privileged Firebase Admin SDK environment;
+  it is never assigned by the Angular client.
 
 ## Editorial lifecycle
 
