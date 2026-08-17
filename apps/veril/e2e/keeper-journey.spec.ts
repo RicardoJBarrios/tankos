@@ -239,6 +239,7 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page.getByTestId('measurement-list')).toContainText(
     'Corrección de una medición anterior',
   );
+  await expect(page.getByRole('link', { name: 'Corregir' })).toHaveCount(0);
 
   await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
   await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();

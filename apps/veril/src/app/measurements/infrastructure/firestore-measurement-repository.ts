@@ -141,6 +141,36 @@ function toListItem(
   };
 }
 
+async function correctionIdsFor(
+  items: readonly MeasurementListItem[],
+): Promise<ReadonlySet<string>> {
+  if (items.length === 0) return new Set();
+  const { firestore } = getFirebaseClient();
+  const ids = items.map((item) => item.id);
+  const correctedIds = new Set<string>();
+
+  for (let index = 0; index < ids.length; index += 30) {
+    const chunk = ids.slice(index, index + 30);
+    const snapshots = await Promise.all(
+      chunk.map((id) => getDoc(doc(firestore, 'measurementCorrections', id))),
+    );
+    snapshots.forEach((entry) => {
+      if (entry.exists()) correctedIds.add(entry.id);
+    });
+  }
+
+  return correctedIds;
+}
+
+async function annotateCorrectedItems(
+  items: readonly MeasurementListItem[],
+): Promise<readonly MeasurementListItem[]> {
+  const correctedIds = await correctionIdsFor(items);
+  return items.map((item) =>
+    correctedIds.has(item.id) ? { ...item, isCorrected: true } : item,
+  );
+}
+
 @Injectable()
 export class FirestoreMeasurementRepository
   implements
@@ -245,7 +275,7 @@ export class FirestoreMeasurementRepository
   ): Promise<MeasurementPage> {
     const { firestore } = getFirebaseClient();
     const measurements = collection(firestore, 'measurements');
-    return readFirestorePage({
+    const page = await readFirestorePage({
       baseQuery: query(
         measurements,
         where('ownerId', '==', ownerKeeperId),
@@ -270,6 +300,10 @@ export class FirestoreMeasurementRepository
       map: (entry) =>
         toListItem(entry.id, measurementDocument.parse(entry.data())),
     });
+    return {
+      ...page,
+      items: await annotateCorrectedItems(page.items),
+    };
   }
 
   async getOwned(
@@ -286,7 +320,11 @@ export class FirestoreMeasurementRepository
     if (data.ownerId !== ownerKeeperId || data.aquariumId !== aquariumId) {
       return null;
     }
-    return toListItem(snapshot.id, data);
+    const item = toListItem(snapshot.id, data);
+    const correction = await getDoc(
+      doc(firestore, 'measurementCorrections', measurementId),
+    );
+    return correction.exists() ? { ...item, isCorrected: true } : item;
   }
 
   async listRecentOwned(

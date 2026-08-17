@@ -73,7 +73,7 @@
             <span>{{ formatMeasurementAge(item) }}</span>
             @if (item.correctsMeasurementId) {
             <span>Corrección de una medición anterior</span>
-            } @else {
+            } @else if (!item.isCorrected) {
             <a
               mat-button
               [routerLink]="['/app/aquariums/measurements', item.id, 'correct']"

@@ -50,6 +50,7 @@ export interface MeasurementListItem {
   readonly recordedAt: Date;
   readonly provenance: 'manual';
   readonly correctsMeasurementId?: MeasurementId;
+  readonly isCorrected?: boolean;
 }
 
 export interface MeasurementPage {
