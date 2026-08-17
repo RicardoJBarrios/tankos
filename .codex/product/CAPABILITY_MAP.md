@@ -106,6 +106,12 @@ deferred.
 Manage devices and care-supporting equipment once identity, ownership, state and
 sharing rules are validated.
 
+### Maintenance
+
+- Record Water Change — accepted as the first Maintenance increment. It records
+  a completed replacement volume as an independent append-only fact.
+- Planned maintenance, feeding, service history and correction — deferred.
+
 ### Notifications
 
 Surface alerts and reminders once semantics, consent, severity and delivery

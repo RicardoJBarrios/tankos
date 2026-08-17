@@ -131,8 +131,9 @@ planned intention; those actions do not themselves stop the recurring plan.
 
 ### Water Change
 
-A term for care work involving aquarium water replacement. Whether it is a
-distinct Event, a Maintenance subtype or another concept is still to be defined.
+A completed water-replacement fact with a required positive volume and separate
+performed and recorded timestamps. In the accepted first Maintenance workflow,
+it is an independent aggregate and is not generic Care Work.
 
 ### Feeding
 

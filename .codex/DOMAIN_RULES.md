@@ -61,6 +61,25 @@ Rules are classified to avoid turning assumptions into code prematurely.
   reminders, correction, deletion and offline synchronization are deferred.
 - Recording Care Work does not automatically create a Domain Event.
 
+## Accepted rules for Record Water Change
+
+- A Water Change records one completed water replacement for exactly one
+  Aquarium and is an independent Maintenance aggregate and durable Fact.
+- The replacement volume is required, finite and strictly positive, expressed
+  in litres. A Water Change cannot be inferred from a Measurement or Care Work.
+- `performedAt` describes when the replacement happened; `recordedAt` describes
+  when Veril accepted the evidence. Both are retained and must be valid.
+- Notes are optional free text and are trimmed at the domain boundary; they do
+  not replace the required volume or timestamps.
+- Only the owning authenticated keeper may create or privately read Water
+  Changes. A delegated guest may read them only through an explicit
+  Aquarium-scoped `waterChanges` grant.
+- Water Changes are append-only and online-required in the first slice.
+  Editing, deletion, correction, scheduling, chemistry and batch provenance
+  require separate accepted decisions.
+- Recording a Water Change does not create a Measurement, Care Work record or
+  Timeline source automatically.
+
 ## Accepted rules for Planned Care Work
 
 - Planned work and completed Care Work remain separate records: completion
@@ -161,7 +180,8 @@ enforce them:
 - Whether Measurements are immutable, editable or corrected by compensation.
 - Livestock belongs to one Aquarium at a time; an accepted transfer records the
   previous association and moves it to another Aquarium owned by the keeper.
-- Whether Water Change is a distinct domain Event.
+- Whether future Water Change corrections are compensating Facts or an explicit
+  correction workflow.
 - Whether an Observation may correct, qualify or otherwise relate to a
   Measurement.
 
