@@ -45,7 +45,7 @@ closed Parameter catalogue.
   the latest known value without classifying it as fresh or stale.
 - Correct Measurement — accepted and implemented as an append-only correction
   Fact with traceable history.
-- Parameter History — candidate.
+- Parameter History — accepted for implementation; see [its specification](../specifications/parameter-history.md).
 - Configure Parameter Targets — implemented as optional Aquarium-owned keeper
   intervals; see [its specification](../specifications/configure-parameter-targets.md).
 - Review Parameter Status — implemented as a derived comparison of latest

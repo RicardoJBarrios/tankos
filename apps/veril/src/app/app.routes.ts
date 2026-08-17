@@ -194,9 +194,17 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'aquariums/measurements',
+        pathMatch: 'full',
         loadComponent: () =>
           import('./measurements/ui/pages/list-measurements-page').then(
             ({ ListMeasurementsPage }) => ListMeasurementsPage,
+          ),
+      },
+      {
+        path: 'aquariums/measurements/history',
+        loadComponent: () =>
+          import('./measurements/ui/pages/parameter-history-page').then(
+            ({ ParameterHistoryPage }) => ParameterHistoryPage,
           ),
       },
       {

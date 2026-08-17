@@ -26,9 +26,13 @@ import {
   MeasurementWriter,
   MeasurementCorrector,
   MeasurementCursor,
+  ParameterHistoryCursor,
+  ParameterHistoryFilter,
+  ParameterHistoryReader,
   CurrentMeasurementReader,
   MeasurementListItem,
   MeasurementPage,
+  ParameterHistoryPage,
   MeasurementReader,
   TimelineMeasurementReader,
   RecordMeasurementInput,
@@ -67,6 +71,12 @@ const measurementCursor = z.object({
   measurementId: z.string(),
 });
 
+const parameterHistoryCursor = measurementCursor.extend({
+  parameterId: z.enum(PARAMETER_IDS),
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
+
 export const MEASUREMENT_PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
 function encodeCursor(item: MeasurementListItem): MeasurementCursor {
@@ -98,6 +108,45 @@ function decodeCursor(cursor: MeasurementCursor) {
     recordedAt,
     measurementId: measurementIdFrom(parsed.measurementId),
   };
+}
+
+function encodeParameterHistoryCursor(
+  item: MeasurementListItem,
+  filter: ParameterHistoryFilter,
+): ParameterHistoryCursor {
+  return encodeURIComponent(
+    JSON.stringify({
+      measuredAt: item.measuredAt.toISOString(),
+      recordedAt: item.recordedAt.toISOString(),
+      measurementId: item.id,
+      parameterId: filter.parameterId,
+      ...(filter.from ? { from: filter.from.toISOString() } : {}),
+      ...(filter.to ? { to: filter.to.toISOString() } : {}),
+    }),
+  ) as ParameterHistoryCursor;
+}
+
+function decodeParameterHistoryCursor(
+  cursor: ParameterHistoryCursor,
+  filter: ParameterHistoryFilter,
+) {
+  const parsed = parameterHistoryCursor.parse(
+    JSON.parse(decodeURIComponent(cursor)),
+  );
+  const from = filter.from?.toISOString();
+  const to = filter.to?.toISOString();
+  if (
+    parsed.parameterId !== filter.parameterId ||
+    parsed.from !== from ||
+    parsed.to !== to
+  ) {
+    throw new Error('Parameter History cursor does not match its filter');
+  }
+  return [
+    Timestamp.fromDate(new Date(parsed.measuredAt)),
+    Timestamp.fromDate(new Date(parsed.recordedAt)),
+    parsed.measurementId,
+  ] as const;
 }
 
 function toDomain(
@@ -177,6 +226,7 @@ export class FirestoreMeasurementRepository
     MeasurementWriter,
     MeasurementCorrector,
     MeasurementReader,
+    ParameterHistoryReader,
     CurrentMeasurementReader,
     TimelineMeasurementReader
 {
@@ -325,6 +375,49 @@ export class FirestoreMeasurementRepository
       doc(firestore, 'measurementCorrections', measurementId),
     );
     return correction.exists() ? { ...item, isCorrected: true } : item;
+  }
+
+  async listOwnedHistory(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    filter: ParameterHistoryFilter,
+    cursor?: ParameterHistoryCursor,
+    requestedPageSize?: number,
+  ): Promise<ParameterHistoryPage> {
+    const { firestore } = getFirebaseClient();
+    const constraints = [
+      where('ownerId', '==', ownerKeeperId),
+      where('aquariumId', '==', aquariumId),
+      where('parameterId', '==', filter.parameterId),
+      ...(filter.from
+        ? [where('measuredAt', '>=', Timestamp.fromDate(filter.from))]
+        : []),
+      ...(filter.to
+        ? [where('measuredAt', '<', Timestamp.fromDate(filter.to))]
+        : []),
+      orderBy('measuredAt', 'desc'),
+      orderBy('recordedAt', 'desc'),
+      orderBy(documentId(), 'asc'),
+    ];
+    const page = await readFirestorePage<
+      MeasurementListItem,
+      ParameterHistoryCursor
+    >({
+      baseQuery: query(collection(firestore, 'measurements'), ...constraints),
+      request:
+        cursor || requestedPageSize
+          ? { ...(cursor ? { cursor } : {}), pageSize: requestedPageSize }
+          : undefined,
+      decodeCursor: (value) =>
+        decodeParameterHistoryCursor(value as ParameterHistoryCursor, filter),
+      encodeCursor: (item) => encodeParameterHistoryCursor(item, filter),
+      map: (entry) =>
+        toListItem(entry.id, measurementDocument.parse(entry.data())),
+    });
+    return {
+      ...page,
+      items: await annotateCorrectedItems(page.items),
+    };
   }
 
   async listRecentOwned(

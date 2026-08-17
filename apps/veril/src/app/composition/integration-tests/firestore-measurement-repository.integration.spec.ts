@@ -414,4 +414,81 @@ describe('FirestoreMeasurementRepository (Emulator Suite)', () => {
     },
     20000,
   );
+
+  emulatorTest(
+    'lists a filtered and paginated Parameter History',
+    async () => {
+      await signInAsKeeper();
+      const session = new FirebaseKeeperSession();
+      const keeper = await session.requireAuthenticatedKeeper();
+      const aquarium = await new FirestoreAquariumRepository().establish({
+        id: createAquariumId(),
+        name: AquariumName.create('Historial'),
+        ownerKeeperId: keeper.id,
+        establishedAt: new Date('2026-08-08T12:00:00.000Z'),
+      });
+      const repository = new FirestoreMeasurementRepository();
+      const records = [
+        [
+          '123e4567-e89b-42d3-a456-426614174030',
+          24,
+          '2026-08-08T12:01:00.000Z',
+        ],
+        [
+          '123e4567-e89b-42d3-a456-426614174031',
+          25,
+          '2026-08-08T12:02:00.000Z',
+        ],
+        [
+          '123e4567-e89b-42d3-a456-426614174032',
+          35,
+          '2026-08-08T12:03:00.000Z',
+        ],
+      ] as const;
+      for (const [id, value, measuredAt] of records) {
+        await repository.record({
+          id: measurementIdFrom(id),
+          aquariumId: aquarium.id,
+          ownerKeeperId: keeper.id,
+          parameterId: value === 35 ? 'salinity' : 'temperature',
+          enteredValue: value,
+          enteredUnit: value === 35 ? 'parts-per-thousand' : 'celsius',
+          canonicalValue: value,
+          canonicalUnit: value === 35 ? 'parts-per-thousand' : 'celsius',
+          measuredAt: new Date(measuredAt),
+          recordedAt: new Date(measuredAt),
+          provenance: 'manual',
+        });
+      }
+
+      const first = await repository.listOwnedHistory(
+        keeper.id,
+        aquarium.id,
+        {
+          parameterId: 'temperature',
+          from: new Date('2026-08-08T12:00:00.000Z'),
+          to: new Date('2026-08-08T12:03:00.000Z'),
+        },
+        undefined,
+        1,
+      );
+      expect(first.items.map((item) => item.canonicalValue)).toEqual([25]);
+      expect(first.nextCursor).toBeDefined();
+
+      const second = await repository.listOwnedHistory(
+        keeper.id,
+        aquarium.id,
+        {
+          parameterId: 'temperature',
+          from: new Date('2026-08-08T12:00:00.000Z'),
+          to: new Date('2026-08-08T12:03:00.000Z'),
+        },
+        first.nextCursor,
+        1,
+      );
+      expect(second.items.map((item) => item.canonicalValue)).toEqual([24]);
+      await signOut(getFirebaseClient().auth);
+    },
+    20000,
+  );
 });

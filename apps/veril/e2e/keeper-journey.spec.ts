@@ -227,6 +227,11 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page).toHaveURL('/app/aquariums/measurements');
   await expect(page.getByTestId('measurement-list')).toContainText('25.4 °C');
 
+  await page.getByRole('link', { name: 'Historial por parámetro' }).click();
+  await expect(page).toHaveURL('/app/aquariums/measurements/history');
+  await expect(page.getByTestId('parameter-history')).toContainText('25.4 °C');
+  await page.getByRole('link', { name: 'Ver todas las mediciones' }).click();
+
   await page.getByRole('link', { name: 'Corregir' }).first().click();
   await expect(page).toHaveURL(/\/app\/aquariums\/measurements\/.*\/correct/);
   await page.getByLabel('Valor').fill('26.1');
