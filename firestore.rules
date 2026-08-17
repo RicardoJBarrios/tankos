@@ -489,7 +489,8 @@ service cloud.firestore {
           'canonicalUnit',
           'measuredAt',
           'recordedAt',
-          'provenance'
+          'provenance',
+          'correctsMeasurementId'
         ])
         && request.resource.data.keys().hasAll([
           'aquariumId',
@@ -534,11 +535,50 @@ service cloud.firestore {
         )
         && request.resource.data.measuredAt is timestamp
         && request.resource.data.recordedAt is timestamp
-        && request.resource.data.provenance == 'manual';
+        && request.resource.data.provenance == 'manual'
+        && (
+          !request.resource.data.keys().hasAny(['correctsMeasurementId'])
+          || (
+            request.resource.data.correctsMeasurementId is string
+            && request.resource.data.correctsMeasurementId != measurementId
+            && exists(/databases/$(database)/documents/measurements/$(request.resource.data.correctsMeasurementId))
+            && get(/databases/$(database)/documents/measurements/$(request.resource.data.correctsMeasurementId)).data.ownerId == request.auth.uid
+            && get(/databases/$(database)/documents/measurements/$(request.resource.data.correctsMeasurementId)).data.aquariumId == request.resource.data.aquariumId
+            && getAfter(/databases/$(database)/documents/measurementCorrections/$(request.resource.data.correctsMeasurementId)).data.replacementMeasurementId == measurementId
+          )
+        );
 
       allow get: if canReadAquarium(resource.data.aquariumId, 'measurements');
       allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'measurements');
       allow update, delete: if false;
+    }
+
+    match /measurementCorrections/{measurementId} {
+      allow create: if isKeeper()
+        && request.resource.data.keys().hasOnly([
+          'aquariumId',
+          'ownerId',
+          'replacementMeasurementId',
+          'createdAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'aquariumId',
+          'ownerId',
+          'replacementMeasurementId',
+          'createdAt'
+        ])
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.aquariumId is string
+        && request.resource.data.replacementMeasurementId is string
+        && request.resource.data.createdAt is timestamp
+        && exists(/databases/$(database)/documents/measurements/$(measurementId))
+        && get(/databases/$(database)/documents/measurements/$(measurementId)).data.ownerId == request.auth.uid
+        && get(/databases/$(database)/documents/measurements/$(measurementId)).data.aquariumId == request.resource.data.aquariumId
+        && getAfter(/databases/$(database)/documents/measurements/$(request.resource.data.replacementMeasurementId)).data.correctsMeasurementId == measurementId;
+      allow get: if isKeeper()
+        && exists(/databases/$(database)/documents/measurements/$(measurementId))
+        && get(/databases/$(database)/documents/measurements/$(measurementId)).data.ownerId == request.auth.uid;
+      allow list, update, delete: if false;
     }
 
     match /careWorks/{careWorkId} {

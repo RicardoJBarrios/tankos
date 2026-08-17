@@ -43,7 +43,8 @@ closed Parameter catalogue.
 - List Measurements — accepted and implemented.
 - Review Measurement Age — accepted and implemented; presents derived age for
   the latest known value without classifying it as fresh or stale.
-- Correct Measurement — candidate.
+- Correct Measurement — accepted and implemented as an append-only correction
+  Fact with traceable history.
 - Parameter History — candidate.
 - Configure Parameter Targets — implemented as optional Aquarium-owned keeper
   intervals; see [its specification](../specifications/configure-parameter-targets.md).

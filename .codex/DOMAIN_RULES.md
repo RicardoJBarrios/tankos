@@ -151,6 +151,20 @@ Rules are classified to avoid turning assumptions into code prematurely.
   and are not implied by the Measurement catalogue. Parameter Status compares
   only the latest known value with an explicit keeper target.
 
+## Accepted rules for Correct Measurement
+
+- Only the owning authenticated keeper may correct a Measurement.
+- A correction creates one new immutable Measurement Fact referencing the
+  original through `correctsMeasurementId`; it never updates or deletes the
+  original.
+- The original Parameter and canonical Unit remain unchanged. The correction
+  may replace only the value and `measuredAt` in this increment.
+- An original Measurement may be corrected at most once. A correction cannot
+  itself be corrected in this increment.
+- The replacement and its technical uniqueness marker are created atomically.
+- A delegated guest may read the original and replacement when the Aquarium
+  grant includes `measurements`, but cannot create, correct or delete either.
+
 ## Parameter policy
 
 - The MVP Parameter catalogue is closed and system-defined; users cannot add
@@ -177,7 +191,8 @@ decided in a use-case specification before code, Rules, events or persistence
 enforce them:
 
 - Whether an Aquarium is the ownership boundary for Measurements.
-- Whether Measurements are immutable, editable or corrected by compensation.
+- Whether Measurement corrections may include a reason or appear differently
+  in Timeline remains a presentation decision.
 - Livestock belongs to one Aquarium at a time; an accepted transfer records the
   previous association and moves it to another Aquarium owned by the keeper.
 - Whether future Water Change corrections are compensating Facts or an explicit
