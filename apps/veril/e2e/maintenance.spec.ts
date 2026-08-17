@@ -53,4 +53,8 @@ test('a keeper can record and list a water change', async ({ page }) => {
   await expect(page.getByTestId('water-change-list')).toContainText(
     'Limpieza semanal',
   );
+  await page.goto('/app/aquariums/current');
+  await expect(page.getByTestId('recent-activity-preview')).toContainText(
+    'Cambio de agua',
+  );
 });
