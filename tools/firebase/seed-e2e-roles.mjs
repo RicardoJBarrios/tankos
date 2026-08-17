@@ -100,7 +100,7 @@ async function clearAquariumCollection(collectionName) {
 }
 
 await Promise.all(
-  ['observations', 'careWorks', 'livestock', 'equipment'].map(
+  ['observations', 'careWorks', 'livestock', 'equipment', 'waterChanges'].map(
     clearAquariumCollection,
   ),
 );
@@ -170,6 +170,15 @@ await firestore
     updatedAt: recordedAt,
     associationHistory: [{ aquariumId, associatedAt: recordedAt }],
   });
+await firestore.collection('waterChanges').doc(randomUUID()).set({
+  aquariumId,
+  ownerId: accounts.keeper.uid,
+  volumeLitres: 12.5,
+  performedAt: recordedAt,
+  recordedAt,
+  notes: 'E2E water change',
+  provenance: 'manual',
+});
 
 await firestore
   .collection('aquariumAccessInvitations')

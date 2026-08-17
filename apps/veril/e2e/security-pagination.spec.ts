@@ -178,6 +178,7 @@ test('a keeper can grant, verify and revoke scoped viewer access', async ({
 
   await page.getByTestId('access-permission-aquarium').check();
   await page.getByTestId('access-permission-measurements').check();
+  await page.getByTestId('access-permission-waterChanges').check();
   await page.getByTestId('access-create-invitation').click();
   const invitationCode = await page
     .getByTestId('access-invitation-code')
@@ -202,6 +203,9 @@ test('a keeper can grant, verify and revoke scoped viewer access', async ({
     await viewerPage.goto(`/shared/aquariums/${fixture.aquariumId}`);
     await expect(viewerPage.getByTestId('shared-aquarium')).toContainText(
       'measurements: 20 registros disponibles',
+    );
+    await expect(viewerPage.getByTestId('shared-aquarium')).toContainText(
+      'waterChanges: 1 registros disponibles',
     );
 
     await page.goto('/app/aquariums/access');
