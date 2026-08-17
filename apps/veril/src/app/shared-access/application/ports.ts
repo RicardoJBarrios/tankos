@@ -7,6 +7,7 @@ export const AQUARIUM_ACCESS_PERMISSIONS = [
   'recurringCarePlans',
   'livestock',
   'equipment',
+  'waterChanges',
 ] as const;
 
 export type AquariumAccessPermission =

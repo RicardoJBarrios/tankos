@@ -221,6 +221,20 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'aquariums/maintenance/new',
+        loadComponent: () =>
+          import('./maintenance/ui/pages/record-water-change-page').then(
+            ({ RecordWaterChangePage }) => RecordWaterChangePage,
+          ),
+      },
+      {
+        path: 'aquariums/maintenance',
+        loadComponent: () =>
+          import('./maintenance/ui/pages/list-water-changes-page').then(
+            ({ ListWaterChangesPage }) => ListWaterChangesPage,
+          ),
+      },
+      {
         path: 'aquariums/care/planned/new',
         loadComponent: () =>
           import('./care/ui/pages/plan-care-work-page').then(
