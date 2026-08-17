@@ -47,8 +47,9 @@ colony is represented as a group in the first Livestock workflow.
 ### Equipment
 
 A physical or logical device used by an Aquarium or System, such as lighting,
-pumps, probes or controllers. Its ownership, sharing and lifecycle remain
-use-case-dependent.
+pumps, probes or controllers. In the accepted Equipment workflow it is an
+independent aggregate owned by the Aquarium's keeper, associated with one
+Aquarium at a time, and retired through a traceable soft delete.
 
 ## Observations and operations
 

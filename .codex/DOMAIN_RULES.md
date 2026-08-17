@@ -16,7 +16,7 @@ Rules are classified to avoid turning assumptions into code prematurely.
 - A delegated access grant belongs to exactly one Aquarium and one grantee.
 - The owner chooses the readable resource categories independently: Aquarium
   metadata, Measurements, Observations, Care Work, Planned Care Work or
-  Livestock.
+  Livestock or Equipment.
 - A delegated grantee cannot create, update, delete, transfer or revoke any
   Aquarium data or access grant.
 - The owner may revoke a grant. Revocation is retained for traceability and
@@ -170,7 +170,9 @@ enforce them:
 These are preferred behaviors, but require product confirmation before becoming
 enforced invariants:
 
-- Equipment may be shared by more than one Aquarium when ownership allows it.
+- Equipment is an independent aggregate owned by the keeper through one
+  Aquarium association at a time. Read-only sharing is granted per Aquarium;
+  shared ownership is not part of the first workflow.
 - Measurements may need timestamp, source and provenance where available.
 - Events may need stable identifiers and original time.
 - Timeline views should expose stale, cached or pending information clearly.
@@ -184,7 +186,8 @@ These are likely to matter but must wait for concrete features:
 - Sensor calibration and measurement-quality rules.
 - Controller safety limits and automation authorization.
 - Alert severity, acknowledgement and resolution.
-- Shared equipment ownership and permissions.
+- Sensors, controllers, installation state, failure state and automation
+  authority for Equipment.
 - Livestock transfer, grouping and identification history are governed by the
   accepted Add Livestock specification; further lifecycle states remain future.
 - Species Profiles are globally shared documentary Knowledge, not owned by a
