@@ -104,15 +104,20 @@ export class FirestoreAquariumAccessService implements AquariumAccessService {
     const user = auth.currentUser;
     if (!user || user.isAnonymous) throw new Error('Authentication required');
 
-    const aquariumSnapshot = await getDoc(
-      doc(firestore, 'aquariums', input.aquariumId),
-    );
-    const aquarium = aquariumSchema.parse(aquariumSnapshot.data());
     const grantSnapshot = await getDoc(
       doc(firestore, 'aquariumAccessGrants', `${input.aquariumId}_${user.uid}`),
     );
     const grant = grantSchema.parse(grantSnapshot.data());
     if (grant.status !== 'active') throw new Error('Access revoked');
+
+    let aquariumName = 'Acuario compartido';
+    if (grant.permissions.aquarium === true) {
+      const aquariumSnapshot = await getDoc(
+        doc(firestore, 'aquariums', input.aquariumId),
+      );
+      const aquarium = aquariumSchema.parse(aquariumSnapshot.data());
+      aquariumName = aquarium.name;
+    }
 
     const sections: Partial<Record<AquariumAccessPermission, number>> = {};
     const collections: Partial<Record<AquariumAccessPermission, string>> = {
@@ -137,7 +142,7 @@ export class FirestoreAquariumAccessService implements AquariumAccessService {
     }
 
     return {
-      aquariumName: aquarium.name,
+      aquariumName,
       sections: {
         ...(grant.permissions.aquarium === true ? { aquarium: 1 } : {}),
         ...sections,

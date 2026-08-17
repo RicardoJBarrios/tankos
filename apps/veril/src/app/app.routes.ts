@@ -1,17 +1,12 @@
 import { Route } from '@angular/router';
+import { authenticatedAccessGuard } from './shared/ui/guards/authenticated-access.guard';
+import { editorialAccessGuard } from './shared/ui/guards/editorial-access.guard';
 import { keeperAccessGuard } from './shared/ui/guards/keeper-access.guard';
 
 export const appRoutes: Route[] = [
   {
-    path: 'access/sign-in',
-    data: { accessType: 'authentication', redirectTo: '/access/accept' },
-    loadComponent: () =>
-      import('./species-knowledge/ui/pages/editorial-sign-in-page').then(
-        ({ EditorialSignInPage }) => EditorialSignInPage,
-      ),
-  },
-  {
     path: 'access/accept',
+    canActivate: [authenticatedAccessGuard],
     loadComponent: () =>
       import('./shared-access/ui/accept-aquarium-invitation-page').then(
         ({ AcceptAquariumInvitationPage }) => AcceptAquariumInvitationPage,
@@ -19,6 +14,7 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'shared/aquariums/:aquariumId',
+    canActivate: [authenticatedAccessGuard],
     loadComponent: () =>
       import('./shared-access/ui/shared-aquarium-page').then(
         ({ SharedAquariumPage }) => SharedAquariumPage,
@@ -26,15 +22,6 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'sign-in',
-    data: { accessType: 'private', redirectTo: '/app/aquariums' },
-    loadComponent: () =>
-      import('./species-knowledge/ui/pages/editorial-sign-in-page').then(
-        ({ EditorialSignInPage }) => EditorialSignInPage,
-      ),
-  },
-  {
-    path: 'editorial/sign-in',
-    data: { accessType: 'editorial' },
     loadComponent: () =>
       import('./species-knowledge/ui/pages/editorial-sign-in-page').then(
         ({ EditorialSignInPage }) => EditorialSignInPage,
@@ -42,6 +29,7 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'editorial/species-knowledge',
+    canActivate: [editorialAccessGuard],
     loadChildren: () =>
       import('./composition/editorial/editorial.routes').then(
         ({ EDITORIAL_SPECIES_KNOWLEDGE_ROUTES }) =>

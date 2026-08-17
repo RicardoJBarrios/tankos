@@ -7,6 +7,8 @@ import { PrivateShell } from './shells/private-shell/private-shell';
 import { PublicShell } from './shells/public-shell/public-shell';
 import { AUTHENTICATION_SESSION } from './shared/ui/providers';
 import { keeperAccessGuard } from './shared/ui/guards/keeper-access.guard';
+import { authenticatedAccessGuard } from './shared/ui/guards/authenticated-access.guard';
+import { editorialAccessGuard } from './shared/ui/guards/editorial-access.guard';
 
 describe('appRoutes', () => {
   beforeEach(() => {
@@ -15,7 +17,15 @@ describe('appRoutes', () => {
         provideRouter(appRoutes),
         {
           provide: AUTHENTICATION_SESSION,
-          useValue: { isKeeper: () => Promise.resolve(true) },
+          useValue: {
+            getSnapshot: () =>
+              Promise.resolve({
+                userId: 'test-user',
+                isAuthenticated: true,
+                isKeeper: true,
+                isEditorialAdmin: true,
+              }),
+          },
         },
       ],
     });
@@ -39,6 +49,23 @@ describe('appRoutes', () => {
     const privateRoute = appRoutes.find((route) => route.path === 'app');
 
     expect(privateRoute?.canActivate).toContain(keeperAccessGuard);
+  });
+
+  it('protects editorial routes with the editorial claim', () => {
+    const editorialRoute = appRoutes.find(
+      (route) => route.path === 'editorial/species-knowledge',
+    );
+    expect(editorialRoute?.canActivate).toContain(editorialAccessGuard);
+  });
+
+  it('protects shared access and invitation acceptance with authentication', () => {
+    expect(
+      appRoutes.find((route) => route.path === 'access/accept')?.canActivate,
+    ).toContain(authenticatedAccessGuard);
+    expect(
+      appRoutes.find((route) => route.path === 'shared/aquariums/:aquariumId')
+        ?.canActivate,
+    ).toContain(authenticatedAccessGuard);
   });
 
   it('defines the Establish Aquarium child route', () => {

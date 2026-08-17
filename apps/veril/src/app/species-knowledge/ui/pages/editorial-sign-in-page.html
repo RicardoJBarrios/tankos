@@ -1,23 +1,21 @@
 <section aria-labelledby="sign-in-title" class="page-section">
-  <p class="eyebrow">Conocimiento compartido</p>
-  <h2 id="sign-in-title">
-    {{ accessType === 'editorial' ? 'Acceso editorial' : accessType ===
-    'authentication' ? 'Iniciar sesión' : 'Acceso al área privada' }}
-  </h2>
+  <p class="eyebrow">Veril</p>
+  <h2 id="sign-in-title">Iniciar sesión</h2>
   <mat-card appearance="outlined">
     <mat-card-content>
       @if (state() === 'success') {
-      <p role="status">
-        Sesión iniciada. Ya puedes continuar con esta superficie.
+      <p role="status" data-testid="sign-in-success">
+        Sesión iniciada. Tus roles y permisos se han cargado.
       </p>
       } @else {
-      <form (ngSubmit)="submit()">
+      <form data-testid="sign-in-form" (ngSubmit)="submit()">
         <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
           <input
             matInput
             type="email"
             name="email"
+            data-testid="sign-in-email"
             [ngModel]="email()"
             (ngModelChange)="email.set($event)"
             required
@@ -29,6 +27,7 @@
             matInput
             type="password"
             name="password"
+            data-testid="sign-in-password"
             [ngModel]="password()"
             (ngModelChange)="password.set($event)"
             required
@@ -41,6 +40,7 @@
           mat-flat-button
           color="primary"
           type="submit"
+          data-testid="sign-in-submit"
           [disabled]="state() === 'saving'"
         >
           {{ state() === 'saving' ? 'Iniciando sesión…' : 'Iniciar sesión' }}
