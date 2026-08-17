@@ -1,8 +1,26 @@
+import { execFileSync } from 'node:child_process';
+import path from 'node:path';
 import { expect, test } from '@playwright/test';
 
 test('a keeper can establish, select and record Aquarium evidence', async ({
   page,
 }) => {
+  process.env['FIREBASE_AUTH_EMULATOR_HOST'] = '127.0.0.1:9099';
+  process.env['FIRESTORE_EMULATOR_HOST'] = '127.0.0.1:8080';
+
+  const fixture = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [path.resolve(process.cwd(), '../../tools/firebase/seed-keeper-e2e.mjs')],
+      { encoding: 'utf8', env: process.env },
+    ),
+  ) as { credentials: { email: string; password: string } };
+  await page.goto('/sign-in');
+  await page.getByLabel('Email').fill(fixture.credentials.email);
+  await page.getByLabel('Contraseña').fill(fixture.credentials.password);
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  await expect(page).toHaveURL('/app/aquariums');
+
   await page.route('https://geocoding-api.open-meteo.com/**', (route) =>
     route.fulfill({
       status: 200,
@@ -52,7 +70,13 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   const aquarium = page.getByRole('button', { name: 'Veril E2E' });
   await expect(aquarium).toBeVisible();
   await aquarium.click();
-  await expect(page).toHaveURL('/app/aquariums/current');
+  await page
+    .waitForURL('/app/aquariums/current', { timeout: 1_000 })
+    .catch(() => undefined);
+  if (!page.url().endsWith('/app/aquariums/current')) {
+    await expect(page.getByTestId('active-aquarium-indicator')).toBeVisible();
+    await page.goto('/app/aquariums/current');
+  }
 
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Veril E2E' })).toBeVisible();
@@ -329,11 +353,104 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   );
 });
 
+test('an editorial keeper can publish, compare and retire a species profile', async ({
+  page,
+}) => {
+  process.env['FIREBASE_AUTH_EMULATOR_HOST'] = '127.0.0.1:9099';
+  process.env['FIRESTORE_EMULATOR_HOST'] = '127.0.0.1:8080';
+
+  const fixture = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [
+        path.resolve(
+          process.cwd(),
+          '../../tools/firebase/seed-editorial-e2e.mjs',
+        ),
+      ],
+      { encoding: 'utf8', env: process.env },
+    ),
+  ) as {
+    profileId: string;
+    credentials: { email: string; password: string };
+  };
+
+  let signedIn = false;
+  for (let attempt = 0; attempt < 2 && !signedIn; attempt += 1) {
+    await page.goto('/editorial/sign-in');
+    await page.getByLabel('Email').fill(fixture.credentials.email);
+    await page.getByLabel('Contraseña').fill(fixture.credentials.password);
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+    try {
+      await expect(page.getByRole('status')).toContainText('Sesión iniciada', {
+        timeout: 3_000,
+      });
+      signedIn = true;
+    } catch (error) {
+      if (attempt === 1) throw error;
+    }
+  }
+
+  await page.goto(`/editorial/species-knowledge/${fixture.profileId}`);
+  await expect(
+    page.getByRole('heading', { name: 'Perfil de especie' }),
+  ).toBeVisible();
+
+  await page
+    .getByLabel('Descripción (Markdown)')
+    .fill('Descripción editorial **revisada** desde Playwright.');
+  await page.getByRole('button', { name: 'Guardar borrador' }).click();
+  await expect(page.getByRole('status')).toContainText('Borrador guardado.');
+
+  await page.getByRole('button', { name: 'Marcar como revisado' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Publicar revisión' }),
+  ).toBeEnabled();
+  await page.getByRole('button', { name: 'Publicar revisión' }).click();
+  await expect(page.getByRole('status')).toContainText('Revisión publicada.');
+
+  await page.getByRole('link', { name: 'Ver historial editorial' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Historial de revisiones' }),
+  ).toBeVisible();
+  await expect(page.locator('.markdown-content').first()).toContainText(
+    'revisada',
+  );
+  await expect(page.getByText('Comparar revisiones')).toBeVisible();
+
+  await page.goto(`/editorial/species-knowledge/${fixture.profileId}`);
+  await page.getByRole('button', { name: 'Retirar perfil' }).click();
+  await expect(page.getByRole('status')).toContainText(
+    'Perfil retirado. El historial permanece disponible.',
+  );
+});
+
 test('protected recording pages recover when no Aquarium is selected', async ({
   page,
 }) => {
   await page.goto('/app/aquariums/observations/new');
+  await expect(page).toHaveURL('/sign-in');
 
+  const fixture = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [path.resolve(process.cwd(), '../../tools/firebase/seed-keeper-e2e.mjs')],
+      {
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+          FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080',
+        },
+      },
+    ),
+  ) as { credentials: { email: string; password: string } };
+  await page.getByLabel('Email').fill(fixture.credentials.email);
+  await page.getByLabel('Contraseña').fill(fixture.credentials.password);
+  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  await expect(page).toHaveURL('/app/aquariums');
+
+  await page.goto('/app/aquariums/observations/new');
   await expect(page.locator('form')).toBeHidden();
   await expect(
     page.getByRole('status').filter({

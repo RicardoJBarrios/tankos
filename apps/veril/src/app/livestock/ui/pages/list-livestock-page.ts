@@ -12,10 +12,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActiveAquariumContext } from '../../../shared/application/active-aquarium-context';
 import { ListLivestock } from '../../application/list-livestock';
 import { RemoveLivestock } from '../../application/remove-livestock';
-import { LivestockListItem } from '../../application/ports';
+import {
+  LivestockListItem,
+  SpeciesProfileOption,
+} from '../../application/ports';
 import {
   KEEPER_SESSION,
   LIVESTOCK_READER,
+  LIVESTOCK_SPECIES_PROFILE_CATALOG,
   LIVESTOCK_WRITER,
 } from '../providers';
 import { AsyncListPageState } from '../../../shared/ui/page-state';
@@ -57,9 +61,13 @@ type PageState = AsyncListPageState;
 export class ListLivestockPage implements OnInit {
   private readonly listLivestock = inject(ListLivestock);
   private readonly removeLivestock = inject(RemoveLivestock);
+  private readonly speciesProfileCatalog = inject(
+    LIVESTOCK_SPECIES_PROFILE_CATALOG,
+  );
   private readonly context = inject(ActiveAquariumContext);
   readonly state = signal<PageState>('loading');
   readonly items = signal<readonly LivestockListItem[]>([]);
+  readonly speciesProfiles = signal<readonly SpeciesProfileOption[]>([]);
   readonly errorMessage = signal('');
 
   ngOnInit(): void {
@@ -93,8 +101,12 @@ export class ListLivestockPage implements OnInit {
 
   private async load(): Promise<void> {
     try {
-      const items = await this.listLivestock.execute();
+      const [items, speciesProfiles] = await Promise.all([
+        this.listLivestock.execute(),
+        this.speciesProfileCatalog.listPublished(),
+      ]);
       this.items.set(items);
+      this.speciesProfiles.set(speciesProfiles);
       this.state.set(items.length ? 'success' : 'empty');
     } catch {
       this.errorMessage.set(
@@ -102,5 +114,12 @@ export class ListLivestockPage implements OnInit {
       );
       this.state.set('failure');
     }
+  }
+
+  speciesProfileNameFor(id: string): string {
+    return (
+      this.speciesProfiles().find((profile) => profile.id === id)
+        ?.displayName ?? 'Especie no disponible'
+    );
   }
 }

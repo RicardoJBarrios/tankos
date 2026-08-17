@@ -24,6 +24,7 @@ import {
   RecordCareWorkInput,
 } from '../application/ports';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
+import { pageSizeFor } from '../../shared/application/pagination';
 
 export const careWorkDocument = z.object({
   aquariumId: z.string().min(1),
@@ -76,7 +77,7 @@ export class FirestoreCareWorkRepository
       orderBy('performedAt', 'desc'),
       orderBy('recordedAt', 'desc'),
       orderBy(documentId(), 'asc'),
-      limit(limitCount),
+      limit(pageSizeFor({ pageSize: limitCount })),
     );
     const snapshot = await getDocs(recentQuery);
 

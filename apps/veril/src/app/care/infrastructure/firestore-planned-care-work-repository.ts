@@ -51,6 +51,7 @@ import {
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { careWorkDocument } from './firestore-care-work-repository';
 import { systemClock } from '../../shared/application/clock';
+import { pageSizeFor } from '../../shared/application/pagination';
 
 const aquariumOwnershipDocument = z
   .object({
@@ -217,7 +218,7 @@ export class FirestorePlannedCareWorkRepository
       orderBy('plannedFor', 'asc'),
       orderBy('recordedAt', 'asc'),
       orderBy(documentId(), 'asc'),
-      limit(limitCount),
+      limit(pageSizeFor({ pageSize: limitCount })),
     );
     const snapshot = await getDocs(plannedQuery);
 

@@ -15,10 +15,10 @@ return to for later care records.
 The keeper is authenticated. The new Aquarium receives an independent identity
 and is not required to be the keeper's first Aquarium.
 
-For the MVP, Firebase Anonymous Auth is an accepted way to satisfy the
-authenticated-keeper boundary. It is an application identity mechanism, not a
-domain identity model; account linking, recovery and durable human identity are
-deferred.
+The authenticated user must carry the Firebase custom claim `isKeeper: true`.
+Anonymous Auth and authenticated users without that claim cannot establish an
+Aquarium. Account recovery and other identity lifecycle concerns are outside
+this use case.
 
 ## Main flow
 

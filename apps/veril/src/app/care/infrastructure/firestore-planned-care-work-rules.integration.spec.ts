@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createAquariumId } from '../../shared/domain/aquarium-reference';
+import { createKeeperIdToken } from '../../shared/infrastructure/fixtures/keeper-accounts';
 
 const emulatorTest =
   process.env['FIRESTORE_EMULATOR_HOST'] &&
@@ -7,16 +8,8 @@ const emulatorTest =
     ? it
     : it.skip;
 
-const authUrl =
-  'http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo-veril-api-key';
-
 async function createKeeper() {
-  const response = await fetch(authUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ returnSecureToken: true }),
-  });
-  return (await response.json()) as { localId: string; idToken: string };
+  return createKeeperIdToken();
 }
 
 async function writeAquarium(id: string, ownerId: string, token: string) {
@@ -56,6 +49,7 @@ async function queryPlanned(
       body: JSON.stringify({
         structuredQuery: {
           from: [{ collectionId: 'plannedCareWorks' }],
+          limit: 10,
           where: {
             compositeFilter: {
               op: 'AND',

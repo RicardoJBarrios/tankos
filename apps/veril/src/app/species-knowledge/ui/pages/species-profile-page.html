@@ -1,0 +1,52 @@
+<section aria-labelledby="species-profile-title" class="page-section">
+  @if (state() === 'loading') {
+  <div class="loading" role="status">
+    <mat-progress-spinner mode="indeterminate" diameter="32" />Cargando perfil…
+  </div>
+  } @else if (state() === 'failure' || !profile()) {
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <p class="error" role="alert">
+        No se ha podido cargar el perfil de especie.
+      </p>
+      <a mat-button routerLink="/app/aquariums/livestock"
+        >Volver al livestock</a
+      >
+    </mat-card-content>
+  </mat-card>
+  } @else {
+  <p class="eyebrow">Conocimiento compartido</p>
+  <h2 id="species-profile-title">{{ profile()!.displayName }}</h2>
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      @if (profile()!.scientificName) {
+      <p class="scientific-name">{{ profile()!.scientificName }}</p>
+      }
+      <div
+        class="markdown-content"
+        [innerHTML]="markdownToHtml(profile()!.description)"
+      ></div>
+      @for (section of profile()!.sections; track section.key) {
+      <section>
+        <h3>{{ section.title }}</h3>
+        <div
+          class="markdown-content"
+          [innerHTML]="markdownToHtml(section.content)"
+        ></div>
+      </section>
+      }
+      <h3>Fuentes</h3>
+      <ul>
+        @for (source of profile()!.sources; track source.id) {
+        <li>
+          <a [href]="source.url" target="_blank" rel="noreferrer"
+            >{{ source.title }}</a
+          >
+        </li>
+        }
+      </ul>
+    </mat-card-content>
+  </mat-card>
+  <a mat-button routerLink="/app/aquariums/livestock">Volver al livestock</a>
+  }
+</section>

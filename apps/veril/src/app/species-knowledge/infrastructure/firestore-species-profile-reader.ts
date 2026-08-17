@@ -1,13 +1,51 @@
 import { Injectable } from '@angular/core';
-import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
+import {
+  Timestamp,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  where,
+} from 'firebase/firestore';
 import { z } from 'zod';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
-import { speciesProfileIdFrom } from '../domain/species-profile';
+import { pageSizeFor } from '../../shared/application/pagination';
+import {
+  SpeciesProfileId,
+  speciesProfileIdFrom,
+} from '../domain/species-profile';
 import { PublishedSpeciesProfileReader } from '../application/ports';
 
 const speciesProfileDocument = z.object({
   displayName: z.string().min(1),
   scientificName: z.string().optional(),
+  description: z.string().min(1),
+  sections: z
+    .array(
+      z.object({
+        key: z.string().min(1),
+        title: z.string().min(1),
+        content: z.string().min(1),
+      }),
+    )
+    .min(1),
+  sources: z
+    .array(
+      z.object({
+        id: z.string().min(1),
+        title: z.string().min(1),
+        url: z.string().url(),
+        publishedAt: z.instanceof(Timestamp).optional(),
+      }),
+    )
+    .min(1),
+  revision: z.object({
+    id: z.string().min(1),
+    publishedAt: z.instanceof(Timestamp),
+  }),
   status: z.enum(['published', 'retired']),
 });
 
@@ -20,6 +58,7 @@ export class FirestoreSpeciesProfileReader implements PublishedSpeciesProfileRea
         collection(firestore, 'speciesProfiles'),
         where('status', '==', 'published'),
         orderBy('displayName', 'asc'),
+        limit(pageSizeFor()),
       ),
     );
     return snapshot.docs.map((entry) => {
@@ -31,5 +70,33 @@ export class FirestoreSpeciesProfileReader implements PublishedSpeciesProfileRea
         status: dto.status,
       };
     });
+  }
+
+  async getPublished(id: SpeciesProfileId) {
+    const { firestore } = getFirebaseClient();
+    const snapshot = await getDoc(doc(firestore, 'speciesProfiles', id));
+    if (!snapshot.exists()) return null;
+    const dto = speciesProfileDocument.parse(snapshot.data());
+    if (dto.status !== 'published') return null;
+    return {
+      id,
+      displayName: dto.displayName,
+      ...(dto.scientificName ? { scientificName: dto.scientificName } : {}),
+      status: dto.status,
+      description: dto.description,
+      sections: dto.sections,
+      sources: dto.sources.map((source) => ({
+        id: source.id,
+        title: source.title,
+        url: source.url,
+        ...(source.publishedAt
+          ? { publishedAt: source.publishedAt.toDate() }
+          : {}),
+      })),
+      revision: {
+        id: dto.revision.id,
+        publishedAt: dto.revision.publishedAt.toDate(),
+      },
+    };
   }
 }

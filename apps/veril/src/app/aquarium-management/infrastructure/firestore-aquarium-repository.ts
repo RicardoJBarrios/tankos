@@ -6,6 +6,8 @@ import {
   documentId,
   doc,
   getDocs,
+  limit,
+  orderBy,
   query,
   runTransaction,
   setDoc,
@@ -43,6 +45,7 @@ import {
 } from '../application/ports';
 import { PARAMETER_IDS } from '../../shared/domain/parameter-reference';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
+import { pageSizeFor } from '../../shared/application/pagination';
 
 const parameterTargetDocument = z
   .object({
@@ -275,6 +278,9 @@ export class FirestoreAquariumRepository
       query(
         collection(firestore, 'aquariums'),
         where('ownerId', '==', ownerKeeperId),
+        orderBy('establishedAt', 'desc'),
+        orderBy(documentId(), 'asc'),
+        limit(pageSizeFor()),
       ),
     );
 
@@ -334,6 +340,7 @@ export class FirestoreAquariumRepository
         collection(firestore, 'aquariums'),
         where('ownerId', '==', ownerKeeperId),
         where(documentId(), '==', aquariumId),
+        limit(1),
       ),
     );
 

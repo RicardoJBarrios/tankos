@@ -11,6 +11,8 @@ import {
   provideClientHydration,
   withEventReplay,
 } from '@angular/platform-browser';
+import { FirebaseAuthenticationSession } from './shared/infrastructure/firebase-authentication-session';
+import { AUTHENTICATION_SESSION } from './shared/ui/providers';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,6 +20,10 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(appRoutes),
     provideHttpClient(),
+    {
+      provide: AUTHENTICATION_SESSION,
+      useClass: FirebaseAuthenticationSession,
+    },
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',

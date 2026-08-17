@@ -70,11 +70,15 @@
             {{ item.category === 'fish' ? 'Pez' : item.category === 'coral' ?
             'Coral' : 'Otro' }}
           </p>
+          <p>Especie: {{ speciesProfileNameFor(item.speciesProfileId) }}</p>
           <small
             >Estado: {{ item.lifecycle === 'active' ? 'Activo' : 'Retirado'
             }}</small
           >
           @if (item.lifecycle === 'active') {
+          <a mat-button [routerLink]="['/app/aquariums/livestock', item.id]"
+            >Ver ficha</a
+          >
           <button mat-button type="button" (click)="remove(item.id)">
             Retirar
           </button>

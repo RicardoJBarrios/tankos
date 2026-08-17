@@ -1,6 +1,53 @@
 import { Route } from '@angular/router';
+import { keeperAccessGuard } from './shared/ui/guards/keeper-access.guard';
 
 export const appRoutes: Route[] = [
+  {
+    path: 'access/sign-in',
+    data: { accessType: 'authentication', redirectTo: '/access/accept' },
+    loadComponent: () =>
+      import('./species-knowledge/ui/pages/editorial-sign-in-page').then(
+        ({ EditorialSignInPage }) => EditorialSignInPage,
+      ),
+  },
+  {
+    path: 'access/accept',
+    loadComponent: () =>
+      import('./shared-access/ui/accept-aquarium-invitation-page').then(
+        ({ AcceptAquariumInvitationPage }) => AcceptAquariumInvitationPage,
+      ),
+  },
+  {
+    path: 'shared/aquariums/:aquariumId',
+    loadComponent: () =>
+      import('./shared-access/ui/shared-aquarium-page').then(
+        ({ SharedAquariumPage }) => SharedAquariumPage,
+      ),
+  },
+  {
+    path: 'sign-in',
+    data: { accessType: 'private', redirectTo: '/app/aquariums' },
+    loadComponent: () =>
+      import('./species-knowledge/ui/pages/editorial-sign-in-page').then(
+        ({ EditorialSignInPage }) => EditorialSignInPage,
+      ),
+  },
+  {
+    path: 'editorial/sign-in',
+    data: { accessType: 'editorial' },
+    loadComponent: () =>
+      import('./species-knowledge/ui/pages/editorial-sign-in-page').then(
+        ({ EditorialSignInPage }) => EditorialSignInPage,
+      ),
+  },
+  {
+    path: 'editorial/species-knowledge',
+    loadChildren: () =>
+      import('./composition/editorial/editorial.routes').then(
+        ({ EDITORIAL_SPECIES_KNOWLEDGE_ROUTES }) =>
+          EDITORIAL_SPECIES_KNOWLEDGE_ROUTES,
+      ),
+  },
   {
     path: '',
     loadComponent: () =>
@@ -10,6 +57,7 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'app',
+    canActivate: [keeperAccessGuard],
     loadComponent: () =>
       import('./shells/private-shell/private-shell').then(
         ({ PrivateShell }) => PrivateShell,
@@ -35,6 +83,13 @@ export const appRoutes: Route[] = [
         loadComponent: () =>
           import('./composition/aquarium-dashboard/aquarium-dashboard-page').then(
             ({ AquariumDashboardPage }) => AquariumDashboardPage,
+          ),
+      },
+      {
+        path: 'aquariums/access',
+        loadComponent: () =>
+          import('./shared-access/ui/pages/manage-aquarium-access-page').then(
+            ({ ManageAquariumAccessPage }) => ManageAquariumAccessPage,
           ),
       },
       {
@@ -88,6 +143,20 @@ export const appRoutes: Route[] = [
         loadComponent: () =>
           import('./livestock/ui/pages/livestock-history-page').then(
             ({ LivestockHistoryPage }) => LivestockHistoryPage,
+          ),
+      },
+      {
+        path: 'aquariums/livestock/:id',
+        loadComponent: () =>
+          import('./livestock/ui/pages/livestock-detail-page').then(
+            ({ LivestockDetailPage }) => LivestockDetailPage,
+          ),
+      },
+      {
+        path: 'species-knowledge/:id',
+        loadComponent: () =>
+          import('./species-knowledge/ui/pages/species-profile-page').then(
+            ({ SpeciesProfilePage }) => SpeciesProfilePage,
           ),
       },
       {

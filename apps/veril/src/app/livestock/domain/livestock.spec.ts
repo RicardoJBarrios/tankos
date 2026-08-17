@@ -4,6 +4,7 @@ import {
   createLivestock,
   livestockIdFrom,
   removeLivestock,
+  restoreLivestock,
   transferLivestock,
 } from './livestock';
 
@@ -61,6 +62,16 @@ describe('Livestock', () => {
 
     expect(result.lifecycle).toBe('removed');
     expect(result.associationHistory).toHaveLength(1);
+  });
+
+  it('rehydrates transferred livestock with its complete history', () => {
+    const transferred = transferLivestock(
+      livestock(),
+      secondAquarium,
+      new Date('2026-02-01T00:00:00.000Z'),
+    );
+
+    expect(restoreLivestock(transferred)).toEqual(transferred);
   });
 
   it('rejects transferring removed livestock', () => {

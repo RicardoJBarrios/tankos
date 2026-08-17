@@ -17,6 +17,24 @@ describe('serverRoutes', () => {
     );
   });
 
+  it('keeps editorial editing client-rendered', () => {
+    expect(serverRoutes).toContainEqual({
+      path: 'editorial/species-knowledge/**',
+      renderMode: RenderMode.Client,
+    });
+  });
+
+  it('keeps authenticated shared access client-rendered', () => {
+    expect(serverRoutes).toContainEqual({
+      path: 'access/**',
+      renderMode: RenderMode.Client,
+    });
+    expect(serverRoutes).toContainEqual({
+      path: 'shared/aquariums/**',
+      renderMode: RenderMode.Client,
+    });
+  });
+
   it('prerenders public routes by default', () => {
     expect(serverRoutes).toContainEqual({
       path: '**',

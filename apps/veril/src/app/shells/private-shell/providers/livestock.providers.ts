@@ -7,6 +7,7 @@ import {
 } from '../../../composition/livestock/livestock-catalogs';
 import { FirestoreLivestockRepository } from '../../../livestock/infrastructure/firestore-livestock-repository';
 import { FirestoreSpeciesProfileReader } from '../../../species-knowledge/infrastructure/firestore-species-profile-reader';
+import { PUBLISHED_SPECIES_PROFILE_READER } from '../../../species-knowledge/ui/providers';
 import {
   LIVESTOCK_AQUARIUM_CATALOG,
   LIVESTOCK_READER,
@@ -20,6 +21,10 @@ export const PRIVATE_LIVESTOCK_PROVIDERS: Provider[] = [
   {
     provide: FirestoreSpeciesProfileReader,
     useClass: FirestoreSpeciesProfileReader,
+  },
+  {
+    provide: PUBLISHED_SPECIES_PROFILE_READER,
+    useExisting: FirestoreSpeciesProfileReader,
   },
   {
     provide: LIVESTOCK_AQUARIUM_CATALOG,

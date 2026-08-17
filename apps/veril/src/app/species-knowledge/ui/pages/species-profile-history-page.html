@@ -1,0 +1,119 @@
+<section aria-labelledby="species-profile-history-title" class="page-section">
+  <p class="eyebrow">Trazabilidad editorial</p>
+  <h2 id="species-profile-history-title">Historial de revisiones</h2>
+
+  @if (state() === 'loading') {
+  <div class="loading" role="status">
+    <mat-progress-spinner mode="indeterminate" diameter="32" />Cargando
+    historial…
+  </div>
+  } @else if (state() === 'failure') {
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <p class="error" role="alert">No se ha podido cargar el historial.</p>
+    </mat-card-content>
+  </mat-card>
+  } @else if (state() === 'empty') {
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <p>No hay revisiones históricas disponibles.</p>
+    </mat-card-content>
+  </mat-card>
+  } @else { @if (revisions().length > 1) {
+  <mat-card appearance="outlined">
+    <mat-card-content class="comparison-controls">
+      <p>Comparar revisiones</p>
+      <mat-form-field appearance="outline">
+        <mat-label>Revisión anterior</mat-label>
+        <mat-select
+          [value]="leftRevisionId()"
+          (selectionChange)="leftRevisionId.set($event.value)"
+        >
+          @for (revision of revisions(); track revision.revision.id) {
+          <mat-option [value]="revision.revision.id"
+            >{{ revision.revision.id }}</mat-option
+          >
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Revisión posterior</mat-label>
+        <mat-select
+          [value]="rightRevisionId()"
+          (selectionChange)="rightRevisionId.set($event.value)"
+        >
+          @for (revision of revisions(); track revision.revision.id) {
+          <mat-option [value]="revision.revision.id"
+            >{{ revision.revision.id }}</mat-option
+          >
+          }
+        </mat-select>
+      </mat-form-field>
+      @if (comparison(); as compared) {
+      <div class="comparison-grid">
+        <article>
+          <h3>{{ compared.left.revision.id }}</h3>
+          <p>{{ compared.left.displayName }}</p>
+          <div
+            class="markdown-content"
+            [innerHTML]="markdownToHtml(compared.left.description)"
+          ></div>
+          @for (section of compared.left.sections; track section.key) {
+          <h4>{{ section.title }}</h4>
+          <div
+            class="markdown-content"
+            [innerHTML]="markdownToHtml(section.content)"
+          ></div>
+          }
+        </article>
+        <article>
+          <h3>{{ compared.right.revision.id }}</h3>
+          <p>{{ compared.right.displayName }}</p>
+          <div
+            class="markdown-content"
+            [innerHTML]="markdownToHtml(compared.right.description)"
+          ></div>
+          @for (section of compared.right.sections; track section.key) {
+          <h4>{{ section.title }}</h4>
+          <div
+            class="markdown-content"
+            [innerHTML]="markdownToHtml(section.content)"
+          ></div>
+          }
+        </article>
+      </div>
+      }
+    </mat-card-content>
+  </mat-card>
+  } @for (revision of revisions(); track revision.revision.id) {
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title>Revisión {{ revision.revision.id }}</mat-card-title>
+      <mat-card-subtitle
+        >{{ formatPublishedAt(revision.revision.publishedAt)
+        }}</mat-card-subtitle
+      >
+    </mat-card-header>
+    <mat-card-content>
+      <div
+        class="markdown-content"
+        [innerHTML]="markdownToHtml(revision.description)"
+      ></div>
+      @for (section of revision.sections; track section.key) {
+      <section>
+        <h3>{{ section.title }}</h3>
+        <div
+          class="markdown-content"
+          [innerHTML]="markdownToHtml(section.content)"
+        ></div>
+      </section>
+      }
+    </mat-card-content>
+  </mat-card>
+  } }
+  <a
+    mat-button
+    [routerLink]="['/editorial/species-knowledge', profileId(), 'history']"
+    >Actualizar historial</a
+  >
+</section>

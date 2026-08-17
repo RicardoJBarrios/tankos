@@ -138,8 +138,25 @@ describe('ListMeasurementsPage', () => {
     await settle(spectator);
 
     expect(spectator.queryAll('li')).toHaveLength(1);
-    expect(execute).toHaveBeenNthCalledWith(2, 'next-page');
+    expect(execute).toHaveBeenNthCalledWith(2, 'next-page', 20);
     expect(spectator.query('button')).toBeNull();
+  });
+
+  it('allows a bounded page size change and reloads from the first page', async () => {
+    execute
+      .mockResolvedValueOnce({
+        items: [item],
+        nextCursor: 'next-page' as never,
+      })
+      .mockResolvedValueOnce({ items: [] });
+    const spectator = createComponent();
+    await settle(spectator);
+
+    spectator.selectOption('select', '50');
+    await settle(spectator);
+
+    expect(spectator.component.pageSize()).toBe(50);
+    expect(execute).toHaveBeenNthCalledWith(2, undefined, 50);
   });
 
   it('shows recoverable errors', async () => {

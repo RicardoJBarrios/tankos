@@ -52,6 +52,7 @@ export interface MeasurementReader {
     ownerKeeperId: string,
     aquariumId: AquariumId,
     cursor?: MeasurementCursor,
+    pageSize?: number,
   ): Promise<MeasurementPage>;
 }
 

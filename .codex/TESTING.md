@@ -211,12 +211,12 @@ responses, provider errors and transport timeout errors without live HTTP.
 against the local Auth and Firestore emulators. Playwright starts the same local
 development environment as `pnpm dev` when needed; it never targets a deployed
 Firebase project. Each test receives a fresh browser context and establishes its
-own anonymous keeper and data through the UI, without shared fixtures or
+own Emulator keeper account and data through the UI, without shared fixtures or
 production exports.
 
 The suite protects the complete keeper loop (establish, list, select, record an
 Observation and record a Measurement), including the same-tab refresh that
-restores the anonymous keeper and owner-validated Active Context. It also covers
+restores the keeper session and owner-validated Active Context. It also covers
 the recovery state for recording without an Active Context. It does not repeat
 domain, adapter or Rules assertions already covered at lower levels. CI installs
 Chromium, retries browser failures once with trace capture and uploads the

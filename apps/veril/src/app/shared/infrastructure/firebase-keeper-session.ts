@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { signInAnonymously, User } from 'firebase/auth';
+import { getIdTokenResult } from 'firebase/auth';
 import { getFirebaseClient } from './firebase-client';
 import { KeeperSession } from '../application/keeper-session';
 
@@ -9,15 +9,14 @@ export class FirebaseKeeperSession implements KeeperSession {
     const { auth } = getFirebaseClient();
     await auth.authStateReady();
 
-    if (auth.currentUser) {
-      return { id: auth.currentUser.uid };
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) {
+      throw new Error('A persistent keeper session is required');
     }
 
-    await signInAnonymously(auth);
-
-    const user = auth.currentUser as User | null;
-    if (!user) {
-      throw new Error('Authentication did not produce a keeper');
+    const token = await getIdTokenResult(user);
+    if (token.claims['isKeeper'] !== true) {
+      throw new Error('The authenticated user is not a keeper');
     }
 
     return { id: user.uid };

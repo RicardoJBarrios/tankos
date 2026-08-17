@@ -11,6 +11,7 @@ import { createCareWorkId, careWorkIdFrom } from '../../care/domain/care-work';
 import { FirestoreAquariumRepository } from '../../aquarium-management/infrastructure/firestore-aquarium-repository';
 import { FirestoreCareWorkRepository } from '../../care/infrastructure/firestore-care-work-repository';
 import { FirebaseKeeperSession } from '../../shared/infrastructure/firebase-keeper-session';
+import { signInAsKeeper } from '../../shared/infrastructure/fixtures/keeper-accounts';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 
 const emulatorTest =
@@ -23,6 +24,7 @@ describe('FirestoreCareWorkRepository (Emulator Suite)', () => {
   emulatorTest(
     'persists completed care with both timestamps and manual provenance',
     async () => {
+      await signInAsKeeper();
       const keeper =
         await new FirebaseKeeperSession().requireAuthenticatedKeeper();
       const aquarium = await new FirestoreAquariumRepository().establish({
@@ -71,6 +73,7 @@ describe('FirestoreCareWorkRepository (Emulator Suite)', () => {
   emulatorTest(
     'lists recent care work for the active Aquarium in deterministic order',
     async () => {
+      await signInAsKeeper();
       const keeper =
         await new FirebaseKeeperSession().requireAuthenticatedKeeper();
       const aquarium = await new FirestoreAquariumRepository().establish({
@@ -139,6 +142,7 @@ describe('FirestoreCareWorkRepository (Emulator Suite)', () => {
 
       const { auth } = getFirebaseClient();
       await signOut(auth);
+      await signInAsKeeper();
     },
     20000,
   );

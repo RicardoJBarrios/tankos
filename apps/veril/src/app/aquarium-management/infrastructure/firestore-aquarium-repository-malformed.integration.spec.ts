@@ -5,7 +5,10 @@ import { describe, expect, it, vi } from 'vitest';
 const firestoreMocks = vi.hoisted(() => ({
   collection: vi.fn(),
   doc: vi.fn(),
+  documentId: vi.fn(),
   getDocs: vi.fn(),
+  limit: vi.fn(),
+  orderBy: vi.fn(),
   query: vi.fn(),
   runTransaction: vi.fn(),
   setDoc: vi.fn(),

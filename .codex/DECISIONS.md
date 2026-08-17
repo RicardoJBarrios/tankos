@@ -50,8 +50,9 @@ offline capability and App Check remain deferred.
 - Use Emulator Suite for local development, Rules and integration tests.
 - Never use production Firebase for local development or CI.
 - Require explicit trusted-device consent for persistent private offline data.
-- Use Firebase Auth session persistence for anonymous MVP keepers; restore an
-  Active Context only after an owner-scoped read validates its browser hint.
+- Require the Firebase `isKeeper: true` custom claim for private Aquarium
+  ownership and all Aquarium-associated records; anonymous sessions are
+  read-only for surfaces that explicitly allow them.
 
 ### Local development entry point
 

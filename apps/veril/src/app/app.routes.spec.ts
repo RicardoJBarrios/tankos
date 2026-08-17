@@ -5,11 +5,19 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { appRoutes } from './app.routes';
 import { PrivateShell } from './shells/private-shell/private-shell';
 import { PublicShell } from './shells/public-shell/public-shell';
+import { AUTHENTICATION_SESSION } from './shared/ui/providers';
+import { keeperAccessGuard } from './shared/ui/guards/keeper-access.guard';
 
 describe('appRoutes', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideRouter(appRoutes)],
+      providers: [
+        provideRouter(appRoutes),
+        {
+          provide: AUTHENTICATION_SESSION,
+          useValue: { isKeeper: () => Promise.resolve(true) },
+        },
+      ],
     });
   });
 
@@ -25,6 +33,12 @@ describe('appRoutes', () => {
     await expect(
       harness.navigateByUrl('/app', PrivateShell),
     ).resolves.toBeTruthy();
+  });
+
+  it('protects the private application with the keeper guard', () => {
+    const privateRoute = appRoutes.find((route) => route.path === 'app');
+
+    expect(privateRoute?.canActivate).toContain(keeperAccessGuard);
   });
 
   it('defines the Establish Aquarium child route', () => {

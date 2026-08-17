@@ -26,6 +26,11 @@ import { formatAquariumDateTime } from '../../../shared/ui/aquarium-date-time';
 import { measurementAgeFor } from '../utils/measurement-age';
 import { systemClock } from '../../../shared/application/clock';
 import { AsyncListPageState } from '../../../shared/ui/page-state';
+import {
+  DEFAULT_PAGE_SIZE,
+  pageSizeFor,
+} from '../../../shared/application/pagination';
+import { PaginationControls } from '../../../shared/ui/pagination-controls/pagination-controls';
 
 type PageState = AsyncListPageState;
 
@@ -35,6 +40,7 @@ type PageState = AsyncListPageState;
     MatButtonModule,
     MatCardModule,
     MatProgressSpinnerModule,
+    PaginationControls,
     RouterLink,
   ],
   templateUrl: './list-measurements-page.html',
@@ -70,6 +76,7 @@ export class ListMeasurementsPage implements OnInit {
   readonly errorMessage = signal('');
   readonly timeZone = signal<AquariumTimeZone | undefined>(undefined);
   readonly now = signal(systemClock.now());
+  readonly pageSize = signal(DEFAULT_PAGE_SIZE);
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -90,7 +97,7 @@ export class ListMeasurementsPage implements OnInit {
     this.errorMessage.set('');
 
     try {
-      const page = await this.listMeasurements.execute(cursor);
+      const page = await this.listMeasurements.execute(cursor, this.pageSize());
       this.items.update((items) => [...items, ...page.items]);
       this.nextCursor.set(page.nextCursor);
     } catch {
@@ -103,6 +110,16 @@ export class ListMeasurementsPage implements OnInit {
   }
 
   retry(): void {
+    this.state.set('loading');
+    void this.loadFirstPage();
+  }
+
+  changePageSize(value: number): void {
+    const nextPageSize = pageSizeFor({ pageSize: value });
+    if (nextPageSize === this.pageSize()) return;
+    this.pageSize.set(nextPageSize);
+    this.items.set([]);
+    this.nextCursor.set(undefined);
     this.state.set('loading');
     void this.loadFirstPage();
   }
@@ -126,7 +143,10 @@ export class ListMeasurementsPage implements OnInit {
   private async loadFirstPage(): Promise<void> {
     try {
       await this.loadTimeZone();
-      const page = await this.listMeasurements.execute();
+      const page = await this.listMeasurements.execute(
+        undefined,
+        this.pageSize(),
+      );
       this.items.set(page.items);
       this.nextCursor.set(page.nextCursor);
       this.state.set(page.items.length === 0 ? 'empty' : 'success');

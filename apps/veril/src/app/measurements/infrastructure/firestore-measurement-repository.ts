@@ -8,9 +8,7 @@ import {
   limit,
   orderBy,
   query,
-  QueryConstraint,
   setDoc,
-  startAfter,
   where,
 } from 'firebase/firestore';
 import { z } from 'zod';
@@ -38,6 +36,9 @@ import {
   aquariumIdFrom,
 } from '../../shared/domain/aquarium-reference';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
+import { readFirestorePage } from '../../shared/infrastructure/firestore-page';
+import { pageSizeFor } from '../../shared/application/pagination';
+import { DEFAULT_PAGE_SIZE } from '../../shared/application/pagination';
 
 const measurementDocument = z.object({
   aquariumId: z.string().min(1),
@@ -58,7 +59,7 @@ const measurementCursor = z.object({
   measurementId: z.string(),
 });
 
-export const MEASUREMENT_PAGE_SIZE = 20;
+export const MEASUREMENT_PAGE_SIZE = DEFAULT_PAGE_SIZE;
 
 function encodeCursor(item: MeasurementListItem): MeasurementCursor {
   return encodeURIComponent(
@@ -162,41 +163,35 @@ export class FirestoreMeasurementRepository
     ownerKeeperId: string,
     aquariumId: AquariumId,
     cursor?: MeasurementCursor,
+    requestedPageSize?: number,
   ): Promise<MeasurementPage> {
     const { firestore } = getFirebaseClient();
     const measurements = collection(firestore, 'measurements');
-    const decodedCursor = cursor ? decodeCursor(cursor) : undefined;
-    const constraints: QueryConstraint[] = [
-      where('ownerId', '==', ownerKeeperId),
-      where('aquariumId', '==', aquariumId),
-      orderBy('measuredAt', 'desc'),
-      orderBy('recordedAt', 'desc'),
-      orderBy(documentId(), 'asc'),
-    ];
-    if (decodedCursor) {
-      constraints.push(
-        startAfter(
-          Timestamp.fromDate(decodedCursor.measuredAt),
-          Timestamp.fromDate(decodedCursor.recordedAt),
-          decodedCursor.measurementId,
-        ),
-      );
-    }
-    constraints.push(limit(MEASUREMENT_PAGE_SIZE + 1));
-
-    const pageQuery = query(measurements, ...constraints);
-    const snapshot = await getDocs(pageQuery);
-    const hasMore = snapshot.docs.length > MEASUREMENT_PAGE_SIZE;
-    const items = snapshot.docs
-      .slice(0, MEASUREMENT_PAGE_SIZE)
-      .map((entry) =>
+    return readFirestorePage({
+      baseQuery: query(
+        measurements,
+        where('ownerId', '==', ownerKeeperId),
+        where('aquariumId', '==', aquariumId),
+        orderBy('measuredAt', 'desc'),
+        orderBy('recordedAt', 'desc'),
+        orderBy(documentId(), 'asc'),
+      ),
+      request:
+        cursor || requestedPageSize
+          ? { ...(cursor ? { cursor } : {}), pageSize: requestedPageSize }
+          : undefined,
+      decodeCursor: (value) => {
+        const decoded = decodeCursor(value as MeasurementCursor);
+        return [
+          Timestamp.fromDate(decoded.measuredAt),
+          Timestamp.fromDate(decoded.recordedAt),
+          decoded.measurementId,
+        ];
+      },
+      encodeCursor,
+      map: (entry) =>
         toListItem(entry.id, measurementDocument.parse(entry.data())),
-      );
-
-    return {
-      items,
-      ...(hasMore ? { nextCursor: encodeCursor(items[items.length - 1]) } : {}),
-    };
+    });
   }
 
   async listRecentOwned(
@@ -213,7 +208,7 @@ export class FirestoreMeasurementRepository
       orderBy('measuredAt', 'desc'),
       orderBy('recordedAt', 'desc'),
       orderBy(documentId(), 'asc'),
-      limit(limitCount),
+      limit(pageSizeFor({ pageSize: limitCount })),
     );
     const snapshot = await getDocs(recentQuery);
 

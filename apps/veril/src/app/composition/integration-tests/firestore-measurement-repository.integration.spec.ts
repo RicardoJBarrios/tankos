@@ -13,6 +13,7 @@ import {
 } from '../../measurements/domain/measurement';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { FirebaseKeeperSession } from '../../shared/infrastructure/firebase-keeper-session';
+import { signInAsKeeper } from '../../shared/infrastructure/fixtures/keeper-accounts';
 import { FirestoreAquariumRepository } from '../../aquarium-management/infrastructure/firestore-aquarium-repository';
 import { FirestoreMeasurementRepository } from '../../measurements/infrastructure/firestore-measurement-repository';
 
@@ -26,6 +27,7 @@ describe('FirestoreMeasurementRepository (Emulator Suite)', () => {
   emulatorTest(
     'returns the canonical latest Measurement for a Parameter',
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const keeper = await session.requireAuthenticatedKeeper();
       const aquarium = await new FirestoreAquariumRepository().establish({
@@ -99,6 +101,7 @@ describe('FirestoreMeasurementRepository (Emulator Suite)', () => {
   emulatorTest(
     'persists independent manual measurements for the owner Aquarium',
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const keeper = await session.requireAuthenticatedKeeper();
       const aquarium = await new FirestoreAquariumRepository().establish({
@@ -204,6 +207,7 @@ describe('FirestoreMeasurementRepository (Emulator Suite)', () => {
   emulatorTest(
     'orders equal timestamps by MeasurementId and resumes without duplicates',
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const keeper = await session.requireAuthenticatedKeeper();
       const aquarium = await new FirestoreAquariumRepository().establish({
@@ -283,6 +287,7 @@ describe('FirestoreMeasurementRepository (Emulator Suite)', () => {
   emulatorTest(
     'returns a bounded recent Measurement source page',
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const keeper = await session.requireAuthenticatedKeeper();
       const aquarium = await new FirestoreAquariumRepository().establish({

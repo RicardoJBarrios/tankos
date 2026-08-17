@@ -7,13 +7,30 @@ Rules are classified to avoid turning assumptions into code prematurely.
 
 - A keeper may own or manage zero, one or many independent Aquariums.
 - Each Aquarium is an independent aggregate root.
-- In the first version, each Aquarium has one owning keeper; collaboration,
-  memberships and roles are deferred.
+- In the first version, each Aquarium has one owning keeper. The owner may
+  grant explicit read-only access to selected Aquarium resources for another
+  authenticated user.
+
+## Accepted rules for delegated Aquarium access
+
+- A delegated access grant belongs to exactly one Aquarium and one grantee.
+- The owner chooses the readable resource categories independently: Aquarium
+  metadata, Measurements, Observations, Care Work, Planned Care Work or
+  Livestock.
+- A delegated grantee cannot create, update, delete, transfer or revoke any
+  Aquarium data or access grant.
+- The owner may revoke a grant. Revocation is retained for traceability and
+  immediately prevents further reads.
+- Delegated access is scoped to the selected Aquarium and does not grant
+  access to the owner's other Aquariums.
+- Firebase custom claims remain global capabilities; per-Aquarium grants are
+  persisted relationships and are not encoded as claims.
 
 ## Accepted rules for Establish an Aquarium
 
-- An authenticated keeper may establish any number of independent private
-  Aquariums. Each Aquarium has one owning keeper in this first version.
+- A user with the Firebase custom claim `isKeeper: true` may establish any
+  number of independent private Aquariums. Each Aquarium has one owning keeper
+  in this first version; authentication without that claim is not sufficient.
 - Establishment requires only an Aquarium name. It creates no Display, System,
   Equipment, Livestock or public representation.
 - An Aquarium name is non-empty after surrounding whitespace is trimmed; no
@@ -171,8 +188,9 @@ These are likely to matter but must wait for concrete features:
 - Livestock transfer, grouping and identification history are governed by the
   accepted Add Livestock specification; further lifecycle states remain future.
 - Species Profiles are globally shared documentary Knowledge, not owned by a
-  keeper or Aquarium. Their objective claims require attribution and an
-  editorial/source policy before publication behavior is implemented.
+  keeper or Aquarium. Published content is publicly readable; maintenance is
+  restricted to a persistent keeper with the Firebase `editorialAdmin: true`
+  custom claim, and objective claims require attribution.
 - Conflict policy for concurrent edits to domain records.
 
 ## Unknown rules
@@ -184,7 +202,6 @@ The following are intentionally unresolved:
 - The accepted Livestock slice represents both individuals and groups; species
   taxonomy remains unresolved.
 - Whether a Measurement can be corrected through a compensating Event.
-- Whether users can share an Aquarium and at what permission levels.
 - Which parameters are mandatory for each type of Aquarium.
 - Which domain Events may be created offline.
 

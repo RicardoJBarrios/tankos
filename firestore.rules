@@ -6,8 +6,168 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function hasBoundedListQuery() {
+      return request.query.limit != null
+        && request.query.limit > 0
+        && request.query.limit <= 51;
+    }
+
+    function isKeeper() {
+      return isAuthenticated()
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && request.auth.token.keys().hasAll(['isKeeper'])
+        && request.auth.token.isKeeper == true;
+    }
+
+    function isEditorialKeeper() {
+      return isAuthenticated()
+        && request.auth.token.keys().hasAll(['editorialAdmin'])
+        && request.auth.token.editorialAdmin == true
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
     function isOwner(data) {
-      return isAuthenticated() && data.ownerId == request.auth.uid;
+      return isKeeper() && data.ownerId == request.auth.uid;
+    }
+
+    function grantId(aquariumId, userId) {
+      return aquariumId + '_' + userId;
+    }
+
+    function hasReadGrant(aquariumId, permission) {
+      return isAuthenticated()
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && exists(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid)))
+        && get(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid))).data.status == 'active'
+        && get(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid))).data.permissions.keys().hasAll([permission])
+        && get(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid))).data.permissions[permission] == true;
+    }
+
+    function canReadAquarium(aquariumId, permission) {
+      return isOwner(resource.data) || hasReadGrant(aquariumId, permission);
+    }
+
+    function isValidGrantPermissions(permissions) {
+      return permissions is map
+        && permissions.keys().hasOnly([
+          'aquarium',
+          'measurements',
+          'observations',
+          'careWorks',
+          'plannedCareWorks',
+          'recurringCarePlans',
+          'livestock'
+        ])
+        && (!permissions.keys().hasAll(['aquarium']) || permissions.aquarium is bool)
+        && (!permissions.keys().hasAll(['measurements']) || permissions.measurements is bool)
+        && (!permissions.keys().hasAll(['observations']) || permissions.observations is bool)
+        && (!permissions.keys().hasAll(['careWorks']) || permissions.careWorks is bool)
+        && (!permissions.keys().hasAll(['plannedCareWorks']) || permissions.plannedCareWorks is bool)
+        && (!permissions.keys().hasAll(['recurringCarePlans']) || permissions.recurringCarePlans is bool)
+        && (!permissions.keys().hasAll(['livestock']) || permissions.livestock is bool);
+    }
+
+    match /aquariumAccessGrants/{grantDocumentId} {
+      allow create: if (
+        isKeeper()
+        && request.resource.data.keys().hasOnly([
+          'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
+          'status', 'createdAt', 'revokedAt', 'invitationCode'
+        ])
+        && request.resource.data.keys().hasAll([
+          'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
+          'status', 'createdAt'
+        ])
+        && grantDocumentId == grantId(request.resource.data.aquariumId, request.resource.data.granteeUserId)
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.granteeUserId != request.auth.uid
+        && request.resource.data.granteeUserId is string
+        && request.resource.data.status == 'active'
+        && isValidGrantPermissions(request.resource.data.permissions)
+        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
+        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
+        && request.resource.data.createdAt is timestamp
+      ) || (
+        isAuthenticated()
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && request.resource.data.keys().hasOnly([
+          'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
+          'status', 'createdAt', 'revokedAt', 'invitationCode'
+        ])
+        && request.resource.data.keys().hasAll([
+          'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
+          'status', 'createdAt'
+        ])
+        && grantDocumentId == grantId(request.resource.data.aquariumId, request.auth.uid)
+        && request.resource.data.granteeUserId == request.auth.uid
+        && request.resource.data.invitationCode is string
+        && request.resource.data.ownerId != request.auth.uid
+        && request.resource.data.status == 'active'
+        && isValidGrantPermissions(request.resource.data.permissions)
+        && exists(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode))
+        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.status == 'active'
+        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.expiresAt > request.time
+        && getAfter(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.status == 'consumed'
+        && getAfter(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.redeemedBy == request.auth.uid
+        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.aquariumId == request.resource.data.aquariumId
+        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.ownerId == request.resource.data.ownerId
+        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.permissions == request.resource.data.permissions
+        && request.resource.data.createdAt is timestamp
+      );
+
+      allow get: if isOwner(resource.data) || resource.data.granteeUserId == request.auth.uid;
+      allow list: if hasBoundedListQuery() && isOwner(resource.data);
+      allow update: if isOwner(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'revokedAt'])
+        && request.resource.data.status == 'revoked'
+        && request.resource.data.revokedAt is timestamp;
+      allow delete: if false;
+    }
+
+    match /aquariumAccessInvitations/{invitationCode} {
+      allow create: if isKeeper()
+        && request.resource.data.keys().hasOnly([
+          'aquariumId', 'ownerId', 'permissions', 'status', 'createdAt',
+          'expiresAt'
+        ])
+        && request.resource.data.keys().hasAll([
+          'aquariumId', 'ownerId', 'permissions', 'status', 'createdAt',
+          'expiresAt'
+        ])
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.status == 'active'
+        && isValidGrantPermissions(request.resource.data.permissions)
+        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
+        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time;
+      allow get: if isAuthenticated()
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && (
+          resource.data.ownerId == request.auth.uid
+          || (resource.data.status == 'active' && resource.data.expiresAt > request.time)
+        );
+      allow list: if hasBoundedListQuery() && isOwner(resource.data);
+      allow update: if (
+          isOwner(resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+          && request.resource.data.status == 'revoked'
+        ) || (
+          isAuthenticated()
+          && request.auth.token.firebase.sign_in_provider != 'anonymous'
+          && resource.data.status == 'active'
+          && resource.data.expiresAt > request.time
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'redeemedBy', 'redeemedAt'
+          ])
+          && request.resource.data.status == 'consumed'
+          && request.resource.data.redeemedBy == request.auth.uid
+          && request.resource.data.redeemedAt is timestamp
+          && getAfter(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(resource.data.aquariumId, request.auth.uid))).data.status == 'active'
+          && getAfter(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(resource.data.aquariumId, request.auth.uid))).data.invitationCode == invitationCode
+        );
+      allow delete: if false;
     }
 
     function isValidLocation(location) {
@@ -67,7 +227,7 @@ service cloud.firestore {
     }
 
     match /aquariums/{aquariumId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'ownerId',
           'name',
@@ -92,7 +252,8 @@ service cloud.firestore {
           || isValidLocation(request.resource.data.location)
         );
 
-      allow read: if isOwner(resource.data);
+      allow get: if isOwner(resource.data) || hasReadGrant(aquariumId, 'aquarium');
+      allow list: if hasBoundedListQuery() && (isOwner(resource.data) || hasReadGrant(aquariumId, 'aquarium'));
       allow update: if isOwner(resource.data)
         && request.resource.data.keys().hasAll([
           'ownerId',
@@ -126,7 +287,7 @@ service cloud.firestore {
     }
 
     match /observations/{observationId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId',
           'ownerId',
@@ -147,13 +308,14 @@ service cloud.firestore {
         && request.resource.data.content.size() > 0
         && request.resource.data.recordedAt is timestamp;
 
-      allow read: if isOwner(resource.data);
+      allow get: if canReadAquarium(resource.data.aquariumId, 'observations');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'observations');
       allow update: if false;
       allow delete: if false;
     }
 
     match /measurements/{measurementId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId',
           'ownerId',
@@ -211,12 +373,13 @@ service cloud.firestore {
         && request.resource.data.recordedAt is timestamp
         && request.resource.data.provenance == 'manual';
 
-      allow read: if isOwner(resource.data);
+      allow get: if canReadAquarium(resource.data.aquariumId, 'measurements');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'measurements');
       allow update, delete: if false;
     }
 
     match /careWorks/{careWorkId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId',
           'ownerId',
@@ -243,12 +406,13 @@ service cloud.firestore {
         && request.resource.data.recordedAt is timestamp
         && request.resource.data.provenance == 'manual';
 
-      allow read: if isOwner(resource.data);
+      allow get: if canReadAquarium(resource.data.aquariumId, 'careWorks');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'careWorks');
       allow update, delete: if false;
     }
 
     match /plannedCareWorks/{plannedCareWorkId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId',
           'ownerId',
@@ -287,8 +451,9 @@ service cloud.firestore {
           )
         );
 
-      allow read: if !exists(/databases/$(database)/documents/plannedCareWorks/$(plannedCareWorkId))
-        || isOwner(resource.data);
+      allow get: if !exists(/databases/$(database)/documents/plannedCareWorks/$(plannedCareWorkId))
+        || canReadAquarium(resource.data.aquariumId, 'plannedCareWorks');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'plannedCareWorks');
       allow update: if false;
       allow delete: if isOwner(resource.data)
         && (
@@ -316,7 +481,7 @@ service cloud.firestore {
     }
 
     match /recurringCarePlans/{recurringCarePlanId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId',
           'ownerId',
@@ -345,8 +510,9 @@ service cloud.firestore {
         && existsAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId))
         && getAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId)).data.recurringCarePlanId == recurringCarePlanId;
 
-      allow read: if !exists(/databases/$(database)/documents/recurringCarePlans/$(recurringCarePlanId))
-        || isOwner(resource.data);
+      allow get: if !exists(/databases/$(database)/documents/recurringCarePlans/$(recurringCarePlanId))
+        || canReadAquarium(resource.data.aquariumId, 'recurringCarePlans');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'recurringCarePlans');
       allow update: if isOwner(resource.data)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['outstandingPlannedCareWorkId'])
         && request.resource.data.outstandingPlannedCareWorkId is string
@@ -359,12 +525,25 @@ service cloud.firestore {
     }
 
     match /speciesProfiles/{speciesProfileId} {
-      allow read: if resource.data.status == 'published';
-      allow write: if false;
+      allow get: if resource.data.status == 'published'
+        || isEditorialKeeper();
+      allow list: if hasBoundedListQuery() && (resource.data.status == 'published' || isEditorialKeeper());
+      allow write: if isEditorialKeeper();
+    }
+
+    match /speciesProfileDrafts/{speciesProfileId} {
+      allow read, write: if isEditorialKeeper();
+    }
+
+    match /speciesProfileRevisions/{revisionId} {
+      allow get: if resource.data.status == 'published'
+        || isEditorialKeeper();
+      allow list: if hasBoundedListQuery() && (resource.data.status == 'published' || isEditorialKeeper());
+      allow write: if isEditorialKeeper();
     }
 
     match /livestock/{livestockId} {
-      allow create: if isAuthenticated()
+      allow create: if isKeeper()
         && request.resource.data.keys().hasOnly([
           'aquariumId', 'ownerId', 'speciesProfileId', 'category',
           'representation', 'displayName', 'lifecycle', 'associatedAt',
@@ -386,7 +565,8 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
         && exists(/databases/$(database)/documents/speciesProfiles/$(request.resource.data.speciesProfileId))
         && get(/databases/$(database)/documents/speciesProfiles/$(request.resource.data.speciesProfileId)).data.status == 'published';
-      allow read: if isOwner(resource.data);
+      allow get: if canReadAquarium(resource.data.aquariumId, 'livestock');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'livestock');
       allow update: if isOwner(resource.data)
         && request.resource.data.ownerId == resource.data.ownerId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([

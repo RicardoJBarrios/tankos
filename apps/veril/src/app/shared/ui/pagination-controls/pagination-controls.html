@@ -1,0 +1,21 @@
+<div class="pagination-controls" aria-label="Paginación">
+  <label>
+    <span>Elementos por página</span>
+    <select [ngModel]="pageSize()" (ngModelChange)="changePageSize($event)">
+      @for (option of pageSizeOptions; track option) {
+      <option [value]="option">{{ option }}</option>
+      }
+    </select>
+  </label>
+
+  @if (hasNextPage()) {
+  <button
+    mat-stroked-button
+    type="button"
+    (click)="nextPage.emit()"
+    [disabled]="isLoading()"
+  >
+    {{ isLoading() ? 'Cargando…' : 'Cargar más' }}
+  </button>
+  }
+</div>

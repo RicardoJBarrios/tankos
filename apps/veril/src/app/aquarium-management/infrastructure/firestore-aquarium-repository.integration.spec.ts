@@ -12,6 +12,7 @@ import {
 } from '../domain/aquarium';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { FirebaseKeeperSession } from '../../shared/infrastructure/firebase-keeper-session';
+import { signInAsKeeper } from '../../shared/infrastructure/fixtures/keeper-accounts';
 import { FirestoreAquariumRepository } from './firestore-aquarium-repository';
 
 const emulatorTest =
@@ -24,6 +25,7 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
   emulatorTest(
     "lists only the authenticated keeper's Aquariums",
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const repository = new FirestoreAquariumRepository();
       const keeperA = await session.requireAuthenticatedKeeper();
@@ -81,6 +83,7 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
         (await repository.getOwned(keeperA.id, older.id))?.name.value,
       ).toBe('Acuario antiguo');
       await signOut(auth);
+      await signInAsKeeper();
       const keeperB = await session.requireAuthenticatedKeeper();
       const aquariumB = await repository.establish({
         id: createAquariumId(),
@@ -103,6 +106,7 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
   emulatorTest(
     'configures a missing timezone once without changing Aquarium data',
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const repository = new FirestoreAquariumRepository();
       const keeper = await session.requireAuthenticatedKeeper();
@@ -145,6 +149,7 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
   emulatorTest(
     'allows exactly one winner for concurrent first configuration',
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const repository = new FirestoreAquariumRepository();
       const keeper = await session.requireAuthenticatedKeeper();
@@ -187,6 +192,7 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
   emulatorTest(
     'configures an approximate location once and reads it back',
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const repository = new FirestoreAquariumRepository();
       const keeper = await session.requireAuthenticatedKeeper();
@@ -228,6 +234,7 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
   emulatorTest(
     'persists, edits and removes bounded Parameter targets without losing another Parameter',
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const repository = new FirestoreAquariumRepository();
       const keeper = await session.requireAuthenticatedKeeper();
@@ -294,6 +301,7 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
   emulatorTest(
     'preserves valid targets during concurrent updates',
     async () => {
+      await signInAsKeeper();
       const session = new FirebaseKeeperSession();
       const repository = new FirestoreAquariumRepository();
       const keeper = await session.requireAuthenticatedKeeper();

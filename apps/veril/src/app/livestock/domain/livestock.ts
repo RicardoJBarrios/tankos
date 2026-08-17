@@ -92,16 +92,29 @@ export function removeLivestock(
 }
 
 export function restoreLivestock(input: Livestock): Livestock {
-  const active = createLivestock({
-    id: input.id,
-    aquariumId: input.aquariumId,
-    speciesProfileId: input.speciesProfileId,
-    associationHistory: input.associationHistory,
-    category: input.category,
-    representation: input.representation,
-    displayName: input.displayName,
-    associatedAt: input.associatedAt,
-    updatedAt: input.updatedAt,
-  });
-  return { ...active, lifecycle: input.lifecycle };
+  const displayName = input.displayName.trim();
+  if (!displayName) throw new Error('Livestock display name must not be empty');
+  if (Number.isNaN(input.associatedAt.getTime()))
+    throw new Error('Livestock associatedAt must be a valid date');
+  if (Number.isNaN(input.updatedAt.getTime()))
+    throw new Error('Livestock updatedAt must be a valid date');
+  if (input.associationHistory.length === 0)
+    throw new Error('Livestock must have an association history');
+
+  for (const association of input.associationHistory) {
+    if (Number.isNaN(association.associatedAt.getTime()))
+      throw new Error('Livestock association date must be valid');
+    if (association.endedAt && Number.isNaN(association.endedAt.getTime()))
+      throw new Error('Livestock association end date must be valid');
+  }
+
+  const currentAssociation =
+    input.associationHistory[input.associationHistory.length - 1];
+  if (
+    currentAssociation.aquariumId !== input.aquariumId ||
+    currentAssociation.endedAt
+  )
+    throw new Error('Livestock current aquarium must match its open history');
+
+  return { ...input, displayName };
 }

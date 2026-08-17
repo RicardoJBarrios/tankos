@@ -25,6 +25,8 @@ import {
   RecordObservationInput,
 } from '../application/ports';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
+import { pageSizeFor } from '../../shared/application/pagination';
+import { DEFAULT_PAGE_SIZE } from '../../shared/application/pagination';
 
 const observationDocument = z.object({
   aquariumId: z.string().min(1),
@@ -33,7 +35,7 @@ const observationDocument = z.object({
   recordedAt: z.instanceof(Timestamp),
 });
 
-export const OBSERVATION_LIST_LIMIT = 50;
+export const OBSERVATION_LIST_LIMIT = DEFAULT_PAGE_SIZE;
 
 function toListItem(
   id: string,
@@ -104,7 +106,7 @@ export class FirestoreObservationRepository
       where('aquariumId', '==', aquariumId),
       orderBy('recordedAt', 'desc'),
       orderBy(documentId(), 'asc'),
-      limit(limitCount),
+      limit(pageSizeFor({ pageSize: limitCount })),
     );
     const snapshot = await getDocs(recentQuery);
 

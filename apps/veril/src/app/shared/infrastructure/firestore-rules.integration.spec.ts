@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createAquariumId } from '../../shared/domain/aquarium-reference';
+import { createIdToken, createKeeperIdToken } from './fixtures/keeper-accounts';
 
 const emulatorTest =
   process.env['FIRESTORE_EMULATOR_HOST'] &&
@@ -7,21 +8,8 @@ const emulatorTest =
     ? it
     : it.skip;
 
-const authUrl =
-  'http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo-veril-api-key';
-
 async function createKeeper() {
-  const response = await fetch(authUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ returnSecureToken: true }),
-  });
-  const result = (await response.json()) as {
-    localId: string;
-    idToken: string;
-  };
-
-  return result;
+  return createKeeperIdToken();
 }
 
 async function writeAquarium(
@@ -44,6 +32,135 @@ async function writeAquarium(
           name: { stringValue: name },
           establishedBy: { stringValue: ownerId },
           establishedAt: { timestampValue: new Date().toISOString() },
+        },
+      }),
+    },
+  );
+}
+
+async function createAquariumInvitation(
+  aquariumId: string,
+  ownerId: string,
+  invitationCode: string,
+  ownerToken: string,
+  permissions: Record<string, boolean>,
+) {
+  return fetch(
+    `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/aquariumAccessInvitations/${invitationCode}`,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${ownerToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fields: {
+          aquariumId: { stringValue: aquariumId },
+          ownerId: { stringValue: ownerId },
+          permissions: {
+            mapValue: {
+              fields: Object.fromEntries(
+                Object.entries(permissions).map(([key, value]) => [
+                  key,
+                  { booleanValue: value },
+                ]),
+              ),
+            },
+          },
+          status: { stringValue: 'active' },
+          createdAt: { timestampValue: new Date().toISOString() },
+          expiresAt: {
+            timestampValue: new Date(
+              Date.now() + 24 * 60 * 60 * 1000,
+            ).toISOString(),
+          },
+        },
+      }),
+    },
+  );
+}
+
+async function acceptAquariumInvitation(
+  aquariumId: string,
+  ownerId: string,
+  granteeUserId: string,
+  invitationCode: string,
+  granteeToken: string,
+  permissions: Record<string, boolean>,
+) {
+  const grantId = `${aquariumId}_${granteeUserId}`;
+  return fetch(
+    'http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents:commit',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${granteeToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        writes: [
+          {
+            update: {
+              name: `projects/demo-veril/databases/(default)/documents/aquariumAccessGrants/${grantId}`,
+              fields: {
+                aquariumId: { stringValue: aquariumId },
+                ownerId: { stringValue: ownerId },
+                granteeUserId: { stringValue: granteeUserId },
+                invitationCode: { stringValue: invitationCode },
+                permissions: {
+                  mapValue: {
+                    fields: Object.fromEntries(
+                      Object.entries(permissions).map(([key, value]) => [
+                        key,
+                        { booleanValue: value },
+                      ]),
+                    ),
+                  },
+                },
+                status: { stringValue: 'active' },
+                createdAt: { timestampValue: new Date().toISOString() },
+              },
+            },
+            currentDocument: { exists: false },
+          },
+          {
+            update: {
+              name: `projects/demo-veril/databases/(default)/documents/aquariumAccessInvitations/${invitationCode}`,
+              fields: {
+                status: { stringValue: 'consumed' },
+                redeemedBy: { stringValue: granteeUserId },
+                redeemedAt: { timestampValue: new Date().toISOString() },
+              },
+            },
+            updateMask: {
+              fieldPaths: ['status', 'redeemedBy', 'redeemedAt'],
+            },
+            currentDocument: { exists: true },
+          },
+        ],
+      }),
+    },
+  );
+}
+
+async function revokeAquariumReadAccess(
+  aquariumId: string,
+  granteeUserId: string,
+  ownerToken: string,
+) {
+  const grantId = `${aquariumId}_${granteeUserId}`;
+  return fetch(
+    `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/aquariumAccessGrants/${grantId}?updateMask.fieldPaths=status&updateMask.fieldPaths=revokedAt`,
+    {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${ownerToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fields: {
+          status: { stringValue: 'revoked' },
+          revokedAt: { timestampValue: new Date().toISOString() },
         },
       }),
     },
@@ -118,6 +235,7 @@ async function queryAquariums(ownerId: string, token?: string) {
       body: JSON.stringify({
         structuredQuery: {
           from: [{ collectionId: 'aquariums' }],
+          limit: 50,
           where: {
             fieldFilter: {
               field: { fieldPath: 'ownerId' },
@@ -147,6 +265,7 @@ async function queryObservations(
       body: JSON.stringify({
         structuredQuery: {
           from: [{ collectionId: 'observations' }],
+          limit: 50,
           where: {
             compositeFilter: {
               op: 'AND',
@@ -254,6 +373,7 @@ async function queryMeasurements(
       body: JSON.stringify({
         structuredQuery: {
           from: [{ collectionId: 'measurements' }],
+          limit: 50,
           where: {
             compositeFilter: {
               op: 'AND',
@@ -353,6 +473,7 @@ async function queryCareWorks(
       body: JSON.stringify({
         structuredQuery: {
           from: [{ collectionId: 'careWorks' }],
+          limit: 50,
           where: {
             compositeFilter: {
               op: 'AND',
@@ -411,6 +532,160 @@ async function writeCareWork(
 }
 
 describe('Firestore Security Rules (Emulator Suite)', () => {
+  emulatorTest(
+    'allows selected read-only access and supports owner revocation',
+    async () => {
+      const owner = await createKeeper();
+      const viewer = await createIdToken('aquarium-viewer');
+      const aquariumId = createAquariumId();
+      const observationId = createAquariumId();
+      const measurementId = createAquariumId();
+
+      expect(
+        (
+          await writeAquarium(
+            aquariumId,
+            owner.localId,
+            owner.idToken,
+            'Acuario compartido',
+          )
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await createAquariumInvitation(
+            aquariumId,
+            owner.localId,
+            'invite-measurements',
+            owner.idToken,
+            { aquarium: true, measurements: true },
+          )
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await acceptAquariumInvitation(
+            aquariumId,
+            owner.localId,
+            viewer.localId,
+            'invite-measurements',
+            viewer.idToken,
+            { aquarium: true, measurements: true },
+          )
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await writeObservation(
+            observationId,
+            aquariumId,
+            owner.localId,
+            owner.idToken,
+          )
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await writeMeasurement(
+            measurementId,
+            aquariumId,
+            owner.localId,
+            owner.idToken,
+          )
+        ).status,
+      ).toBe(200);
+
+      const documentUrl = (collection: string, id: string) =>
+        `http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/${collection}/${id}`;
+      expect(
+        (
+          await fetch(documentUrl('aquariums', aquariumId), {
+            headers: { Authorization: `Bearer ${viewer.idToken}` },
+          })
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await fetch(documentUrl('measurements', measurementId), {
+            headers: { Authorization: `Bearer ${viewer.idToken}` },
+          })
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await fetch(documentUrl('observations', observationId), {
+            headers: { Authorization: `Bearer ${viewer.idToken}` },
+          })
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await fetch(
+            'http://127.0.0.1:8080/v1/projects/demo-veril/databases/(default)/documents/aquariumAccessInvitations',
+            { headers: { Authorization: `Bearer ${viewer.idToken}` } },
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await writeAquarium(
+            createAquariumId(),
+            viewer.localId,
+            viewer.idToken,
+            'No puede escribir',
+          )
+        ).status,
+      ).toBe(403);
+      const secondViewer = await createIdToken('aquarium-viewer-second');
+      expect(
+        (
+          await acceptAquariumInvitation(
+            aquariumId,
+            owner.localId,
+            secondViewer.localId,
+            'invite-measurements',
+            secondViewer.idToken,
+            { aquarium: true, measurements: true },
+          )
+        ).status,
+      ).toBe(403);
+      expect(
+        (
+          await revokeAquariumReadAccess(
+            aquariumId,
+            viewer.localId,
+            owner.idToken,
+          )
+        ).status,
+      ).toBe(200);
+      expect(
+        (
+          await fetch(documentUrl('aquariums', aquariumId), {
+            headers: { Authorization: `Bearer ${viewer.idToken}` },
+          })
+        ).status,
+      ).toBe(403);
+    },
+  );
+
+  emulatorTest(
+    'denies Aquarium creation without the isKeeper claim',
+    async () => {
+      const user = await createIdToken('user-without-keeper-claim');
+
+      expect(
+        (
+          await writeAquarium(
+            createAquariumId(),
+            user.localId,
+            user.idToken,
+            'No autorizado',
+          )
+        ).status,
+      ).toBe(403);
+    },
+  );
+
   emulatorTest(
     'allow independent Aquariums and isolate owners',
     async () => {
