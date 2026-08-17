@@ -6,9 +6,9 @@ import { ActiveAquariumContextStorage } from './active-aquarium-context-storage'
 const firstId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
 const secondId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174001');
 
-function setup() {
+function setup(storedId: string | null = null) {
   const storage: ActiveAquariumContextStorage = {
-    load: vi.fn(),
+    load: vi.fn(() => storedId),
     save: vi.fn(),
     clear: vi.fn(),
   };
@@ -17,6 +17,18 @@ function setup() {
 }
 
 describe('ActiveAquariumContext', () => {
+  it('hydrates a valid persisted selection for the initial read', () => {
+    const { context } = setup(firstId);
+
+    expect(context.get()).toBe(firstId);
+  });
+
+  it('ignores an invalid persisted selection', () => {
+    const { context } = setup('not-an-aquarium-id');
+
+    expect(context.get()).toBeNull();
+  });
+
   it('starts empty, persists selections and replaces the previous selection', () => {
     const { context, storage } = setup();
 

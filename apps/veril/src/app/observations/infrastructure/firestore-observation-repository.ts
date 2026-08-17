@@ -4,8 +4,6 @@ import {
   collection,
   doc,
   documentId,
-  getDocs,
-  limit,
   orderBy,
   query,
   setDoc,
@@ -18,7 +16,9 @@ import {
 } from '../../shared/domain/aquarium-reference';
 import { Observation, observationIdFrom } from '../domain/observation';
 import {
+  ObservationCursor,
   ObservationListItem,
+  ObservationPage,
   ObservationReader,
   TimelineObservationReader,
   ObservationWriter,
@@ -27,15 +27,45 @@ import {
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { pageSizeFor } from '../../shared/application/pagination';
 import { DEFAULT_PAGE_SIZE } from '../../shared/application/pagination';
+import { readFirestorePage } from '../../shared/infrastructure/firestore-page';
+import {
+  getFirestoreReadClient,
+  isFirestoreTimestamp,
+} from '../../shared/infrastructure/firestore-read-client';
 
 const observationDocument = z.object({
   aquariumId: z.string().min(1),
   ownerId: z.string().min(1),
   content: z.string().min(1),
-  recordedAt: z.instanceof(Timestamp),
+  recordedAt: z.custom<Timestamp>(isFirestoreTimestamp),
+});
+
+const observationCursor = z.object({
+  recordedAt: z.string(),
+  observationId: z.string(),
 });
 
 export const OBSERVATION_LIST_LIMIT = DEFAULT_PAGE_SIZE;
+
+function encodeCursor(item: ObservationListItem): ObservationCursor {
+  return encodeURIComponent(
+    JSON.stringify({
+      recordedAt: item.recordedAt.toISOString(),
+      observationId: item.id,
+    }),
+  ) as ObservationCursor;
+}
+
+function decodeCursor(cursor: ObservationCursor) {
+  const parsed = observationCursor.parse(
+    JSON.parse(decodeURIComponent(cursor)),
+  );
+  const recordedAt = new Date(parsed.recordedAt);
+  if (Number.isNaN(recordedAt.getTime())) {
+    throw new Error('Observation cursor contains an invalid date');
+  }
+  return { recordedAt, observationId: parsed.observationId };
+}
 
 function toListItem(
   id: string,
@@ -75,22 +105,31 @@ export class FirestoreObservationRepository
   async listOwned(
     ownerKeeperId: string,
     aquariumId: AquariumId,
-  ): Promise<readonly ObservationListItem[]> {
+    cursor?: ObservationCursor,
+    requestedPageSize?: number,
+  ): Promise<ObservationPage> {
     const { firestore } = getFirebaseClient();
     const observations = collection(firestore, 'observations');
-    const pageQuery = query(
-      observations,
-      where('ownerId', '==', ownerKeeperId),
-      where('aquariumId', '==', aquariumId),
-      orderBy('recordedAt', 'desc'),
-      orderBy(documentId(), 'asc'),
-      limit(OBSERVATION_LIST_LIMIT),
-    );
-    const snapshot = await getDocs(pageQuery);
-
-    return snapshot.docs.map((entry) =>
-      toListItem(entry.id, observationDocument.parse(entry.data())),
-    );
+    return readFirestorePage({
+      baseQuery: query(
+        observations,
+        where('ownerId', '==', ownerKeeperId),
+        where('aquariumId', '==', aquariumId),
+        orderBy('recordedAt', 'desc'),
+        orderBy(documentId(), 'asc'),
+      ),
+      request:
+        cursor || requestedPageSize
+          ? { ...(cursor ? { cursor } : {}), pageSize: requestedPageSize }
+          : undefined,
+      decodeCursor: (value) => {
+        const decoded = decodeCursor(value as ObservationCursor);
+        return [decoded.recordedAt, decoded.observationId];
+      },
+      encodeCursor,
+      map: (entry) =>
+        toListItem(entry.id, observationDocument.parse(entry.data())),
+    });
   }
 
   async listRecentOwned(
@@ -98,17 +137,16 @@ export class FirestoreObservationRepository
     aquariumId: AquariumId,
     limitCount: number,
   ): Promise<readonly ObservationListItem[]> {
-    const { firestore } = getFirebaseClient();
-    const observations = collection(firestore, 'observations');
-    const recentQuery = query(
-      observations,
-      where('ownerId', '==', ownerKeeperId),
-      where('aquariumId', '==', aquariumId),
-      orderBy('recordedAt', 'desc'),
-      orderBy(documentId(), 'asc'),
-      limit(pageSizeFor({ pageSize: limitCount })),
+    const { firestore, module } = getFirestoreReadClient();
+    const recentQuery = module.query(
+      module.collection(firestore, 'observations'),
+      module.where('ownerId', '==', ownerKeeperId),
+      module.where('aquariumId', '==', aquariumId),
+      module.orderBy('recordedAt', 'desc'),
+      module.orderBy(module.documentId(), 'asc'),
+      module.limit(pageSizeFor({ pageSize: limitCount })),
     );
-    const snapshot = await getDocs(recentQuery);
+    const snapshot = await module.getDocs(recentQuery);
 
     return snapshot.docs.map((entry) =>
       toListItem(entry.id, observationDocument.parse(entry.data())),

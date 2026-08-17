@@ -11,6 +11,7 @@ import {
   RecurringCarePlan,
   RecurringCarePlanId,
 } from '../domain/recurring-care-plan';
+import { Page } from '../../shared/application/pagination';
 export type { KeeperSession } from '../../shared/application/keeper-session';
 
 export interface RecordCareWorkInput {
@@ -31,12 +32,17 @@ export interface CareWorkListItem {
   readonly performedAt: Date;
   readonly recordedAt: Date;
 }
+export type CareWorkCursor = string & {
+  readonly __careWorkCursor: unique symbol;
+};
+export type CareWorkPage = Page<CareWorkListItem, CareWorkCursor>;
 export interface CareWorkReader {
   listRecentOwned(
     ownerKeeperId: string,
     aquariumId: AquariumId,
-    limit: number,
-  ): Promise<readonly CareWorkListItem[]>;
+    cursor?: CareWorkCursor,
+    pageSize?: number,
+  ): Promise<CareWorkPage>;
 }
 
 export interface PlanCareWorkInput {
@@ -101,12 +107,20 @@ export interface PlannedCareWorkListItem {
   readonly provenance: 'manual' | 'recurring-plan';
   readonly recurringCarePlanId?: RecurringCarePlanId;
 }
+export type PlannedCareWorkCursor = string & {
+  readonly __plannedCareWorkCursor: unique symbol;
+};
+export type PlannedCareWorkPage = Page<
+  PlannedCareWorkListItem,
+  PlannedCareWorkCursor
+>;
 export interface PlannedCareWorkReader {
   listOwned(
     ownerKeeperId: string,
     aquariumId: AquariumId,
-    limit: number,
-  ): Promise<readonly PlannedCareWorkListItem[]>;
+    cursor?: PlannedCareWorkCursor,
+    pageSize?: number,
+  ): Promise<PlannedCareWorkPage>;
 }
 
 export interface CareAquariumContextReader {

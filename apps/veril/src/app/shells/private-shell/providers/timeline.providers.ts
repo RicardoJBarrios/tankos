@@ -22,7 +22,29 @@ export const PRIVATE_TIMELINE_PROVIDERS: Provider[] = [
     provide: TIMELINE_MEASUREMENT_READER,
     useClass: FirestoreMeasurementRepository,
   },
-  { provide: TIMELINE_CARE_WORK_READER, useClass: FirestoreCareWorkRepository },
+  {
+    provide: TIMELINE_CARE_WORK_READER,
+    useFactory: () => {
+      const repository = new FirestoreCareWorkRepository();
+      return {
+        listRecentOwned: async (
+          ownerKeeperId: string,
+          aquariumId: Parameters<
+            FirestoreCareWorkRepository['listRecentOwned']
+          >[1],
+          limit: number,
+        ) =>
+          (
+            await repository.listRecentOwned(
+              ownerKeeperId,
+              aquariumId,
+              undefined,
+              limit,
+            )
+          ).items,
+      };
+    },
+  },
   {
     provide: TIMELINE_AQUARIUM_CONTEXT_READER,
     useClass: FirestoreAquariumRepository,

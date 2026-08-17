@@ -89,11 +89,12 @@ export class UpcomingCarePreview implements OnInit {
   private async load(): Promise<void> {
     try {
       this.now.set(systemClock.now());
-      const items = await this.listPlannedCareWork.execute(
+      const page = await this.listPlannedCareWork.execute(
+        undefined,
         UPCOMING_CARE_PREVIEW_LIMIT,
       );
-      this.items.set(items);
-      this.state.set(items.length === 0 ? 'empty' : 'success');
+      this.items.set(page.items);
+      this.state.set(page.items.length === 0 ? 'empty' : 'success');
     } catch {
       this.errorMessage.set(
         'No se han podido cargar los cuidados pendientes. Inténtalo de nuevo.',

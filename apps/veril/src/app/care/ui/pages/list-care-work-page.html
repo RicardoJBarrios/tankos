@@ -64,6 +64,13 @@
     </li>
     }
   </ul>
+  <veril-pagination-controls
+    [hasNextPage]="!!nextCursor()"
+    [isLoading]="isLoadingMore()"
+    [pageSize]="pageSize()"
+    (nextPage)="loadMore()"
+    (pageSizeChange)="changePageSize($event)"
+  />
   } @if (state() !== 'no-context') {
   <a mat-button routerLink="/app/aquariums/current">Volver al acuario</a>
   }

@@ -43,6 +43,7 @@ describe('FirestoreCareWorkRepository document boundary', () => {
       new FirestoreCareWorkRepository().listRecentOwned(
         'keeper-1',
         aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000'),
+        undefined,
         20,
       ),
     ).rejects.toThrow();

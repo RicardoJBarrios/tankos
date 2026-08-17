@@ -4,8 +4,6 @@ import {
   collection,
   doc,
   documentId,
-  getDocs,
-  limit,
   orderBy,
   query,
   setDoc,
@@ -21,10 +19,38 @@ import {
   CareWorkWriter,
   CareWorkReader,
   CareWorkListItem,
+  CareWorkCursor,
+  CareWorkPage,
   RecordCareWorkInput,
 } from '../application/ports';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
-import { pageSizeFor } from '../../shared/application/pagination';
+import { readFirestorePage } from '../../shared/infrastructure/firestore-page';
+
+const careWorkCursor = z.object({
+  performedAt: z.string(),
+  recordedAt: z.string(),
+  careWorkId: z.string(),
+});
+
+function encodeCursor(item: CareWorkListItem): CareWorkCursor {
+  return encodeURIComponent(
+    JSON.stringify({
+      performedAt: item.performedAt.toISOString(),
+      recordedAt: item.recordedAt.toISOString(),
+      careWorkId: item.id,
+    }),
+  ) as CareWorkCursor;
+}
+
+function decodeCursor(cursor: CareWorkCursor) {
+  const value = careWorkCursor.parse(JSON.parse(decodeURIComponent(cursor)));
+  const performedAt = new Date(value.performedAt);
+  const recordedAt = new Date(value.recordedAt);
+  if (Number.isNaN(performedAt.getTime()) || Number.isNaN(recordedAt.getTime())) {
+    throw new Error('Care work cursor contains invalid dates');
+  }
+  return { performedAt, recordedAt, careWorkId: value.careWorkId };
+}
 
 export const careWorkDocument = z.object({
   aquariumId: z.string().min(1),
@@ -66,29 +92,38 @@ export class FirestoreCareWorkRepository
   async listRecentOwned(
     ownerKeeperId: string,
     aquariumId: AquariumId,
-    limitCount: number,
-  ): Promise<readonly CareWorkListItem[]> {
+    cursor?: CareWorkCursor,
+    requestedPageSize?: number,
+  ): Promise<CareWorkPage> {
     const { firestore } = getFirebaseClient();
     const careWorks = collection(firestore, 'careWorks');
-    const recentQuery = query(
-      careWorks,
-      where('ownerId', '==', ownerKeeperId),
-      where('aquariumId', '==', aquariumId),
-      orderBy('performedAt', 'desc'),
-      orderBy('recordedAt', 'desc'),
-      orderBy(documentId(), 'asc'),
-      limit(pageSizeFor({ pageSize: limitCount })),
-    );
-    const snapshot = await getDocs(recentQuery);
-
-    return snapshot.docs.map((entry) => {
-      const dto = careWorkDocument.parse(entry.data());
-      return {
-        id: careWorkIdFrom(entry.id),
-        description: dto.description,
-        performedAt: dto.performedAt.toDate(),
-        recordedAt: dto.recordedAt.toDate(),
-      };
+    return readFirestorePage({
+      baseQuery: query(
+        careWorks,
+        where('ownerId', '==', ownerKeeperId),
+        where('aquariumId', '==', aquariumId),
+        orderBy('performedAt', 'desc'),
+        orderBy('recordedAt', 'desc'),
+        orderBy(documentId(), 'asc'),
+      ),
+      request:
+        cursor || requestedPageSize
+          ? { ...(cursor ? { cursor } : {}), pageSize: requestedPageSize }
+          : undefined,
+      decodeCursor: (value) => {
+        const decoded = decodeCursor(value as CareWorkCursor);
+        return [decoded.performedAt, decoded.recordedAt, decoded.careWorkId];
+      },
+      encodeCursor,
+      map: (entry) => {
+        const dto = careWorkDocument.parse(entry.data());
+        return {
+          id: careWorkIdFrom(entry.id),
+          description: dto.description,
+          performedAt: dto.performedAt.toDate(),
+          recordedAt: dto.recordedAt.toDate(),
+        };
+      },
     });
   }
 }

@@ -101,6 +101,13 @@
     </li>
     }
   </ul>
+  <veril-pagination-controls
+    [hasNextPage]="!!nextCursor()"
+    [isLoading]="isLoadingMore()"
+    [pageSize]="pageSize()"
+    (nextPage)="loadMore()"
+    (pageSizeChange)="changePageSize($event)"
+  />
   } @if (completionError()) {
   <p class="feedback feedback-error" role="alert">{{ completionError() }}</p>
   } @if (cancellationError()) {

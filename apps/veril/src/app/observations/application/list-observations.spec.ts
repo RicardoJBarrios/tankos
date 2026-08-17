@@ -64,17 +64,17 @@ describe('ListObservations', () => {
         recordedAt: new Date('2026-08-07T10:00:00.000Z'),
       },
     ];
-    vi.mocked(reader.listOwned).mockResolvedValue(items);
+    vi.mocked(reader.listOwned).mockResolvedValue({ items });
 
-    await expect(list.execute()).resolves.toBe(items);
-    expect(reader.listOwned).toHaveBeenCalledWith('keeper-a', aquariumId);
+    await expect(list.execute()).resolves.toEqual({ items });
+    expect(reader.listOwned).toHaveBeenCalledWith('keeper-a', aquariumId, undefined);
   });
 
   it('returns an empty result', async () => {
     const { list, reader } = setup();
-    vi.mocked(reader.listOwned).mockResolvedValue([]);
+    vi.mocked(reader.listOwned).mockResolvedValue({ items: [] });
 
-    await expect(list.execute()).resolves.toEqual([]);
+    await expect(list.execute()).resolves.toEqual({ items: [] });
   });
 
   it('propagates infrastructure failures', async () => {

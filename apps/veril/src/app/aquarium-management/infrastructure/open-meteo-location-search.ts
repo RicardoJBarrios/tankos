@@ -10,8 +10,8 @@ const responseSchema = z.object({
     .array(
       z.object({
         name: z.string().min(1),
-        latitude: z.number().finite(),
-        longitude: z.number().finite(),
+        latitude: z.number(),
+        longitude: z.number(),
         country: z.string().optional(),
         admin1: z.string().optional(),
         timezone: z.string().optional(),

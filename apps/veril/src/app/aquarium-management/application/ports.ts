@@ -7,6 +7,7 @@ import {
   ParameterTargets,
 } from '../domain/aquarium';
 import { ParameterId } from '../../shared/domain/parameter-reference';
+import { Page } from '../../shared/application/pagination';
 export type { KeeperSession } from '../../shared/application/keeper-session';
 
 export interface Aquarium {
@@ -24,10 +25,20 @@ export interface AquariumListItem {
   readonly name: AquariumName;
   readonly timeZone?: AquariumTimeZone;
   readonly location?: AquariumLocation;
+  readonly establishedAt?: Date;
 }
 
+export type AquariumCursor = string & {
+  readonly __aquariumCursor: unique symbol;
+};
+export type AquariumPage = Page<AquariumListItem, AquariumCursor>;
+
 export interface AquariumReader {
-  listOwned(ownerKeeperId: string): Promise<readonly AquariumListItem[]>;
+  listOwned(
+    ownerKeeperId: string,
+    cursor?: AquariumCursor,
+    pageSize?: number,
+  ): Promise<AquariumPage>;
   getOwned(
     ownerKeeperId: string,
     aquariumId: AquariumId,

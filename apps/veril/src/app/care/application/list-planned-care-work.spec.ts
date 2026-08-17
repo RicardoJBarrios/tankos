@@ -5,7 +5,6 @@ import { ActiveAquariumContextStorage } from '../../shared/application/active-aq
 import { KeeperSession, PlannedCareWorkReader } from './ports';
 import {
   ListPlannedCareWork,
-  PLANNED_CARE_WORK_LIMIT,
 } from './list-planned-care-work';
 
 const aquariumId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
@@ -37,24 +36,33 @@ describe('ListPlannedCareWork', () => {
 
   it('returns the bounded planned work for the active Aquarium', async () => {
     context.select(aquariumId);
-    vi.mocked(reader.listOwned).mockResolvedValue([item]);
+    vi.mocked(reader.listOwned).mockResolvedValue({ items: [item] });
 
     await expect(
       new ListPlannedCareWork(reader, keeperSession, context).execute(),
-    ).resolves.toEqual([item]);
+    ).resolves.toEqual({ items: [item] });
     expect(reader.listOwned).toHaveBeenCalledWith(
       'keeper-a',
       aquariumId,
-      PLANNED_CARE_WORK_LIMIT,
+      undefined,
+      undefined,
     );
   });
 
   it('passes a smaller preview limit without changing ordering semantics', async () => {
     context.select(aquariumId);
-    vi.mocked(reader.listOwned).mockResolvedValue([item]);
+    vi.mocked(reader.listOwned).mockResolvedValue({ items: [item] });
 
-    await new ListPlannedCareWork(reader, keeperSession, context).execute(3);
+    await new ListPlannedCareWork(reader, keeperSession, context).execute(
+      undefined,
+      3,
+    );
 
-    expect(reader.listOwned).toHaveBeenCalledWith('keeper-a', aquariumId, 3);
+    expect(reader.listOwned).toHaveBeenCalledWith(
+      'keeper-a',
+      aquariumId,
+      undefined,
+      3,
+    );
   });
 });

@@ -18,7 +18,10 @@ import {
   PlannedCareTiming,
 } from '../../application/planned-care-timing';
 import { StopRecurringCarePlan } from '../../application/stop-recurring-care-plan';
-import { PlannedCareWorkListItem } from '../../application/ports';
+import {
+  PlannedCareWorkCursor,
+  PlannedCareWorkListItem,
+} from '../../application/ports';
 import { AquariumTimeZone } from '../../../shared/domain/aquarium-reference';
 import {
   CARE_AQUARIUM_CONTEXT_READER,
@@ -31,6 +34,8 @@ import {
 import { formatAquariumDateTime } from '../../../shared/ui/aquarium-date-time';
 import { AsyncListPageState } from '../../../shared/ui/page-state';
 import { systemClock } from '../../../shared/application/clock';
+import { DEFAULT_PAGE_SIZE, pageSizeFor } from '../../../shared/application/pagination';
+import { PaginationControls } from '../../../shared/ui/pagination-controls/pagination-controls';
 
 type PageState = AsyncListPageState;
 
@@ -40,6 +45,7 @@ type PageState = AsyncListPageState;
     MatButtonModule,
     MatCardModule,
     MatProgressSpinnerModule,
+    PaginationControls,
     RouterLink,
   ],
   templateUrl: './list-planned-care-work-page.html',
@@ -109,6 +115,9 @@ export class ListPlannedCareWorkPage implements OnInit {
   readonly stoppingError = signal('');
   readonly now = signal(systemClock.now());
   readonly timeZone = signal<AquariumTimeZone | undefined>(undefined);
+  readonly nextCursor = signal<PlannedCareWorkCursor | undefined>(undefined);
+  readonly isLoadingMore = signal(false);
+  readonly pageSize = signal(DEFAULT_PAGE_SIZE);
 
   ngOnInit(): void {
     if (!this.activeContext.get()) {
@@ -120,6 +129,32 @@ export class ListPlannedCareWorkPage implements OnInit {
   }
 
   retry(): void {
+    this.state.set('loading');
+    void this.load();
+  }
+
+  async loadMore(): Promise<void> {
+    const cursor = this.nextCursor();
+    if (!cursor || this.isLoadingMore()) return;
+    this.isLoadingMore.set(true);
+    this.errorMessage.set('');
+    try {
+      const page = await this.listPlannedCareWork.execute(cursor, this.pageSize());
+      this.items.update((items) => [...items, ...page.items]);
+      this.nextCursor.set(page.nextCursor);
+    } catch {
+      this.errorMessage.set('No se han podido cargar más cuidados planificados. Inténtalo de nuevo.');
+    } finally {
+      this.isLoadingMore.set(false);
+    }
+  }
+
+  changePageSize(value: number): void {
+    const nextPageSize = pageSizeFor({ pageSize: value });
+    if (nextPageSize === this.pageSize()) return;
+    this.pageSize.set(nextPageSize);
+    this.items.set([]);
+    this.nextCursor.set(undefined);
     this.state.set('loading');
     void this.load();
   }
@@ -210,9 +245,10 @@ export class ListPlannedCareWorkPage implements OnInit {
     try {
       this.now.set(systemClock.now());
       await this.loadTimeZone();
-      const items = await this.listPlannedCareWork.execute();
-      this.items.set(items);
-      this.state.set(items.length === 0 ? 'empty' : 'success');
+      const page = await this.listPlannedCareWork.execute(undefined, this.pageSize());
+      this.items.set(page.items);
+      this.nextCursor.set(page.nextCursor);
+      this.state.set(page.items.length === 0 ? 'empty' : 'success');
     } catch {
       this.errorMessage.set(
         'No se han podido cargar los cuidados planificados. Inténtalo de nuevo.',

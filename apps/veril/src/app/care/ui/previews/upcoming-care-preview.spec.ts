@@ -79,7 +79,7 @@ describe('UpcomingCarePreview', () => {
       'Cargando cuidados pendientes',
     );
 
-    resolve([]);
+    resolve({ items: [] } as never);
     await loading.fixture.whenStable();
     loading.detectChanges();
     expect(loading.query('.empty-state')?.textContent).toContain(
@@ -92,14 +92,14 @@ describe('UpcomingCarePreview', () => {
   });
 
   it('renders up to three ordered items and the planned date', async () => {
-    execute.mockResolvedValue(items);
+    execute.mockResolvedValue({ items });
     const spectator = createComponent();
     spectator.component.now.set(new Date('2026-08-10T10:00:00.000Z'));
     spectator.component.timeZone = aquariumTimeZoneFrom('Atlantic/Canary');
     await spectator.fixture.whenStable();
     spectator.detectChanges();
 
-    expect(execute).toHaveBeenCalledWith(3);
+    expect(execute).toHaveBeenCalledWith(undefined, 3);
     expect(spectator.queryAll('li')).toHaveLength(1);
     expect(spectator.query('.care-description')?.textContent).toContain(
       'Revisar el skimmer',
@@ -110,12 +110,12 @@ describe('UpcomingCarePreview', () => {
   });
 
   it('shows overdue text without changing the planned timestamp', async () => {
-    execute.mockResolvedValue([
+    execute.mockResolvedValue({ items: [
       {
         ...items[0],
         plannedFor: new Date('2026-08-08T10:00:00.000Z'),
       },
-    ]);
+    ] });
     const spectator = createComponent();
     await spectator.fixture.whenStable();
     spectator.component.now.set(new Date('2026-08-10T10:00:00.000Z'));

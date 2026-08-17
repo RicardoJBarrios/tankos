@@ -84,7 +84,7 @@ describe('ListObservationsPage', () => {
   });
 
   it('shows the empty state with a record action', async () => {
-    execute.mockResolvedValue([]);
+    execute.mockResolvedValue({ items: [] });
     const spectator = createComponent();
     await settle(spectator);
 
@@ -102,7 +102,7 @@ describe('ListObservationsPage', () => {
   });
 
   it('renders qualitative evidence and its recorded time', async () => {
-    execute.mockResolvedValue([item]);
+    execute.mockResolvedValue({ items: [item] });
     const spectator = createComponent();
     spectator.component.timeZone.set(aquariumTimeZoneFrom('Atlantic/Canary'));
     await settle(spectator);

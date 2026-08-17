@@ -67,6 +67,17 @@
     </li>
     }
   </ul>
+
+  @if (errorMessage()) {
+  <p class="feedback feedback-error" role="alert">{{ errorMessage() }}</p>
+  }
+  <veril-pagination-controls
+    [hasNextPage]="!!nextCursor()"
+    [isLoading]="isLoadingMore()"
+    [pageSize]="pageSize()"
+    (nextPage)="loadMore()"
+    (pageSizeChange)="changePageSize($event)"
+  />
   }
 
   <a mat-button routerLink="/app/aquariums">Volver a mis acuarios</a>
