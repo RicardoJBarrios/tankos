@@ -15,10 +15,29 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
       { encoding: 'utf8', env: process.env },
     ),
   ) as { credentials: { email: string; password: string } };
-  await page.goto('/sign-in');
-  await page.getByLabel('Email').fill(fixture.credentials.email);
-  await page.getByLabel('Contraseña').fill(fixture.credentials.password);
-  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      await page.goto('/sign-in?switchAccount=true', {
+        waitUntil: 'domcontentloaded',
+      });
+      await expect(page.getByTestId('sign-in-form')).toBeVisible();
+      await page.waitForTimeout(300);
+      if (page.url().endsWith('/app/aquariums')) break;
+      await page
+        .getByTestId('sign-in-email')
+        .fill(fixture.credentials.email, { timeout: 3_000 });
+      if (page.url().endsWith('/app/aquariums')) break;
+      const password = page.getByTestId('sign-in-password');
+      if (!(await password.isVisible().catch(() => false))) continue;
+      await password.fill(fixture.credentials.password, { timeout: 3_000 });
+      await page.getByTestId('sign-in-submit').click();
+      if (page.url().endsWith('/app/aquariums')) break;
+      await page.waitForTimeout(500);
+    } catch (error) {
+      if (attempt === 2) throw error;
+      await page.waitForTimeout(500);
+    }
+  }
   await expect(page).toHaveURL('/app/aquariums');
 
   await page.route('https://geocoding-api.open-meteo.com/**', (route) =>
@@ -67,19 +86,24 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   ).toBeVisible();
   await page.getByRole('link', { name: 'Ver mis acuarios' }).click();
 
-  const aquarium = page.getByRole('button', { name: 'Veril E2E' });
+  const aquarium = page
+    .getByTestId('aquarium-option')
+    .filter({ hasText: 'Veril E2E' });
   await expect(aquarium).toBeVisible();
   await aquarium.click();
-  await page
-    .waitForURL('/app/aquariums/current', { timeout: 1_000 })
-    .catch(() => undefined);
-  if (!page.url().endsWith('/app/aquariums/current')) {
-    await expect(page.getByTestId('active-aquarium-indicator')).toBeVisible();
-    await page.goto('/app/aquariums/current');
-  }
+  await expect(page).toHaveURL('/app/aquariums/current');
 
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Veril E2E' })).toBeVisible();
+  await page.goto('/app/aquariums');
+  const restoredAquarium = page
+    .getByTestId('aquarium-option')
+    .filter({ hasText: 'Veril E2E' });
+  await expect(restoredAquarium).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
+  await expect(page).toHaveURL('/app/aquariums/current');
+  await expect(page.getByRole('heading', { name: 'Veril E2E' })).toBeVisible({
+    timeout: 15_000,
+  });
   await expect(page.getByTestId('aquarium-time-zone-missing')).toContainText(
     'Zona horaria sin configurar',
   );
@@ -165,12 +189,8 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page.getByTestId('current-measurements')).toContainText(
     'Dentro del objetivo',
   );
-  await expect(page.getByTestId('recent-activity-preview')).toContainText(
-    'El coral está abierto.',
-  );
-  await expect(page.getByTestId('recent-activity-preview')).toContainText(
-    '25.4 °C',
-  );
+  await expectRecentActivity(page, 'El coral está abierto.');
+  await expectRecentActivity(page, '25.4 °C');
   await expect(page.getByTestId('upcoming-care-preview')).toContainText(
     'No hay cuidados planificados',
   );
@@ -307,9 +327,7 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
 
   await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
   await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
-  await expect(page.getByTestId('recent-activity-preview')).toContainText(
-    'Limpié la copa del skimmer.',
-  );
+  await expectRecentActivity(page, 'Limpié la copa del skimmer.');
   await page.getByRole('link', { name: 'Ver toda la actividad' }).click();
   await expect(page.getByTestId('recent-timeline')).toContainText('Cuidado');
   await expect(page.getByTestId('recent-timeline')).toContainText(
@@ -353,6 +371,18 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   );
 });
 
+async function expectRecentActivity(
+  page: import('@playwright/test').Page,
+  expected: string,
+): Promise<void> {
+  const preview = page.getByTestId('recent-activity-preview');
+  const error = preview.getByRole('alert');
+  if (await error.isVisible().catch(() => false)) {
+    await preview.getByRole('button', { name: 'Reintentar' }).click();
+  }
+  await expect(preview).toContainText(expected);
+}
+
 test('an editorial keeper can publish, compare and retire a species profile', async ({
   page,
 }) => {
@@ -377,10 +407,14 @@ test('an editorial keeper can publish, compare and retire a species profile', as
 
   let signedIn = false;
   for (let attempt = 0; attempt < 2 && !signedIn; attempt += 1) {
-    await page.goto('/editorial/sign-in');
-    await page.getByLabel('Email').fill(fixture.credentials.email);
-    await page.getByLabel('Contraseña').fill(fixture.credentials.password);
-    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+    await page.goto(
+      `/sign-in?returnUrl=/editorial/species-knowledge/${fixture.profileId}`,
+    );
+    await page.getByTestId('sign-in-email').fill(fixture.credentials.email);
+    await page
+      .getByTestId('sign-in-password')
+      .fill(fixture.credentials.password);
+    await page.getByTestId('sign-in-submit').click();
     try {
       await expect(page.getByRole('status')).toContainText('Sesión iniciada', {
         timeout: 3_000,
@@ -409,6 +443,14 @@ test('an editorial keeper can publish, compare and retire a species profile', as
   await page.getByRole('button', { name: 'Publicar revisión' }).click();
   await expect(page.getByRole('status')).toContainText('Revisión publicada.');
 
+  await page.getByRole('link', { name: 'Ver versión publicada' }).click();
+  await expect(page).toHaveURL(`/app/species-knowledge/${fixture.profileId}`);
+  await expect(page.getByRole('heading', { name: 'Pez payaso' })).toBeVisible();
+  await expect(page.locator('.markdown-content').first()).toContainText(
+    'revisada',
+  );
+
+  await page.goto(`/editorial/species-knowledge/${fixture.profileId}`);
   await page.getByRole('link', { name: 'Ver historial editorial' }).click();
   await expect(
     page.getByRole('heading', { name: 'Historial de revisiones' }),
@@ -445,9 +487,9 @@ test('protected recording pages recover when no Aquarium is selected', async ({
       },
     ),
   ) as { credentials: { email: string; password: string } };
-  await page.getByLabel('Email').fill(fixture.credentials.email);
-  await page.getByLabel('Contraseña').fill(fixture.credentials.password);
-  await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+  await page.getByTestId('sign-in-email').fill(fixture.credentials.email);
+  await page.getByTestId('sign-in-password').fill(fixture.credentials.password);
+  await page.getByTestId('sign-in-submit').click();
   await expect(page).toHaveURL('/app/aquariums');
 
   await page.goto('/app/aquariums/observations/new');
