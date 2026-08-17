@@ -71,9 +71,9 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
         provenance: 'manual',
       });
 
-      const items = await repository.listOwned(keeper.id, aquarium.id, 10);
-      expect(items.map((item) => item.id)).toEqual([firstId, secondId]);
-      expect(items[0]).toMatchObject({ description: 'Primero', plannedFor });
+      const items = await repository.listOwned(keeper.id, aquarium.id, undefined, 10);
+      expect(items.items.map((item) => item.id)).toEqual([firstId, secondId]);
+      expect(items.items[0]).toMatchObject({ description: 'Primero', plannedFor });
 
       const { auth, firestore } = getFirebaseClient();
       const stored = await getDoc(doc(firestore, 'plannedCareWorks', firstId));
@@ -89,7 +89,7 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
       });
       expect(completed.description).toBe('Primero');
       expect(
-        (await repository.listOwned(keeper.id, aquarium.id, 10)).map(
+        (await repository.listOwned(keeper.id, aquarium.id, undefined, 10)).items.map(
           ({ id }) => id,
         ),
       ).toEqual([secondId]);
@@ -108,7 +108,7 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
         ownerKeeperId: keeper.id,
       });
       expect(
-        (await repository.listOwned(keeper.id, aquarium.id, 10)).map(
+        (await repository.listOwned(keeper.id, aquarium.id, undefined, 10)).items.map(
           ({ id }) => id,
         ),
       ).toEqual([]);
@@ -158,7 +158,7 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
       });
       expect(plan.outstandingPlannedCareWorkId).toBe(firstOccurrenceId);
       expect(
-        await repository.listOwned(keeper.id, aquarium.id, 10),
+        await repository.listOwned(keeper.id, aquarium.id, undefined, 10),
       ).toHaveLength(1);
 
       const { firestore, auth } = getFirebaseClient();
@@ -176,11 +176,12 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
       const afterCompletion = await repository.listOwned(
         keeper.id,
         aquarium.id,
+        undefined,
         10,
       );
       expect(afterCompletion).toHaveLength(1);
-      expect(afterCompletion[0].provenance).toBe('recurring-plan');
-      expect(afterCompletion[0].plannedFor).toEqual(
+      expect(afterCompletion.items[0].provenance).toBe('recurring-plan');
+      expect(afterCompletion.items[0].plannedFor).toEqual(
         new Date('2026-08-23T10:00:00.000Z'),
       );
       expect(
@@ -188,7 +189,7 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
       ).toBe(true);
 
       await repository.cancel({
-        id: afterCompletion[0].id,
+        id: afterCompletion.items[0].id,
         aquariumId: aquarium.id,
         ownerKeeperId: keeper.id,
         actionAt: new Date('2026-08-23T11:00:00.000Z'),
@@ -196,10 +197,11 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
       const afterCancellation = await repository.listOwned(
         keeper.id,
         aquarium.id,
+        undefined,
         10,
       );
       expect(afterCancellation).toHaveLength(1);
-      expect(afterCancellation[0].plannedFor).toEqual(
+      expect(afterCancellation.items[0].plannedFor).toEqual(
         new Date('2026-08-30T10:00:00.000Z'),
       );
 
@@ -208,9 +210,9 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
         aquariumId: aquarium.id,
         ownerKeeperId: keeper.id,
       });
-      expect(await repository.listOwned(keeper.id, aquarium.id, 10)).toEqual(
-        [],
-      );
+      expect(
+        await repository.listOwned(keeper.id, aquarium.id, undefined, 10),
+      ).toEqual({ items: [] });
       expect(
         (await getDoc(doc(firestore, 'recurringCarePlans', planId))).exists(),
       ).toBe(false);
