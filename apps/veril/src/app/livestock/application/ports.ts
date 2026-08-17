@@ -1,4 +1,5 @@
 import { AquariumId } from '../../shared/domain/aquarium-reference';
+import { Page } from '../../shared/application/pagination';
 import {
   Livestock,
   LivestockCategory,
@@ -60,11 +61,19 @@ export interface LivestockWriter {
 
 export type LivestockListItem = Livestock;
 
+export type LivestockCursor = string & {
+  readonly __livestockCursor: unique symbol;
+};
+
+export type LivestockPage = Page<LivestockListItem, LivestockCursor>;
+
 export interface LivestockReader {
   listActiveOwned(
     ownerKeeperId: string,
     aquariumId: AquariumId,
-  ): Promise<readonly LivestockListItem[]>;
+    cursor?: LivestockCursor,
+    pageSize?: number,
+  ): Promise<LivestockPage>;
   getOwned(
     ownerKeeperId: string,
     id: LivestockId,

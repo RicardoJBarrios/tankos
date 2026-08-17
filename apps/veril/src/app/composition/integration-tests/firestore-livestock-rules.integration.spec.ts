@@ -60,10 +60,11 @@ describe('Livestock Security Rules (Emulator Suite)', () => {
         representation: 'individual',
         displayName: 'Nemo protegido',
       });
-      const [created] = await repository.listActiveOwned(
+      const { items } = await repository.listActiveOwned(
         keeper.id,
         aquarium.id,
       );
+      const [created] = items;
       const { firestore } = getFirebaseClient();
       const reference = doc(firestore, 'livestock', created.id);
 

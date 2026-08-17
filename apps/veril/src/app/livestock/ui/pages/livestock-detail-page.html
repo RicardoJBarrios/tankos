@@ -14,8 +14,10 @@
   </mat-card>
   } @else {
   <p class="eyebrow">Ficha de livestock</p>
-  <h2 id="livestock-detail-title">{{ item()!.displayName }}</h2>
-  <mat-card appearance="outlined">
+  <h2 id="livestock-detail-title" data-testid="livestock-detail-name">
+    {{ item()!.displayName }}
+  </h2>
+  <mat-card appearance="outlined" data-testid="livestock-detail">
     <mat-card-content>
       <dl>
         <div>

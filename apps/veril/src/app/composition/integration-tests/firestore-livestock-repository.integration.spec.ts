@@ -63,8 +63,8 @@ describe('Livestock composition (Emulator Suite)', () => {
         keeper.id,
         firstAquarium.id,
       );
-      expect(activeInOrigin).toHaveLength(1);
-      expect(activeInOrigin[0]).toMatchObject({
+      expect(activeInOrigin.items).toHaveLength(1);
+      expect(activeInOrigin.items[0]).toMatchObject({
         speciesProfileId: speciesProfileFixtures.clownfish.id,
         aquariumId: firstAquarium.id,
         lifecycle: 'active',
@@ -74,11 +74,11 @@ describe('Livestock composition (Emulator Suite)', () => {
         livestockRepository,
         session,
         context,
-      ).execute(activeInOrigin[0].id, secondAquarium.id);
+      ).execute(activeInOrigin.items[0].id, secondAquarium.id);
 
       const transferred = await livestockRepository.getOwned(
         keeper.id,
-        activeInOrigin[0].id,
+        activeInOrigin.items[0].id,
       );
       expect(transferred).toMatchObject({
         aquariumId: secondAquarium.id,
@@ -96,12 +96,12 @@ describe('Livestock composition (Emulator Suite)', () => {
 
       context.select(secondAquarium.id);
       await new RemoveLivestock(livestockRepository, session, context).execute(
-        activeInOrigin[0].id,
+        activeInOrigin.items[0].id,
       );
 
       const removed = await livestockRepository.getOwned(
         keeper.id,
-        activeInOrigin[0].id,
+        activeInOrigin.items[0].id,
       );
       expect(removed).toMatchObject({
         aquariumId: secondAquarium.id,
@@ -110,7 +110,7 @@ describe('Livestock composition (Emulator Suite)', () => {
       expect(removed?.associationHistory).toHaveLength(2);
       expect(
         await livestockRepository.listActiveOwned(keeper.id, secondAquarium.id),
-      ).toEqual([]);
+      ).toEqual({ items: [] });
 
       await signOut(getFirebaseClient().auth);
     },

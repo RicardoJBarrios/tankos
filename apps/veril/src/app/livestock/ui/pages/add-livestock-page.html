@@ -11,12 +11,13 @@
       } @else { @if (loadingOptions()) {
       <p role="status">Cargando perfiles de especie…</p>
       }
-      <form (ngSubmit)="submit()">
+      <form data-testid="livestock-form" (ngSubmit)="submit()">
         <mat-form-field appearance="outline"
           ><mat-label>Nombre del registro</mat-label
           ><input
             matInput
             name="displayName"
+            data-testid="livestock-display-name"
             [ngModel]="displayName()"
             (ngModelChange)="displayName.set($event)"
             required
@@ -24,6 +25,7 @@
         /></mat-form-field>
         <label
           >Perfil de especie<select
+            data-testid="livestock-species-profile"
             name="speciesProfileId"
             [ngModel]="speciesProfileId()"
             (ngModelChange)="speciesProfileId.set($event)"
@@ -43,6 +45,7 @@
         </p>
         <label
           >Tipo de representación<select
+            data-testid="livestock-representation"
             name="representation"
             [ngModel]="representation()"
             (ngModelChange)="representation.set($event)"
@@ -53,6 +56,7 @@
         >
         <label
           >Categoría<select
+            data-testid="livestock-category"
             name="category"
             [ngModel]="category()"
             (ngModelChange)="category.set($event)"
@@ -70,6 +74,7 @@
             mat-flat-button
             color="primary"
             type="submit"
+            data-testid="livestock-submit"
             [disabled]="state() === 'saving'"
           >
             {{ state() === 'saving' ? 'Guardando…' : 'Guardar registro' }}</button

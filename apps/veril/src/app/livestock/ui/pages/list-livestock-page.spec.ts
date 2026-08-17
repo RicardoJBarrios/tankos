@@ -77,7 +77,7 @@ describe('ListLivestockPage', () => {
   beforeEach(() => {
     execute.mockReset();
     listPublished.mockReset();
-    execute.mockResolvedValue([item]);
+    execute.mockResolvedValue({ items: [item] });
     listPublished.mockResolvedValue([
       { id: 'species-clownfish', displayName: 'Pez payaso' },
     ]);

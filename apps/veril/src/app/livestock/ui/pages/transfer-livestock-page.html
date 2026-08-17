@@ -15,9 +15,10 @@
       } @else if (state() === 'failure') {
       <p class="error" role="alert">{{ errorMessage() }}</p>
       <a mat-button routerLink="/app/aquariums/livestock">Volver</a> } @else {
-      <form (ngSubmit)="submit()">
+      <form data-testid="livestock-transfer-form" (ngSubmit)="submit()">
         <label
           >Registro<select
+            data-testid="livestock-transfer-record"
             name="livestock"
             [ngModel]="livestockId()"
             (ngModelChange)="livestockId.set($event)"
@@ -30,6 +31,7 @@
         >
         <label
           >Acuario destino<select
+            data-testid="livestock-transfer-destination"
             name="aquarium"
             [ngModel]="aquariumId()"
             (ngModelChange)="aquariumId.set($event)"
@@ -48,6 +50,7 @@
             mat-flat-button
             color="primary"
             type="submit"
+            data-testid="livestock-transfer-submit"
             [disabled]="state() === 'saving' || !items().length || !aquariums().length"
           >
             Transferir</button

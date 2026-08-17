@@ -9,8 +9,8 @@ export class LivestockAquariumCatalog implements AquariumCatalog {
   constructor(private readonly reader: AquariumReader) {}
 
   async listOwned(ownerKeeperId: string) {
-    const aquariums = await this.reader.listOwned(ownerKeeperId);
-    return aquariums.map((aquarium) => ({
+    const page = await this.reader.listOwned(ownerKeeperId);
+    return page.items.map((aquarium) => ({
       id: aquarium.id,
       displayName: aquarium.name.value,
     }));

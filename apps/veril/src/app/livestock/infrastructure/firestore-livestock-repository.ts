@@ -20,6 +20,7 @@ import {
 } from '../../shared/domain/aquarium-reference';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { pageSizeFor } from '../../shared/application/pagination';
+import { readFirestorePage } from '../../shared/infrastructure/firestore-page';
 import { SpeciesProfileId } from '../domain/livestock';
 import {
   Livestock,
@@ -30,7 +31,9 @@ import {
 } from '../domain/livestock';
 import {
   LivestockAquariumReader,
+  LivestockCursor,
   LivestockListItem,
+  LivestockPage,
   LivestockReader,
   LivestockWriter,
   CreateLivestockInput,
@@ -53,6 +56,21 @@ const livestockDocument = z.object({
   updatedAt: z.instanceof(Timestamp),
   associationHistory: z.array(associationDocument).min(1),
 });
+
+const livestockCursor = z.object({
+  displayName: z.string(),
+  livestockId: z.string(),
+});
+
+function encodeCursor(item: LivestockListItem): LivestockCursor {
+  return encodeURIComponent(
+    JSON.stringify({ displayName: item.displayName, livestockId: item.id }),
+  ) as LivestockCursor;
+}
+
+function decodeCursor(cursor: LivestockCursor) {
+  return livestockCursor.parse(JSON.parse(decodeURIComponent(cursor)));
+}
 
 function toDto(input: CreateLivestockInput | Livestock, ownerId: string) {
   return livestockDocument.parse({
@@ -123,28 +141,30 @@ export class FirestoreLivestockRepository
   async listActiveOwned(
     ownerKeeperId: string,
     aquariumId: AquariumId,
-  ): Promise<readonly LivestockListItem[]> {
+    cursor?: LivestockCursor,
+    requestedPageSize?: number,
+  ): Promise<LivestockPage> {
     const { firestore } = getFirebaseClient();
-    const snapshot = await getDocs(
-      query(
+    return readFirestorePage({
+      baseQuery: query(
         collection(firestore, 'livestock'),
         where('ownerId', '==', ownerKeeperId),
         where('aquariumId', '==', aquariumId),
         where('lifecycle', '==', 'active'),
         orderBy('displayName', 'asc'),
         orderBy(documentId(), 'asc'),
-        limit(pageSizeFor()),
       ),
-    );
-    const result: LivestockListItem[] = [];
-    for (const entry of snapshot.docs) {
-      const livestock = fromDto(
-        entry.id,
-        livestockDocument.parse(entry.data()),
-      );
-      result.push(livestock);
-    }
-    return result;
+      request:
+        cursor || requestedPageSize
+          ? { ...(cursor ? { cursor } : {}), pageSize: requestedPageSize }
+          : undefined,
+      decodeCursor: (value) => {
+        const decoded = decodeCursor(value as LivestockCursor);
+        return [decoded.displayName, decoded.livestockId];
+      },
+      encodeCursor,
+      map: (entry) => fromDto(entry.id, livestockDocument.parse(entry.data())),
+    });
   }
 
   async owns(ownerKeeperId: string, aquariumId: AquariumId): Promise<boolean> {

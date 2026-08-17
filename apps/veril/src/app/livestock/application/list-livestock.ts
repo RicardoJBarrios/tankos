@@ -1,5 +1,10 @@
 import { ActiveAquariumContext } from '../../shared/application/active-aquarium-context';
-import { KeeperSession, LivestockListItem, LivestockReader } from './ports';
+import {
+  KeeperSession,
+  LivestockCursor,
+  LivestockPage,
+  LivestockReader,
+} from './ports';
 
 export class ListLivestock {
   constructor(
@@ -7,10 +12,15 @@ export class ListLivestock {
     private readonly session: KeeperSession,
     private readonly context: ActiveAquariumContext,
   ) {}
-  async execute(): Promise<readonly LivestockListItem[]> {
+  async execute(
+    cursor?: LivestockCursor,
+    pageSize?: number,
+  ): Promise<LivestockPage> {
     const keeper = await this.session.requireAuthenticatedKeeper();
     const aquariumId = this.context.get();
     if (!aquariumId) throw new Error('Aquarium context is required');
-    return this.reader.listActiveOwned(keeper.id, aquariumId);
+    return pageSize === undefined
+      ? this.reader.listActiveOwned(keeper.id, aquariumId, cursor)
+      : this.reader.listActiveOwned(keeper.id, aquariumId, cursor, pageSize);
   }
 }
