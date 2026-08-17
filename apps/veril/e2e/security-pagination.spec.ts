@@ -396,6 +396,7 @@ test('a viewer can receive a read-only grant for observations, care and livestoc
     'observations',
     'careWorks',
     'livestock',
+    'equipment',
   ]) {
     await page.getByTestId(`access-permission-${permission}`).check();
   }
@@ -431,6 +432,9 @@ test('a viewer can receive a read-only grant for observations, care and livestoc
     );
     await expect(sharedAquarium).toContainText(
       'livestock: 1 registros disponibles',
+    );
+    await expect(sharedAquarium).toContainText(
+      'equipment: 1 registros disponibles',
     );
     await expect(sharedAquarium).not.toContainText('measurements:');
     await expect(sharedAquarium).not.toContainText('plannedCareWorks:');

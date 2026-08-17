@@ -100,7 +100,9 @@ async function clearAquariumCollection(collectionName) {
 }
 
 await Promise.all(
-  ['observations', 'careWorks', 'livestock'].map(clearAquariumCollection),
+  ['observations', 'careWorks', 'livestock', 'equipment'].map(
+    clearAquariumCollection,
+  ),
 );
 
 let batch = firestore.batch();
@@ -150,6 +152,19 @@ await firestore
     category: 'fish',
     representation: 'individual',
     displayName: 'E2E clownfish',
+    lifecycle: 'active',
+    associatedAt: recordedAt,
+    updatedAt: recordedAt,
+    associationHistory: [{ aquariumId, associatedAt: recordedAt }],
+  });
+await firestore
+  .collection('equipment')
+  .doc(randomUUID())
+  .set({
+    aquariumId,
+    ownerId: accounts.keeper.uid,
+    category: 'filtration',
+    name: 'E2E skimmer',
     lifecycle: 'active',
     associatedAt: recordedAt,
     updatedAt: recordedAt,
