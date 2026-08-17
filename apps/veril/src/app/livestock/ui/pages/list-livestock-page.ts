@@ -13,6 +13,7 @@ import { ActiveAquariumContext } from '../../../shared/application/active-aquari
 import { ListLivestock } from '../../application/list-livestock';
 import { RemoveLivestock } from '../../application/remove-livestock';
 import {
+  LivestockCursor,
   LivestockListItem,
   SpeciesProfileOption,
 } from '../../application/ports';
@@ -23,6 +24,11 @@ import {
   LIVESTOCK_WRITER,
 } from '../providers';
 import { AsyncListPageState } from '../../../shared/ui/page-state';
+import {
+  DEFAULT_PAGE_SIZE,
+  pageSizeFor,
+} from '../../../shared/application/pagination';
+import { PaginationControls } from '../../../shared/ui/pagination-controls/pagination-controls';
 
 type PageState = AsyncListPageState;
 
@@ -32,6 +38,7 @@ type PageState = AsyncListPageState;
     MatButtonModule,
     MatCardModule,
     MatProgressSpinnerModule,
+    PaginationControls,
     RouterLink,
   ],
   templateUrl: './list-livestock-page.html',
@@ -69,6 +76,9 @@ export class ListLivestockPage implements OnInit {
   readonly items = signal<readonly LivestockListItem[]>([]);
   readonly speciesProfiles = signal<readonly SpeciesProfileOption[]>([]);
   readonly errorMessage = signal('');
+  readonly nextCursor = signal<LivestockCursor | undefined>(undefined);
+  readonly isLoadingMore = signal(false);
+  readonly pageSize = signal(DEFAULT_PAGE_SIZE);
 
   ngOnInit(): void {
     if (!this.context.get()) {
@@ -79,6 +89,34 @@ export class ListLivestockPage implements OnInit {
   }
 
   retry(): void {
+    this.state.set('loading');
+    void this.load();
+  }
+
+  async loadMore(): Promise<void> {
+    const cursor = this.nextCursor();
+    if (!cursor || this.isLoadingMore()) return;
+    this.isLoadingMore.set(true);
+    this.errorMessage.set('');
+    try {
+      const page = await this.listLivestock.execute(cursor, this.pageSize());
+      this.items.update((items) => [...items, ...page.items]);
+      this.nextCursor.set(page.nextCursor);
+    } catch {
+      this.errorMessage.set(
+        'No se han podido cargar más registros. Inténtalo de nuevo.',
+      );
+    } finally {
+      this.isLoadingMore.set(false);
+    }
+  }
+
+  changePageSize(value: number): void {
+    const nextPageSize = pageSizeFor({ pageSize: value });
+    if (nextPageSize === this.pageSize()) return;
+    this.pageSize.set(nextPageSize);
+    this.items.set([]);
+    this.nextCursor.set(undefined);
     this.state.set('loading');
     void this.load();
   }
@@ -101,13 +139,14 @@ export class ListLivestockPage implements OnInit {
 
   private async load(): Promise<void> {
     try {
-      const [items, speciesProfiles] = await Promise.all([
-        this.listLivestock.execute(),
+      const [page, speciesProfiles] = await Promise.all([
+        this.listLivestock.execute(undefined, this.pageSize()),
         this.speciesProfileCatalog.listPublished(),
       ]);
-      this.items.set(items);
+      this.items.set(page.items);
+      this.nextCursor.set(page.nextCursor);
       this.speciesProfiles.set(speciesProfiles);
-      this.state.set(items.length ? 'success' : 'empty');
+      this.state.set(page.items.length ? 'success' : 'empty');
     } catch {
       this.errorMessage.set(
         'No se ha podido cargar el livestock. Inténtalo de nuevo.',

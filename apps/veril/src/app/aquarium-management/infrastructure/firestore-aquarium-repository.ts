@@ -30,6 +30,8 @@ import {
 } from '../domain/aquarium';
 import {
   AquariumListItem,
+  AquariumCursor,
+  AquariumPage,
   AquariumReader,
   AquariumRepository,
   AquariumTimeZoneConfigurer,
@@ -45,12 +47,37 @@ import {
 } from '../application/ports';
 import { PARAMETER_IDS } from '../../shared/domain/parameter-reference';
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
-import { pageSizeFor } from '../../shared/application/pagination';
+import { readFirestorePage } from '../../shared/infrastructure/firestore-page';
+
+const aquariumCursor = z.object({
+  establishedAt: z.string(),
+  aquariumId: z.string(),
+});
+
+function encodeAquariumCursor(item: AquariumListItem): AquariumCursor {
+  if (!item.establishedAt)
+    throw new Error('Aquarium cursor metadata is missing');
+  return encodeURIComponent(
+    JSON.stringify({
+      establishedAt: item.establishedAt.toISOString(),
+      aquariumId: item.id,
+    }),
+  ) as AquariumCursor;
+}
+
+function decodeAquariumCursor(cursor: AquariumCursor) {
+  const value = aquariumCursor.parse(JSON.parse(decodeURIComponent(cursor)));
+  const establishedAt = new Date(value.establishedAt);
+  if (Number.isNaN(establishedAt.getTime())) {
+    throw new Error('Aquarium cursor contains an invalid date');
+  }
+  return { establishedAt, aquariumId: value.aquariumId };
+}
 
 const parameterTargetDocument = z
   .object({
-    minimum: z.number().finite().nonnegative(),
-    maximum: z.number().finite().nonnegative(),
+    minimum: z.number().nonnegative(),
+    maximum: z.number().nonnegative(),
   })
   .strict()
   .refine(({ minimum, maximum }) => minimum <= maximum, {
@@ -65,8 +92,8 @@ export const aquariumDocument = z.object({
   timeZone: z.string().optional(),
   location: z
     .object({
-      latitude: z.number().finite(),
-      longitude: z.number().finite(),
+      latitude: z.number(),
+      longitude: z.number(),
       displayName: z.string().min(1),
     })
     .optional(),
@@ -272,42 +299,47 @@ export class FirestoreAquariumRepository
     });
   }
 
-  async listOwned(ownerKeeperId: string): Promise<readonly AquariumListItem[]> {
+  async listOwned(
+    ownerKeeperId: string,
+    cursor?: AquariumCursor,
+    requestedPageSize?: number,
+  ): Promise<AquariumPage> {
     const { firestore } = getFirebaseClient();
-    const snapshots = await getDocs(
-      query(
+    return readFirestorePage({
+      baseQuery: query(
         collection(firestore, 'aquariums'),
         where('ownerId', '==', ownerKeeperId),
         orderBy('establishedAt', 'desc'),
         orderBy(documentId(), 'asc'),
-        limit(pageSizeFor()),
       ),
-    );
-
-    return snapshots.docs
-      .map((snapshot) => {
+      request:
+        cursor || requestedPageSize
+          ? {
+              ...(cursor ? { cursor } : {}),
+              pageSize: requestedPageSize,
+            }
+          : undefined,
+      decodeCursor: (value) => {
+        const decoded = decodeAquariumCursor(value as AquariumCursor);
+        return [Timestamp.fromDate(decoded.establishedAt), decoded.aquariumId];
+      },
+      encodeCursor: encodeAquariumCursor,
+      map: (snapshot) => {
         const dto = parseAquariumDocument(snapshot.data());
 
         return {
-          item: {
-            id: aquariumIdFrom(snapshot.id),
-            name: AquariumName.create(dto.name),
-            ...(dto.timeZone
-              ? { timeZone: aquariumTimeZoneFrom(dto.timeZone) }
-              : {}),
-            ...(dto.location
-              ? { location: AquariumLocationValue.create(dto.location) }
-              : {}),
-          },
-          establishedAt: dto.establishedAt.toMillis(),
+          id: aquariumIdFrom(snapshot.id),
+          name: AquariumName.create(dto.name),
+          ...(dto.timeZone
+            ? { timeZone: aquariumTimeZoneFrom(dto.timeZone) }
+            : {}),
+          ...(dto.location
+            ? { location: AquariumLocationValue.create(dto.location) }
+            : {}),
+          establishedAt: dto.establishedAt.toDate(),
         };
-      })
-      .sort(
-        (left, right) =>
-          right.establishedAt - left.establishedAt ||
-          left.item.id.localeCompare(right.item.id),
-      )
-      .map(({ item }) => item);
+      },
+    });
   }
 
   async getOwned(

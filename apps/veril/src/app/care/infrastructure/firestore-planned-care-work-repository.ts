@@ -6,8 +6,6 @@ import {
   doc,
   documentId,
   getDoc,
-  getDocs,
-  limit,
   orderBy,
   query,
   runTransaction,
@@ -42,6 +40,8 @@ import {
   PlannedCareWorkCompleter,
   PlannedCareWorkCanceller,
   PlannedCareWorkListItem,
+  PlannedCareWorkCursor,
+  PlannedCareWorkPage,
   PlannedCareWorkReader,
   PlannedCareWorkWriter,
   RecurringCarePlanStopper,
@@ -51,14 +51,45 @@ import {
 import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { careWorkDocument } from './firestore-care-work-repository';
 import { systemClock } from '../../shared/application/clock';
-import { pageSizeFor } from '../../shared/application/pagination';
+import { readFirestorePage } from '../../shared/infrastructure/firestore-page';
+
+const plannedCareWorkCursor = z.object({
+  plannedFor: z.string(),
+  recordedAt: z.string(),
+  plannedCareWorkId: z.string(),
+});
+
+function encodeCursor(item: PlannedCareWorkListItem): PlannedCareWorkCursor {
+  return encodeURIComponent(
+    JSON.stringify({
+      plannedFor: item.plannedFor.toISOString(),
+      recordedAt: item.recordedAt.toISOString(),
+      plannedCareWorkId: item.id,
+    }),
+  ) as PlannedCareWorkCursor;
+}
+
+function decodeCursor(cursor: PlannedCareWorkCursor) {
+  const value = plannedCareWorkCursor.parse(
+    JSON.parse(decodeURIComponent(cursor)),
+  );
+  const plannedFor = new Date(value.plannedFor);
+  const recordedAt = new Date(value.recordedAt);
+  if (
+    Number.isNaN(plannedFor.getTime()) ||
+    Number.isNaN(recordedAt.getTime())
+  ) {
+    throw new Error('Planned care work cursor contains invalid dates');
+  }
+  return { plannedFor, recordedAt, plannedCareWorkId: value.plannedCareWorkId };
+}
 
 const aquariumOwnershipDocument = z
   .object({
     ownerId: z.string().min(1),
     timeZone: z.string().optional(),
   })
-  .passthrough();
+  .loose();
 
 const plannedCareWorkDocument = z
   .object({
@@ -207,37 +238,50 @@ export class FirestorePlannedCareWorkRepository
   async listOwned(
     ownerKeeperId: string,
     aquariumId: AquariumId,
-    limitCount: number,
-  ): Promise<readonly PlannedCareWorkListItem[]> {
+    cursor?: PlannedCareWorkCursor,
+    requestedPageSize?: number,
+  ): Promise<PlannedCareWorkPage> {
     const { firestore } = getFirebaseClient();
     const plannedCareWorks = collection(firestore, 'plannedCareWorks');
-    const plannedQuery = query(
-      plannedCareWorks,
-      where('ownerId', '==', ownerKeeperId),
-      where('aquariumId', '==', aquariumId),
-      orderBy('plannedFor', 'asc'),
-      orderBy('recordedAt', 'asc'),
-      orderBy(documentId(), 'asc'),
-      limit(pageSizeFor({ pageSize: limitCount })),
-    );
-    const snapshot = await getDocs(plannedQuery);
-
-    return snapshot.docs.map((entry) => {
-      const dto = plannedCareWorkDocument.parse(entry.data());
-      return {
-        id: plannedCareWorkIdFrom(entry.id),
-        description: dto.description,
-        plannedFor: dto.plannedFor.toDate(),
-        recordedAt: dto.recordedAt.toDate(),
-        provenance: dto.provenance,
-        ...(dto.recurringCarePlanId
-          ? {
-              recurringCarePlanId: recurringCarePlanIdFrom(
-                dto.recurringCarePlanId,
-              ),
-            }
-          : {}),
-      };
+    return readFirestorePage({
+      baseQuery: query(
+        plannedCareWorks,
+        where('ownerId', '==', ownerKeeperId),
+        where('aquariumId', '==', aquariumId),
+        orderBy('plannedFor', 'asc'),
+        orderBy('recordedAt', 'asc'),
+        orderBy(documentId(), 'asc'),
+      ),
+      request:
+        cursor || requestedPageSize
+          ? { ...(cursor ? { cursor } : {}), pageSize: requestedPageSize }
+          : undefined,
+      decodeCursor: (value) => {
+        const decoded = decodeCursor(value as PlannedCareWorkCursor);
+        return [
+          decoded.plannedFor,
+          decoded.recordedAt,
+          decoded.plannedCareWorkId,
+        ];
+      },
+      encodeCursor,
+      map: (entry) => {
+        const dto = plannedCareWorkDocument.parse(entry.data());
+        return {
+          id: plannedCareWorkIdFrom(entry.id),
+          description: dto.description,
+          plannedFor: dto.plannedFor.toDate(),
+          recordedAt: dto.recordedAt.toDate(),
+          provenance: dto.provenance,
+          ...(dto.recurringCarePlanId
+            ? {
+                recurringCarePlanId: recurringCarePlanIdFrom(
+                  dto.recurringCarePlanId,
+                ),
+              }
+            : {}),
+        };
+      },
     });
   }
 

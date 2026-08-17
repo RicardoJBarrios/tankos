@@ -1,21 +1,16 @@
 import { Injectable } from '@angular/core';
-import {
-  Timestamp,
-  collection,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  where,
-} from 'firebase/firestore';
+import { Timestamp } from 'firebase/firestore/lite';
 import { z } from 'zod';
 import { SpeciesProfileRevisionReader } from '../application/ports';
 import { SpeciesProfileId } from '../domain/species-profile';
-import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { pageSizeFor } from '../../shared/application/pagination';
+import {
+  getFirestoreReadClient,
+  isFirestoreTimestamp,
+} from '../../shared/infrastructure/firestore-read-client';
 
 const speciesProfileRevisionDocument = z.object({
-  speciesProfileId: z.string().uuid(),
+  speciesProfileId: z.uuid(),
   displayName: z.string().min(1),
   scientificName: z.string().optional(),
   description: z.string().min(1),
@@ -33,28 +28,28 @@ const speciesProfileRevisionDocument = z.object({
       z.object({
         id: z.string().min(1),
         title: z.string().min(1),
-        url: z.string().url(),
-        publishedAt: z.instanceof(Timestamp).optional(),
+        url: z.url(),
+        publishedAt: z.custom<Timestamp>(isFirestoreTimestamp).optional(),
       }),
     )
     .min(1),
   status: z.literal('published'),
   revision: z.object({
     id: z.string().min(1),
-    publishedAt: z.instanceof(Timestamp),
+    publishedAt: z.custom<Timestamp>(isFirestoreTimestamp),
   }),
 });
 
 @Injectable()
 export class FirestoreSpeciesProfileRevisionReader implements SpeciesProfileRevisionReader {
   async listRevisions(id: SpeciesProfileId) {
-    const { firestore } = getFirebaseClient();
-    const snapshot = await getDocs(
-      query(
-        collection(firestore, 'speciesProfileRevisions'),
-        where('speciesProfileId', '==', id),
-        orderBy('revision.publishedAt', 'desc'),
-        limit(pageSizeFor()),
+    const { firestore, module } = getFirestoreReadClient();
+    const snapshot = await module.getDocs(
+      module.query(
+        module.collection(firestore, 'speciesProfileRevisions'),
+        module.where('speciesProfileId', '==', id),
+        module.orderBy('revision.publishedAt', 'desc'),
+        module.limit(pageSizeFor()),
       ),
     );
     return snapshot.docs.map((entry) => {

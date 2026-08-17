@@ -84,7 +84,7 @@ describe('ListPlannedCareWorkPage', () => {
   });
 
   it('renders the empty state and a planned intention', async () => {
-    execute.mockResolvedValueOnce([]);
+    execute.mockResolvedValueOnce({ items: [] });
     const empty = createComponent();
     await empty.fixture.whenStable();
     empty.detectChanges();
@@ -92,7 +92,7 @@ describe('ListPlannedCareWorkPage', () => {
       'No hay cuidados planificados',
     );
 
-    execute.mockResolvedValueOnce([item]);
+    execute.mockResolvedValueOnce({ items: [item] });
     const populated = createComponent();
     populated.component.now.set(new Date('2026-08-10T10:00:00.000Z'));
     populated.component.timeZone.set(aquariumTimeZoneFrom('Atlantic/Canary'));
@@ -111,7 +111,7 @@ describe('ListPlannedCareWorkPage', () => {
       ...item,
       plannedFor: new Date('2026-08-08T10:00:00.000Z'),
     };
-    execute.mockResolvedValue([overdue]);
+    execute.mockResolvedValue({ items: [overdue] });
     const spectator = createComponent();
     await spectator.fixture.whenStable();
     spectator.component.now.set(new Date('2026-08-10T10:00:00.000Z'));
@@ -135,7 +135,7 @@ describe('ListPlannedCareWorkPage', () => {
 
   it('completes an intention, shows pending and removes it from the list', async () => {
     complete.mockResolvedValue({});
-    execute.mockResolvedValue([item]);
+    execute.mockResolvedValue({ items: [item] });
     const spectator = createComponent();
     await spectator.fixture.whenStable();
     spectator.detectChanges();
@@ -156,7 +156,7 @@ describe('ListPlannedCareWorkPage', () => {
 
   it('shows a recoverable completion error', async () => {
     complete.mockRejectedValue(new Error('offline'));
-    execute.mockResolvedValue([item]);
+    execute.mockResolvedValue({ items: [item] });
     const spectator = createComponent();
     await spectator.fixture.whenStable();
     spectator.detectChanges();
@@ -170,7 +170,7 @@ describe('ListPlannedCareWorkPage', () => {
 
   it('confirms cancellation, shows pending and removes the plan', async () => {
     const confirmation = vi.spyOn(window, 'confirm').mockReturnValue(true);
-    execute.mockResolvedValue([item]);
+    execute.mockResolvedValue({ items: [item] });
     const spectator = createComponent();
     await spectator.fixture.whenStable();
     spectator.detectChanges();
@@ -202,7 +202,7 @@ describe('ListPlannedCareWorkPage', () => {
   it('keeps the plan and reports cancellation failures', async () => {
     const confirmation = vi.spyOn(window, 'confirm').mockReturnValue(true);
     cancel.mockRejectedValue(new Error('offline'));
-    execute.mockResolvedValue([item]);
+    execute.mockResolvedValue({ items: [item] });
     const spectator = createComponent();
     await spectator.fixture.whenStable();
     spectator.detectChanges();
@@ -222,7 +222,7 @@ describe('ListPlannedCareWorkPage', () => {
 
   it('does not cancel when confirmation is declined', async () => {
     const confirmation = vi.spyOn(window, 'confirm').mockReturnValue(false);
-    execute.mockResolvedValue([item]);
+    execute.mockResolvedValue({ items: [item] });
     const spectator = createComponent();
     await spectator.fixture.whenStable();
     spectator.detectChanges();

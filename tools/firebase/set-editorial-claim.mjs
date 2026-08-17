@@ -1,5 +1,6 @@
 import { getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 
 const [uid, action = 'grant'] = process.argv.slice(2);
 
@@ -18,6 +19,9 @@ if (!uid || !['grant', 'revoke'].includes(action)) {
       'Refusing to manage editorial access for an anonymous Firebase user',
     );
   }
+  if (user.disabled || !user.emailVerified) {
+    throw new Error('Editorial access requires an enabled, verified account');
+  }
 
   const claims = { ...user.customClaims };
   if (action === 'grant') {
@@ -27,6 +31,17 @@ if (!uid || !['grant', 'revoke'].includes(action)) {
   }
 
   await auth.setCustomUserClaims(uid, claims);
+  await getFirestore(app)
+    .collection('userAccess')
+    .doc(uid)
+    .set(
+      {
+        editorialRevoked: action === 'revoke',
+        updatedAt: new Date(),
+      },
+      { merge: true },
+    );
+  if (action === 'revoke') await auth.revokeRefreshTokens(uid);
   console.log(
     `${action === 'grant' ? 'Granted' : 'Revoked'} editorialAdmin for ${uid}`,
   );

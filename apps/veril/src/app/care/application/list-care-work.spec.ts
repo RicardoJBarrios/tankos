@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ActiveAquariumContext } from '../../shared/application/active-aquarium-context';
 import { ActiveAquariumContextStorage } from '../../shared/application/active-aquarium-context-storage';
 import { CareWorkReader, KeeperSession } from './ports';
-import { CARE_WORK_HISTORY_LIMIT, ListCareWork } from './list-care-work';
+import { ListCareWork } from './list-care-work';
 import { aquariumIdFrom } from '../../shared/domain/aquarium-reference';
 import { careWorkIdFrom } from '../domain/care-work';
 
@@ -59,13 +59,14 @@ describe('ListCareWork', () => {
     vi.mocked(keeperSession.requireAuthenticatedKeeper).mockResolvedValue({
       id: 'keeper-1',
     });
-    vi.mocked(reader.listRecentOwned).mockResolvedValue([item]);
+    vi.mocked(reader.listRecentOwned).mockResolvedValue({ items: [item] });
 
-    await expect(createUseCase().execute()).resolves.toEqual([item]);
+    await expect(createUseCase().execute()).resolves.toEqual({ items: [item] });
     expect(reader.listRecentOwned).toHaveBeenCalledWith(
       'keeper-1',
       aquariumId,
-      CARE_WORK_HISTORY_LIMIT,
+      undefined,
+      undefined,
     );
   });
 
@@ -74,9 +75,9 @@ describe('ListCareWork', () => {
     vi.mocked(keeperSession.requireAuthenticatedKeeper).mockResolvedValue({
       id: 'keeper-1',
     });
-    vi.mocked(reader.listRecentOwned).mockResolvedValue([]);
+    vi.mocked(reader.listRecentOwned).mockResolvedValue({ items: [] });
 
-    await expect(createUseCase().execute()).resolves.toEqual([]);
+    await expect(createUseCase().execute()).resolves.toEqual({ items: [] });
   });
 
   it('propagates reader failures', async () => {

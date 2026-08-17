@@ -58,6 +58,8 @@
             mat-button
             class="aquarium-choice"
             type="button"
+            data-testid="aquarium-option"
+            [attr.data-aquarium-id]="aquarium.id"
             [attr.aria-pressed]="activeContext.get() === aquarium.id"
             (click)="select(aquarium)"
           >
@@ -77,6 +79,13 @@
     </li>
     }
   </ul>
+  <veril-pagination-controls
+    [hasNextPage]="!!nextCursor()"
+    [isLoading]="isLoadingMore()"
+    [pageSize]="pageSize()"
+    (nextPage)="loadMore()"
+    (pageSizeChange)="changePageSize($event)"
+  />
   @if (activeContext.get()) {
   <a mat-flat-button color="primary" routerLink="/app/aquariums/current">
     Abrir acuario seleccionado

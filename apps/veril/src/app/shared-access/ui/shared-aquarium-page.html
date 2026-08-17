@@ -1,11 +1,17 @@
-<section class="page-section" aria-labelledby="shared-aquarium-title">
+<section
+  class="page-section"
+  aria-labelledby="shared-aquarium-title"
+  data-testid="shared-aquarium"
+>
   @if (state() === 'loading') {
   <p role="status">Cargando acuario…</p>
   } @else if (state() === 'failure') {
   <p class="error" role="alert">No tienes acceso a este acuario.</p>
   <p>
     Si has recibido una invitación,
-    <a routerLink="/access/sign-in">inicia sesión</a>
+    <a routerLink="/sign-in" [queryParams]="{ returnUrl: '/access/accept' }"
+      >inicia sesión</a
+    >
     con tu cuenta y acéptala desde el código recibido.
   </p>
   } @else if (aquarium(); as currentAquarium) {

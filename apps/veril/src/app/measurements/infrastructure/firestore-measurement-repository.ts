@@ -4,8 +4,6 @@ import {
   collection,
   doc,
   documentId,
-  getDocs,
-  limit,
   orderBy,
   query,
   setDoc,
@@ -39,17 +37,21 @@ import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { readFirestorePage } from '../../shared/infrastructure/firestore-page';
 import { pageSizeFor } from '../../shared/application/pagination';
 import { DEFAULT_PAGE_SIZE } from '../../shared/application/pagination';
+import {
+  getFirestoreReadClient,
+  isFirestoreTimestamp,
+} from '../../shared/infrastructure/firestore-read-client';
 
 const measurementDocument = z.object({
   aquariumId: z.string().min(1),
   ownerId: z.string().min(1),
   parameterId: z.enum(PARAMETER_IDS),
-  enteredValue: z.number().finite(),
+  enteredValue: z.number(),
   enteredUnit: z.enum(UNIT_IDS),
-  canonicalValue: z.number().finite(),
+  canonicalValue: z.number(),
   canonicalUnit: z.enum(UNIT_IDS),
-  measuredAt: z.instanceof(Timestamp),
-  recordedAt: z.instanceof(Timestamp),
+  measuredAt: z.custom<Timestamp>(isFirestoreTimestamp),
+  recordedAt: z.custom<Timestamp>(isFirestoreTimestamp),
   provenance: z.literal('manual'),
 });
 
@@ -199,18 +201,17 @@ export class FirestoreMeasurementRepository
     aquariumId: AquariumId,
     limitCount: number,
   ): Promise<readonly MeasurementListItem[]> {
-    const { firestore } = getFirebaseClient();
-    const measurements = collection(firestore, 'measurements');
-    const recentQuery = query(
-      measurements,
-      where('ownerId', '==', ownerKeeperId),
-      where('aquariumId', '==', aquariumId),
-      orderBy('measuredAt', 'desc'),
-      orderBy('recordedAt', 'desc'),
-      orderBy(documentId(), 'asc'),
-      limit(pageSizeFor({ pageSize: limitCount })),
+    const { firestore, module } = getFirestoreReadClient();
+    const recentQuery = module.query(
+      module.collection(firestore, 'measurements'),
+      module.where('ownerId', '==', ownerKeeperId),
+      module.where('aquariumId', '==', aquariumId),
+      module.orderBy('measuredAt', 'desc'),
+      module.orderBy('recordedAt', 'desc'),
+      module.orderBy(module.documentId(), 'asc'),
+      module.limit(pageSizeFor({ pageSize: limitCount })),
     );
-    const snapshot = await getDocs(recentQuery);
+    const snapshot = await module.getDocs(recentQuery);
 
     return snapshot.docs.map((entry) =>
       toListItem(entry.id, measurementDocument.parse(entry.data())),
@@ -222,17 +223,17 @@ export class FirestoreMeasurementRepository
     aquariumId: AquariumId,
     parameterId: ParameterId,
   ): Promise<MeasurementListItem | null> {
-    const { firestore } = getFirebaseClient();
-    const snapshot = await getDocs(
-      query(
-        collection(firestore, 'measurements'),
-        where('ownerId', '==', ownerKeeperId),
-        where('aquariumId', '==', aquariumId),
-        where('parameterId', '==', parameterId),
-        orderBy('measuredAt', 'desc'),
-        orderBy('recordedAt', 'desc'),
-        orderBy(documentId(), 'asc'),
-        limit(1),
+    const { firestore, module } = getFirestoreReadClient();
+    const snapshot = await module.getDocs(
+      module.query(
+        module.collection(firestore, 'measurements'),
+        module.where('ownerId', '==', ownerKeeperId),
+        module.where('aquariumId', '==', aquariumId),
+        module.where('parameterId', '==', parameterId),
+        module.orderBy('measuredAt', 'desc'),
+        module.orderBy('recordedAt', 'desc'),
+        module.orderBy(module.documentId(), 'asc'),
+        module.limit(1),
       ),
     );
     const entry = snapshot.docs[0];

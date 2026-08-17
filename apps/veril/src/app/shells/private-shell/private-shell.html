@@ -12,16 +12,5 @@
     <h1>Mis acuarios</h1>
     <p>Registra lo que ocurre y consulta la información de cada acuario.</p>
   </div>
-  @if (isRestoring()) {
-  <div class="loading-state" role="status" aria-live="polite">
-    <mat-progress-spinner
-      mode="indeterminate"
-      diameter="32"
-      aria-label="Restaurando el contexto del acuario"
-    />
-    <span>Restaurando el contexto del acuario…</span>
-  </div>
-  } @else {
   <router-outlet></router-outlet>
-  }
 </main>

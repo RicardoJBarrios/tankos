@@ -9,12 +9,12 @@ import { systemClock } from '../../shared/application/clock';
 
 const responseSchema = z.object({
   current: z.object({
-    temperature_2m: z.number().finite(),
+    temperature_2m: z.number(),
     time: z.union([z.number(), z.string()]).optional(),
   }),
   daily: z.object({
-    temperature_2m_min: z.array(z.number().finite()).min(1),
-    temperature_2m_max: z.array(z.number().finite()).min(1),
+    temperature_2m_min: z.array(z.number()).min(1),
+    temperature_2m_max: z.array(z.number()).min(1),
   }),
 });
 

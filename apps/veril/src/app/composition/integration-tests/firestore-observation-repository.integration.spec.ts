@@ -128,13 +128,17 @@ describe('FirestoreObservationRepository (Emulator Suite)', () => {
 
       const items = await repository.listOwned(keeper.id, aquarium.id);
 
-      expect(items.map((item) => item.id)).toEqual([newest, tieBreak, oldest]);
-      expect(items.map((item) => item.content)).toEqual([
+      expect(items.items.map((item) => item.id)).toEqual([
+        newest,
+        tieBreak,
+        oldest,
+      ]);
+      expect(items.items.map((item) => item.content)).toEqual([
         'Observación con ID menor',
         'Observación con ID mayor',
         'Observación antigua',
       ]);
-      expect(items[0]?.recordedAt).toEqual(recordedAt);
+      expect(items.items[0]?.recordedAt).toEqual(recordedAt);
 
       const { auth } = getFirebaseClient();
       await signOut(auth);

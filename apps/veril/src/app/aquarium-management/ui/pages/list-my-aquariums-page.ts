@@ -9,11 +9,16 @@ import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AquariumListItem } from '../../application/ports';
+import { AquariumCursor, AquariumListItem } from '../../application/ports';
 import { ActiveAquariumContext } from '../../../shared/application/active-aquarium-context';
 import { ListMyAquariums } from '../../application/list-my-aquariums';
 import { SelectAquarium } from '../../application/select-aquarium';
 import { AQUARIUM_REPOSITORY, KEEPER_SESSION } from '../providers';
+import {
+  DEFAULT_PAGE_SIZE,
+  pageSizeFor,
+} from '../../../shared/application/pagination';
+import { PaginationControls } from '../../../shared/ui/pagination-controls/pagination-controls';
 
 type ListState = 'loading' | 'empty' | 'success' | 'failure';
 
@@ -23,6 +28,7 @@ type ListState = 'loading' | 'empty' | 'success' | 'failure';
     MatButtonModule,
     MatCardModule,
     MatProgressSpinnerModule,
+    PaginationControls,
     RouterLink,
   ],
   templateUrl: './list-my-aquariums-page.html',
@@ -57,6 +63,9 @@ export class ListMyAquariumsPage implements OnInit {
   readonly state = signal<ListState>('loading');
   readonly aquariums = signal<readonly AquariumListItem[]>([]);
   readonly selectionState = signal<'idle' | 'loading' | 'failure'>('idle');
+  readonly nextCursor = signal<AquariumCursor | undefined>(undefined);
+  readonly isLoadingMore = signal(false);
+  readonly pageSize = signal(DEFAULT_PAGE_SIZE);
 
   ngOnInit(): void {
     void this.loadAquariums();
@@ -83,11 +92,38 @@ export class ListMyAquariumsPage implements OnInit {
     void this.loadAquariums();
   }
 
+  async loadMore(): Promise<void> {
+    const cursor = this.nextCursor();
+    if (!cursor || this.isLoadingMore()) return;
+    this.isLoadingMore.set(true);
+    try {
+      const page = await this.listMyAquariums.execute(cursor, this.pageSize());
+      this.aquariums.update((items) => [...items, ...page.items]);
+      this.nextCursor.set(page.nextCursor);
+    } finally {
+      this.isLoadingMore.set(false);
+    }
+  }
+
+  changePageSize(value: number): void {
+    const nextPageSize = pageSizeFor({ pageSize: value });
+    if (nextPageSize === this.pageSize()) return;
+    this.pageSize.set(nextPageSize);
+    this.aquariums.set([]);
+    this.nextCursor.set(undefined);
+    this.state.set('loading');
+    void this.loadAquariums();
+  }
+
   private async loadAquariums(): Promise<void> {
     try {
-      const aquariums = await this.listMyAquariums.execute();
-      this.aquariums.set(aquariums);
-      this.state.set(aquariums.length === 0 ? 'empty' : 'success');
+      const page = await this.listMyAquariums.execute(
+        undefined,
+        this.pageSize(),
+      );
+      this.aquariums.set(page.items);
+      this.nextCursor.set(page.nextCursor);
+      this.state.set(page.items.length === 0 ? 'empty' : 'success');
     } catch {
       this.state.set('failure');
     }

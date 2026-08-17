@@ -131,10 +131,15 @@ describe('FirestoreCareWorkRepository (Emulator Suite)', () => {
         provenance: 'manual',
       });
 
-      const items = await repository.listRecentOwned(keeper.id, aquarium.id, 2);
+      const items = await repository.listRecentOwned(
+        keeper.id,
+        aquarium.id,
+        undefined,
+        2,
+      );
 
-      expect(items.map((item) => item.id)).toEqual([firstId, secondId]);
-      expect(items[0]).toMatchObject({
+      expect(items.items.map((item) => item.id)).toEqual([firstId, secondId]);
+      expect(items.items[0]).toMatchObject({
         description: 'Cuidado con ID menor',
         performedAt,
         recordedAt,

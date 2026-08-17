@@ -7,7 +7,7 @@ export const keeperAccessGuard: CanActivateFn = async () => {
   const router = inject(Router);
 
   try {
-    if (await authentication.isKeeper()) return true;
+    if ((await authentication.getSnapshot()).isKeeper) return true;
   } catch {
     // An invalid or stale Firebase session is treated as unauthenticated.
   }

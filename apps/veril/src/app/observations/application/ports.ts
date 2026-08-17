@@ -3,6 +3,7 @@ import {
   AquariumTimeZone,
 } from '../../shared/domain/aquarium-reference';
 import { Observation, ObservationId } from '../domain/observation';
+import { Page } from '../../shared/application/pagination';
 export type { KeeperSession } from '../../shared/application/keeper-session';
 
 export interface RecordObservationInput {
@@ -23,11 +24,19 @@ export interface ObservationListItem {
   readonly recordedAt: Date;
 }
 
+export type ObservationCursor = string & {
+  readonly __observationCursor: unique symbol;
+};
+
+export type ObservationPage = Page<ObservationListItem, ObservationCursor>;
+
 export interface ObservationReader {
   listOwned(
     ownerKeeperId: string,
     aquariumId: AquariumId,
-  ): Promise<readonly ObservationListItem[]>;
+    cursor?: ObservationCursor,
+    pageSize?: number,
+  ): Promise<ObservationPage>;
 }
 
 export interface TimelineObservationReader {

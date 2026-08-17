@@ -1,5 +1,9 @@
-import { AquariumReader, KeeperSession } from './ports';
-import { AquariumListItem } from './ports';
+import {
+  AquariumCursor,
+  AquariumPage,
+  AquariumReader,
+  KeeperSession,
+} from './ports';
 
 export class ListMyAquariums {
   constructor(
@@ -7,9 +11,14 @@ export class ListMyAquariums {
     private readonly keeperSession: KeeperSession,
   ) {}
 
-  async execute(): Promise<readonly AquariumListItem[]> {
+  async execute(
+    cursor?: AquariumCursor,
+    pageSize?: number,
+  ): Promise<AquariumPage> {
     const keeper = await this.keeperSession.requireAuthenticatedKeeper();
 
-    return this.reader.listOwned(keeper.id);
+    return pageSize === undefined
+      ? this.reader.listOwned(keeper.id, cursor)
+      : this.reader.listOwned(keeper.id, cursor, pageSize);
   }
 }

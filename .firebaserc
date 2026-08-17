@@ -1,6 +1,7 @@
 {
   "projects": {
     "default": "demo-veril",
-    "production": "veril-dd4e1"
+    "production": "veril-dd4e1",
+    "staging": "veril-staging"
   }
 }

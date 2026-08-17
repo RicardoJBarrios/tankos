@@ -10,7 +10,10 @@
       <p class="error" role="alert">
         {{ errorMessage() || 'No se puede abrir este perfil editorial.' }}
       </p>
-      <a mat-button routerLink="/editorial/sign-in"
+      <a
+        mat-button
+        [routerLink]="['/sign-in']"
+        [queryParams]="{ returnUrl: '/editorial/species-knowledge/' + profile()?.id }"
         >Volver al acceso editorial</a
       >
     </mat-card-content>
@@ -96,7 +99,7 @@
       </button>
     </mat-card-content>
   </mat-card>
-  <a mat-button [routerLink]="['/app/species-knowledge', profile()!.id]"
+  <a mat-button [routerLink]="['/species-knowledge', profile()!.id]"
     >Ver versión publicada</a
   >
   <a

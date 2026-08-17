@@ -65,13 +65,13 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
       );
       const ownedByA = await repository.listOwned(keeperA.id);
 
-      expect(ownedByA.map((item) => item.name.value)).toEqual([
+      expect(ownedByA.items.map((item) => item.name.value)).toEqual([
         'Acuario reciente',
         'Acuario empatado A',
         'Acuario empatado B',
         'Acuario antiguo',
       ]);
-      expect(ownedByA.map((item) => item.id)).toEqual([
+      expect(ownedByA.items.map((item) => item.id)).toEqual([
         newer.id,
         tiedFirst.id,
         tiedSecond.id,
@@ -93,7 +93,9 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
       });
 
       expect(
-        (await repository.listOwned(keeperB.id)).map((item) => item.name.value),
+        (await repository.listOwned(keeperB.id)).items.map(
+          (item) => item.name.value,
+        ),
       ).toEqual(['Acuario de B']);
       expect(
         (await repository.getOwned(keeperB.id, aquariumB.id))?.name.value,

@@ -1,7 +1,8 @@
 import { ActiveAquariumContext } from '../../shared/application/active-aquarium-context';
 import {
   KeeperSession,
-  PlannedCareWorkListItem,
+  PlannedCareWorkCursor,
+  PlannedCareWorkPage,
   PlannedCareWorkReader,
 } from './ports';
 
@@ -15,8 +16,9 @@ export class ListPlannedCareWork {
   ) {}
 
   async execute(
-    limit = PLANNED_CARE_WORK_LIMIT,
-  ): Promise<readonly PlannedCareWorkListItem[]> {
+    cursor?: PlannedCareWorkCursor,
+    pageSize?: number,
+  ): Promise<PlannedCareWorkPage> {
     const keeper = await this.keeperSession.requireAuthenticatedKeeper();
     const aquariumId = this.activeContext.get();
 
@@ -24,6 +26,6 @@ export class ListPlannedCareWork {
       throw new Error('Aquarium context is required');
     }
 
-    return this.reader.listOwned(keeper.id, aquariumId, limit);
+    return this.reader.listOwned(keeper.id, aquariumId, cursor, pageSize);
   }
 }

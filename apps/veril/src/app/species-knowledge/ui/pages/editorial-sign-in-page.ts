@@ -31,8 +31,6 @@ export class EditorialSignInPage {
   private readonly authentication = inject(AUTHENTICATION_SESSION);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  readonly accessType = this.route.snapshot.data['accessType'] as
-    'private' | 'editorial' | 'authentication' | undefined;
   readonly email = signal('');
   readonly password = signal('');
   readonly state = signal<'ready' | 'saving' | 'success' | 'failure'>('ready');
@@ -49,20 +47,15 @@ export class EditorialSignInPage {
         this.email(),
         this.password(),
       );
-      const hasRequiredAccess =
-        this.accessType === 'authentication'
-          ? await this.authentication.isAuthenticated()
-          : this.accessType === 'editorial'
-            ? await this.authentication.isEditorialKeeper()
-            : await this.authentication.isKeeper();
-      if (!hasRequiredAccess) {
+      const snapshot = await this.authentication.getSnapshot({
+        forceRefresh: true,
+      });
+      if (!this.canContinue(snapshot)) {
         await this.authentication.signOut();
-        throw new Error('La cuenta no tiene el acceso requerido.');
+        throw new Error('La cuenta no tiene permisos para continuar.');
       }
       this.state.set('success');
-      const redirectTo = this.route.snapshot.data['redirectTo'] as
-        string | undefined;
-      if (redirectTo) await this.router.navigateByUrl(redirectTo);
+      await this.router.navigateByUrl(this.returnUrl());
     } catch {
       this.errorMessage.set('No se ha podido iniciar la sesión.');
       this.state.set('failure');
@@ -71,20 +64,43 @@ export class EditorialSignInPage {
 
   private async restoreExistingSession(): Promise<void> {
     try {
-      const hasRequiredAccess =
-        this.accessType === 'authentication'
-          ? await this.authentication.isAuthenticated()
-          : this.accessType === 'editorial'
-            ? await this.authentication.isEditorialKeeper()
-            : await this.authentication.isKeeper();
-      if (hasRequiredAccess) {
+      if (this.isAccountSwitchRequested()) {
+        await this.authentication.signOut().catch(() => undefined);
+        this.state.set('ready');
+        return;
+      }
+      const snapshot = await this.authentication.getSnapshot();
+      if (snapshot.isAuthenticated && this.canContinue(snapshot)) {
         this.state.set('success');
-        const redirectTo = this.route.snapshot.data['redirectTo'] as
-          string | undefined;
-        if (redirectTo) await this.router.navigateByUrl(redirectTo);
+        await this.router.navigateByUrl(this.returnUrl());
+      } else if (snapshot.isAuthenticated) {
+        await this.authentication.signOut().catch(() => undefined);
+        this.state.set('ready');
       }
     } catch {
       // The sign-in form remains available when there is no valid session.
     }
+  }
+
+  private isAccountSwitchRequested(): boolean {
+    return this.route.snapshot.queryParamMap.get('switchAccount') === 'true';
+  }
+
+  private returnUrl(): string {
+    const requested = this.route.snapshot.queryParamMap.get('returnUrl');
+    return requested?.startsWith('/') && !requested.startsWith('//')
+      ? requested
+      : '/app/aquariums';
+  }
+
+  private canContinue(snapshot: {
+    readonly isAuthenticated: boolean;
+    readonly isKeeper: boolean;
+    readonly isEditorialAdmin: boolean;
+  }): boolean {
+    const requested = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (requested?.startsWith('/access/')) return snapshot.isAuthenticated;
+    if (requested?.startsWith('/editorial/')) return snapshot.isEditorialAdmin;
+    return snapshot.isKeeper;
   }
 }

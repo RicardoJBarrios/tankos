@@ -1,0 +1,53 @@
+name: CI staging
+
+on:
+  push:
+    branches:
+      - develop
+
+concurrency:
+  group: ci-staging-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  basic:
+    uses: ./.github/workflows/ci-checks.yml
+    with:
+      full: false
+
+  deploy:
+    needs: basic
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: staging
+      url: https://veril-staging.web.app
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          filter: tree:0
+          fetch-depth: 1
+
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 11.17.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec nx build veril --configuration=production
+
+      # Configure FIREBASE_SERVICE_ACCOUNT_STAGING in the protected staging
+      # environment. The account only needs Firebase Hosting deploy access.
+      - uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}
+
+      - run: pnpm exec firebase deploy --project veril-staging --only hosting
+      - name: Verify staging deployment
+        run: curl --fail --silent --show-error --retry 5 --retry-delay 2 --retry-all-errors --location --head https://veril-staging.web.app

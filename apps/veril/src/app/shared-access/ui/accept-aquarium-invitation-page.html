@@ -3,10 +3,11 @@
   @if (state() === 'success') {
   <p role="status">{{ message() }}</p>
   } @else {
-  <form (ngSubmit)="accept()">
+  <form data-testid="accept-invitation-form" (ngSubmit)="accept()">
     <label for="invitation-code">Código de invitación</label>
     <input
       id="invitation-code"
+      data-testid="invitation-code"
       name="code"
       [ngModel]="code()"
       (ngModelChange)="code.set($event)"

@@ -1,5 +1,10 @@
 import { ActiveAquariumContext } from '../../shared/application/active-aquarium-context';
-import { KeeperSession, ObservationListItem, ObservationReader } from './ports';
+import {
+  KeeperSession,
+  ObservationCursor,
+  ObservationPage,
+  ObservationReader,
+} from './ports';
 
 export class ListObservations {
   constructor(
@@ -8,7 +13,10 @@ export class ListObservations {
     private readonly activeContext: ActiveAquariumContext,
   ) {}
 
-  async execute(): Promise<readonly ObservationListItem[]> {
+  async execute(
+    cursor?: ObservationCursor,
+    pageSize?: number,
+  ): Promise<ObservationPage> {
     const keeper = await this.keeperSession.requireAuthenticatedKeeper();
     const aquariumId = this.activeContext.get();
 
@@ -16,6 +24,8 @@ export class ListObservations {
       throw new Error('Aquarium context is required');
     }
 
-    return this.reader.listOwned(keeper.id, aquariumId);
+    return pageSize === undefined
+      ? this.reader.listOwned(keeper.id, aquariumId, cursor)
+      : this.reader.listOwned(keeper.id, aquariumId, cursor, pageSize);
   }
 }

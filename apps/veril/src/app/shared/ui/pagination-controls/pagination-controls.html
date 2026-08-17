@@ -1,7 +1,15 @@
-<div class="pagination-controls" aria-label="Paginación">
+<div
+  class="pagination-controls"
+  aria-label="Paginación"
+  data-testid="pagination-controls"
+>
   <label>
     <span>Elementos por página</span>
-    <select [ngModel]="pageSize()" (ngModelChange)="changePageSize($event)">
+    <select
+      data-testid="page-size-select"
+      [ngModel]="pageSize()"
+      (ngModelChange)="changePageSize($event)"
+    >
       @for (option of pageSizeOptions; track option) {
       <option [value]="option">{{ option }}</option>
       }
@@ -12,6 +20,7 @@
   <button
     mat-stroked-button
     type="button"
+    data-testid="next-page-button"
     (click)="nextPage.emit()"
     [disabled]="isLoading()"
   >

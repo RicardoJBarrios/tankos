@@ -11,7 +11,7 @@ const item = (id: string, name: string): AquariumListItem => ({
 describe('ListMyAquariums', () => {
   it('returns an empty list for an authenticated keeper with no Aquariums', async () => {
     const reader: AquariumReader = {
-      listOwned: vi.fn().mockResolvedValue([]),
+      listOwned: vi.fn().mockResolvedValue({ items: [] }),
       getOwned: vi.fn(),
     };
     const session: KeeperSession = {
@@ -20,7 +20,7 @@ describe('ListMyAquariums', () => {
 
     const result = await new ListMyAquariums(reader, session).execute();
 
-    expect(result).toEqual([]);
+    expect(result).toEqual({ items: [] });
   });
 
   it('returns one or many items for the authenticated keeper', async () => {
@@ -29,7 +29,7 @@ describe('ListMyAquariums', () => {
       item('123e4567-e89b-42d3-a456-426614174001', 'Anterior'),
     ];
     const reader: AquariumReader = {
-      listOwned: vi.fn().mockResolvedValue(expected),
+      listOwned: vi.fn().mockResolvedValue({ items: expected }),
       getOwned: vi.fn(),
     };
     const session: KeeperSession = {
@@ -38,8 +38,8 @@ describe('ListMyAquariums', () => {
 
     const result = await new ListMyAquariums(reader, session).execute();
 
-    expect(result).toEqual(expected);
-    expect(reader.listOwned).toHaveBeenCalledWith('keeper-a');
+    expect(result).toEqual({ items: expected });
+    expect(reader.listOwned).toHaveBeenCalledWith('keeper-a', undefined);
   });
 
   it('propagates authentication failure without querying the reader', async () => {

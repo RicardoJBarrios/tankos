@@ -81,6 +81,16 @@ describe('FirestoreSpeciesProfileReader (Emulator Suite)', () => {
     });
   });
 
+  emulatorTest('does not expose a retired profile as published', async () => {
+    await seedSpeciesProfileFixtures();
+
+    const profile = await new FirestoreSpeciesProfileReader().getPublished(
+      speciesProfileIdFrom(speciesProfileFixtures.retiredWrasse.id),
+    );
+
+    expect(profile).toBeNull();
+  });
+
   emulatorTest('allows an editorial keeper to maintain a profile', async () => {
     await seedSpeciesProfileFixtures();
     const { auth, firestore } = getFirebaseClient();

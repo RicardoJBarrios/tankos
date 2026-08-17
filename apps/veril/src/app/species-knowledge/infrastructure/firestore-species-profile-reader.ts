@@ -1,23 +1,16 @@
 import { Injectable } from '@angular/core';
-import {
-  Timestamp,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  limit,
-  orderBy,
-  query,
-  where,
-} from 'firebase/firestore';
+import { Timestamp } from 'firebase/firestore/lite';
 import { z } from 'zod';
-import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { pageSizeFor } from '../../shared/application/pagination';
 import {
   SpeciesProfileId,
   speciesProfileIdFrom,
 } from '../domain/species-profile';
 import { PublishedSpeciesProfileReader } from '../application/ports';
+import {
+  getFirestoreReadClient,
+  isFirestoreTimestamp,
+} from '../../shared/infrastructure/firestore-read-client';
 
 const speciesProfileDocument = z.object({
   displayName: z.string().min(1),
@@ -37,14 +30,14 @@ const speciesProfileDocument = z.object({
       z.object({
         id: z.string().min(1),
         title: z.string().min(1),
-        url: z.string().url(),
-        publishedAt: z.instanceof(Timestamp).optional(),
+        url: z.url(),
+        publishedAt: z.custom<Timestamp>(isFirestoreTimestamp).optional(),
       }),
     )
     .min(1),
   revision: z.object({
     id: z.string().min(1),
-    publishedAt: z.instanceof(Timestamp),
+    publishedAt: z.custom<Timestamp>(isFirestoreTimestamp),
   }),
   status: z.enum(['published', 'retired']),
 });
@@ -52,13 +45,13 @@ const speciesProfileDocument = z.object({
 @Injectable()
 export class FirestoreSpeciesProfileReader implements PublishedSpeciesProfileReader {
   async listPublished() {
-    const { firestore } = getFirebaseClient();
-    const snapshot = await getDocs(
-      query(
-        collection(firestore, 'speciesProfiles'),
-        where('status', '==', 'published'),
-        orderBy('displayName', 'asc'),
-        limit(pageSizeFor()),
+    const { firestore, module } = getFirestoreReadClient();
+    const snapshot = await module.getDocs(
+      module.query(
+        module.collection(firestore, 'speciesProfiles'),
+        module.where('status', '==', 'published'),
+        module.orderBy('displayName', 'asc'),
+        module.limit(pageSizeFor()),
       ),
     );
     return snapshot.docs.map((entry) => {
@@ -73,8 +66,10 @@ export class FirestoreSpeciesProfileReader implements PublishedSpeciesProfileRea
   }
 
   async getPublished(id: SpeciesProfileId) {
-    const { firestore } = getFirebaseClient();
-    const snapshot = await getDoc(doc(firestore, 'speciesProfiles', id));
+    const { firestore, module } = getFirestoreReadClient();
+    const snapshot = await module.getDoc(
+      module.doc(firestore, 'speciesProfiles', id),
+    );
     if (!snapshot.exists()) return null;
     const dto = speciesProfileDocument.parse(snapshot.data());
     if (dto.status !== 'published') return null;

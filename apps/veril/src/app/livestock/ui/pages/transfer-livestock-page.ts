@@ -91,11 +91,11 @@ export class TransferLivestockPage implements OnInit {
         this.listLivestock.execute(),
         this.aquariumCatalog.listOwned(keeper.id),
       ]);
-      this.items.set(items);
+      this.items.set(items.items);
       this.aquariums.set(
         aquariums.filter((aquarium) => aquarium.id !== current),
       );
-      this.livestockId.set(items[0]?.id ?? '');
+      this.livestockId.set(items.items[0]?.id ?? '');
       this.aquariumId.set(
         aquariums.find((aquarium) => aquarium.id !== current)?.id ?? '',
       );
