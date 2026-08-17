@@ -42,6 +42,15 @@ export const appRoutes: Route[] = [
       import('./shells/public-shell/public-shell').then(
         ({ PublicShell }) => PublicShell,
       ),
+    children: [
+      {
+        path: 'species-knowledge/:id',
+        loadComponent: () =>
+          import('./species-knowledge/ui/pages/species-profile-page').then(
+            ({ SpeciesProfilePage }) => SpeciesProfilePage,
+          ),
+      },
+    ],
   },
   {
     path: 'app',
@@ -138,13 +147,6 @@ export const appRoutes: Route[] = [
         loadComponent: () =>
           import('./livestock/ui/pages/livestock-detail-page').then(
             ({ LivestockDetailPage }) => LivestockDetailPage,
-          ),
-      },
-      {
-        path: 'species-knowledge/:id',
-        loadComponent: () =>
-          import('./species-knowledge/ui/pages/species-profile-page').then(
-            ({ SpeciesProfilePage }) => SpeciesProfilePage,
           ),
       },
       {

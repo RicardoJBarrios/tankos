@@ -24,6 +24,13 @@ describe('serverRoutes', () => {
     });
   });
 
+  it('keeps public species profiles client-rendered', () => {
+    expect(serverRoutes).toContainEqual({
+      path: 'species-knowledge/**',
+      renderMode: RenderMode.Client,
+    });
+  });
+
   it('keeps authenticated shared access client-rendered', () => {
     expect(serverRoutes).toContainEqual({
       path: 'access/**',

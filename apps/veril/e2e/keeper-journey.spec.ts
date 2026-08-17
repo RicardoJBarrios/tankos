@@ -385,6 +385,7 @@ async function expectRecentActivity(
 
 test('an editorial keeper can publish, compare and retire a species profile', async ({
   page,
+  browser,
 }) => {
   process.env['FIREBASE_AUTH_EMULATOR_HOST'] = '127.0.0.1:9099';
   process.env['FIRESTORE_EMULATOR_HOST'] = '127.0.0.1:8080';
@@ -444,27 +445,47 @@ test('an editorial keeper can publish, compare and retire a species profile', as
   await expect(page.getByRole('status')).toContainText('Revisión publicada.');
 
   await page.getByRole('link', { name: 'Ver versión publicada' }).click();
-  await expect(page).toHaveURL(`/app/species-knowledge/${fixture.profileId}`);
+  await expect(page).toHaveURL(`/species-knowledge/${fixture.profileId}`);
   await expect(page.getByRole('heading', { name: 'Pez payaso' })).toBeVisible();
   await expect(page.locator('.markdown-content').first()).toContainText(
     'revisada',
   );
 
-  await page.goto(`/editorial/species-knowledge/${fixture.profileId}`);
-  await page.getByRole('link', { name: 'Ver historial editorial' }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Historial de revisiones' }),
-  ).toBeVisible();
-  await expect(page.locator('.markdown-content').first()).toContainText(
-    'revisada',
-  );
-  await expect(page.getByText('Comparar revisiones')).toBeVisible();
+  const anonymousPage = await browser.newPage();
+  try {
+    await anonymousPage.goto(`/species-knowledge/${fixture.profileId}`, {
+      waitUntil: 'commit',
+    });
+    await expect(
+      anonymousPage.getByRole('heading', { name: 'Pez payaso' }),
+    ).toBeVisible();
+    await expect(anonymousPage.locator('.markdown-content').first()).toContainText(
+      'revisada',
+    );
 
-  await page.goto(`/editorial/species-knowledge/${fixture.profileId}`);
-  await page.getByRole('button', { name: 'Retirar perfil' }).click();
-  await expect(page.getByRole('status')).toContainText(
-    'Perfil retirado. El historial permanece disponible.',
-  );
+    await page.goto(`/editorial/species-knowledge/${fixture.profileId}`);
+    await page.getByRole('link', { name: 'Ver historial editorial' }).click();
+    await expect(
+      page.getByRole('heading', { name: 'Historial de revisiones' }),
+    ).toBeVisible();
+    await expect(page.locator('.markdown-content').first()).toContainText(
+      'revisada',
+    );
+    await expect(page.getByText('Comparar revisiones')).toBeVisible();
+
+    await page.goto(`/editorial/species-knowledge/${fixture.profileId}`);
+    await page.getByRole('button', { name: 'Retirar perfil' }).click();
+    await expect(page.getByRole('status')).toContainText(
+      'Perfil retirado. El historial permanece disponible.',
+    );
+
+    await anonymousPage.reload();
+    await expect(anonymousPage.getByRole('alert')).toContainText(
+      'No se ha podido cargar el perfil de especie.',
+    );
+  } finally {
+    await anonymousPage.close();
+  }
 });
 
 test('protected recording pages recover when no Aquarium is selected', async ({

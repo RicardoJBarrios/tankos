@@ -37,6 +37,14 @@ describe('appRoutes', () => {
     await expect(harness.navigateByUrl('/', PublicShell)).resolves.toBeTruthy();
   });
 
+  it('defines the public species profile route outside the private shell', () => {
+    const publicRoute = appRoutes.find((route) => route.path === '');
+
+    expect(publicRoute?.children?.map((route) => route.path)).toContain(
+      'species-knowledge/:id',
+    );
+  });
+
   it('lazy loads the private CSR shell under /app', async () => {
     const harness = await RouterTestingHarness.create();
 

@@ -6,6 +6,10 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    path: 'species-knowledge/**',
+    renderMode: RenderMode.Client,
+  },
+  {
     path: 'app',
     renderMode: RenderMode.Client,
   },
