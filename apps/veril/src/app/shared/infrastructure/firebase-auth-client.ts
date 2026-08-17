@@ -10,10 +10,7 @@ import {
   getAuth,
   initializeAuth,
 } from 'firebase/auth';
-import {
-  appCheckSiteKey,
-  firebaseConfig,
-} from './firebase-runtime-config';
+import { appCheckSiteKey, firebaseConfig } from './firebase-runtime-config';
 
 let auth: Auth | undefined;
 

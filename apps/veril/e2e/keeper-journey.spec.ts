@@ -459,9 +459,9 @@ test('an editorial keeper can publish, compare and retire a species profile', as
     await expect(
       anonymousPage.getByRole('heading', { name: 'Pez payaso' }),
     ).toBeVisible();
-    await expect(anonymousPage.locator('.markdown-content').first()).toContainText(
-      'revisada',
-    );
+    await expect(
+      anonymousPage.locator('.markdown-content').first(),
+    ).toContainText('revisada');
 
     await page.goto(`/editorial/species-knowledge/${fixture.profileId}`);
     await page.getByRole('link', { name: 'Ver historial editorial' }).click();

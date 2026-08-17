@@ -110,12 +110,14 @@ describe('UpcomingCarePreview', () => {
   });
 
   it('shows overdue text without changing the planned timestamp', async () => {
-    execute.mockResolvedValue({ items: [
-      {
-        ...items[0],
-        plannedFor: new Date('2026-08-08T10:00:00.000Z'),
-      },
-    ] });
+    execute.mockResolvedValue({
+      items: [
+        {
+          ...items[0],
+          plannedFor: new Date('2026-08-08T10:00:00.000Z'),
+        },
+      ],
+    });
     const spectator = createComponent();
     await spectator.fixture.whenStable();
     spectator.component.now.set(new Date('2026-08-10T10:00:00.000Z'));

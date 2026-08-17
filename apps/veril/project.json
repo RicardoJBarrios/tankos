@@ -28,10 +28,7 @@
         "server": "apps/veril/src/main.server.ts",
         "ssr": true,
         "outputMode": "static",
-        "allowedCommonJsDependencies": [
-          "@grpc/grpc-js",
-          "@grpc/proto-loader"
-        ]
+        "allowedCommonJsDependencies": ["@grpc/grpc-js", "@grpc/proto-loader"]
       },
       "configurations": {
         "production": {

@@ -70,10 +70,15 @@ function encodeCursor(item: PlannedCareWorkListItem): PlannedCareWorkCursor {
 }
 
 function decodeCursor(cursor: PlannedCareWorkCursor) {
-  const value = plannedCareWorkCursor.parse(JSON.parse(decodeURIComponent(cursor)));
+  const value = plannedCareWorkCursor.parse(
+    JSON.parse(decodeURIComponent(cursor)),
+  );
   const plannedFor = new Date(value.plannedFor);
   const recordedAt = new Date(value.recordedAt);
-  if (Number.isNaN(plannedFor.getTime()) || Number.isNaN(recordedAt.getTime())) {
+  if (
+    Number.isNaN(plannedFor.getTime()) ||
+    Number.isNaN(recordedAt.getTime())
+  ) {
     throw new Error('Planned care work cursor contains invalid dates');
   }
   return { plannedFor, recordedAt, plannedCareWorkId: value.plannedCareWorkId };
@@ -253,7 +258,11 @@ export class FirestorePlannedCareWorkRepository
           : undefined,
       decodeCursor: (value) => {
         const decoded = decodeCursor(value as PlannedCareWorkCursor);
-        return [decoded.plannedFor, decoded.recordedAt, decoded.plannedCareWorkId];
+        return [
+          decoded.plannedFor,
+          decoded.recordedAt,
+          decoded.plannedCareWorkId,
+        ];
       },
       encodeCursor,
       map: (entry) => {

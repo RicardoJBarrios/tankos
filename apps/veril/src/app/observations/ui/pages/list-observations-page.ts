@@ -123,7 +123,10 @@ export class ListObservationsPage implements OnInit {
   private async loadObservations(): Promise<void> {
     try {
       await this.loadTimeZone();
-      const page = await this.listObservations.execute(undefined, this.pageSize());
+      const page = await this.listObservations.execute(
+        undefined,
+        this.pageSize(),
+      );
       this.items.set(page.items);
       this.nextCursor.set(page.nextCursor);
       this.state.set(page.items.length === 0 ? 'empty' : 'success');

@@ -69,13 +69,16 @@ await aquariumReference.set({
   establishedAt: Timestamp.fromDate(new Date('2026-08-17T10:00:00.000Z')),
   timeZone: 'Atlantic/Canary',
 });
-await firestore.collection('aquariums').doc(secondaryAquariumId).set({
-  ownerId: accounts.editorial.uid,
-  name: 'E2E Shared Aquarium',
-  establishedBy: accounts.editorial.uid,
-  establishedAt: Timestamp.fromDate(new Date('2026-08-17T10:00:00.000Z')),
-  timeZone: 'Atlantic/Canary',
-});
+await firestore
+  .collection('aquariums')
+  .doc(secondaryAquariumId)
+  .set({
+    ownerId: accounts.editorial.uid,
+    name: 'E2E Shared Aquarium',
+    establishedBy: accounts.editorial.uid,
+    establishedAt: Timestamp.fromDate(new Date('2026-08-17T10:00:00.000Z')),
+    timeZone: 'Atlantic/Canary',
+  });
 
 const existingMeasurements = await firestore
   .collection('measurements')
@@ -137,18 +140,21 @@ await firestore.collection('careWorks').doc(randomUUID()).set({
   recordedAt,
   provenance: 'manual',
 });
-await firestore.collection('livestock').doc(randomUUID()).set({
-  aquariumId,
-  ownerId: accounts.keeper.uid,
-  speciesProfileId: 'e2e-species-profile',
-  category: 'fish',
-  representation: 'individual',
-  displayName: 'E2E clownfish',
-  lifecycle: 'active',
-  associatedAt: recordedAt,
-  updatedAt: recordedAt,
-  associationHistory: [{ aquariumId, associatedAt: recordedAt }],
-});
+await firestore
+  .collection('livestock')
+  .doc(randomUUID())
+  .set({
+    aquariumId,
+    ownerId: accounts.keeper.uid,
+    speciesProfileId: 'e2e-species-profile',
+    category: 'fish',
+    representation: 'individual',
+    displayName: 'E2E clownfish',
+    lifecycle: 'active',
+    associatedAt: recordedAt,
+    updatedAt: recordedAt,
+    associationHistory: [{ aquariumId, associatedAt: recordedAt }],
+  });
 
 await firestore
   .collection('aquariumAccessInvitations')

@@ -25,12 +25,12 @@ export const firebaseConfig = useEmulatorConfiguration
         projectId: 'veril-staging',
         appId: '1:602184432432:web:a2c79c862c33d6deb4e6f5',
       }
-  : {
-      apiKey: 'AIzaSyBDhwznoPbQ9FEwDaMZshW5fZ0Z3OPIYTM',
-      authDomain: 'veril-dd4e1.firebaseapp.com',
-      projectId: 'veril-dd4e1',
-      appId: '1:147729567472:web:d67b81c8864b93a3543c35',
-    };
+    : {
+        apiKey: 'AIzaSyBDhwznoPbQ9FEwDaMZshW5fZ0Z3OPIYTM',
+        authDomain: 'veril-dd4e1.firebaseapp.com',
+        projectId: 'veril-dd4e1',
+        appId: '1:147729567472:web:d67b81c8864b93a3543c35',
+      };
 
 export const appCheckSiteKey = useEmulatorConfiguration
   ? undefined

@@ -67,7 +67,11 @@ describe('ListObservations', () => {
     vi.mocked(reader.listOwned).mockResolvedValue({ items });
 
     await expect(list.execute()).resolves.toEqual({ items });
-    expect(reader.listOwned).toHaveBeenCalledWith('keeper-a', aquariumId, undefined);
+    expect(reader.listOwned).toHaveBeenCalledWith(
+      'keeper-a',
+      aquariumId,
+      undefined,
+    );
   });
 
   it('returns an empty result', async () => {

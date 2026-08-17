@@ -93,7 +93,9 @@ describe('FirestoreAquariumRepository (Emulator Suite)', () => {
       });
 
       expect(
-        (await repository.listOwned(keeperB.id)).items.map((item) => item.name.value),
+        (await repository.listOwned(keeperB.id)).items.map(
+          (item) => item.name.value,
+        ),
       ).toEqual(['Acuario de B']);
       expect(
         (await repository.getOwned(keeperB.id, aquariumB.id))?.name.value,

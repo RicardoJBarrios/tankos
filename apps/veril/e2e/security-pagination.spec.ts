@@ -64,9 +64,7 @@ async function signIn(
       await expect(page.getByTestId('sign-in-form')).toBeVisible();
       await page.waitForTimeout(300);
       if (new URL(page.url()).pathname === targetPath) return;
-      await page
-        .getByTestId('sign-in-email')
-        .fill(email, { timeout: 3_000 });
+      await page.getByTestId('sign-in-email').fill(email, { timeout: 3_000 });
       await page
         .getByTestId('sign-in-password')
         .fill(password, { timeout: 3_000 });
@@ -75,10 +73,9 @@ async function signIn(
         await page.waitForTimeout(500);
         return;
       }
-      await page.waitForURL(
-        (url) => url.pathname === targetPath,
-        { timeout: 5_000 },
-      );
+      await page.waitForURL((url) => url.pathname === targetPath, {
+        timeout: 5_000,
+      });
       return;
     } catch (error) {
       if (attempt === 2) throw error;

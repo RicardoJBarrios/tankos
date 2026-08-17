@@ -34,7 +34,10 @@ import {
 import { formatAquariumDateTime } from '../../../shared/ui/aquarium-date-time';
 import { AsyncListPageState } from '../../../shared/ui/page-state';
 import { systemClock } from '../../../shared/application/clock';
-import { DEFAULT_PAGE_SIZE, pageSizeFor } from '../../../shared/application/pagination';
+import {
+  DEFAULT_PAGE_SIZE,
+  pageSizeFor,
+} from '../../../shared/application/pagination';
 import { PaginationControls } from '../../../shared/ui/pagination-controls/pagination-controls';
 
 type PageState = AsyncListPageState;
@@ -139,11 +142,16 @@ export class ListPlannedCareWorkPage implements OnInit {
     this.isLoadingMore.set(true);
     this.errorMessage.set('');
     try {
-      const page = await this.listPlannedCareWork.execute(cursor, this.pageSize());
+      const page = await this.listPlannedCareWork.execute(
+        cursor,
+        this.pageSize(),
+      );
       this.items.update((items) => [...items, ...page.items]);
       this.nextCursor.set(page.nextCursor);
     } catch {
-      this.errorMessage.set('No se han podido cargar más cuidados planificados. Inténtalo de nuevo.');
+      this.errorMessage.set(
+        'No se han podido cargar más cuidados planificados. Inténtalo de nuevo.',
+      );
     } finally {
       this.isLoadingMore.set(false);
     }
@@ -245,7 +253,10 @@ export class ListPlannedCareWorkPage implements OnInit {
     try {
       this.now.set(systemClock.now());
       await this.loadTimeZone();
-      const page = await this.listPlannedCareWork.execute(undefined, this.pageSize());
+      const page = await this.listPlannedCareWork.execute(
+        undefined,
+        this.pageSize(),
+      );
       this.items.set(page.items);
       this.nextCursor.set(page.nextCursor);
       this.state.set(page.items.length === 0 ? 'empty' : 'success');

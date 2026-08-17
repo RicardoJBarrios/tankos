@@ -7,12 +7,7 @@ import { PRIVATE_SHELL_PROVIDERS } from './private-shell.providers';
 
 @Component({
   selector: 'veril-private-shell',
-  imports: [
-    MatButtonModule,
-    MatToolbarModule,
-    RouterLink,
-    RouterOutlet,
-  ],
+  imports: [MatButtonModule, MatToolbarModule, RouterLink, RouterOutlet],
   providers: PRIVATE_SHELL_PROVIDERS,
   templateUrl: './private-shell.html',
   styleUrl: './private-shell.css',

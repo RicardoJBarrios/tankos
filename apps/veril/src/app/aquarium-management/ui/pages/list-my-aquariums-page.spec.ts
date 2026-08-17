@@ -81,10 +81,12 @@ describe('ListMyAquariumsPage', () => {
   });
 
   it('renders one or multiple Aquarium names without navigation', async () => {
-    execute.mockResolvedValue({ items: [
-      aquarium('123e4567-e89b-42d3-a456-426614174000', 'Veril'),
-      aquarium('123e4567-e89b-42d3-a456-426614174001', 'Acuario auxiliar'),
-    ] });
+    execute.mockResolvedValue({
+      items: [
+        aquarium('123e4567-e89b-42d3-a456-426614174000', 'Veril'),
+        aquarium('123e4567-e89b-42d3-a456-426614174001', 'Acuario auxiliar'),
+      ],
+    });
     const spectator: Spectator<ListMyAquariumsPage> = createComponent();
     await new Promise((resolve) => setTimeout(resolve, 0));
     spectator.detectChanges();
@@ -96,9 +98,9 @@ describe('ListMyAquariumsPage', () => {
   });
 
   it('selects an Aquarium from the list', async () => {
-    execute.mockResolvedValue({ items: [
-      aquarium('123e4567-e89b-42d3-a456-426614174000', 'Veril'),
-    ] });
+    execute.mockResolvedValue({
+      items: [aquarium('123e4567-e89b-42d3-a456-426614174000', 'Veril')],
+    });
     const spectator: Spectator<ListMyAquariumsPage> = createComponent();
     selectAquarium.mockImplementation(async (id) => {
       spectator.inject(ActiveAquariumContext).select(id);

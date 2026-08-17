@@ -3,9 +3,7 @@ import { aquariumIdFrom } from '../../shared/domain/aquarium-reference';
 import { ActiveAquariumContext } from '../../shared/application/active-aquarium-context';
 import { ActiveAquariumContextStorage } from '../../shared/application/active-aquarium-context-storage';
 import { KeeperSession, PlannedCareWorkReader } from './ports';
-import {
-  ListPlannedCareWork,
-} from './list-planned-care-work';
+import { ListPlannedCareWork } from './list-planned-care-work';
 
 const aquariumId = aquariumIdFrom('123e4567-e89b-42d3-a456-426614174000');
 const item = {

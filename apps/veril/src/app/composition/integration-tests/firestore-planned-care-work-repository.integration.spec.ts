@@ -71,9 +71,17 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
         provenance: 'manual',
       });
 
-      const items = await repository.listOwned(keeper.id, aquarium.id, undefined, 10);
+      const items = await repository.listOwned(
+        keeper.id,
+        aquarium.id,
+        undefined,
+        10,
+      );
       expect(items.items.map((item) => item.id)).toEqual([firstId, secondId]);
-      expect(items.items[0]).toMatchObject({ description: 'Primero', plannedFor });
+      expect(items.items[0]).toMatchObject({
+        description: 'Primero',
+        plannedFor,
+      });
 
       const { auth, firestore } = getFirebaseClient();
       const stored = await getDoc(doc(firestore, 'plannedCareWorks', firstId));
@@ -89,9 +97,9 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
       });
       expect(completed.description).toBe('Primero');
       expect(
-        (await repository.listOwned(keeper.id, aquarium.id, undefined, 10)).items.map(
-          ({ id }) => id,
-        ),
+        (
+          await repository.listOwned(keeper.id, aquarium.id, undefined, 10)
+        ).items.map(({ id }) => id),
       ).toEqual([secondId]);
       const completedDocument = await getDoc(
         doc(firestore, 'careWorks', completed.id),
@@ -108,9 +116,9 @@ describe('PlannedCareWork persistence (Emulator Suite)', () => {
         ownerKeeperId: keeper.id,
       });
       expect(
-        (await repository.listOwned(keeper.id, aquarium.id, undefined, 10)).items.map(
-          ({ id }) => id,
-        ),
+        (
+          await repository.listOwned(keeper.id, aquarium.id, undefined, 10)
+        ).items.map(({ id }) => id),
       ).toEqual([]);
       const careWorks = await getDocs(
         query(

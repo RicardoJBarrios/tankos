@@ -55,7 +55,8 @@ const aquariumCursor = z.object({
 });
 
 function encodeAquariumCursor(item: AquariumListItem): AquariumCursor {
-  if (!item.establishedAt) throw new Error('Aquarium cursor metadata is missing');
+  if (!item.establishedAt)
+    throw new Error('Aquarium cursor metadata is missing');
   return encodeURIComponent(
     JSON.stringify({
       establishedAt: item.establishedAt.toISOString(),

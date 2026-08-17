@@ -14,7 +14,10 @@ import { ActiveAquariumContext } from '../../../shared/application/active-aquari
 import { ListMyAquariums } from '../../application/list-my-aquariums';
 import { SelectAquarium } from '../../application/select-aquarium';
 import { AQUARIUM_REPOSITORY, KEEPER_SESSION } from '../providers';
-import { DEFAULT_PAGE_SIZE, pageSizeFor } from '../../../shared/application/pagination';
+import {
+  DEFAULT_PAGE_SIZE,
+  pageSizeFor,
+} from '../../../shared/application/pagination';
 import { PaginationControls } from '../../../shared/ui/pagination-controls/pagination-controls';
 
 type ListState = 'loading' | 'empty' | 'success' | 'failure';
@@ -114,7 +117,10 @@ export class ListMyAquariumsPage implements OnInit {
 
   private async loadAquariums(): Promise<void> {
     try {
-      const page = await this.listMyAquariums.execute(undefined, this.pageSize());
+      const page = await this.listMyAquariums.execute(
+        undefined,
+        this.pageSize(),
+      );
       this.aquariums.set(page.items);
       this.nextCursor.set(page.nextCursor);
       this.state.set(page.items.length === 0 ? 'empty' : 'success');

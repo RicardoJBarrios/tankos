@@ -20,7 +20,10 @@ import {
 } from '../providers';
 import { formatAquariumDateTime } from '../../../shared/ui/aquarium-date-time';
 import { AsyncListPageState } from '../../../shared/ui/page-state';
-import { DEFAULT_PAGE_SIZE, pageSizeFor } from '../../../shared/application/pagination';
+import {
+  DEFAULT_PAGE_SIZE,
+  pageSizeFor,
+} from '../../../shared/application/pagination';
 import { PaginationControls } from '../../../shared/ui/pagination-controls/pagination-controls';
 
 type PageState = AsyncListPageState;
@@ -92,7 +95,9 @@ export class ListCareWorkPage implements OnInit {
       this.items.update((items) => [...items, ...page.items]);
       this.nextCursor.set(page.nextCursor);
     } catch {
-      this.errorMessage.set('No se han podido cargar más cuidados. Inténtalo de nuevo.');
+      this.errorMessage.set(
+        'No se han podido cargar más cuidados. Inténtalo de nuevo.',
+      );
     } finally {
       this.isLoadingMore.set(false);
     }

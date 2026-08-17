@@ -46,7 +46,10 @@ function decodeCursor(cursor: CareWorkCursor) {
   const value = careWorkCursor.parse(JSON.parse(decodeURIComponent(cursor)));
   const performedAt = new Date(value.performedAt);
   const recordedAt = new Date(value.recordedAt);
-  if (Number.isNaN(performedAt.getTime()) || Number.isNaN(recordedAt.getTime())) {
+  if (
+    Number.isNaN(performedAt.getTime()) ||
+    Number.isNaN(recordedAt.getTime())
+  ) {
     throw new Error('Care work cursor contains invalid dates');
   }
   return { performedAt, recordedAt, careWorkId: value.careWorkId };
