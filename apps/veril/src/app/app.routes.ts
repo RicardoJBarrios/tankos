@@ -114,6 +114,35 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'aquariums/equipment',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./equipment/ui/pages/list-equipment-page').then(
+            ({ ListEquipmentPage }) => ListEquipmentPage,
+          ),
+      },
+      {
+        path: 'aquariums/equipment/new',
+        loadComponent: () =>
+          import('./equipment/ui/pages/equipment-form-page').then(
+            ({ EquipmentFormPage }) => EquipmentFormPage,
+          ),
+      },
+      {
+        path: 'aquariums/equipment/transfer',
+        loadComponent: () =>
+          import('./equipment/ui/pages/transfer-equipment-page').then(
+            ({ TransferEquipmentPage }) => TransferEquipmentPage,
+          ),
+      },
+      {
+        path: 'aquariums/equipment/:id',
+        loadComponent: () =>
+          import('./equipment/ui/pages/equipment-form-page').then(
+            ({ EquipmentFormPage }) => EquipmentFormPage,
+          ),
+      },
+      {
         path: 'aquariums/livestock',
         pathMatch: 'full',
         loadComponent: () =>
