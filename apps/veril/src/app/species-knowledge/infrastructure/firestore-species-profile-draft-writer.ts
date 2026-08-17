@@ -20,7 +20,7 @@ import { getFirebaseClient } from '../../shared/infrastructure/firebase-client';
 import { speciesProfileIdFrom } from '../domain/species-profile';
 
 const speciesProfileDraft = z.object({
-  speciesProfileId: z.string().uuid(),
+  speciesProfileId: z.uuid(),
   displayName: z.string().min(1),
   scientificName: z.string().optional(),
   description: z.string().min(1),
@@ -38,7 +38,7 @@ const speciesProfileDraft = z.object({
       z.object({
         id: z.string().min(1),
         title: z.string().min(1),
-        url: z.string().url(),
+        url: z.url(),
         publishedAt: z.date().optional(),
       }),
     )
@@ -46,7 +46,7 @@ const speciesProfileDraft = z.object({
 });
 
 const persistedSpeciesProfileDraft = z.object({
-  speciesProfileId: z.string().uuid(),
+  speciesProfileId: z.uuid(),
   displayName: z.string().min(1),
   scientificName: z.string().optional(),
   description: z.string().min(1),
@@ -56,7 +56,7 @@ const persistedSpeciesProfileDraft = z.object({
       z.object({
         id: z.string().min(1),
         title: z.string().min(1),
-        url: z.string().url(),
+        url: z.url(),
         publishedAt: z.instanceof(Timestamp).optional(),
       }),
     )
