@@ -1,0 +1,16 @@
+name: CI develop
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+concurrency:
+  group: ci-develop-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  basic:
+    uses: ./.github/workflows/ci-checks.yml
+    with:
+      full: false
