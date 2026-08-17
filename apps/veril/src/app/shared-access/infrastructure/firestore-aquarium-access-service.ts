@@ -127,6 +127,7 @@ export class FirestoreAquariumAccessService implements AquariumAccessService {
       plannedCareWorks: 'plannedCareWorks',
       recurringCarePlans: 'recurringCarePlans',
       livestock: 'livestock',
+      equipment: 'equipment',
     };
     for (const [permission, collectionName] of Object.entries(collections)) {
       if (grant.permissions[permission as AquariumAccessPermission] !== true)

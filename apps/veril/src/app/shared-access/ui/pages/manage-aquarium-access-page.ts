@@ -113,6 +113,7 @@ export class ManageAquariumAccessPage implements OnInit {
       plannedCareWorks: 'Cuidados planificados',
       recurringCarePlans: 'Planes recurrentes',
       livestock: 'Livestock',
+      equipment: 'Equipment',
     }[permission];
   }
 
