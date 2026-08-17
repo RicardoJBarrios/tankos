@@ -76,7 +76,8 @@ service cloud.firestore {
           'plannedCareWorks',
           'recurringCarePlans',
           'livestock',
-          'equipment'
+          'equipment',
+          'waterChanges'
         ])
         && (!permissions.keys().hasAll(['aquarium']) || permissions.aquarium is bool)
         && (!permissions.keys().hasAll(['measurements']) || permissions.measurements is bool)
@@ -85,7 +86,8 @@ service cloud.firestore {
         && (!permissions.keys().hasAll(['plannedCareWorks']) || permissions.plannedCareWorks is bool)
         && (!permissions.keys().hasAll(['recurringCarePlans']) || permissions.recurringCarePlans is bool)
         && (!permissions.keys().hasAll(['livestock']) || permissions.livestock is bool)
-        && (!permissions.keys().hasAll(['equipment']) || permissions.equipment is bool);
+        && (!permissions.keys().hasAll(['equipment']) || permissions.equipment is bool)
+        && (!permissions.keys().hasAll(['waterChanges']) || permissions.waterChanges is bool);
     }
 
     match /aquariumAccessGrants/{grantDocumentId} {
@@ -568,6 +570,41 @@ service cloud.firestore {
 
       allow get: if canReadAquarium(resource.data.aquariumId, 'careWorks');
       allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'careWorks');
+      allow update, delete: if false;
+    }
+
+    match /waterChanges/{waterChangeId} {
+      allow create: if isKeeper()
+        && request.resource.data.keys().hasOnly([
+          'aquariumId',
+          'ownerId',
+          'volumeLitres',
+          'performedAt',
+          'recordedAt',
+          'notes',
+          'provenance'
+        ])
+        && request.resource.data.keys().hasAll([
+          'aquariumId',
+          'ownerId',
+          'volumeLitres',
+          'performedAt',
+          'recordedAt',
+          'provenance'
+        ])
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.aquariumId is string
+        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
+        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
+        && request.resource.data.volumeLitres is number
+        && request.resource.data.volumeLitres > 0
+        && request.resource.data.performedAt is timestamp
+        && request.resource.data.recordedAt is timestamp
+        && (!request.resource.data.keys().hasAll(['notes']) || isBoundedText(request.resource.data.notes, 1000))
+        && request.resource.data.provenance == 'manual';
+
+      allow get: if canReadAquarium(resource.data.aquariumId, 'waterChanges');
+      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'waterChanges');
       allow update, delete: if false;
     }
 
