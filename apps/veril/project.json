@@ -27,7 +27,11 @@
         ],
         "server": "apps/veril/src/main.server.ts",
         "ssr": true,
-        "outputMode": "static"
+        "outputMode": "static",
+        "allowedCommonJsDependencies": [
+          "@grpc/grpc-js",
+          "@grpc/proto-loader"
+        ]
       },
       "configurations": {
         "production": {
@@ -67,7 +71,17 @@
       }
     },
     "lint": {
-      "executor": "@nx/eslint:lint",
+      "inputs": [
+        "default",
+        "^default",
+        "{workspaceRoot}/.eslintrc.json",
+        "{workspaceRoot}/.eslintignore",
+        "{workspaceRoot}/eslint.config.mjs",
+        "{workspaceRoot}/tools/eslint-rules/**/*",
+        {
+          "externalDependencies": ["eslint"]
+        }
+      ],
       "dependsOn": ["architecture"]
     },
     "architecture": {
