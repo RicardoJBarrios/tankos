@@ -19,6 +19,7 @@ export interface TimelineMeasurement {
   readonly measuredAt: Date;
   readonly recordedAt: Date;
   readonly provenance: 'manual';
+  readonly correctsMeasurementId?: string;
 }
 
 export interface TimelineCareWork {

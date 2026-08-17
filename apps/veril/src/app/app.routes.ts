@@ -207,6 +207,13 @@ export const appRoutes: Route[] = [
           ),
       },
       {
+        path: 'aquariums/measurements/:id/correct',
+        loadComponent: () =>
+          import('./measurements/ui/pages/record-measurement-page').then(
+            ({ RecordMeasurementPage }) => RecordMeasurementPage,
+          ),
+      },
+      {
         path: 'aquariums/measurements/new',
         loadComponent: () =>
           import('./measurements/ui/pages/record-measurement-page').then(

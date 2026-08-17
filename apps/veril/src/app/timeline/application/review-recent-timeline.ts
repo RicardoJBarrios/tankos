@@ -30,6 +30,7 @@ export type MeasurementTimelineItem = {
   readonly effectiveAt: Date;
   readonly measuredAt: Date;
   readonly recordedAt: Date;
+  readonly correctsMeasurementId?: string;
 };
 
 export type CareWorkTimelineItem = {
@@ -113,6 +114,9 @@ function toTimelineItem(
     effectiveAt: item.measuredAt,
     measuredAt: item.measuredAt,
     recordedAt: item.recordedAt,
+    ...(item.correctsMeasurementId
+      ? { correctsMeasurementId: item.correctsMeasurementId }
+      : {}),
   };
 }
 

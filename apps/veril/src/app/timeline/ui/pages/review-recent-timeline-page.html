@@ -69,7 +69,10 @@
             {{ formatDate(item.effectiveAt) }}
           </time>
           } @else if (isMeasurement(item)) {
-          <p class="item-kind">Medición</p>
+          <p class="item-kind">
+            {{ item.correctsMeasurementId ? 'Corrección de medición' :
+            'Medición' }}
+          </p>
           <div class="measurement-row">
             <strong
               >{{ measurementLabel(item) }}: {{ item.canonicalValue }} {{
