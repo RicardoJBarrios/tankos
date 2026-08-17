@@ -39,3 +39,7 @@ independent aggregate and durable Fact with its own volume and timestamp
 semantics. It references `AquariumId` without belonging to the Aquarium
 consistency boundary. Generic Care Work remains the source for free-form
 intentional actions; Water Change is not a category added to Care Work.
+
+Timeline may project Water Changes through an explicit reader contract and
+composition adapter. This does not make Timeline a source of truth or create a
+direct Maintenance-to-Timeline dependency.

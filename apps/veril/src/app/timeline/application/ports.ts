@@ -28,6 +28,14 @@ export interface TimelineCareWork {
   readonly recordedAt: Date;
 }
 
+export interface TimelineWaterChange {
+  readonly id: string;
+  readonly volumeLitres: number;
+  readonly notes?: string;
+  readonly performedAt: Date;
+  readonly recordedAt: Date;
+}
+
 export interface TimelineObservationReader {
   listRecentOwned(
     ownerKeeperId: string,
@@ -50,6 +58,14 @@ export interface TimelineCareWorkReader {
     aquariumId: AquariumId,
     limit: number,
   ): Promise<readonly TimelineCareWork[]>;
+}
+
+export interface TimelineWaterChangeReader {
+  listRecentOwned(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    limit: number,
+  ): Promise<readonly TimelineWaterChange[]>;
 }
 
 export type ObservationListItem = TimelineObservation;
