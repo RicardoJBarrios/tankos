@@ -1,0 +1,58 @@
+<section
+  class="page-section"
+  data-testid="shared-parameter-history"
+  aria-labelledby="shared-history-title"
+>
+  <p class="eyebrow">Acceso compartido · solo lectura</p>
+  <h2 id="shared-history-title">Historial de mediciones</h2>
+  <p>Solo puedes consultar las mediciones que el propietario ha compartido.</p>
+  <a
+    mat-button
+    [routerLink]="['/shared/aquariums', route.snapshot.paramMap.get('aquariumId')]"
+    >Volver al acuario compartido</a
+  >
+
+  <label for="shared-history-parameter">Parámetro</label>
+  <select
+    id="shared-history-parameter"
+    [value]="parameterId()"
+    (change)="updateParameter($any($event.target).value)"
+  >
+    @for (parameter of parameters; track parameter.id) {
+    <option [value]="parameter.id">{{ parameter.label }}</option>
+    }
+  </select>
+
+  @if (isLoading()) {
+  <p role="status">Cargando mediciones…</p>
+  } @else if (error()) {
+  <p role="alert">No tienes permiso para consultar estas mediciones.</p>
+  } @else if (items().length === 0) {
+  <p>No hay mediciones para este parámetro.</p>
+  } @else {
+  <ul aria-label="Mediciones compartidas">
+    @for (item of items(); track item.id) {
+    <li>
+      <mat-card appearance="outlined"
+        ><mat-card-content>
+          <span>{{ label(item) }}</span>
+          <strong>{{ item.canonicalValue }} {{ unit(item) }}</strong>
+          <time [attr.datetime]="item.measuredAt.toISOString()"
+            >{{ item.measuredAt | date:'medium' }}</time
+          >
+          @if (item.correctsMeasurementId) {
+          <span>Corrección de una medición anterior</span> }
+        </mat-card-content></mat-card
+      >
+    </li>
+    }
+  </ul>
+  <veril-pagination-controls
+    [hasNextPage]="!!nextCursor()"
+    [isLoading]="isLoadingMore()"
+    [pageSize]="pageSize()"
+    (nextPage)="loadMore()"
+    (pageSizeChange)="changePageSize($event)"
+  />
+  }
+</section>

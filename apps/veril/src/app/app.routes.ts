@@ -13,11 +13,10 @@ export const appRoutes: Route[] = [
       ),
   },
   {
-    path: 'shared/aquariums/:aquariumId',
-    canActivate: [authenticatedAccessGuard],
-    loadComponent: () =>
-      import('./shared-access/ui/shared-aquarium-page').then(
-        ({ SharedAquariumPage }) => SharedAquariumPage,
+    path: 'shared',
+    loadChildren: () =>
+      import('./composition/shared-access/shared-access.routes').then(
+        ({ SHARED_ACCESS_ROUTES }) => SHARED_ACCESS_ROUTES,
       ),
   },
   {

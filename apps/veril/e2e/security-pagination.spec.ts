@@ -207,6 +207,16 @@ test('a keeper can grant, verify and revoke scoped viewer access', async ({
     await expect(viewerPage.getByTestId('shared-aquarium')).toContainText(
       'waterChanges: 1 registros disponibles',
     );
+    await viewerPage.getByRole('link', { name: 'Consultar historial' }).click();
+    await expect(viewerPage).toHaveURL(
+      `/shared/aquariums/${fixture.aquariumId}/measurements/history`,
+    );
+    await expect(
+      viewerPage.getByTestId('shared-parameter-history'),
+    ).toContainText('Historial de mediciones');
+    await expect(
+      viewerPage.getByTestId('shared-parameter-history').locator('li'),
+    ).toHaveCount(20);
 
     await page.goto('/app/aquariums/access');
     const grant = page.getByTestId('access-grant');
@@ -216,7 +226,7 @@ test('a keeper can grant, verify and revoke scoped viewer access', async ({
 
     await viewerPage.reload();
     await expect(viewerPage.getByRole('alert')).toContainText(
-      'No tienes acceso a este acuario.',
+      'No tienes permiso para consultar estas mediciones.',
     );
   } finally {
     await viewerPage.close();

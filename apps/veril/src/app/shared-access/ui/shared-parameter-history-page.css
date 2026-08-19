@@ -1,0 +1,28 @@
+.page-section {
+  max-width: 56rem;
+}
+.eyebrow {
+  color: var(--mat-sys-primary);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+select {
+  min-height: 2.5rem;
+  margin: 1rem 0;
+  padding: 0.4rem;
+  font: inherit;
+}
+ul {
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+li mat-card-content {
+  display: grid;
+  gap: 0.4rem;
+}
+time {
+  color: var(--mat-sys-on-surface-variant);
+}

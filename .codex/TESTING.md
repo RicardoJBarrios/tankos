@@ -193,6 +193,13 @@ inside it, verifies `Dentro del objetivo`, edits the same target and verifies
 `Por debajo del objetivo` without recording another Measurement, and finally
 removes the target and verifies `Sin objetivo configurado`.
 
+Shared Parameter History reuses the immutable Measurement documents for a
+delegated authenticated guest. The shared-access adapter and Rules are
+covered by the existing Firebase Emulator permission flow; the browser journey
+verifies parameter history navigation, the bounded first page and immediate
+read denial after revoking the `measurements` grant. The shared UI remains
+read-only and does not expose correction actions.
+
 The Aquarium Dashboard uses a scoped Signal Store for cross-section context and
 configuration state. It is also the single owner of Current Measurement loading,
 errors and derived `CurrentParameterState` values. Store tests verify selected-

@@ -10,6 +10,7 @@ const contexts = [
   'equipment',
   'maintenance',
   'species-knowledge',
+  'shared-access',
 ] as const;
 
 const layers = ['domain', 'application', 'infrastructure', 'ui'] as const;
@@ -46,8 +47,19 @@ modules['apps/veril/src/app/composition/editorial'] = [
 ];
 modules['apps/veril/src/app/composition/<feature>'] = [
   'context:composition',
-  'layer:ui',
+  'layer:composition',
 ];
+modules['apps/veril/src/app/composition/shared-access'] = [
+  'context:composition',
+  'layer:composition',
+];
+
+for (const layer of layers) {
+  modules[`apps/veril/src/app/shared-access/${layer}`] = [
+    'context:shared-access',
+    `layer:${layer}`,
+  ];
+}
 
 export const config: SheriffConfig = {
   entryPoints: {
@@ -78,6 +90,7 @@ export const config: SheriffConfig = {
       'context:species-knowledge',
       'context:shared',
     ],
+    'context:shared-access': ['context:shared-access', 'context:shared'],
     'context:shared': ['context:shared'],
     'context:composition': [
       'context:composition',
@@ -90,6 +103,7 @@ export const config: SheriffConfig = {
       'context:equipment',
       'context:maintenance',
       'context:species-knowledge',
+      'context:shared-access',
       'context:shared',
     ],
     'context:shells': [

@@ -23,7 +23,12 @@
     (sectionCount(currentAquarium, section) !== undefined) {
     <li>
       {{ section }}: {{ sectionCount(currentAquarium, section) }} registros
-      disponibles
+      disponibles @if (section === 'measurements') {
+      <a
+        [routerLink]="['/shared/aquariums', route.snapshot.paramMap.get('aquariumId'), 'measurements', 'history']"
+        >Consultar historial</a
+      >
+      }
     </li>
     } }
   </ul>

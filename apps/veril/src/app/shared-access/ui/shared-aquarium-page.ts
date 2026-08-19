@@ -11,25 +11,17 @@ import {
   AquariumAccessService,
   SharedAquariumView,
 } from '../application/ports';
-import { FirestoreAquariumAccessService } from '../infrastructure/firestore-aquarium-access-service';
 import { AQUARIUM_ACCESS_SERVICE } from './providers';
 
 @Component({
   selector: 'veril-shared-aquarium-page',
   imports: [RouterLink],
-  providers: [
-    FirestoreAquariumAccessService,
-    {
-      provide: AQUARIUM_ACCESS_SERVICE,
-      useExisting: FirestoreAquariumAccessService,
-    },
-  ],
   templateUrl: './shared-aquarium-page.html',
   styleUrl: './shared-aquarium-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SharedAquariumPage {
-  private readonly route = inject(ActivatedRoute);
+  readonly route = inject(ActivatedRoute);
   readonly state = signal<'loading' | 'ready' | 'failure'>('loading');
   readonly aquarium = signal<SharedAquariumView | null>(null);
   readonly sectionKeys = [

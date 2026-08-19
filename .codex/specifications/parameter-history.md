@@ -56,10 +56,12 @@ No item is physically removed or collapsed from this view.
 
 ## Authorization and failure behavior
 
-Only the authenticated keeper who owns the selected Aquarium may read its
-Parameter History. Firestore Rules remain authoritative; the selected context
-and UI filters are not authorization boundaries. Guests and anonymous users do
-not receive this private history in the first increment.
+The authenticated keeper who owns the selected Aquarium may read its Parameter
+History. A delegated authenticated guest may read the same immutable history
+only when the Aquarium grant includes `measurements`; the guest view is
+read-only and does not expose correction actions. Firestore Rules remain
+authoritative; the selected context and UI filters are not authorization
+boundaries. Anonymous users and guests without that grant fail closed.
 
 The application must fail closed for an absent context, an unauthenticated
 session, an invalid parameter, an invalid interval, an invalid cursor or a
@@ -95,6 +97,5 @@ constraints in the query.
 - charts and statistical summaries;
 - trend interpretation or biological targets;
 - multi-parameter comparison;
-- guest sharing of measurement history;
 - exports and offline history;
 - complete Timeline pagination.
