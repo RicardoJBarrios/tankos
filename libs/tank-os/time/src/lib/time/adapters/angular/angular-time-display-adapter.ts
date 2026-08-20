@@ -43,7 +43,7 @@ export function createAngularTimeDisplayAdapter(
       return (
         datePipe.transform(
           epochMilliseconds,
-          options?.format ?? 'mediumDate',
+          resolveDateOnlyFormat(options),
           '+0000',
           options?.locale,
         ) ?? ''
@@ -63,9 +63,41 @@ function formatDate(
   return (
     datePipe.transform(
       epochMilliseconds,
-      options?.format ?? DEFAULT_FORMAT,
+      resolveDateTimeFormat(options),
       datePipeTimeZone,
       options?.locale,
     ) ?? ''
   );
+}
+
+function resolveDateTimeFormat(
+  options: TimeDisplayOptions | undefined,
+): string {
+  if (options?.format) {
+    return options.format;
+  }
+
+  if (options?.dateStyle && options.timeStyle) {
+    return options.dateStyle;
+  }
+
+  if (options?.timeStyle) {
+    return `${options.timeStyle}Time`;
+  }
+
+  if (options?.dateStyle) {
+    return `${options.dateStyle}Date`;
+  }
+
+  return DEFAULT_FORMAT;
+}
+
+function resolveDateOnlyFormat(
+  options: TimeDisplayOptions | undefined,
+): string {
+  if (options?.format) {
+    return options.format;
+  }
+
+  return options?.dateStyle ? `${options.dateStyle}Date` : 'mediumDate';
 }

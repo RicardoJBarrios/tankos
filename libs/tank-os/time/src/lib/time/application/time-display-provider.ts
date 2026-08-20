@@ -1,7 +1,10 @@
-import { DatePipe } from '@angular/common';
-import { inject, InjectionToken, Provider } from '@angular/core';
+import {
+  DATE_PIPE_DEFAULT_OPTIONS,
+  DATE_PIPE_DEFAULT_TIMEZONE,
+  DatePipe,
+} from '@angular/common';
+import { inject, InjectionToken, LOCALE_ID, Provider } from '@angular/core';
 import { createAngularTimeDisplayAdapter } from '../adapters/angular/angular-time-display-adapter';
-import { createNativeTimeDisplayAdapter } from '../adapters/native/native-time-display-adapter';
 import { TimeDisplayAdapter } from '../ports/time-display-adapter';
 
 /** Angular token for the active temporal display implementation. */
@@ -9,7 +12,7 @@ export const TIME_DISPLAY_ADAPTER = new InjectionToken<TimeDisplayAdapter>(
   'TIME_DISPLAY_ADAPTER',
   {
     providedIn: 'root',
-    factory: createNativeTimeDisplayAdapter,
+    factory: createDefaultAngularTimeDisplayAdapter,
   },
 );
 
@@ -33,13 +36,27 @@ export function provideTimeDisplayAdapter(
  */
 export function provideAngularTimeDisplayAdapter(
   defaultTimeZone = 'UTC',
-): Provider[] {
-  return [
-    DatePipe,
-    {
-      provide: TIME_DISPLAY_ADAPTER,
-      useFactory: () =>
-        createAngularTimeDisplayAdapter(inject(DatePipe), defaultTimeZone),
-    },
-  ];
+): Provider {
+  return {
+    provide: TIME_DISPLAY_ADAPTER,
+    useFactory: () =>
+      createConfiguredAngularTimeDisplayAdapter(defaultTimeZone),
+  };
+}
+
+function createDefaultAngularTimeDisplayAdapter(): TimeDisplayAdapter {
+  return createConfiguredAngularTimeDisplayAdapter('UTC');
+}
+
+function createConfiguredAngularTimeDisplayAdapter(
+  defaultTimeZone: string,
+): TimeDisplayAdapter {
+  return createAngularTimeDisplayAdapter(
+    new DatePipe(
+      inject(LOCALE_ID),
+      inject(DATE_PIPE_DEFAULT_TIMEZONE, { optional: true }),
+      inject(DATE_PIPE_DEFAULT_OPTIONS, { optional: true }),
+    ),
+    defaultTimeZone,
+  );
 }

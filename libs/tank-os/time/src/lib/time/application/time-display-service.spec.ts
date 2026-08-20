@@ -5,9 +5,9 @@ describe('time-display-service', () => {
   it('Given an instant, When formatting it through Angular, Then it returns a display string', () => {
     expect(
       TestBed.inject(TimeDisplayService).formatInstant('2026-08-20T15:30:00Z', {
-        locale: 'en-GB',
+        locale: 'en-US',
       }),
-    ).toContain('20 Aug 2026');
+    ).toContain('Aug 20, 2026');
   });
 
   it.each([0, { kind: 'instant', epochMilliseconds: 0 }])(
@@ -15,7 +15,7 @@ describe('time-display-service', () => {
     (value) => {
       expect(
         TestBed.inject(TimeDisplayService).formatInstant(value as never, {
-          locale: 'en-GB',
+          locale: 'en-US',
         }),
       ).toContain('1970');
     },
@@ -24,10 +24,10 @@ describe('time-display-service', () => {
   it('Given a local date, When formatting it through Angular, Then it preserves the calendar date', () => {
     expect(
       TestBed.inject(TimeDisplayService).formatLocalDate('2026-08-20', {
-        locale: 'en-GB',
+        locale: 'en-US',
         dateStyle: 'long',
       }),
-    ).toContain('20 August 2026');
+    ).toContain('August 20, 2026');
   });
 
   it('Given a structured local date, When formatting it through Angular, Then it preserves the calendar date', () => {
@@ -38,6 +38,6 @@ describe('time-display-service', () => {
         month: 8,
         day: 20,
       }),
-    ).toContain('20 Aug 2026');
+    ).toContain('Aug 20, 2026');
   });
 });

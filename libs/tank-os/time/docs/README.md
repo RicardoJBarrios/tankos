@@ -123,17 +123,17 @@ The current implementation uses them only inside `createNativeTimeAdapter`.
 
 ## Runtime abstraction
 
-The library exposes a `TimeAdapter` port and an Angular `TimeService`. The
-native implementation is the default provider:
+The library exposes a `TimeAdapter` port and an Angular `TimeService`. Angular
+consumers receive the `DatePipe`-backed display adapter by default:
 
 ```text
-TimeService -> TIME_ADAPTER -> createNativeTimeAdapter()
+TimeDisplayService -> TIME_DISPLAY_ADAPTER -> DatePipe
 ```
 
-Applications may replace it without changing their use cases:
+Applications may replace the display adapter without changing their use cases:
 
 ```ts
-provideTimeAdapter(futureTemporalAdapter);
+provideTimeDisplayAdapter(customDisplayAdapter);
 ```
 
 The adapter is the only place where a concrete date-time runtime, JavaScript
@@ -201,8 +201,9 @@ tankInstant / tankLocalDate
 ```
 
 The native adapter remains available for non-Angular consumers and continues
-to use `Intl`. Applications opt into the Angular adapter through
-`provideAngularTimeDisplayAdapter()`.
+to use `Intl`. Angular applications normally need no display-provider wiring.
+They may use `provideAngularTimeDisplayAdapter()` when a scoped fallback zone,
+such as an Aquarium's zone, must override UTC.
 
 Angular's `DatePipe` accepts numeric timezone offsets rather than arbitrary
 IANA zone identifiers. The Angular adapter therefore resolves an IANA

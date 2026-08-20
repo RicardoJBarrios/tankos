@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { LOCALE_ID } from '@angular/core';
 import {
   provideAngularTimeDisplayAdapter,
   provideTimeDisplayAdapter,
@@ -6,6 +7,22 @@ import {
 import { TimeDisplayService } from './time-display-service';
 
 describe('time-display-provider', () => {
+  it('Given an Angular locale, When configuring the default display provider, Then DatePipe formats with that locale', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideAngularTimeDisplayAdapter('UTC'),
+        { provide: LOCALE_ID, useValue: 'en-US' },
+      ],
+    });
+
+    expect(
+      TestBed.inject(TimeDisplayService).formatInstant(0, {
+        format: 'shortDate',
+        timeZone: 'UTC',
+      }),
+    ).toBe('1/1/70');
+  });
+
   it('Given a replacement display adapter, When configuring Angular, Then the display service uses it', () => {
     const adapter = {
       formatInstant: () => 'custom instant',

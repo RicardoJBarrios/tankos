@@ -59,6 +59,30 @@ describe('angular-time-display-adapter', () => {
     expect(transform).toHaveBeenCalledWith(0, 'short', '+0000', undefined);
   });
 
+  it.each([
+    [{ dateStyle: 'full' }, 'fullDate'],
+    [{ timeStyle: 'short' }, 'shortTime'],
+    [{ dateStyle: 'full', timeStyle: 'short' }, 'full'],
+  ] as const)(
+    'Given legacy display styles %s, When formatting an instant, Then it maps them to the equivalent DatePipe format %s',
+    (options, expectedFormat) => {
+      const datePipe = new DatePipe('en-GB');
+      const transform = vi
+        .spyOn(datePipe, 'transform')
+        .mockReturnValue('formatted');
+      const adapter = createAngularTimeDisplayAdapter(datePipe);
+
+      adapter.formatInstant(0, options);
+
+      expect(transform).toHaveBeenCalledWith(
+        0,
+        expectedFormat,
+        '+0000',
+        undefined,
+      );
+    },
+  );
+
   it('Given a local date, When formatting it, Then it always delegates with UTC to preserve the calendar day', () => {
     const datePipe = new DatePipe('en-GB');
     const transform = vi.spyOn(datePipe, 'transform').mockReturnValue('date');
