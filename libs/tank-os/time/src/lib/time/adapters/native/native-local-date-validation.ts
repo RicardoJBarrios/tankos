@@ -1,4 +1,4 @@
-import { LocalDateInput } from '../../ports';
+import { LocalDateInput } from '../../core';
 import { nativeParseLocalDate } from './native-local-date-parsing';
 
 /**

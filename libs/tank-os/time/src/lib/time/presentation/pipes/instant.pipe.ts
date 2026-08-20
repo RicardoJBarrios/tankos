@@ -1,6 +1,6 @@
 import { inject, Pipe, PipeTransform } from '@angular/core';
 import { TimeDisplayService } from '../../application';
-import { InstantInput, TimeDisplayOptions } from '../../ports';
+import { InstantInput, TimeDisplayOptions } from '../../core';
 
 /** Renders an instant using the configured temporal display adapter. */
 @Pipe({ name: 'tankInstant', standalone: true, pure: true })

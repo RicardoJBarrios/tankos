@@ -60,6 +60,10 @@ modules['libs/tank-os/units'] = ['context:tank-os'];
 for (const modulePath of [
   'libs/tank-os/time/src',
   'libs/tank-os/time/src/lib/time',
+  'libs/tank-os/time/src/lib/time/core',
+  'libs/tank-os/time/src/lib/time/core/ports',
+  'libs/tank-os/time/src/lib/time/core/value-types',
+  'libs/tank-os/time/src/lib/time/core/validation',
   'libs/tank-os/time/src/lib/time/adapters',
   'libs/tank-os/time/src/lib/time/adapters/angular',
   'libs/tank-os/time/src/lib/time/adapters/native',

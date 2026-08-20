@@ -1,6 +1,6 @@
 import { InjectionToken, Provider } from '@angular/core';
 import { createNativeTimeAdapter } from '../adapters/native';
-import { TimeAdapter } from '../ports';
+import { TimeAdapter } from '../core';
 
 /** Angular token for the active time implementation. */
 export const TIME_ADAPTER = new InjectionToken<TimeAdapter>('TIME_ADAPTER', {

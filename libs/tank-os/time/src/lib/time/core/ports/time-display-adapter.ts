@@ -1,4 +1,4 @@
-import { InstantInput, LocalDateInput } from './time-types';
+import { InstantInput, LocalDateInput } from '../value-types';
 
 /** Options shared by time presentation operations. */
 export type TimeDisplayOptions = Readonly<{

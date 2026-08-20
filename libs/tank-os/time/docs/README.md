@@ -229,9 +229,13 @@ The library is organized as an Angular-centric hexagonal boundary:
 
 ```text
 time/
-├── ports/                 # contracts and value types
+├── core/
+│   ├── ports/             # runtime-independent contracts
+│   ├── value-types/       # temporal values and accepted inputs
+│   └── validation/        # pure calendar and temporal rules
 ├── application/           # Angular services, tokens and provider wiring
 ├── adapters/native/       # current JavaScript temporal implementation
+├── adapters/angular/      # Angular DatePipe integration
 └── presentation/         # Angular presentation entry point
 ```
 

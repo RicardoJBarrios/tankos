@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { TIME_ADAPTER } from './time-provider';
-import { Instant, InstantInput, LocalDate, LocalDateInput } from '../ports';
+import { Instant, InstantInput, LocalDate, LocalDateInput } from '../core';
 
 @Injectable({ providedIn: 'root' })
 /** Facade exposing the active adapter through Angular DI. */

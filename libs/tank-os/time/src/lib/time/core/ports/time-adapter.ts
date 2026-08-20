@@ -1,4 +1,9 @@
-import { Instant, InstantInput, LocalDate, LocalDateInput } from './time-types';
+import {
+  Instant,
+  InstantInput,
+  LocalDate,
+  LocalDateInput,
+} from '../value-types';
 
 /**
  * Port for the time implementation used by TankOS.

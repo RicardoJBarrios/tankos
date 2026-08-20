@@ -1,4 +1,4 @@
-import { TimeAdapter } from '../../ports';
+import { TimeAdapter } from '../../core';
 import { nativeIsValidInstant } from './native-instant-validation';
 import { nativeParseInstant } from './native-instant-parsing';
 import { nativeToUtcIsoString } from './native-instant-serialization';

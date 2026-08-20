@@ -1,4 +1,3 @@
 export * from './time-adapter';
 export * from './time-display-adapter';
 export * from './time-display-context';
-export * from './time-types';

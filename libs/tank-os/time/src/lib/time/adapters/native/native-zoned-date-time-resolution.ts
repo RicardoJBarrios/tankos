@@ -6,7 +6,7 @@ import {
 } from './native-time-zone-runtime';
 import { nativeIsValidTimeZone } from './native-time-zone-validation';
 import { createUtcTimestamp } from './native-calendar-date';
-import { Instant } from '../../ports';
+import { Instant } from '../../core';
 
 /**
  * Resolves a local date-time in an IANA zone to a unique instant.

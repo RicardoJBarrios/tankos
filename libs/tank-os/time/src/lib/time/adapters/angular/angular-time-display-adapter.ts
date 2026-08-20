@@ -3,7 +3,7 @@ import {
   TimeAdapter,
   TimeDisplayAdapter,
   TimeDisplayOptions,
-} from '../../ports';
+} from '../../core';
 import { toDatePipeTimeZone } from './angular-time-zone-offset';
 
 const DEFAULT_FORMAT = 'medium';

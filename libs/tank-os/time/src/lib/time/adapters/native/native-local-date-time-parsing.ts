@@ -1,5 +1,5 @@
-import { isValidCalendarDate } from './native-calendar-date';
-import { DateTimeParts } from '../../ports';
+import { isValidCalendarDate } from '../../core/validation';
+import { DateTimeParts } from '../../core';
 
 const LOCAL_DATE_TIME_PATTERN =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(\.\d{1,3}|))?$/;

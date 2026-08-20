@@ -5,7 +5,7 @@ import {
 } from '@angular/common';
 import { inject, InjectionToken, LOCALE_ID, Provider } from '@angular/core';
 import { createAngularTimeDisplayAdapter } from '../adapters/angular';
-import { TimeDisplayAdapter, TimeDisplayContext } from '../ports';
+import { TimeDisplayAdapter, TimeDisplayContext } from '../core';
 import { TIME_ADAPTER } from './time-provider';
 
 /** Angular token for the zones available to temporal presentation. */

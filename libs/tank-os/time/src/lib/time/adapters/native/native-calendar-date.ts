@@ -1,4 +1,4 @@
-import { DateTimeParts } from '../../ports';
+import { DateTimeParts } from '../../core';
 
 /**
  * Builds a UTC timestamp from complete calendar fields without consulting
@@ -12,48 +12,4 @@ export function createUtcTimestamp(parts: DateTimeParts): number {
   date.setUTCFullYear(parts.year, parts.month - 1, parts.day);
   date.setUTCHours(parts.hour, parts.minute, parts.second, parts.millisecond);
   return date.getTime();
-}
-
-/**
- * Validates a proleptic Gregorian calendar date.
- *
- * @param year - Four-digit calendar year.
- * @param month - Calendar month from 1 through 12.
- * @param day - Calendar day.
- * @returns `true` when the fields form an actual calendar date.
- */
-export function isValidCalendarDate(
-  year: number,
-  month: number,
-  day: number,
-): boolean {
-  if (
-    !Number.isInteger(year) ||
-    year < 1 ||
-    !Number.isInteger(month) ||
-    month < 1 ||
-    month > 12 ||
-    !Number.isInteger(day) ||
-    day < 1 ||
-    day > 31
-  ) {
-    return false;
-  }
-
-  const timestamp = createUtcTimestamp({
-    year,
-    month,
-    day,
-    hour: 0,
-    minute: 0,
-    second: 0,
-    millisecond: 0,
-  });
-  const date = new Date(timestamp);
-
-  return (
-    date.getUTCFullYear() === year &&
-    date.getUTCMonth() === month - 1 &&
-    date.getUTCDate() === day
-  );
 }
