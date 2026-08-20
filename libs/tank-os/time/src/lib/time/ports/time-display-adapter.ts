@@ -1,16 +1,11 @@
 import { InstantInput, LocalDate } from './time-types';
 
-/** Supported locale-independent style names for date presentation. */
-export type DateDisplayStyle = 'full' | 'long' | 'medium' | 'short';
-
 /** Options shared by time presentation operations. */
 export type TimeDisplayOptions = Readonly<{
   /** Angular-compatible date format, such as `medium` or `fullDate`. */
   format?: string;
   locale?: string;
   timeZone?: string;
-  dateStyle?: DateDisplayStyle;
-  timeStyle?: DateDisplayStyle;
 }>;
 
 /**

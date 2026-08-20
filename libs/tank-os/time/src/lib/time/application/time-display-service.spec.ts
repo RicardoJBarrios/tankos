@@ -25,7 +25,7 @@ describe('time-display-service', () => {
     expect(
       TestBed.inject(TimeDisplayService).formatLocalDate('2026-08-20', {
         locale: 'en-US',
-        dateStyle: 'long',
+        format: 'longDate',
       }),
     ).toContain('August 20, 2026');
   });

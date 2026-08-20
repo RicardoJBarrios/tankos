@@ -34,7 +34,7 @@ describe('instant.pipe', () => {
     expect(pipe.transform(undefined)).toBe('');
   });
 
-  it('Given DatePipe-compatible arguments and TankOS options, When transforming an instant, Then it forwards them to the display service', () => {
+  it('Given DatePipe-compatible arguments, When transforming an instant, Then it forwards them to the display service', () => {
     const formatInstant = vi.fn().mockReturnValue('formatted');
     TestBed.configureTestingModule({
       providers: [
@@ -48,11 +48,10 @@ describe('instant.pipe', () => {
 
     expect(
       pipe.transform(0, 'full', 'Atlantic/Canary', 'es-ES', {
-        dateStyle: 'full',
+        format: 'medium',
       }),
     ).toBe('formatted');
     expect(formatInstant).toHaveBeenCalledWith(0, {
-      dateStyle: 'full',
       format: 'full',
       timeZone: 'Atlantic/Canary',
       locale: 'es-ES',

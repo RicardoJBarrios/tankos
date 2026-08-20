@@ -34,7 +34,7 @@ describe('local-date.pipe', () => {
     expect(pipe.transform(undefined)).toBe('');
   });
 
-  it('Given DatePipe-compatible arguments and TankOS options, When transforming a local date, Then it forwards them to the display service', () => {
+  it('Given DatePipe-compatible arguments, When transforming a local date, Then it forwards them to the display service', () => {
     const formatLocalDate = vi.fn().mockReturnValue('formatted');
     TestBed.configureTestingModule({
       providers: [
@@ -48,11 +48,10 @@ describe('local-date.pipe', () => {
 
     expect(
       pipe.transform('2026-08-20', 'fullDate', 'Atlantic/Canary', 'es-ES', {
-        timeStyle: 'short',
+        format: 'longDate',
       }),
     ).toBe('formatted');
     expect(formatLocalDate).toHaveBeenCalledWith('2026-08-20', {
-      timeStyle: 'short',
       format: 'fullDate',
       timeZone: 'Atlantic/Canary',
       locale: 'es-ES',

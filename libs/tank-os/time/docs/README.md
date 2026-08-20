@@ -162,7 +162,8 @@ The first four arguments have the same meaning as `DatePipe`:
    custom format string;
 2. `timeZone` is the explicit presentation zone;
 3. `locale` overrides the Angular locale for that rendering;
-4. `options` contains TankOS-specific display options.
+4. `options` is reserved for additional TankOS display context; formatting is
+   always selected through the `format` argument.
 
 The additional arguments are optional and must not alter the temporal value.
 They only affect presentation. The core `Instant` remains a UTC-normalized
