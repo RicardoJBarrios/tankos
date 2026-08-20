@@ -1,6 +1,6 @@
 # Species Profile Content Contract
 
-**Status:** Accepted for implementation.
+**Status:** Accepted and implemented.
 
 ## Purpose
 

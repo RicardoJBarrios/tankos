@@ -5,6 +5,37 @@ It is not a feature commitment. Each step is conditional on a real requirement
 and should add only the boundaries it needs. See the [capability map](product/CAPABILITY_MAP.md)
 for the product grouping; this document does not define bounded contexts.
 
+The cross-capability, mobile-first presentation migration is sequenced in the
+[UX implementation path](product/UX_IMPLEMENTATION_PATH.md). That path may
+reorganize navigation and composition, but it does not authorize deferred domain
+capabilities.
+
+The candidate improvements identified through the Coral Mastery comparison are
+sequenced in the
+[Coral Mastery improvement plan](product/CORAL_MASTERY_IMPROVEMENT_PLAN.md).
+Each candidate still requires an accepted use-case specification before it may
+change domain behavior, persistence, notifications, image handling or AI.
+
+Longer-horizon ideas involving an Aquarium Digital Model, evidence
+relationships, vision, quantitative scenarios, IoT and spatial planning are
+classified in the
+[Aquarium Intelligence strategic vision](product/AQUARIUM_INTELLIGENCE_VISION.md).
+That document preserves research proposals and their consequences. Its
+classifications and sequence are agent analysis, not product-owner decisions.
+
+No idea is removed by those plans. The exhaustive
+[product idea register](product/PRODUCT_IDEA_REGISTER.md) preserves all gathered
+proposals, including conflicting, commercial, experimental and previously
+agent-filtered alternatives, until the user/product owner explicitly decides
+their status and scope.
+
+The current planning priority is configurable measurable properties. The
+[Parameter configurability master plan](product/PARAMETER_CONFIGURABILITY_PLAN.md)
+consolidates the public `ParameterDefinition` catalogue, Aquarium profile,
+custom-definition lifecycle and dependent-consumer work. Its accepted
+direction supersedes the legacy closed-catalogue wording in older Measurement
+specifications.
+
 ## 1. Bootstrap
 
 Keep one Nx application, shared tooling, PWA shell, Codex documentation and
@@ -20,7 +51,7 @@ The current baseline contains the accepted increments `Establish Aquarium`,
 Observations`. Together they establish a private Aquarium context and the
 first durable qualitative evidence loop.
 They do not require public presentation, domain offline, App Check, E2E,
-Display, System, Equipment, Livestock or Timeline.
+Aquarium components, Equipment, Livestock or Timeline.
 `Configure Aquarium Timezone` is implemented as the one-way configuration of
 legacy Aquariums without a canonical timezone. Changing an existing timezone
 remains a separate future decision.
@@ -39,7 +70,7 @@ shared consumer. Runtime external HTTP uses Angular `HttpClient`.
 ## 3. Measurements — current capability
 
 `Record Measurement` is accepted and implemented as the first increment of this
-capability. Its closed Parameter catalogue, units, provenance, ownership and
+capability. Its Parameter catalogue, units, provenance, ownership and
 append-only semantics are defined in the measurement language and specification.
 `List Measurements` is implemented as a bounded read of the existing
 collection, not a universal Timeline. A future current-state read may use a

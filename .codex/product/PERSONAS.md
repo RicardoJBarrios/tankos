@@ -4,7 +4,8 @@
 
 **Status:** supported by the Vision.
 
-This person manages marine-aquarium care and needs understandable, low-friction
+This person manages aquarium care across freshwater, saltwater, brackish,
+planted, reef, shrimp, snail or mixed systems and needs understandable, low-friction
 workflows for records, planned work and historical review. The Vision explicitly
 names aquarium keepers as the intended user group; no skill level, household
 model, number of aquariums or collaboration behavior is assumed.

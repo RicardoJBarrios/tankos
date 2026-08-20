@@ -3,10 +3,141 @@
 This document describes business truths, not architecture or implementation.
 Rules are classified to avoid turning assumptions into code prematurely.
 
+## Accepted global deletion visibility and purge rule
+
+- A record marked for deletion is invisible to ordinary users and functional
+  application flows.
+- Only an administrator may inspect records marked for deletion.
+- An administrator may request definitive physical deletion, or a batch may
+  physically delete all records carrying the deletion marker.
+- No foreign keys exist in the NoSQL model, so foreign-key cascades are
+  impossible. The initial batch operation is manual; future automation is a
+  later capability.
+- Each record applies its own deletion-state and authorization rules.
+- Definitive deletion of one record requires explicit confirmation for that
+  record.
+- Definitive batch deletion requires one confirmation for the whole batch, not
+  one confirmation per record.
+- Before that confirmation, the administrator must see the batch scope,
+  including the number of records and the list selected for physical deletion.
+- The batch continues when an individual deletion fails. On completion it
+  reports successes and failures and records the result for operational
+  follow-up. The batch result does not need to survive as permanent audit data
+  after the affected records have been deleted.
+- If physical deletion fails, the affected record remains marked for deletion
+  so that a later manual operation can retry it.
+- Marking a record for deletion updates `updatedAt` and records the
+  administrator identity that performed the action as lifecycle metadata.
+- When a batch marks multiple records, these fields are written independently
+  on each affected record with the operation's effective timestamp and
+  administrator identity.
+- If marking one record fails, the batch continues marking the others and
+  reports the partial result with successes and failures.
+- Marking a batch for deletion requires one confirmation for the complete
+  batch, not one confirmation per record.
+- This confirmation pattern is the application-wide standard for equivalent
+  bulk operations: before confirmation, the operator sees the scope, record
+  count and item list; processing is independent per item; partial failures do
+  not cancel the rest; and the operation reports and records its operational
+  result. Failed items remain retryable when the operation supports retry.
+- Administrators have a dedicated view for records marked for deletion. It
+  exposes deletion state and supports restoration or retrying definitive
+  physical deletion under the applicable authorization and confirmation rules.
+  Batch warnings and execution details belong to the temporary batch operation,
+  not to the original record.
+- The administrative view supports both separation or filtering by entity type
+  and one combined inbox containing all records marked for deletion.
+- It supports state filters, composable logical filters over applicable record
+  fields and pagination.
+- Selection may target the complete result set matching the filter, not only
+  records visible on the current page. Marking or deleting that selection
+  operates on the complete matching set, and confirmation must make that scope
+  explicit.
+- When an administrator confirms an operation over all filter results, the
+  exact matching set is frozen for that operation. Later changes to records or
+  to the filter do not change its scope; the operation processes the frozen set
+  and reports any per-record failures.
+- Every batch operation persists a temporary operation entity while in
+  progress, containing the frozen scope and processing state. Once it finishes,
+  including with partial failures, the operation entity is deleted. Durable
+  per-record follow-up state remains on the affected records; the batch
+  operation itself is not retained. If the application closes or connectivity
+  is lost while the batch is in progress, the temporary entity preserves its
+  scope and progress so the operation can resume later. Resumption does not
+  revalidate the current state of each record before applying the operation.
+  Batch operations may apply bulk modification or deletion directly to the
+  frozen set; reported execution warnings and failures belong to the batch
+  operation and do not add batch-specific fields to the original record. Bulk
+  modifications do not preserve a copy of each record's previous business
+  values; they apply the change directly and retain only the resulting state
+  plus applicable lifecycle metadata. Each modified record updates its own
+  `updatedAt` and administrator identity within the same batch operation,
+  rather than through a separate follow-up operation.
+- The temporary operation schema includes the batch identity, affected record
+  schema/type, logical frozen record IDs, processing state and all mandatory
+  operation metadata. The IDs and progress may be physically chunked or stored
+  in an `items` subcollection when they cannot fit safely in one document. The
+  server materializes the frozen set at confirmation time, and the operation is
+  deleted when the batch finishes.
+- Bulk modification confirmation requires the operation scope and selected set,
+  but does not require a before/after preview of business values.
+- Temporary batch-operation entities are an explicit exception to the global
+  persisted-data schema rule: they do not require `schemaVersion` or a
+  versioned completeness schema because they are operational, short-lived
+  structures deleted when the batch finishes.
+- Real-time progress display for an in-progress batch is optional rather than a
+  correctness requirement. Batch execution, resumability and final reporting
+  must work without it; live progress may be added when its technical and
+  operational cost is justified.
+- Interrupted or in-progress batch operations are exposed in the management
+  screen that created them. That contextual screen allows the administrator to
+  inspect and manually resume its operations; a separate global batch dashboard
+  is not required by this direction. A single management screen may own
+  multiple concurrent batch operations, each with its own frozen scope,
+  processing state and independent resumption capability.
+- Batch execution is asynchronous; the originating management screen does not
+  wait for completion.
+- No locking or special conflict-management path is required. Concurrent
+  operations use last-applied-wins semantics: if a modification and deletion
+  compete, deletion wins when it is applied; if multiple modifications compete,
+  the last applied modification wins. This rule applies globally to individual
+  operations as well as batch operations.
+- Deletion is terminal: if a later modification reaches a record already
+  deleted, it does not recreate or modify that record. The operation recognizes
+  the deleted state and returns a warning, not an error.
+- Conflict order is determined naturally by server application order and server
+  timestamps, never by client clocks. No additional conflict-resolution system
+  is required beyond persistence behavior and the last-applied-wins rule.
+- All lifecycle timestamps, including `createdAt`, `updatedAt`, deletion marks,
+  restoration and operation-related timestamps, are generated exclusively by
+  the server.
+- For Measurements, `recordedAt` is always the server timestamp, while
+  `measuredAt`/`observedAt` preserves the instant declared by the keeper,
+  device or source and is normalized and persisted in UTC. Server receipt time
+  must not replace a declared observation time.
+- The record retains the cause of its latest physical-deletion failure for
+  administrator inspection and retry decisions; this is operational deletion
+  state, separate from business content.
+- A successful retry physically deletes the complete record immediately,
+  including its deletion state.
+- An administrator may cancel the deletion mark and restore a record while it
+  still exists physically; restoration clears its deletion state and returns
+  it to ordinary visibility and flows.
+- Restoration does not require an additional confirmation from the
+  administrator.
+  It updates `updatedAt` and records the administrator identity that performed
+  the restoration as lifecycle metadata, without changing business content.
+- Physical deletion is irreversible through the application once completed.
+
 ## Keeper and Aquarium cardinality
 
 - A keeper may own or manage zero, one or many independent Aquariums.
 - Each Aquarium is an independent aggregate root.
+- An Aquarium is the managed system boundary. Display/containment units,
+  sumps, refugia, treatment units, technical areas and biological zones are
+  components or Features of Interest within that Aquarium, not separate
+  Aquariums. A Measurement affects the complete system by default and may
+  target a component or zone explicitly.
 - In the first version, each Aquarium has one owning keeper. The owner may
   grant explicit read-only access to selected Aquarium resources for another
   authenticated user.
@@ -31,7 +162,7 @@ Rules are classified to avoid turning assumptions into code prematurely.
 - A user with the Firebase custom claim `isKeeper: true` may establish any
   number of independent private Aquariums. Each Aquarium has one owning keeper
   in this first version; authentication without that claim is not sufficient.
-- Establishment requires only an Aquarium name. It creates no Display, System,
+- Establishment requires only an Aquarium name. It creates no components,
   Equipment, Livestock or public representation.
 - An Aquarium name is non-empty after surrounding whitespace is trimmed; no
   other naming rule is accepted for this slice.
@@ -167,10 +298,44 @@ Rules are classified to avoid turning assumptions into code prematurely.
 
 ## Parameter policy
 
-- The MVP Parameter catalogue is closed and system-defined; users cannot add
-  custom Parameters.
-- All five current Parameters are measurable and targetable, but no biological
-  interpretation is accepted by default.
+- The Parameter catalogue contains public system-defined and
+  `ParameterDefinition` entries. Keepers may create definitions; all users may
+  list and view the global catalogue and select definitions for their
+  Aquariums. Only administrators may edit or delete definitions. A custom
+  definition is public to all users according to the accepted catalogue rules.
+- A custom `ParameterDefinition` belongs to the global Veril catalogue and is
+  available to all Aquariums. Each keeper independently selects whether to
+  use it in each Aquarium they manage. The profile does not duplicate,
+  transfer or change the definition's catalogue authorship or management
+  permissions.
+- Definition deletion follows the global lifecycle: an administrator marks
+  it for deletion, it becomes unavailable for new Measurements and Aquarium
+  selections, historical Measurements remain interpretable from their embedded
+  snapshot, and an administrator may later physically delete it manually with
+  confirmation. No foreign-key cascade or automatic cleanup is used.
+- Existing Aquarium profile selections are not cascaded away when the
+  definition is marked. They become inactive and recoverable; the keeper or an
+  administrator may remove the local selection. Re-enabling requires global
+  administrative restoration first.
+- Editing a definition is versioned: an administrator creates a new version,
+  the previous version is marked for deletion, and existing Measurements keep
+  their original definition snapshot. Historical evidence is never rewritten.
+- Aquarium profiles are not migrated automatically between definition
+  versions. Existing selections retain the old locked reference and become
+  inactive when that version is marked for deletion; new selections use the
+  active version.
+- A `ParameterDefinition` identifier is generated by the server, opaque and
+  immutable. It is separate from the visible name or presentation code, which
+  cannot determine historical identity or create collisions.
+- A definition uses a stable logical `definitionId`, an immutable
+  server-generated `versionId` and a sequential `version` number. Profiles
+  store the logical/version pair without a foreign key; Measurements embed a
+  self-contained semantic snapshot. Every administrative edit, including a
+  presentation-only edit, creates a new complete version.
+- The five current system Parameters remain measurable and targetable, but no
+  biological interpretation is accepted by default. Custom definitions must
+  satisfy the same complete validity contract before they can be used by a
+  Measurement.
 - A future Parameter Target belongs to Aquarium configuration and does not alter
   Measurement validity, provenance or historical meaning.
 - A Parameter Target is an optional keeper-owned interval identified by
@@ -235,12 +400,13 @@ These are likely to matter but must wait for concrete features:
 
 The following are intentionally unresolved:
 
-- Whether `Display` requires its own identity or lifecycle within the Aquarium
-  aggregate.
+- The exact component creation, identity and lifecycle flows within the
+  AquariumSystem.
 - The accepted Livestock slice represents both individuals and groups; species
   taxonomy remains unresolved.
 - Whether a Measurement can be corrected through a compensating Event.
-- Which parameters are mandatory for each type of Aquarium.
+- Which parameters are mandatory for each Aquarium classification or component
+  role.
 - Which domain Events may be created offline.
 
 Do not implement unknown rules by inference. Capture the decision with a domain

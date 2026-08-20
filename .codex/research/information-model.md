@@ -24,5 +24,6 @@ This inventory identifies recurring patterns. It is not Veril's domain model.
 - ELNs treat an experiment/sample and audit trail as primary.
 - Pet and garden apps treat the cared-for subject plus recurring care as primary.
 
-Veril should not choose among these patterns until its first accepted use case
-reveals whether the primary subject is Aquarium, Display, System or an activity.
+Veril uses Aquarium as the primary managed system. The observed subject may be
+the complete AquariumSystem, an AquariumComponent, a zone or an activity,
+following the accepted Feature-of-Interest model.

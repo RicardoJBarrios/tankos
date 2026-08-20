@@ -24,11 +24,12 @@ A Parameter is a product-defined kind of quantity that can be measured for an
 Aquarium. It defines the semantic meaning of a Measurement and the Units that
 are compatible with it.
 
-Parameter is a domain catalogue concept, not an Aquarium-owned Entity, user
-record, Aggregate or free-form string. It has no per-Aquarium lifecycle or
-ownership. The MVP catalogue is closed and system-defined; users cannot create
-custom Parameters until a separate product decision accepts the vocabulary,
-units, migration and interoperability consequences.
+Parameter is a domain catalogue concept, not an Aquarium-owned Entity or
+free-form string. The catalogue contains system-defined entries and public
+`ParameterDefinition` entries. Keepers may create, list, view, edit and delete
+the custom definitions they own, subject to the complete definition validity
+contract and lifecycle rules. A definition's public visibility does not make
+it editable by other keepers.
 
 Each Parameter has:
 

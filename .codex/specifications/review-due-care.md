@@ -1,6 +1,6 @@
 # Review Due Care
 
-**Status:** Definition of Ready — PASS.
+**Status:** Accepted and implemented.
 
 ## Product value
 

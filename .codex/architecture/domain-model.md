@@ -11,7 +11,7 @@ any item becomes accepted.
 
 | Area                       | Current language                                            | Questions still open                                                                           |
 | -------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Aquarium                   | The managed care system and aggregate root.                 | Required attributes, ownership, sharing, and its relationship to Display and System.           |
+| Aquarium                   | The managed care system and aggregate root.                 | Required attributes, ownership, sharing, components and detailed topology.                     |
 | Livestock                  | Fish, Coral and other organisms associated with care.       | Individual versus group, transfers, taxonomy and lifecycle.                                    |
 | Equipment                  | A physical or logical device used in care.                  | Ownership, sharing, installation, state and safety.                                            |
 | Care work                  | An intentional action already performed for an Aquarium.    | Relationship to planned work, Maintenance, Water Change and Feeding; recurrence and lifecycle. |

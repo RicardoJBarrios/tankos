@@ -9,8 +9,11 @@ creates no invariant, aggregate, event, screen, API or persistence design.
 - **Goal:** establish one private, durable Aquarium with a name.
 - **Main flow:** the keeper supplies a name and the system establishes the root
   Aquarium when the current product limit permits it.
-- **Deferred:** Display, System, technical setup, public presentation and shared
-  management.
+- **Deferred:** component setup, technical detail, public presentation and
+  shared management. Any display, sump, refugium or auxiliary enclosure is
+  modelled as an optional component of the Aquarium system when this setup is
+  introduced; an independently operated enclosure may instead be established
+  as another AquariumSystem.
 - **Event:** `AquariumEstablished`.
 
 ## Record an observation or measurement
@@ -28,7 +31,8 @@ creates no invariant, aggregate, event, screen, API or persistence design.
 ## Plan and complete care work
 
 - **Actor:** an authorized person.
-- **Goal:** plan or record care work related to an Aquarium, System or Equipment.
+- **Goal:** plan or record care work related to an Aquarium, one of its
+  components or Equipment.
 - **Main flow:** the actor records an intention or completed work; the resulting
   state and history semantics are to be discovered.
 - **Variants:** recurrence, delegation, cancellation, Water Change and Feeding

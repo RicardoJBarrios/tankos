@@ -1,5 +1,7 @@
 # Accepted: Establish an Aquarium
 
+**Status:** Accepted and implemented.
+
 ## Actor
 
 An authenticated aquarium keeper. Collaboration roles are not part of this use
@@ -28,9 +30,11 @@ confirms it as the context for later care information.
 
 ## Variants
 
-Technical setup, Display, System, Equipment, Livestock, public presentation and
-shared management are deferred. A future product version may allow additional
-Aquariums without changing the domain model.
+Component setup, detailed technical configuration, Equipment, Livestock, public
+presentation and shared management are deferred. A future product version may
+add components such as a display tank, sump or breeding box without changing
+the AquariumSystem boundary. An independently operated enclosure is instead a
+separate AquariumSystem.
 
 ## Expected errors
 
@@ -51,8 +55,8 @@ of historical records, but does not alter what occurred.
 - The authenticated keeper can establish multiple independent private Aquariums,
   each using only a name.
 - The resulting Aquarium can be identified as the context for subsequent care.
-- No Display, System, Equipment, Livestock, technical configuration or public
-  information is required or created.
+- No component, Equipment, Livestock, detailed technical configuration or
+  public information is required or created.
 - A second establishment by the same keeper creates a distinct Aquarium and does
   not alter the first one.
 - Successful establishment produces an attributable durable Fact and the

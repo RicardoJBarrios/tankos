@@ -5,10 +5,11 @@ working context and must not turn unvalidated domain hypotheses into rules.
 
 ## What Veril is
 
-Veril is the product application for managing and presenting marine Aquariums,
-their Livestock, Measurements, Maintenance and Equipment. It is not itself an
-Aquarium. The first Aquarium instance is named Veril; that name does not make
-the product a single-Aquarium domain model.
+Veril is the product application for managing and presenting Aquariums of
+freshwater, saltwater, brackish, planted, reef, shrimp, snail and mixed kinds,
+including their Livestock, Measurements, Maintenance and Equipment. It is not
+itself an Aquarium. The first Aquarium instance is named Veril; that name does
+not make the product a single-Aquarium domain model.
 
 ## Why it exists
 

@@ -1,6 +1,6 @@
 # Record a Measurement
 
-**Status:** Accepted
+**Status:** Accepted and implemented.
 
 ## User value
 
@@ -17,7 +17,7 @@ The operation requires:
 
 - a valid authenticated session;
 - an Active Context containing an owned Aquarium;
-- one Parameter from the closed MVP catalogue;
+- one Parameter from the active catalogue;
 - one finite numeric value;
 - the Parameter's canonical Unit;
 - a `measuredAt` instant supplied by the keeper or defaulted by the application.
@@ -33,7 +33,7 @@ Timeline, sensors, imports, corrections, deletion or offline synchronization.
 
 ## Catalogue
 
-The closed MVP catalogue is:
+The built-in catalogue used by this first increment is:
 
 | Parameter identifier | Canonical Unit                | Label       |
 | -------------------- | ----------------------------- | ----------- |
@@ -44,7 +44,9 @@ The closed MVP catalogue is:
 | `phosphate`          | `milligrams-per-litre-as-po4` | mg/L as PO₄ |
 
 Labels are presentation concerns. The identifiers and units are stable domain
-values. Users cannot create or edit Parameters in this slice.
+values. This slice does not expose `ParameterDefinition` management; the
+configurable-property domain adds public custom definitions through its own
+CRUD use cases.
 
 ## Minimum Measurement data
 
@@ -103,7 +105,7 @@ Measurement as an Event only if it has independent historical meaning.
 2. Require the current Active Context.
 3. Validate that the selected Aquarium is owned by the keeper through the
    existing authorization boundary.
-4. Validate the closed Parameter catalogue and its canonical Unit.
+4. Validate the selected active Parameter definition and its canonical Unit.
 5. Validate the finite numeric value.
 6. Resolve `measuredAt`, defaulting it to now when omitted.
 7. Generate a UUID v4 MeasurementId.

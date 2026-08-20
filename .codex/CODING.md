@@ -6,6 +6,21 @@ Technical code, filenames, tests, comments and documentation use English.
 Spanish is user-facing content only. Use domain language consistently and avoid
 provider-specific names in domain code.
 
+All exported TypeScript and Angular declarations require TSDoc. Non-exported
+code requires TSDoc when it carries non-obvious domain logic, conversion,
+compatibility, failure or architectural meaning. TSDoc must explain the
+contract and justification, not restate the implementation. Follow
+[`CODE_GUARDRAILS.md`](CODE_GUARDRAILS.md) for the complete requirement.
+
+Each file has one primary semantic responsibility. Split types, pure rules,
+adapters, Angular services, components and tests at meaningful boundaries;
+avoid monolithic files and document any deliberate small-file exception.
+
+Use Angular's `inject()` function for dependency injection. Constructor
+parameter injection is not permitted; migrate existing code with the Angular
+`inject` schematic exposed through Nx and keep `@angular-eslint/prefer-inject`
+enabled.
+
 ## Structure
 
 Keep the application composition root in `apps/veril`. New domain code follows:

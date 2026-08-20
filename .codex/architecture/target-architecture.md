@@ -5,9 +5,10 @@ Last external verification: 2026-08-07.
 
 ## 1. Scope and current baseline
 
-Veril is the product application for marine-aquarium management and presentation.
-This document defines technical direction; it does not define the Firestore
-schema or product requirements.
+Veril is the product application for aquarium management and presentation
+across freshwater, saltwater, brackish, planted, reef, shrimp, snail and mixed
+systems. This document defines technical direction; it does not define the
+Firestore schema or product requirements.
 
 ## Design precedence
 

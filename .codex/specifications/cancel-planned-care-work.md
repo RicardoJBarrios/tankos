@@ -1,6 +1,6 @@
 # Cancel Planned Care Work
 
-**Status:** Ready for implementation.
+**Status:** Accepted and implemented.
 
 ## Product value
 

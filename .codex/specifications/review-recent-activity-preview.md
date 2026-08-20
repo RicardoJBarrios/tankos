@@ -1,6 +1,6 @@
 # Review Recent Activity Preview
 
-**Status:** Implemented; pending final review.
+**Status:** Implemented and reviewed.
 
 ## Product value
 

@@ -1,6 +1,6 @@
 # Accepted: Parameter History
 
-**Status:** Accepted for implementation.
+**Status:** Accepted and implemented.
 
 ## User value
 
@@ -13,7 +13,7 @@ recent Timeline.
 
 The first increment provides:
 
-- one required parameter from the closed Parameter catalogue;
+- one required parameter from the active Parameter catalogue;
 - an optional measured-time interval;
 - stable cursor pagination using the existing shared pagination policy;
 - the entered canonical value, unit, measured time and recorded time;
@@ -99,3 +99,16 @@ constraints in the query.
 - multi-parameter comparison;
 - exports and offline history;
 - complete Timeline pagination.
+
+## Implementation record
+
+The Spark-first implementation provides the private keeper route at
+`/app/aquariums/measurements/history` and reuses the existing Measurements
+collection and correction markers. It supports selecting one closed Parameter,
+optional measured-time bounds, bounded cursor pagination, empty and failure
+states, and explicit labels for original and replacement Measurements.
+
+The keeper journey covers opening Parameter History from the Measurements list,
+reviewing a bounded result and returning to the source list. Firestore adapter
+integration covers filtering and cursor ordering; authorization remains behind
+the existing owner and shared-measurement access ports and Rules.
