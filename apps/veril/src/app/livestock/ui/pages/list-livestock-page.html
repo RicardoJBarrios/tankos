@@ -2,10 +2,13 @@
   <div class="section-heading">
     <div>
       <p class="eyebrow">Seres vivos</p>
-      <h2 id="livestock-title">Livestock</h2>
+      <h2 id="livestock-title">Habitantes</h2>
     </div>
     <div class="actions">
-      <a mat-stroked-button routerLink="/app/aquariums/livestock/new"
+      <a
+        mat-flat-button
+        color="primary"
+        routerLink="/app/aquariums/livestock/new"
         >Añadir registro</a
       >
       <a mat-stroked-button routerLink="/app/aquariums/livestock/transfer"
@@ -21,7 +24,7 @@
   <mat-card appearance="outlined" class="empty-state"
     ><mat-card-content>
       <p role="status">
-        Primero selecciona un acuario para consultar su livestock.
+        Primero selecciona un acuario para consultar sus habitantes.
       </p>
       <a mat-flat-button color="primary" routerLink="/app/aquariums"
         >Volver a mis acuarios</a
@@ -31,7 +34,7 @@
   } @else if (state() === 'loading') {
   <div class="loading-state" role="status" aria-live="polite">
     <mat-progress-spinner mode="indeterminate" diameter="32" /><span
-      >Cargando livestock…</span
+      >Cargando habitantes…</span
     >
   </div>
   } @else if (state() === 'failure') {
@@ -54,7 +57,7 @@
     </mat-card-content></mat-card
   >
   } @else {
-  <ul aria-label="Livestock del acuario" data-testid="livestock-list">
+  <ul aria-label="Habitantes del acuario" data-testid="livestock-list">
     @for (item of items(); track item.id) {
     <li>
       <mat-card appearance="outlined"
@@ -101,5 +104,5 @@
     (pageSizeChange)="changePageSize($event)"
   />
   }
-  <a mat-button routerLink="/app/aquariums">Volver a mis acuarios</a>
+  <a mat-button routerLink="/app/aquariums/timeline">Volver a Historial</a>
 </section>

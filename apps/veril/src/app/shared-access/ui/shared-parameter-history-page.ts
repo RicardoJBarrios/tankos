@@ -19,6 +19,11 @@ import {
   SharedMeasurementHistoryFilter,
   SharedMeasurementHistoryItem,
 } from '../application/measurement-history-ports';
+import {
+  SharedAquariumView,
+  AquariumAccessService,
+} from '../application/ports';
+import { AQUARIUM_ACCESS_SERVICE } from './providers';
 import { SHARED_MEASUREMENT_HISTORY_READER } from './providers';
 const SHARED_PARAMETER_IDS = [
   'temperature',
@@ -45,6 +50,9 @@ type SharedParameterId = (typeof SHARED_PARAMETER_IDS)[number];
 export class SharedParameterHistoryPage {
   readonly route = inject(ActivatedRoute);
   private readonly reader = inject(SHARED_MEASUREMENT_HISTORY_READER);
+  private readonly accessService = inject<AquariumAccessService>(
+    AQUARIUM_ACCESS_SERVICE,
+  );
   private readonly aquariumId: string;
 
   readonly parameters = SHARED_PARAMETER_IDS.map((id) => ({
@@ -59,12 +67,14 @@ export class SharedParameterHistoryPage {
   readonly isLoading = signal(true);
   readonly isLoadingMore = signal(false);
   readonly error = signal(false);
+  readonly aquariumName = signal('Acuario compartido');
   readonly pageSize = signal(DEFAULT_PAGE_SIZE);
 
   constructor() {
     const aquariumId = this.route.snapshot.paramMap.get('aquariumId');
     if (!aquariumId) throw new Error('Aquarium id is required');
     this.aquariumId = aquariumId;
+    void this.loadAquariumName();
     void this.loadFirstPage();
   }
 
@@ -130,6 +140,18 @@ export class SharedParameterHistoryPage {
       this.error.set(true);
     } finally {
       this.isLoading.set(false);
+    }
+  }
+
+  private async loadAquariumName(): Promise<void> {
+    try {
+      const view: SharedAquariumView =
+        await this.accessService.readSharedAquarium({
+          aquariumId: this.aquariumId,
+        });
+      this.aquariumName.set(view.aquariumName);
+    } catch {
+      // The history error state remains the source of truth if access is revoked.
     }
   }
 }

@@ -92,6 +92,10 @@ describe('CurrentMeasurementsSection', () => {
     expect(spectator.query('a')?.getAttribute('href')).toBe(
       '/app/aquariums/parameter-targets',
     );
+    expect(
+      spectator.query('[data-testid="parameter-targets-guidance"]')
+        ?.textContent,
+    ).toContain('Los objetivos son opcionales');
   });
 
   it('shows a recoverable error and requests a retry', () => {

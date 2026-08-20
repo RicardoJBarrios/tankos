@@ -19,11 +19,8 @@
       <p role="status" class="feedback feedback-success">
         Observación guardada correctamente.
       </p>
-      <a
-        mat-flat-button
-        color="primary"
-        routerLink="/app/aquariums/observations"
-        >Ver observaciones</a
+      <a mat-flat-button color="primary" routerLink="/app/aquariums/current"
+        >Volver a Hoy</a
       >
       } @else {
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
@@ -59,7 +56,15 @@
     </mat-card-content>
 
     <mat-card-actions>
-      <a mat-button routerLink="/app/aquariums">Volver a mis acuarios</a>
+      @if (state() !== 'success') {
+      <a
+        mat-button
+        [routerLink]="
+          hasActiveContext ? '/app/aquariums/current' : '/app/aquariums'
+        "
+        >{{ hasActiveContext ? 'Volver a Hoy' : 'Volver a mis acuarios' }}</a
+      >
+      }
     </mat-card-actions>
   </mat-card>
 </section>

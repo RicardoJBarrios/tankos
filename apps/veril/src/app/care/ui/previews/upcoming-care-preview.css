@@ -3,14 +3,14 @@
 }
 
 .page-section {
-  max-width: 56rem;
+  max-width: var(--veril-content-readable);
 }
 
 .section-heading {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: var(--veril-space-section);
   margin-bottom: 1.5rem;
 }
 

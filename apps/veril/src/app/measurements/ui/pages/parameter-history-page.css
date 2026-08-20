@@ -1,13 +1,13 @@
 .page-section {
-  max-width: 56rem;
+  max-width: var(--veril-content-readable);
 }
 .section-heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--veril-space-section);
   flex-wrap: wrap;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--veril-space-heading);
 }
 .eyebrow {
   margin: 0 0 0.25rem;

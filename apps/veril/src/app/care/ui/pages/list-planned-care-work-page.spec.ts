@@ -123,6 +123,31 @@ describe('ListPlannedCareWorkPage', () => {
     );
   });
 
+  it('puts overdue plans before upcoming plans', async () => {
+    const upcoming = {
+      ...item,
+      id: '123e4567-e89b-42d3-a456-426614174002' as never,
+      description: 'Comprobar temperatura',
+      plannedFor: new Date('2026-08-11T10:00:00.000Z'),
+    };
+    const overdue = {
+      ...item,
+      description: 'Limpiar el skimmer hoy',
+      plannedFor: new Date('2026-08-08T10:00:00.000Z'),
+    };
+    execute.mockResolvedValue({ items: [upcoming, overdue] });
+    const spectator = createComponent();
+    spectator.component.now.set(new Date('2026-08-10T10:00:00.000Z'));
+    await spectator.fixture.whenStable();
+    spectator.detectChanges();
+
+    expect(
+      spectator
+        .queryAll('.care-work-description')
+        .map((element) => element.textContent?.trim()),
+    ).toEqual(['Limpiar el skimmer hoy', 'Comprobar temperatura']);
+  });
+
   it('shows recoverable failures', async () => {
     execute.mockRejectedValue(new Error('offline'));
     const spectator = createComponent();

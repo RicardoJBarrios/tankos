@@ -50,6 +50,20 @@ export class SharedAquariumPage {
     return view.sections[section];
   }
 
+  sectionLabel(section: AquariumAccessPermission): string {
+    return {
+      aquarium: 'Acuario',
+      measurements: 'Mediciones',
+      observations: 'Observaciones',
+      careWorks: 'Cuidados realizados',
+      plannedCareWorks: 'Cuidados planificados',
+      recurringCarePlans: 'Planes recurrentes',
+      livestock: 'Habitantes',
+      equipment: 'Equipos',
+      waterChanges: 'Cambios de agua',
+    }[section];
+  }
+
   private async load(): Promise<void> {
     try {
       const aquariumId = this.route.snapshot.paramMap.get('aquariumId');

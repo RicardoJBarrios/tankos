@@ -1,5 +1,5 @@
 import { createComponentFactory, Spectator } from '@ngneat/spectator/vitest';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AquariumListItem } from '../../application/ports';
 import { ActiveAquariumContext } from '../../../shared/application/active-aquarium-context';
@@ -80,7 +80,7 @@ describe('ListMyAquariumsPage', () => {
     );
   });
 
-  it('renders one or multiple Aquarium names without navigation', async () => {
+  it('renders one or multiple Aquarium names as direct choices', async () => {
     execute.mockResolvedValue({
       items: [
         aquarium('123e4567-e89b-42d3-a456-426614174000', 'Veril'),
@@ -118,8 +118,25 @@ describe('ListMyAquariumsPage', () => {
       'true',
     );
     expect(
-      spectator.query('a[routerlink="/app/aquariums/current"]')?.textContent,
-    ).toContain('Abrir acuario seleccionado');
+      spectator.query('a[routerlink="/app/aquariums/current"]'),
+    ).toBeNull();
+  });
+
+  it('opens Hoy when the already selected Aquarium is chosen again', async () => {
+    const selected = aquarium('123e4567-e89b-42d3-a456-426614174000', 'Veril');
+    execute.mockResolvedValue({ items: [selected] });
+    const spectator: Spectator<ListMyAquariumsPage> = createComponent();
+    const router = spectator.inject(Router);
+    const navigateByUrl = vi.spyOn(router, 'navigateByUrl');
+    navigateByUrl.mockResolvedValue(true);
+    spectator.inject(ActiveAquariumContext).select(selected.id);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    spectator.detectChanges();
+
+    await spectator.click('button');
+
+    expect(selectAquarium).not.toHaveBeenCalled();
+    expect(navigateByUrl).toHaveBeenCalledWith('/app/aquariums/current');
   });
 
   it('renders a failure state', async () => {

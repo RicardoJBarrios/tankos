@@ -31,22 +31,21 @@ test('a keeper can record and list a water change', async ({ page }) => {
   await page.getByRole('link', { name: 'Establecer acuario' }).click();
   await page.getByLabel('Nombre del acuario').fill('Maintenance E2E');
   await page.getByRole('button', { name: 'Crear acuario' }).click();
-  await page.getByRole('link', { name: 'Ver mis acuarios' }).click();
-  await page
-    .getByTestId('aquarium-option')
-    .filter({ hasText: 'Maintenance E2E' })
-    .click();
-  await page.waitForTimeout(500);
-  await page.goto('/app/aquariums/current');
+  await expect(page).toHaveURL('/app/aquariums/current');
+  await expect(
+    page.getByRole('heading', { name: 'Maintenance E2E' }),
+  ).toBeVisible();
 
-  await page.getByRole('link', { name: 'Registrar cambio de agua' }).click();
+  await page.getByRole('button', { name: 'Registrar' }).click();
+  await page.getByRole('button', { name: 'Cambio de agua' }).click();
   await page.getByTestId('water-change-volume').fill('12.5');
   await page.getByTestId('water-change-notes').fill('Limpieza semanal');
   await page.getByTestId('water-change-submit').click();
   await expect(page.getByRole('status')).toContainText(
     'Cambio de agua guardado correctamente.',
   );
-  await page.getByRole('link', { name: 'Ver cambios de agua' }).click();
+  await page.goto('/app/aquariums/maintenance');
+  await expect(page).toHaveURL('/app/aquariums/maintenance');
   await expect(page.getByTestId('water-change-list')).toContainText(
     '12.5 litros',
   );

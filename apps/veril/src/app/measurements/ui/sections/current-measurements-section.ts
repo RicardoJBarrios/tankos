@@ -32,6 +32,7 @@ import { systemClock } from '../../../shared/application/clock';
 export class CurrentMeasurementsSection {
   @Input() timeZone?: AquariumTimeZone;
   @Input() states: readonly CurrentParameterState[] = [];
+  @Input() hasParameterTargets = false;
   @Input() loading = false;
   @Input() loadFailed = false;
   @Output() readonly retryRequested = new EventEmitter<void>();

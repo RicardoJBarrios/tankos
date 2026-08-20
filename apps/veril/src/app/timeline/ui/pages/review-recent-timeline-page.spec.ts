@@ -98,7 +98,11 @@ describe('ReviewRecentTimelinePage', () => {
     expect(spectator.query('[role="status"]')?.textContent).toContain(
       'Primero selecciona un acuario',
     );
-    expect(spectator.query('a')?.getAttribute('href')).toBe('/app/aquariums');
+    expect(
+      spectator
+        .queryAll('a')
+        .some((link) => link.getAttribute('href') === '/app/aquariums'),
+    ).toBe(true);
   });
 
   it('shows loading while the Timeline read is pending', () => {
@@ -135,6 +139,41 @@ describe('ReviewRecentTimelinePage', () => {
       '2026-08-08T08:00:00.000Z',
     );
     expect(spectator.queryAll('time')[0]?.textContent).toContain('11:00');
+  });
+
+  it('offers focused histories without leaving the Aquarium context', async () => {
+    execute.mockResolvedValue([]);
+    const spectator = createComponent();
+    await settle(spectator);
+
+    expect(spectator.query('h2')?.textContent).toContain('Historial');
+    expect(
+      spectator.queryAll('.history-links a').map((link) => ({
+        label: link.textContent?.trim(),
+        href: link.getAttribute('href'),
+      })),
+    ).toEqual([
+      {
+        label: 'Mediciones',
+        href: '/app/aquariums/measurements',
+      },
+      {
+        label: 'Observaciones',
+        href: '/app/aquariums/observations',
+      },
+      {
+        label: 'Cuidados realizados',
+        href: '/app/aquariums/care',
+      },
+      {
+        label: 'Cambios de agua',
+        href: '/app/aquariums/maintenance',
+      },
+      {
+        label: 'Historial de habitantes',
+        href: '/app/aquariums/livestock/history',
+      },
+    ]);
   });
 
   it('shows an actionable empty state', async () => {

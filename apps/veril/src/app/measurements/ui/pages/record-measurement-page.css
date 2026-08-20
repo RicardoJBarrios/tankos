@@ -1,5 +1,5 @@
 .page-section {
-  max-width: 42rem;
+  max-width: var(--veril-content-form);
 }
 
 mat-card {
@@ -16,7 +16,19 @@ mat-card-content {
 
 form {
   display: grid;
-  gap: 1rem;
+  gap: var(--veril-space-section);
+}
+
+@media (max-width: 40rem) {
+  mat-card {
+    border: 0;
+    box-shadow: none;
+  }
+
+  mat-card-content,
+  mat-card-actions {
+    padding-inline: 0;
+  }
 }
 
 .unit-hint {

@@ -2,10 +2,38 @@
   display: block;
 }
 
+.page-section {
+  max-width: var(--veril-content-form);
+}
+
+mat-card {
+  border-radius: var(--mat-sys-corner-large);
+}
+
+mat-card-title {
+  font: var(--mat-sys-headline-small);
+}
+
+mat-card-content {
+  padding-top: 1.5rem;
+}
+
 form {
   display: grid;
-  gap: 1rem;
+  gap: var(--veril-space-section);
   max-width: 36rem;
+}
+
+@media (max-width: 40rem) {
+  mat-card {
+    border: 0;
+    box-shadow: none;
+  }
+
+  mat-card-content,
+  mat-card-actions {
+    padding-inline: 0;
+  }
 }
 
 .feedback {

@@ -1,5 +1,5 @@
 .page-section {
-  max-width: 56rem;
+  max-width: var(--veril-content-readable);
 }
 .eyebrow {
   margin: 0 0 0.25rem;
@@ -19,7 +19,7 @@ h3 {
 }
 ul {
   display: grid;
-  gap: 1rem;
+  gap: var(--veril-space-section);
   padding: 0;
   list-style: none;
 }

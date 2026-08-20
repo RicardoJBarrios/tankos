@@ -93,14 +93,17 @@
 
     <mat-card-actions>
       @if (state() === 'success') {
-      <a
-        mat-flat-button
-        color="primary"
-        routerLink="/app/aquariums/measurements"
-        >Ver mediciones</a
+      <a mat-flat-button color="primary" routerLink="/app/aquariums/current"
+        >Volver a Hoy</a
       >
       } @else {
-      <a mat-button routerLink="/app/aquariums">Volver a mis acuarios</a>
+      <a
+        mat-button
+        [routerLink]="
+          hasActiveContext ? '/app/aquariums/current' : '/app/aquariums'
+        "
+        >{{ hasActiveContext ? 'Volver a Hoy' : 'Volver a mis acuarios' }}</a
+      >
       }
     </mat-card-actions>
   </mat-card>

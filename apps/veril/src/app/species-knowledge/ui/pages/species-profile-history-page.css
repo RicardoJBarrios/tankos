@@ -1,7 +1,7 @@
 .page-section {
   display: grid;
   gap: 1rem;
-  max-width: 56rem;
+  max-width: var(--veril-content-readable);
   margin: 0 auto;
   padding: 1.5rem;
 }

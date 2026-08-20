@@ -5,10 +5,31 @@
 >
   <div class="section-heading">
     <div>
-      <p class="eyebrow">Contexto del acuario</p>
-      <h2 id="timeline-title">Actividad reciente</h2>
+      <p class="eyebrow">Evidencia registrada</p>
+      <h2 id="timeline-title">Historial</h2>
+      <p class="section-description">
+        Consulta lo que ocurrió recientemente y abre cada historial específico.
+      </p>
     </div>
   </div>
+
+  <nav aria-label="Historias del acuario" class="history-links">
+    <a mat-stroked-button routerLink="/app/aquariums/measurements"
+      >Mediciones</a
+    >
+    <a mat-stroked-button routerLink="/app/aquariums/observations"
+      >Observaciones</a
+    >
+    <a mat-stroked-button routerLink="/app/aquariums/care"
+      >Cuidados realizados</a
+    >
+    <a mat-stroked-button routerLink="/app/aquariums/maintenance"
+      >Cambios de agua</a
+    >
+    <a mat-stroked-button routerLink="/app/aquariums/livestock/history"
+      >Historial de habitantes</a
+    >
+  </nav>
 
   @if (state() === 'no-context') {
   <mat-card appearance="outlined" class="empty-state">

@@ -56,6 +56,9 @@ export const AquariumDashboardStore = signalStore(
     }) => ({
       hasLocation: computed(() => aquariumLocation() !== undefined),
       hasTimeZone: computed(() => aquariumTimeZone() !== undefined),
+      hasParameterTargets: computed(
+        () => Object.keys(parameterTargets()).length > 0,
+      ),
       currentParameterStates: computed<readonly CurrentParameterState[]>(() => {
         const measurements = new Map(
           currentMeasurements().map((measurement) => [

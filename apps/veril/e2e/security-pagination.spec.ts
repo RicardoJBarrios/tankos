@@ -201,11 +201,16 @@ test('a keeper can grant, verify and revoke scoped viewer access', async ({
       'Invitación aceptada',
     );
     await viewerPage.goto(`/shared/aquariums/${fixture.aquariumId}`);
+    await expect(viewerPage.getByText('Solo lectura')).toBeVisible();
+    await expect(viewerPage.locator('main')).toBeVisible();
+    await expect(
+      viewerPage.getByRole('button', { name: 'Registrar' }),
+    ).toHaveCount(0);
     await expect(viewerPage.getByTestId('shared-aquarium')).toContainText(
-      'measurements: 20 registros disponibles',
+      'Mediciones: 20 registros disponibles',
     );
     await expect(viewerPage.getByTestId('shared-aquarium')).toContainText(
-      'waterChanges: 1 registros disponibles',
+      'Cambios de agua: 1 registros disponibles',
     );
     await viewerPage.getByRole('link', { name: 'Consultar historial' }).click();
     await expect(viewerPage).toHaveURL(
@@ -214,6 +219,8 @@ test('a keeper can grant, verify and revoke scoped viewer access', async ({
     await expect(
       viewerPage.getByTestId('shared-parameter-history'),
     ).toContainText('Historial de mediciones');
+    await expect(viewerPage.getByText('Solo lectura')).toBeVisible();
+    await expect(viewerPage.locator('main')).toBeVisible();
     await expect(
       viewerPage.getByTestId('shared-parameter-history').locator('li'),
     ).toHaveCount(20);
@@ -258,7 +265,7 @@ test('a viewer can accept a scoped read-only invitation', async ({ page }) => {
     page.getByRole('heading', { name: 'E2E Pagination Aquarium' }),
   ).toBeVisible();
   await expect(page.locator('body')).toContainText(
-    'Solo se muestran las secciones para las que tienes permiso.',
+    'Solo se muestran las secciones disponibles para tu acceso.',
   );
   await expect(page.locator('body')).not.toContainText('measurements:');
   await expect(page.locator('body')).not.toContainText('livestock:');
@@ -382,7 +389,7 @@ test('a viewer can see only the private section granted by the keeper', async ({
       viewerPage.getByRole('heading', { name: 'E2E Pagination Aquarium' }),
     ).toBeVisible();
     await expect(viewerPage.getByTestId('shared-aquarium')).toContainText(
-      'measurements: 20 registros disponibles',
+      'Mediciones: 20 registros disponibles',
     );
     await expect(viewerPage.getByTestId('shared-aquarium')).not.toContainText(
       'careWorks:',
@@ -439,16 +446,16 @@ test('a viewer can receive a read-only grant for observations, care and livestoc
     await viewerPage.goto(`/shared/aquariums/${fixture.aquariumId}`);
     const sharedAquarium = viewerPage.getByTestId('shared-aquarium');
     await expect(sharedAquarium).toContainText(
-      'observations: 1 registros disponibles',
+      'Observaciones: 1 registros disponibles',
     );
     await expect(sharedAquarium).toContainText(
-      'careWorks: 1 registros disponibles',
+      'Cuidados realizados: 1 registros disponibles',
     );
     await expect(sharedAquarium).toContainText(
-      'livestock: 1 registros disponibles',
+      'Habitantes: 1 registros disponibles',
     );
     await expect(sharedAquarium).toContainText(
-      'equipment: 1 registros disponibles',
+      'Equipos: 1 registros disponibles',
     );
     await expect(sharedAquarium).not.toContainText('measurements:');
     await expect(sharedAquarium).not.toContainText('plannedCareWorks:');

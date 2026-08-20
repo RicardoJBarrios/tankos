@@ -109,7 +109,7 @@ describe('AquariumDashboardPage', () => {
     expect(execute).not.toHaveBeenCalled();
   });
 
-  it('renders the selected Aquarium and grouped capabilities', async () => {
+  it('renders Hoy with attention and evidence before secondary context', async () => {
     contextSelected = true;
     execute.mockResolvedValue(aquarium);
     const spectator: Spectator<AquariumDashboardPage> = createComponent();
@@ -121,23 +121,29 @@ describe('AquariumDashboardPage', () => {
       spectator.query('[data-testid="aquarium-time-zone-missing"]'),
     ).toBeTruthy();
     expect(
+      spectator.query('[data-testid="aquarium-time-zone-missing"]')
+        ?.textContent,
+    ).toContain('programar cuidados en hora local');
+    expect(
+      spectator.query('[data-testid="aquarium-location-missing"]')?.textContent,
+    ).toContain('meteorología local');
+    expect(
+      spectator.query('[data-testid="parameter-targets-guidance"]'),
+    ).toBeTruthy();
+    expect(spectator.query('.eyebrow')?.textContent).toContain('Hoy');
+    expect(
       spectator.queryAll('h3').map((heading) => heading.textContent),
     ).toEqual([
+      'Necesita atención',
       'Últimas mediciones',
       'Actividad reciente',
-      'Cuidados pendientes',
-      'Configurar',
-      'Registrar',
-      'Consultar',
     ]);
+    expect(spectator.query('.dashboard')?.textContent).not.toContain(
+      'Dashboard del acuario',
+    );
     expect(
       spectator.queryAll('a').map((link) => link.textContent?.trim()),
-    ).toEqual(
-      expect.arrayContaining([
-        'Registrar observación',
-        'Ver toda la actividad',
-      ]),
-    );
+    ).toEqual(expect.arrayContaining(['Ver toda la actividad']));
   });
 
   it('shows the configured timezone without offering configuration', async () => {

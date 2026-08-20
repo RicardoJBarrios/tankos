@@ -1,10 +1,10 @@
 .page-section {
-  max-width: 48rem;
+  max-width: var(--veril-content-form-wide);
   margin: 0 auto;
 }
 form {
   display: grid;
-  gap: 1rem;
+  gap: var(--veril-space-section);
 }
 .actions {
   display: flex;

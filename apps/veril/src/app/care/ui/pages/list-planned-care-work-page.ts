@@ -146,7 +146,7 @@ export class ListPlannedCareWorkPage implements OnInit {
         cursor,
         this.pageSize(),
       );
-      this.items.update((items) => [...items, ...page.items]);
+      this.items.update((items) => this.orderItems([...items, ...page.items]));
       this.nextCursor.set(page.nextCursor);
     } catch {
       this.errorMessage.set(
@@ -257,7 +257,7 @@ export class ListPlannedCareWorkPage implements OnInit {
         undefined,
         this.pageSize(),
       );
-      this.items.set(page.items);
+      this.items.set(this.orderItems(page.items));
       this.nextCursor.set(page.nextCursor);
       this.state.set(page.items.length === 0 ? 'empty' : 'success');
     } catch {
@@ -279,5 +279,19 @@ export class ListPlannedCareWorkPage implements OnInit {
     );
     if (!aquarium) throw new Error('Aquarium not found');
     this.timeZone.set(aquarium.timeZone);
+  }
+
+  private orderItems(
+    items: readonly PlannedCareWorkListItem[],
+  ): readonly PlannedCareWorkListItem[] {
+    return [...items].sort((left, right) => {
+      const timingOrder = (item: PlannedCareWorkListItem): number =>
+        this.timing(item) === 'overdue' ? 0 : 1;
+      const timingDifference = timingOrder(left) - timingOrder(right);
+      return (
+        timingDifference ||
+        left.plannedFor.getTime() - right.plannedFor.getTime()
+      );
+    });
   }
 }

@@ -1,6 +1,6 @@
 <section aria-labelledby="transfer-equipment-title" class="page-section">
   <p class="eyebrow">Sistemas</p>
-  <h2 id="transfer-equipment-title">Transferir Equipment</h2>
+  <h2 id="transfer-equipment-title">Transferir equipo</h2>
   <mat-card appearance="outlined"
     ><mat-card-content
       >@if (state() === 'loading') {
@@ -10,7 +10,7 @@
         Transferencia realizada. El equipo conserva su historial.
       </p>
       <a mat-flat-button color="primary" routerLink="/app/aquariums/equipment"
-        >Ver equipment</a
+        >Ver equipos</a
       >} @else if (state() === 'failure') {
       <p role="alert">{{ errorMessage() }}</p>
       <a mat-button routerLink="/app/aquariums/equipment">Volver</a>} @else {

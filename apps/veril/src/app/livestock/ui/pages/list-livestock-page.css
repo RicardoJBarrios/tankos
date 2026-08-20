@@ -1,9 +1,9 @@
 .page-section {
-  max-width: 56rem;
+  max-width: var(--veril-content-readable);
 }
 ul {
   display: grid;
-  gap: 1rem;
+  gap: var(--veril-space-section);
   padding: 0;
   list-style: none;
 }
