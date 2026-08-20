@@ -4,8 +4,8 @@ import {
   DatePipe,
 } from '@angular/common';
 import { inject, InjectionToken, LOCALE_ID, Provider } from '@angular/core';
-import { createAngularTimeDisplayAdapter } from '../adapters/angular/angular-time-display-adapter';
-import { TimeDisplayAdapter } from '../ports/time-display-adapter';
+import { createAngularTimeDisplayAdapter } from '../adapters/angular';
+import { TimeDisplayAdapter } from '../ports';
 
 /** Angular token for the active temporal display implementation. */
 export const TIME_DISPLAY_ADAPTER = new InjectionToken<TimeDisplayAdapter>(

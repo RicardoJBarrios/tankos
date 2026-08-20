@@ -1,10 +1,6 @@
 import { DatePipe } from '@angular/common';
-import { nativeParseInstant } from '../native/native-instant-parsing';
-import { nativeParseLocalDate } from '../native/native-local-date-parsing';
-import {
-  TimeDisplayAdapter,
-  TimeDisplayOptions,
-} from '../../ports/time-display-adapter';
+import { nativeParseInstant, nativeParseLocalDate } from '../native';
+import { TimeDisplayAdapter, TimeDisplayOptions } from '../../ports';
 import { toDatePipeTimeZone } from './angular-time-zone-offset';
 
 const DEFAULT_FORMAT = 'medium';

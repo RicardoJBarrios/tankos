@@ -69,6 +69,15 @@ inside that adapter directory. In particular, files prefixed `native-` belong
 under `adapters/native/` and must not be placed beside the port or application
 files.
 
+## Directory barrels
+
+When a directory contains multiple reusable or public elements, add an
+`index.ts` barrel for that directory and import the directory's public API
+through the barrel from outside the directory. Keep direct file imports for
+private implementation details and for the paired test of the file under test.
+Barrels must expose only the intended public surface and must not be used to
+hide circular dependencies.
+
 At minimum, public TSDoc must state the purpose, relevant inputs and outputs,
 failure behavior and important side effects. Use `@remarks` for architectural
 justification and `@throws`, `@param`, `@returns` and `@example` where they add

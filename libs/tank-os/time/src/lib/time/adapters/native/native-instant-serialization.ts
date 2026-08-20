@@ -1,5 +1,5 @@
 import { nativeParseInstant } from './native-instant-parsing';
-import { InstantInput } from '../../ports/time-types';
+import { InstantInput } from '../../ports';
 
 /**
  * Serializes an instant as an ISO 8601 UTC string.

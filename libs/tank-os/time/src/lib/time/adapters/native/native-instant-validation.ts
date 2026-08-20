@@ -1,5 +1,5 @@
 import { nativeParseInstant } from './native-instant-parsing';
-import { InstantInput } from '../../ports/time-types';
+import { InstantInput } from '../../ports';
 
 /**
  * Checks whether a value can be parsed as an instant.

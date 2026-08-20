@@ -1,4 +1,4 @@
-import { DateTimeParts } from '../../ports/time-types';
+import { DateTimeParts } from '../../ports';
 
 /**
  * Builds a UTC timestamp from complete calendar fields without consulting

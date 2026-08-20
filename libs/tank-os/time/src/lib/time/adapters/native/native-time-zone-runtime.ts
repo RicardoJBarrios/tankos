@@ -1,5 +1,5 @@
 import { createUtcTimestamp } from './native-calendar-date';
-import { DateTimeParts } from '../../ports/time-types';
+import { DateTimeParts } from '../../ports';
 
 const formatterCache = new Map<string, Intl.DateTimeFormat>();
 

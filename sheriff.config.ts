@@ -54,6 +54,24 @@ modules['apps/veril/src/app/composition/shared-access'] = [
   'layer:composition',
 ];
 
+modules['libs/tank-os/time'] = ['context:tank-os'];
+modules['libs/tank-os/units'] = ['context:tank-os'];
+
+for (const modulePath of [
+  'libs/tank-os/time/src',
+  'libs/tank-os/time/src/lib/time',
+  'libs/tank-os/time/src/lib/time/adapters',
+  'libs/tank-os/time/src/lib/time/adapters/angular',
+  'libs/tank-os/time/src/lib/time/adapters/native',
+  'libs/tank-os/time/src/lib/time/application',
+  'libs/tank-os/time/src/lib/time/ports',
+  'libs/tank-os/time/src/lib/time/presentation',
+  'libs/tank-os/time/src/lib/time/presentation/pipes',
+  'libs/tank-os/units/src',
+]) {
+  modules[modulePath] = ['context:tank-os'];
+}
+
 for (const layer of layers) {
   modules[`apps/veril/src/app/shared-access/${layer}`] = [
     'context:shared-access',
@@ -92,6 +110,7 @@ export const config: SheriffConfig = {
     ],
     'context:shared-access': ['context:shared-access', 'context:shared'],
     'context:shared': ['context:shared'],
+    'context:tank-os': ['context:tank-os'],
     'context:composition': [
       'context:composition',
       'context:aquarium-management',

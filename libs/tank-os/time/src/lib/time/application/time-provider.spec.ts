@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { createNativeTimeAdapter } from '../adapters/native/native-time-adapter';
+import { createNativeTimeAdapter } from '../adapters/native';
 import { provideTimeAdapter } from './time-provider';
 import { TimeService } from './time-service';
 

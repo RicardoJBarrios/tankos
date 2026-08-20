@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideTimeDisplayAdapter } from '../../application/time-display-provider';
+import { provideTimeDisplayAdapter } from '../../application';
 import { LocalDatePipe } from './local-date.pipe';
 
 describe('local-date.pipe', () => {

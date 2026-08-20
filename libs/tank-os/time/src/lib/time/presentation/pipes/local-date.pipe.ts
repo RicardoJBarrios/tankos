@@ -1,7 +1,6 @@
 import { inject, Pipe, PipeTransform } from '@angular/core';
-import { LocalDate } from '../../ports/time-types';
-import { TimeDisplayOptions } from '../../ports/time-display-adapter';
-import { TimeDisplayService } from '../../application/time-display-service';
+import { TimeDisplayService } from '../../application';
+import { LocalDate, TimeDisplayOptions } from '../../ports';
 
 /** Renders a calendar date without applying a time-zone conversion. */
 @Pipe({ name: 'tankLocalDate', standalone: true, pure: true })

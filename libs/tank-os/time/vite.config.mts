@@ -25,6 +25,7 @@ export default defineConfig(() => ({
       provider: 'v8' as const,
       exclude: [
         '**/src/index.ts',
+        '**/index.ts',
         '**/*-types.ts',
         '**/*-adapter.ts',
         '**/eslint.config.mjs',

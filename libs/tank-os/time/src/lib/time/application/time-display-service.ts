@@ -1,6 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { InstantInput, LocalDate } from '../ports/time-types';
-import { TimeDisplayOptions } from '../ports/time-display-adapter';
+import { InstantInput, LocalDate, TimeDisplayOptions } from '../ports';
 import { TIME_DISPLAY_ADAPTER } from './time-display-provider';
 
 /** Angular facade for temporal presentation operations. */
