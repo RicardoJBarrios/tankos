@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { TIME_ADAPTER } from './time-provider';
-import { Instant, InstantInput, LocalDate } from '../ports';
+import { Instant, InstantInput, LocalDate, LocalDateInput } from '../ports';
 
 @Injectable({ providedIn: 'root' })
 /** Facade exposing the active adapter through Angular DI. */
@@ -23,12 +23,12 @@ export class TimeService {
   }
 
   /** Parses a time-zone-independent calendar date. */
-  parseLocalDate(value: string): LocalDate {
+  parseLocalDate(value: LocalDateInput): LocalDate {
     return this.#adapter.parseLocalDate(value);
   }
 
   /** Validates a time-zone-independent calendar date. */
-  isValidLocalDate(value: unknown): value is string {
+  isValidLocalDate(value: unknown): value is LocalDateInput {
     return this.#adapter.isValidLocalDate(value);
   }
 

@@ -1,3 +1,4 @@
+import { LocalDateInput } from '../../ports';
 import { nativeParseLocalDate } from './native-local-date-parsing';
 
 /**
@@ -6,9 +7,11 @@ import { nativeParseLocalDate } from './native-local-date-parsing';
  * @param value - The unknown value to validate.
  * @returns `true` when the value is a valid `YYYY-MM-DD` date.
  */
-export function nativeIsValidLocalDate(value: unknown): value is string {
+export function nativeIsValidLocalDate(
+  value: unknown,
+): value is LocalDateInput {
   try {
-    nativeParseLocalDate(value as string);
+    nativeParseLocalDate(value as LocalDateInput);
     return true;
   } catch {
     return false;

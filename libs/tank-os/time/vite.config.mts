@@ -27,6 +27,7 @@ export default defineConfig(() => ({
         '**/src/index.ts',
         '**/index.ts',
         '**/*-types.ts',
+        '**/*-context.ts',
         '**/*-adapter.ts',
         '**/eslint.config.mjs',
         '**/vite.config.mts',

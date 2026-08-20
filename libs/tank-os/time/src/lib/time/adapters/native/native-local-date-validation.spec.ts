@@ -7,6 +7,17 @@ describe('native-local-date-validation', () => {
     expect(adapter.isValidLocalDate('2026-08-20')).toBe(true);
   });
 
+  it('Given a valid structured local date, When validating it, Then it returns true', () => {
+    expect(
+      adapter.isValidLocalDate({
+        kind: 'local-date',
+        year: 2026,
+        month: 8,
+        day: 20,
+      }),
+    ).toBe(true);
+  });
+
   it.each([
     '2026-02-29',
     'not-a-date',
@@ -18,6 +29,8 @@ describe('native-local-date-validation', () => {
     20260820,
     null,
     undefined,
+    { kind: 'local-date', year: 2026, month: 2, day: 29 },
+    { kind: 'other', year: 2026, month: 8, day: 20 },
   ])(
     'Given invalid value %s, When validating it, Then it returns false',
     (value) => {

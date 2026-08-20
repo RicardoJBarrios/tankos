@@ -1,5 +1,5 @@
 import { isValidCalendarDate } from './native-calendar-date';
-import { LocalDate } from '../../ports';
+import { LocalDate, LocalDateInput } from '../../ports';
 
 const LOCAL_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
@@ -10,7 +10,17 @@ const LOCAL_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
  * @returns The structured local date.
  * @throws `RangeError` when the input is not a valid calendar date.
  */
-export function nativeParseLocalDate(value: string): LocalDate {
+export function nativeParseLocalDate(value: LocalDateInput): LocalDate {
+  if (typeof value !== 'string') {
+    if (
+      !isValidCalendarDate(value.year, value.month, value.day) ||
+      value.kind !== 'local-date'
+    ) {
+      throw new RangeError('Invalid local date');
+    }
+    return value;
+  }
+
   const match = LOCAL_DATE_PATTERN.exec(value);
   if (!match) {
     throw new RangeError('A local date must use YYYY-MM-DD syntax');

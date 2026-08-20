@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { LOCALE_ID } from '@angular/core';
 import {
   provideAngularTimeDisplayAdapter,
+  provideTimeDisplayContext,
   provideTimeDisplayAdapter,
 } from './time-display-provider';
 import { TimeDisplayService } from './time-display-service';
@@ -49,5 +50,36 @@ describe('time-display-provider', () => {
         timeZone: 'UTC',
       }),
     ).toContain('1/1/70');
+  });
+
+  it('Given an aquarium display zone, When no pipe zone is provided, Then the aquarium zone wins over the user zone', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideTimeDisplayContext({
+          aquariumTimeZone: 'Europe/Madrid',
+          userTimeZone: 'Pacific/Honolulu',
+        }),
+      ],
+    });
+
+    expect(
+      TestBed.inject(TimeDisplayService).formatInstant('2026-08-20T22:30:00Z', {
+        format: 'yyyy-MM-dd HH:mm',
+      }),
+    ).toBe('2026-08-21 00:30');
+  });
+
+  it('Given only a user display zone, When no pipe zone is provided, Then the user zone is used', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideTimeDisplayContext({ userTimeZone: 'Pacific/Honolulu' }),
+      ],
+    });
+
+    expect(
+      TestBed.inject(TimeDisplayService).formatInstant('2026-08-20T22:30:00Z', {
+        format: 'yyyy-MM-dd HH:mm',
+      }),
+    ).toBe('2026-08-20 12:30');
   });
 });

@@ -1,4 +1,4 @@
-import { Instant, InstantInput, LocalDate } from './time-types';
+import { Instant, InstantInput, LocalDate, LocalDateInput } from './time-types';
 
 /**
  * Port for the time implementation used by TankOS.
@@ -10,8 +10,8 @@ export interface TimeAdapter {
   parseInstant(value: InstantInput): Instant;
   isValidInstant(value: unknown): value is InstantInput;
   toUtcIsoString(value: InstantInput): string;
-  parseLocalDate(value: string): LocalDate;
-  isValidLocalDate(value: unknown): value is string;
+  parseLocalDate(value: LocalDateInput): LocalDate;
+  isValidLocalDate(value: unknown): value is LocalDateInput;
   fromZonedDateTime(value: string, timeZone: string): Instant;
   isValidTimeZone(timeZone: string): boolean;
 }

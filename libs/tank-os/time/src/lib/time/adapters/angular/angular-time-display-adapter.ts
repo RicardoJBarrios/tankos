@@ -1,6 +1,9 @@
 import { DatePipe } from '@angular/common';
-import { nativeParseInstant, nativeParseLocalDate } from '../native';
-import { TimeDisplayAdapter, TimeDisplayOptions } from '../../ports';
+import {
+  TimeAdapter,
+  TimeDisplayAdapter,
+  TimeDisplayOptions,
+} from '../../ports';
 import { toDatePipeTimeZone } from './angular-time-zone-offset';
 
 const DEFAULT_FORMAT = 'medium';
@@ -16,11 +19,12 @@ const DEFAULT_TIME_ZONE = 'UTC';
  */
 export function createAngularTimeDisplayAdapter(
   datePipe: DatePipe,
+  timeAdapter: TimeAdapter,
   defaultTimeZone = DEFAULT_TIME_ZONE,
 ): TimeDisplayAdapter {
   return {
     formatInstant(value, options) {
-      const instant = nativeParseInstant(value);
+      const instant = timeAdapter.parseInstant(value);
       return formatDate(
         datePipe,
         instant.epochMilliseconds,
@@ -29,8 +33,7 @@ export function createAngularTimeDisplayAdapter(
       );
     },
     formatLocalDate(value, options) {
-      const localDate =
-        typeof value === 'string' ? nativeParseLocalDate(value) : value;
+      const localDate = timeAdapter.parseLocalDate(value);
       const epochMilliseconds = Date.UTC(
         localDate.year,
         localDate.month - 1,

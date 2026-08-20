@@ -5,7 +5,14 @@ import {
 } from '@angular/common';
 import { inject, InjectionToken, LOCALE_ID, Provider } from '@angular/core';
 import { createAngularTimeDisplayAdapter } from '../adapters/angular';
-import { TimeDisplayAdapter } from '../ports';
+import { TimeDisplayAdapter, TimeDisplayContext } from '../ports';
+import { TIME_ADAPTER } from './time-provider';
+
+/** Angular token for the zones available to temporal presentation. */
+export const TIME_DISPLAY_CONTEXT = new InjectionToken<TimeDisplayContext>(
+  'TIME_DISPLAY_CONTEXT',
+  { providedIn: 'root', factory: () => ({}) },
+);
 
 /** Angular token for the active temporal display implementation. */
 export const TIME_DISPLAY_ADAPTER = new InjectionToken<TimeDisplayAdapter>(
@@ -35,7 +42,7 @@ export function provideTimeDisplayAdapter(
  * @returns Angular providers for the adapter and its `DatePipe`.
  */
 export function provideAngularTimeDisplayAdapter(
-  defaultTimeZone = 'UTC',
+  defaultTimeZone?: string,
 ): Provider {
   return {
     provide: TIME_DISPLAY_ADAPTER,
@@ -44,19 +51,31 @@ export function provideAngularTimeDisplayAdapter(
   };
 }
 
+/** Registers aquarium and user zones used by the display fallback policy. */
+export function provideTimeDisplayContext(
+  context: TimeDisplayContext,
+): Provider {
+  return { provide: TIME_DISPLAY_CONTEXT, useValue: context };
+}
+
 function createDefaultAngularTimeDisplayAdapter(): TimeDisplayAdapter {
-  return createConfiguredAngularTimeDisplayAdapter('UTC');
+  return createConfiguredAngularTimeDisplayAdapter();
 }
 
 function createConfiguredAngularTimeDisplayAdapter(
-  defaultTimeZone: string,
+  explicitDefaultTimeZone?: string,
 ): TimeDisplayAdapter {
+  const context = inject(TIME_DISPLAY_CONTEXT);
   return createAngularTimeDisplayAdapter(
     new DatePipe(
       inject(LOCALE_ID),
       inject(DATE_PIPE_DEFAULT_TIMEZONE, { optional: true }),
       inject(DATE_PIPE_DEFAULT_OPTIONS, { optional: true }),
     ),
-    defaultTimeZone,
+    inject(TIME_ADAPTER),
+    explicitDefaultTimeZone ??
+      context.aquariumTimeZone ??
+      context.userTimeZone ??
+      'UTC',
   );
 }

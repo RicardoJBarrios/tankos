@@ -12,6 +12,9 @@ export type LocalDate = {
   readonly day: number;
 };
 
+/** Accepted input forms for a calendar date. */
+export type LocalDateInput = LocalDate | string;
+
 /** Accepted input forms for parsing an instant. */
 export type InstantInput = Instant | number | string;
 

@@ -1,4 +1,4 @@
-import { InstantInput, LocalDate } from './time-types';
+import { InstantInput, LocalDateInput } from './time-types';
 
 /** Options shared by time presentation operations. */
 export type TimeDisplayOptions = Readonly<{
@@ -16,8 +16,5 @@ export type TimeDisplayOptions = Readonly<{
  */
 export interface TimeDisplayAdapter {
   formatInstant(value: InstantInput, options?: TimeDisplayOptions): string;
-  formatLocalDate(
-    value: LocalDate | string,
-    options?: TimeDisplayOptions,
-  ): string;
+  formatLocalDate(value: LocalDateInput, options?: TimeDisplayOptions): string;
 }

@@ -1,7 +1,7 @@
 # TankOS Time
 
-**Status:** initial helper slice implemented; broader temporal behavior remains
-open.
+**Status:** Angular-centric first slice implemented; future temporal concepts
+remain intentionally separate from the current stable contracts.
 
 This library owns the reusable temporal capability for TankOS. It is separate
 from `@tank-os/units`: dates and times are not measurement units, even though
@@ -73,8 +73,8 @@ Storage and presentation are separate concerns:
 
 ## Boundary adapters
 
-The first implementation should expose pure validation and normalization rules
-behind typed APIs. Framework and transport adapters may later translate to:
+The implementation exposes typed APIs behind Angular services and replaceable
+ports. Framework and transport adapters may later translate to:
 
 - Firestore `Timestamp` or a documented wire representation;
 - JSON/HTTP ISO 8601 strings;
@@ -84,9 +84,9 @@ behind typed APIs. Framework and transport adapters may later translate to:
 Those adapters must not leak persistence or transport DTOs into the core time
 model.
 
-## Initial non-goals
+## Current non-goals
 
-The first slice does not decide or implement:
+The current slice does not decide or implement:
 
 - recurring schedules;
 - calendar arithmetic beyond the required normalization helpers;
@@ -96,11 +96,11 @@ The first slice does not decide or implement:
 - device clock trust or calibration;
 - timezone configuration for an Aquarium.
 
-## Implemented first slice
+## Implemented slice
 
 The first public adapter slice exports:
 
-- `Instant` and `LocalDate` typed values;
+- `Instant`, `LocalDate` and `LocalDateInput` typed values;
 - the `TimeAdapter` port;
 - `createNativeTimeAdapter()`;
 - `TIME_ADAPTER`, `provideTimeAdapter(...)` and `TimeService`;
@@ -119,7 +119,7 @@ date-times with `Z` or an explicit offset for `Instant`, and rejects local
 date-times that are nonexistent or ambiguous in their time zone.
 
 The public API does not accept or expose JavaScript `Date` or `Intl` objects.
-The current implementation uses them only inside `createNativeTimeAdapter`.
+Those runtimes are confined to the native and Angular adapters.
 
 ## Runtime abstraction
 
@@ -137,9 +137,11 @@ provideTimeDisplayAdapter(customDisplayAdapter);
 ```
 
 The adapter is the only place where a concrete date-time runtime, JavaScript
-standard, polyfill or third-party library may be selected. Consumers should
-use `TimeService` inside Angular or call methods on an explicit adapter created
-with `createNativeTimeAdapter()` outside Angular. There are no parallel global
+standard, polyfill or third-party library may be selected. The Angular display
+adapter consumes the active `TimeAdapter` through its port; it does not import
+the native implementation directly. Consumers should use `TimeService` inside
+Angular or call methods on an explicit adapter created with
+`createNativeTimeAdapter()` outside Angular. There are no parallel global
 helper functions.
 
 Date presentation is provided by the Angular pipes `tankInstant` and
@@ -168,7 +170,8 @@ The first four arguments have the same meaning as `DatePipe`:
 The additional arguments are optional and must not alter the temporal value.
 They only affect presentation. The core `Instant` remains a UTC-normalized
 point on the timeline and a `LocalDate` remains a calendar date without a
-zone.
+zone. `timeZone` is intentionally ignored for `tankLocalDate`; a calendar date
+must not be shifted by a time-zone conversion.
 
 ### Time-zone policy
 
@@ -183,9 +186,13 @@ explicit pipe timezone
 ```
 
 `LOCALE_ID` and `locale` control language and regional formatting. They do not
-select the aquarium or user time zone. An aquarium zone must therefore be
-passed explicitly by the screen/context or configured in a display adapter;
-it must never be inferred from the browser locale.
+select the aquarium or user time zone. An aquarium zone is supplied through
+`provideTimeDisplayContext(...)` or an explicit pipe argument. It must never be
+inferred from the browser locale.
+
+Core time-zone resolution accepts IANA identifiers. Angular display additionally
+accepts `UTC`, `Z` and validated fixed numeric offsets because those are the
+values supported by the `DatePipe` boundary.
 
 ### Angular display adapter
 
@@ -205,8 +212,9 @@ The native temporal adapter remains available for non-Angular consumers and
 continues to use the JavaScript runtime for parsing and normalization. It does
 not provide a second display implementation. Angular applications normally
 need no display-provider wiring. They may use
-`provideAngularTimeDisplayAdapter()` when a scoped fallback zone, such as an
-Aquarium's zone, must override UTC.
+`provideTimeDisplayContext(...)` for aquarium and user fallback zones, or
+`provideAngularTimeDisplayAdapter(...)` when a scoped explicit fallback must
+override that context.
 
 Angular's `DatePipe` accepts numeric timezone offsets rather than arbitrary
 IANA zone identifiers. The Angular adapter therefore resolves an IANA
@@ -217,12 +225,12 @@ which is a limitation of the Angular formatter contract.
 
 ## Ports and adapters layout
 
-The library is organized as a hexagonal boundary:
+The library is organized as an Angular-centric hexagonal boundary:
 
 ```text
 time/
-├── ports/                 # runtime-independent contracts and value types
-├── application/           # Angular-facing service and provider wiring
+├── ports/                 # contracts and value types
+├── application/           # Angular services, tokens and provider wiring
 ├── adapters/native/       # current JavaScript temporal implementation
 └── presentation/         # Angular presentation entry point
 ```
@@ -233,17 +241,22 @@ implement the `TimeAdapter` port without changing application consumers. The
 native temporal adapter is an infrastructure detail; the port is the stable
 dependency direction for the rest of TankOS.
 
-## Test and coverage boundary
+## Build, test and coverage boundary
+
+The library exposes Nx `build`, `test` and `lint` targets. The build compiles
+the public TypeScript declarations and production sources into
+`dist/libs/tank-os/time`.
 
 The library enforces 100% V8 lines, statements, functions and branches for
 executable production code. The coverage configuration excludes only type-only
 contracts, the public barrel and test/build tooling; public contracts are
-tested through the adapter, Angular DI and component tests.
+tested through the adapter, Angular DI and pipe tests. Component fixtures belong
+to the consuming Angular application when a component is present.
 
-## Open decisions
+## Future decisions
 
-1. The exact public TypeScript types for `Instant`, `LocalDate`,
-   `ZonedDateTime` and `Duration`.
+1. Whether `ZonedDateTime` and `Duration` become public value types in a later
+   slice.
 2. Whether a future slice should support precision finer than milliseconds.
 3. The supported time-zone database and invalid-zone behavior.
 4. The wire representation used at the Firebase and HTTP boundaries.
@@ -251,5 +264,5 @@ tested through the adapter, Angular DI and component tests.
 6. Whether duration conversion is part of this library or remains delegated to
    `@tank-os/units`.
 
-Until these decisions are closed, this document records the direction but does
-not authorize a concrete date-time API.
+These future decisions do not invalidate the current `Instant`, `LocalDate`,
+`TimeAdapter`, Angular provider or presentation contracts.

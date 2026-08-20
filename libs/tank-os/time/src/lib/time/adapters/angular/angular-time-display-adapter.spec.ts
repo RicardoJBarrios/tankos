@@ -1,13 +1,16 @@
 import { DatePipe } from '@angular/common';
+import { createNativeTimeAdapter } from '../native';
 import { createAngularTimeDisplayAdapter } from './angular-time-display-adapter';
 
 describe('angular-time-display-adapter', () => {
+  const timeAdapter = createNativeTimeAdapter();
+
   it('Given an instant, When formatting it, Then it delegates the epoch, format and UTC zone to DatePipe', () => {
     const datePipe = new DatePipe('en-GB');
     const transform = vi
       .spyOn(datePipe, 'transform')
       .mockReturnValue('formatted');
-    const adapter = createAngularTimeDisplayAdapter(datePipe);
+    const adapter = createAngularTimeDisplayAdapter(datePipe, timeAdapter);
 
     expect(
       adapter.formatInstant('2026-08-20T15:30:00Z', {
@@ -24,12 +27,29 @@ describe('angular-time-display-adapter', () => {
     );
   });
 
+  it('Given a replacement time adapter, When formatting an instant, Then it uses that adapter instead of native parsing', () => {
+    const datePipe = new DatePipe('en-GB');
+    const replacementAdapter = createNativeTimeAdapter();
+    vi.spyOn(datePipe, 'transform').mockReturnValue('formatted');
+    const parseInstant = vi
+      .spyOn(replacementAdapter, 'parseInstant')
+      .mockReturnValue({ kind: 'instant', epochMilliseconds: 1234 });
+    const adapter = createAngularTimeDisplayAdapter(
+      datePipe,
+      replacementAdapter,
+    );
+
+    adapter.formatInstant('2026-08-20T15:30:00Z');
+
+    expect(parseInstant).toHaveBeenCalledWith('2026-08-20T15:30:00Z');
+  });
+
   it('Given an aquarium IANA timezone, When formatting an instant, Then it resolves the offset at that instant before delegating', () => {
     const datePipe = new DatePipe('en-GB');
     const transform = vi
       .spyOn(datePipe, 'transform')
       .mockReturnValue('formatted');
-    const adapter = createAngularTimeDisplayAdapter(datePipe);
+    const adapter = createAngularTimeDisplayAdapter(datePipe, timeAdapter);
 
     adapter.formatInstant('2026-08-20T12:00:00Z', {
       format: 'medium',
@@ -51,6 +71,7 @@ describe('angular-time-display-adapter', () => {
       .mockReturnValue('formatted');
     const adapter = createAngularTimeDisplayAdapter(
       datePipe,
+      timeAdapter,
       'Atlantic/Canary',
     );
 
@@ -62,7 +83,7 @@ describe('angular-time-display-adapter', () => {
   it('Given a local date, When formatting it, Then it always delegates with UTC to preserve the calendar day', () => {
     const datePipe = new DatePipe('en-GB');
     const transform = vi.spyOn(datePipe, 'transform').mockReturnValue('date');
-    const adapter = createAngularTimeDisplayAdapter(datePipe);
+    const adapter = createAngularTimeDisplayAdapter(datePipe, timeAdapter);
 
     expect(
       adapter.formatLocalDate('2026-08-20', {
@@ -81,7 +102,7 @@ describe('angular-time-display-adapter', () => {
   it('Given an invalid instant, When formatting it, Then it raises a range error before invoking DatePipe', () => {
     const datePipe = new DatePipe('en-GB');
     const transform = vi.spyOn(datePipe, 'transform');
-    const adapter = createAngularTimeDisplayAdapter(datePipe);
+    const adapter = createAngularTimeDisplayAdapter(datePipe, timeAdapter);
 
     expect(() => adapter.formatInstant('invalid')).toThrow(RangeError);
     expect(transform).not.toHaveBeenCalled();

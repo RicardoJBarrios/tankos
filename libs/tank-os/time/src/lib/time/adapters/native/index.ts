@@ -1,11 +1,1 @@
-export * from './native-calendar-date';
-export * from './native-instant-parsing';
-export * from './native-instant-serialization';
-export * from './native-instant-validation';
-export * from './native-local-date-parsing';
-export * from './native-local-date-time-parsing';
-export * from './native-local-date-validation';
-export * from './native-time-adapter';
-export * from './native-time-zone-runtime';
-export * from './native-time-zone-validation';
-export * from './native-zoned-date-time-resolution';
+export { createNativeTimeAdapter } from './native-time-adapter';

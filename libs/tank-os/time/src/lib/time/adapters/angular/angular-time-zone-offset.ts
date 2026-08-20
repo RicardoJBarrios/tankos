@@ -16,6 +16,11 @@ export function toDatePipeTimeZone(
 
   const offsetMatch = /^([+-])(\d{2}):?(\d{2})$/.exec(timeZone);
   if (offsetMatch) {
+    const hours = Number(offsetMatch[2]);
+    const minutes = Number(offsetMatch[3]);
+    if (hours > 23 || minutes > 59) {
+      throw new RangeError(`Invalid fixed time-zone offset: ${timeZone}`);
+    }
     return `${offsetMatch[1]}${offsetMatch[2]}${offsetMatch[3]}`;
   }
 

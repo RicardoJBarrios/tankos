@@ -43,4 +43,11 @@ describe('angular-time-zone-offset', () => {
   it('Given an unknown timezone, When converting it for DatePipe, Then it raises a range error', () => {
     expect(() => toDatePipeTimeZone('Not/A_Time_Zone', 0)).toThrow(RangeError);
   });
+
+  it.each(['+24:00', '-01:60'])(
+    'Given an invalid fixed offset %s, When converting it, Then it raises a range error',
+    (timeZone) => {
+      expect(() => toDatePipeTimeZone(timeZone, 0)).toThrow(RangeError);
+    },
+  );
 });

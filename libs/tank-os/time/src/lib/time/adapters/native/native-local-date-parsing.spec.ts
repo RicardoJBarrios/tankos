@@ -12,6 +12,28 @@ describe('native-local-date-parsing', () => {
     });
   });
 
+  it('Given a structured local date, When parsing it, Then it returns the normalized value', () => {
+    const value = {
+      kind: 'local-date' as const,
+      year: 2026,
+      month: 8,
+      day: 20,
+    };
+
+    expect(adapter.parseLocalDate(value)).toBe(value);
+  });
+
+  it('Given a structured local date with invalid fields, When parsing it, Then it raises a range error', () => {
+    expect(() =>
+      adapter.parseLocalDate({
+        kind: 'local-date',
+        year: 2026,
+        month: 2,
+        day: 29,
+      }),
+    ).toThrow(RangeError);
+  });
+
   it.each(['2026-13-01', '2026-02-29', 'not-a-date', ''])(
     'Given invalid date %s, When parsing it, Then it raises a range error',
     (value) => {
