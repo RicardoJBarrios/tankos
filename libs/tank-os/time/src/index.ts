@@ -6,7 +6,6 @@ export * from './lib/time/application/time-display-provider';
 export * from './lib/time/application/time-display-service';
 export * from './lib/time/ports/time-display-adapter';
 export * from './lib/time/adapters/native/native-time-adapter';
-export * from './lib/time/adapters/native/native-time-display-adapter';
 export * from './lib/time/adapters/angular/angular-time-display-adapter';
 export * from './lib/time/adapters/angular/angular-time-zone-offset';
 export * from './lib/time/presentation/pipes/instant.pipe';

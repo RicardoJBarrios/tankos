@@ -200,10 +200,12 @@ tankInstant / tankLocalDate
           -> DatePipe
 ```
 
-The native adapter remains available for non-Angular consumers and continues
-to use `Intl`. Angular applications normally need no display-provider wiring.
-They may use `provideAngularTimeDisplayAdapter()` when a scoped fallback zone,
-such as an Aquarium's zone, must override UTC.
+The native temporal adapter remains available for non-Angular consumers and
+continues to use the JavaScript runtime for parsing and normalization. It does
+not provide a second display implementation. Angular applications normally
+need no display-provider wiring. They may use
+`provideAngularTimeDisplayAdapter()` when a scoped fallback zone, such as an
+Aquarium's zone, must override UTC.
 
 Angular's `DatePipe` accepts numeric timezone offsets rather than arbitrary
 IANA zone identifiers. The Angular adapter therefore resolves an IANA
@@ -220,15 +222,15 @@ The library is organized as a hexagonal boundary:
 time/
 ├── ports/                 # runtime-independent contracts and value types
 ├── application/           # Angular-facing service and provider wiring
-├── adapters/native/       # current JavaScript/Intl implementation
+├── adapters/native/       # current JavaScript temporal implementation
 └── presentation/         # Angular presentation entry point
 ```
 
 Every file whose name starts with `native-` belongs below
 `adapters/native/`. A future adapter must live in a sibling directory and
 implement the `TimeAdapter` port without changing application consumers. The
-native adapter is an infrastructure detail; the port is the stable dependency
-direction for the rest of TankOS.
+native temporal adapter is an infrastructure detail; the port is the stable
+dependency direction for the rest of TankOS.
 
 ## Test and coverage boundary
 
