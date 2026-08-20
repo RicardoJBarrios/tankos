@@ -1,0 +1,21 @@
+{
+  "name": "time",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/tank-os/time/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["scope:tank-os", "type:feature"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "coverage/libs/tank-os/time",
+        "coverage": true
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

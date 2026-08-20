@@ -1,0 +1,72 @@
+import { isValidCalendarDate } from './native-calendar-date';
+import { Instant, InstantInput } from '../../ports/time-types';
+
+const INSTANT_PATTERN =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?(Z|[+-]\d{2}:\d{2})$/;
+
+function parseInstantString(value: string): number {
+  const match = INSTANT_PATTERN.exec(value);
+  if (!match) {
+    throw new RangeError(
+      'An instant must use ISO 8601 date-time syntax with Z or an explicit offset',
+    );
+  }
+
+  const [, year, month, day, hour, minute, second, , offset] = match;
+  const numericOffset = offset === 'Z' ? 0 : Number(offset.slice(1, 3));
+  const offsetMinutes = offset === 'Z' ? 0 : Number(offset.slice(4, 6));
+  const parsedYear = Number(year);
+  const parsedMonth = Number(month);
+  const parsedDay = Number(day);
+
+  if (
+    !isValidCalendarDate(parsedYear, parsedMonth, parsedDay) ||
+    Number(hour) > 23 ||
+    Number(minute) > 59 ||
+    Number(second) > 59 ||
+    numericOffset > 23 ||
+    offsetMinutes > 59
+  ) {
+    throw new RangeError(`Invalid instant: ${value}`);
+  }
+
+  const timestamp = new Date(value).getTime();
+  if (!Number.isFinite(timestamp)) {
+    throw new RangeError(`Invalid instant: ${value}`);
+  }
+
+  return timestamp;
+}
+
+/**
+ * Parses an instant using the native JavaScript runtime.
+ *
+ * @param value - An ISO instant, epoch milliseconds or previously parsed instant.
+ * @returns The normalized instant value.
+ * @throws `RangeError` when the input is not a valid instant.
+ */
+export function nativeParseInstant(value: InstantInput): Instant {
+  let epochMilliseconds: number;
+
+  if (typeof value === 'string') {
+    epochMilliseconds = parseInstantString(value);
+  } else if (typeof value === 'number') {
+    epochMilliseconds = value;
+  } else {
+    epochMilliseconds = value.epochMilliseconds;
+  }
+
+  if (
+    !Number.isFinite(epochMilliseconds) ||
+    !Number.isInteger(epochMilliseconds)
+  ) {
+    throw new RangeError('Invalid instant');
+  }
+
+  const date = new Date(epochMilliseconds);
+  if (Number.isNaN(date.getTime())) {
+    throw new RangeError('Invalid instant');
+  }
+
+  return { kind: 'instant', epochMilliseconds };
+}
