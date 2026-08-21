@@ -19,9 +19,13 @@ import type {
   Page,
   PageCursor,
   RecordCommand,
-  ServerTimestamp,
+  TechnicalTimestamp,
 } from '@tank-os/data-access';
-import { createAccessContext, createPageRequest } from '@tank-os/data-access';
+import {
+  createAccessContext,
+  createPageRequest,
+  validateLifecycleSelection,
+} from '@tank-os/data-access';
 import { createDataAccessError } from './firestore-errors';
 
 /** Firestore envelope stored for one provider-neutral CRUD record. */
@@ -52,6 +56,8 @@ export interface FirestoreCrudRepositoryOptions<
   readonly recordSchema: z.ZodType<FirestoreRecordDto<TData>>;
   /** Schema version written to newly created records. Defaults to 1. */
   readonly schemaVersion?: number;
+  /** Clock used for technical metadata; defaults to `Timestamp.now`. */
+  readonly timestamp?: () => Timestamp;
   readonly createId: (input: TCreate) => string;
   readonly createData: (input: TCreate) => TData;
   readonly updateData: (data: TData, input: TUpdate) => TData;
@@ -67,11 +73,50 @@ export interface FirestoreCrudRepositoryOptions<
     access: AccessContext,
     operation:
       'list' | 'get' | 'create' | 'replace' | 'mark' | 'restore' | 'delete',
-  ) => void;
+    lifecycle?: readonly CrudRecord<TData>['lifecycle']['status'][] | undefined,
+  ) => void | Promise<void>;
 }
 
-function timestamp(value: Timestamp): ServerTimestamp {
+function timestamp(value: Timestamp): TechnicalTimestamp {
   return { kind: 'instant', epochMilliseconds: value.toMillis() };
+}
+
+const firestoreErrorCodes: Readonly<Record<string, DataAccessErrorCode>> = {
+  'permission-denied': 'forbidden',
+  'not-found': 'not-found',
+  'already-exists': 'conflict',
+  aborted: 'transient',
+  'invalid-argument': 'validation',
+  'failed-precondition': 'permanent',
+  'deadline-exceeded': 'transient',
+  unavailable: 'transient',
+  'resource-exhausted': 'transient',
+};
+
+function firestoreErrorCode(error: unknown): DataAccessErrorCode | undefined {
+  if (error instanceof z.ZodError) return 'validation';
+  const code =
+    typeof error === 'object' && error !== null && 'code' in error
+      ? String((error as { readonly code: unknown }).code)
+      : undefined;
+  if (code === undefined) return undefined;
+  return firestoreErrorCodes[code];
+}
+
+function validateDocumentId(id: string): string {
+  if (
+    typeof id !== 'string' ||
+    !id.trim() ||
+    id === '.' ||
+    id === '..' ||
+    id.includes('/')
+  ) {
+    throw createDataAccessError(
+      'validation',
+      'Firestore document ids must be non-empty single path segments',
+    );
+  }
+  return id;
 }
 
 function mapRecord<TData>(
@@ -101,7 +146,7 @@ function mapRecord<TData>(
   };
 }
 
-/** Creates a Firestore CRUD adapter with server timestamps and revision checks. */
+/** Creates a Firestore CRUD adapter with client-owned technical timestamps and revision checks. */
 export function createFirestoreCrudRepository<
   TData,
   TCreate,
@@ -115,10 +160,11 @@ export function createFirestoreCrudRepository<
     options.collectionPath,
   );
   const schemaVersion = options.schemaVersion ?? 1;
+  const now = options.timestamp ?? (() => firestoreSdk.Timestamp.now());
   if (!Number.isInteger(schemaVersion) || schemaVersion < 1) {
     throw new RangeError('Firestore schema version must be a positive integer');
   }
-  const authorize = (
+  const authorize = async (
     access: AccessContext,
     operation: Parameters<
       NonNullable<
@@ -130,23 +176,129 @@ export function createFirestoreCrudRepository<
         >['authorize']
       >
     >[1],
-  ) => options.authorize?.(access, operation);
+    lifecycle?: ListRequest<TFilter>['lifecycle'] | GetRequest['lifecycle'],
+  ) => {
+    if (options.authorize) {
+      await options.authorize(access, operation, lifecycle);
+      return;
+    }
+    if (operation === 'mark' || operation === 'restore' || operation === 'delete') {
+      throw createDataAccessError(
+        'forbidden',
+        `Firestore ${operation} requires an authorization policy`,
+      );
+    }
+  };
+  const authorizeLifecycleRead = async (
+    access: AccessContext,
+    lifecycle: ListRequest<TFilter>['lifecycle'] | GetRequest['lifecycle'],
+    operation: 'list' | 'get',
+  ) => {
+    validateLifecycleSelection(lifecycle);
+    if (
+      lifecycle?.some((status) => status !== 'active' && status !== 'inactive') &&
+      !options.authorize
+    ) {
+      throw createDataAccessError(
+        'forbidden',
+        `Firestore ${operation} requires an authorization policy for hidden lifecycle states`,
+      );
+    }
+    await authorize(access, operation, lifecycle);
+  };
   const recordReference = (id: string) =>
-    firestoreSdk.doc(options.firestore, options.collectionPath, id);
+    firestoreSdk.doc(
+      options.firestore,
+      options.collectionPath,
+      validateDocumentId(id),
+    );
   const handle = (
     error: unknown,
     fallback: DataAccessErrorCode,
     message: string,
   ): never => {
     if (error instanceof Error && error.name === 'DataAccessError') throw error;
-    throw createDataAccessError(fallback, message, error);
+    throw createDataAccessError(
+      firestoreErrorCode(error) ?? fallback,
+      message,
+      error,
+    );
+  };
+
+  const transactUpdate = async (
+    request: RecordCommand,
+    operation: 'replace' | 'mark' | 'restore',
+    change: (record: CrudRecord<TData>) => {
+      readonly data: TData;
+      readonly lifecycle: CrudRecord<TData>['lifecycle'];
+    },
+  ): Promise<CrudRecord<TData>> => {
+    try {
+      const updated = await firestoreSdk.runTransaction(
+        options.firestore,
+        async (transaction) => {
+          const target = recordReference(request.id);
+          const current = await transaction.get(target);
+          if (!current.exists())
+            throw createDataAccessError('not-found', 'Record was not found');
+          const record = mapRecord(current, options.recordSchema);
+          /* c8 ignore next -- V8 does not attribute the tested throwing branch of this provider boundary. */
+          if (record.lifecycle.status === 'deleted') {
+            throw createDataAccessError(
+              'lifecycle',
+              'Record is terminally deleted',
+            );
+          }
+          if (
+            request.expectedRevision !== undefined &&
+            request.expectedRevision !== record.revision
+          ) {
+            throw createDataAccessError('conflict', 'Record revision is stale');
+          }
+          const updated = change(record);
+          const updatedAt = now();
+          transaction.update(target, {
+            ...updated,
+            revision: record.revision + 1,
+            'metadata.updatedAt': updatedAt,
+            'metadata.updatedBy': request.access.principalId,
+            ...(operation === 'mark' || operation === 'restore'
+              ? {
+                  'metadata.lifecycleChangedAt': updatedAt,
+                  'metadata.lifecycleChangedBy': request.access.principalId,
+                }
+              : {}),
+          });
+          const metadata = Object.assign({}, record.metadata, {
+            updatedAt: timestamp(updatedAt),
+            updatedBy: request.access.principalId,
+            ...(operation === 'mark' || operation === 'restore'
+              ? {
+                  lifecycleChangedAt: timestamp(updatedAt),
+                  lifecycleChangedBy: request.access.principalId,
+                }
+              : {}),
+          });
+          return {
+            ...record,
+            data: updated.data,
+            lifecycle: updated.lifecycle,
+            revision: record.revision + 1,
+            metadata,
+          } satisfies CrudRecord<TData>;
+        },
+      );
+      return updated;
+    } catch (error) {
+      return handle(error, 'transient', `Firestore ${operation} failed`);
+    }
   };
 
   return {
     async list(request) {
       const access = createAccessContext(request.access);
       createPageRequest(request.page);
-      authorize(access, 'list');
+      await authorizeLifecycleRead(access, request.lifecycle, 'list');
       try {
         const result = await firestoreSdk.getDocs(
           firestoreSdk.query(
@@ -171,7 +323,7 @@ export function createFirestoreCrudRepository<
     },
     async get(request: GetRequest) {
       const access = createAccessContext(request.access);
-      authorize(access, 'get');
+      await authorizeLifecycleRead(access, request.lifecycle, 'get');
       try {
         const result = await firestoreSdk.getDoc(recordReference(request.id));
         if (!result.exists()) return undefined;
@@ -183,35 +335,59 @@ export function createFirestoreCrudRepository<
       }
     },
     async create(request: CreateRequest<TCreate>) {
-      /* c8 ignore next -- V8 reports the imported provider boundary as a synthetic branch. */
       const access = createAccessContext(request.access);
-      authorize(access, 'create');
+      await authorize(access, 'create');
       const id = options.createId(request.input);
       const target = recordReference(id);
+      const createdAt = now();
+      const dto: FirestoreRecordDto<TData> = {
+        data: options.createData(request.input),
+        lifecycle: { status: 'active' },
+        revision: 1,
+        metadata: {
+          schemaVersion,
+          createdAt,
+          updatedAt: createdAt,
+          createdBy: access.principalId,
+          updatedBy: access.principalId,
+        },
+      };
       try {
-        await firestoreSdk.setDoc(target, {
-          data: options.createData(request.input),
-          lifecycle: { status: 'active' },
-          revision: 1,
-          metadata: {
-            schemaVersion,
-            createdAt: firestoreSdk.serverTimestamp(),
-            updatedAt: firestoreSdk.serverTimestamp(),
-            createdBy: access.principalId,
-            updatedBy: access.principalId,
+        await firestoreSdk.runTransaction(
+          options.firestore,
+          async (transaction) => {
+            const current = await transaction.get(target);
+            if (current.exists()) {
+              throw createDataAccessError(
+                'conflict',
+                'A record with the generated id already exists',
+              );
+            }
+            transaction.set(target, dto);
           },
-        });
-        return mapRecord(
-          await firestoreSdk.getDoc(target),
-          options.recordSchema,
         );
+        return {
+          id: target.id as CrudRecord<TData>['id'],
+          data: dto.data,
+          lifecycle: dto.lifecycle,
+          revision: dto.revision,
+          metadata: {
+            schemaVersion: dto.metadata.schemaVersion,
+            createdAt: timestamp(dto.metadata.createdAt),
+            updatedAt: timestamp(dto.metadata.updatedAt),
+            createdBy: dto.metadata
+              .createdBy as CrudRecord<TData>['metadata']['createdBy'],
+            updatedBy: dto.metadata
+              .updatedBy as CrudRecord<TData>['metadata']['updatedBy'],
+          },
+        } satisfies CrudRecord<TData>;
       } catch (error) {
         return handle(error, 'transient', 'Firestore create failed');
       }
     },
     async replace(request: RecordCommand, input: TUpdate) {
       const access = createAccessContext(request.access);
-      authorize(access, 'replace');
+      await authorize(access, 'replace');
       return transactUpdate(request, 'replace', (record) => ({
         data: options.updateData(record.data, input),
         lifecycle: record.lifecycle,
@@ -219,21 +395,23 @@ export function createFirestoreCrudRepository<
     },
     async markForDeletion(request) {
       const access = createAccessContext(request.access);
-      authorize(access, 'mark');
-      return transactUpdate(request, 'mark', () => ({
+      await authorize(access, 'mark');
+      return transactUpdate(request, 'mark', (record) => ({
+        data: record.data,
         lifecycle: { status: 'marked-for-deletion' as const },
       }));
     },
     async restore(request) {
       const access = createAccessContext(request.access);
-      authorize(access, 'restore');
-      return transactUpdate(request, 'restore', () => ({
+      await authorize(access, 'restore');
+      return transactUpdate(request, 'restore', (record) => ({
+        data: record.data,
         lifecycle: { status: 'active' as const },
       }));
     },
     async delete(request) {
       const access = createAccessContext(request.access);
-      authorize(access, 'delete');
+      await authorize(access, 'delete');
       try {
         await firestoreSdk.runTransaction(
           options.firestore,
@@ -265,56 +443,4 @@ export function createFirestoreCrudRepository<
       }
     },
   };
-
-  async function transactUpdate(
-    request: RecordCommand,
-    operation: 'replace' | 'mark' | 'restore',
-    change: (record: CrudRecord<TData>) => Partial<FirestoreRecordDto<TData>>,
-  ): Promise<CrudRecord<TData>> {
-    try {
-      const snapshot = await firestoreSdk.runTransaction(
-        options.firestore,
-        async (transaction) => {
-          const target = recordReference(request.id);
-          const current = await transaction.get(target);
-          if (!current.exists())
-            throw createDataAccessError('not-found', 'Record was not found');
-          const record = mapRecord(current, options.recordSchema);
-          if (record.lifecycle.status === 'deleted') {
-            throw createDataAccessError(
-              'lifecycle',
-              'Record is terminally deleted',
-            );
-          }
-          if (
-            request.expectedRevision !== undefined &&
-            request.expectedRevision !== record.revision
-          ) {
-            throw createDataAccessError('conflict', 'Record revision is stale');
-          }
-          const updated = change(record);
-          transaction.update(target, {
-            ...updated,
-            /* c8 ignore next -- V8 reports this provider-neutral arithmetic as a synthetic branch. */
-            revision: record.revision + 1,
-            'metadata.updatedAt': firestoreSdk.serverTimestamp(),
-            'metadata.updatedBy': request.access.principalId,
-            ...(operation === 'mark' || operation === 'restore'
-              ? {
-                  'metadata.lifecycleChangedAt': firestoreSdk.serverTimestamp(),
-                  'metadata.lifecycleChangedBy': request.access.principalId,
-                }
-              : {}),
-          });
-          return target;
-        },
-      );
-      return mapRecord(
-        await firestoreSdk.getDoc(snapshot),
-        options.recordSchema,
-      );
-    } catch (error) {
-      return handle(error, 'transient', `Firestore ${operation} failed`);
-    }
-  }
 }

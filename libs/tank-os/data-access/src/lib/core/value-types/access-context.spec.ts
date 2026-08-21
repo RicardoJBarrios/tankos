@@ -25,7 +25,23 @@ describe('createAccessContext', () => {
     { principalId: 'keeper', roles: [] },
     { principalId: 'keeper', roles: [42] },
     { principalId: 'keeper', roles: ['keeper'], aquariumId: ' ' },
-  ])('Given malformed access metadata, When created, Then rejects it', (context) => {
-    expect(() => createAccessContext(context as never)).toThrow(TypeError);
-  });
+  ])(
+    'Given malformed access metadata, When created, Then rejects it',
+    (context) => {
+      expect(() => createAccessContext(context as never)).toThrow(TypeError);
+    },
+  );
+
+  it.each(['', ' ', 42, null])(
+    'Given an invalid request id (%s), When created, Then rejects it',
+    (requestId) => {
+      expect(() =>
+        createAccessContext({
+          principalId: createEntityId('keeper'),
+          roles: ['keeper'],
+          requestId: requestId as never,
+        }),
+      ).toThrow(TypeError);
+    },
+  );
 });

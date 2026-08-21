@@ -10,7 +10,7 @@ import type {
   RecordCommand,
 } from '../../core';
 import { createPageCursor } from '../../core';
-import type { ServerTimestamp } from '../../core';
+import type { TechnicalTimestamp } from '../../core';
 import { createAccessContext, createPageRequest } from '../../core';
 
 /** Dependencies needed to create a deterministic in-memory repository. */
@@ -21,10 +21,10 @@ export interface InMemoryCrudRepositoryOptions<
   TFilter,
 > {
   readonly initialRecords?: readonly CrudRecord<TData>[];
-  readonly create: (input: TCreate, now: ServerTimestamp) => CrudRecord<TData>;
+  readonly create: (input: TCreate, now: TechnicalTimestamp) => CrudRecord<TData>;
   readonly update: (data: TData, input: TUpdate) => TData;
   readonly matches?: (record: CrudRecord<TData>, filter: TFilter) => boolean;
-  readonly now: () => ServerTimestamp;
+  readonly now: () => TechnicalTimestamp;
   /** Roles allowed to perform lifecycle operations in this test adapter. */
   readonly elevatedRoles?: readonly string[];
 }

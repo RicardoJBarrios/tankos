@@ -1,4 +1,5 @@
 export * from './batch-operation';
+export * from './cache-scope';
 export * from './batch-result';
 export * from './batch-scope';
 export * from './access-context';

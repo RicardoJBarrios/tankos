@@ -21,4 +21,8 @@ export interface BatchChunk {
   readonly ids: readonly EntityId[];
   readonly status: 'pending' | 'running' | 'completed' | 'failed';
   readonly attempts: number;
+  /** Counts from the latest attempt, used to reconcile retries. */
+  readonly succeeded?: number;
+  readonly warnings?: number;
+  readonly failures?: number;
 }

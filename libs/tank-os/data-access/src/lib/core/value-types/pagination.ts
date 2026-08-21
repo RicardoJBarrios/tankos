@@ -24,13 +24,15 @@ export interface Page<TRecord> {
 }
 
 /** Validates a bounded cursor page request before it reaches a provider. */
-export function createPageRequest(
-  request: PageRequest,
-): PageRequest {
+export function createPageRequest(request: PageRequest): PageRequest {
   if (!request || typeof request !== 'object') {
     throw new TypeError('Page request must be an object');
   }
-  if (!Number.isInteger(request.pageSize) || request.pageSize < 1 || request.pageSize > 500) {
+  if (
+    !Number.isInteger(request.pageSize) ||
+    request.pageSize < 1 ||
+    request.pageSize > 500
+  ) {
     throw new RangeError('Page size must be an integer between 1 and 500');
   }
   if (!Array.isArray(request.orderBy) || request.orderBy.length === 0) {

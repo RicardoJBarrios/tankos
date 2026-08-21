@@ -1,5 +1,9 @@
 import { InjectionToken } from '@angular/core';
-import type { BatchOperationPort, CrudRepositoryPort } from '../../core';
+import type {
+  BatchOperationPort,
+  CacheInvalidationPort,
+  CrudRepositoryPort,
+} from '../../core';
 
 /** Creates a typed token for one domain entity repository. */
 export function createCrudRepositoryToken<
@@ -28,4 +32,9 @@ export function createCrudServiceToken<
 /** Injection token for the host application's asynchronous batch adapter. */
 export const BATCH_OPERATION_PORT = new InjectionToken<BatchOperationPort>(
   'TANK_OS_BATCH_OPERATION_PORT',
+);
+
+/** Injection token for application-level scoped cache invalidation. */
+export const CACHE_INVALIDATION_PORT = new InjectionToken<CacheInvalidationPort>(
+  'TANK_OS_CACHE_INVALIDATION_PORT',
 );

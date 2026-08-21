@@ -38,6 +38,7 @@ describe('createBatchService', () => {
         calls.push(value);
         return progress;
       },
+      materialize: async () => progress,
       get: async () => progress,
       resume: async () => progress,
       cancel: async () => progress,
@@ -53,6 +54,7 @@ describe('createBatchService', () => {
     const received: EntityId[] = [];
     const port: BatchOperationPort = {
       submit: async () => progress,
+      materialize: async () => progress,
       get: async (id) => {
         received.push(id);
         return progress;
@@ -69,6 +71,7 @@ describe('createBatchService', () => {
     const calls: string[] = [];
     const port: BatchOperationPort = {
       submit: async () => progress,
+      materialize: async () => progress,
       get: async () => progress,
       resume: async (id) => {
         calls.push(`resume:${id}`);
@@ -86,9 +89,29 @@ describe('createBatchService', () => {
     expect(calls).toEqual(['resume:batch-1', 'cancel:batch-1']);
   });
 
+  it('Given a materializing batch, When materialized, Then delegates the identifier', async () => {
+    const received: EntityId[] = [];
+    const port: BatchOperationPort = {
+      submit: async () => progress,
+      materialize: async (id) => {
+        received.push(id);
+        return progress;
+      },
+      get: async () => progress,
+      resume: async () => progress,
+      cancel: async () => progress,
+    };
+
+    await expect(createBatchService(port).materialize(batchId)).resolves.toBe(
+      progress,
+    );
+    expect(received).toEqual([batchId]);
+  });
+
   it('Given an unconfirmed batch, When submitted through the application service, Then rejects before reaching the execution port', async () => {
     const port: BatchOperationPort = {
       submit: async () => progress,
+      materialize: async () => progress,
       get: async () => progress,
       resume: async () => progress,
       cancel: async () => progress,

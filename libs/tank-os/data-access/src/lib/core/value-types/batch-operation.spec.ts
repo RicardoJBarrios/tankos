@@ -3,7 +3,10 @@ import { createBatchRequest } from './batch-operation';
 
 describe('createBatchRequest', () => {
   const valid = {
-    access: { principalId: createEntityId('keeper'), roles: ['keeper'] as const },
+    access: {
+      principalId: createEntityId('keeper'),
+      roles: ['keeper'] as const,
+    },
     schema: 'units',
     operation: 'update' as const,
     selection: { kind: 'ids' as const, ids: [createEntityId('one')] },
@@ -28,9 +31,12 @@ describe('createBatchRequest', () => {
     { ...valid, schema: '   ' },
     { ...valid, confirmationToken: '' },
     { ...valid, confirmationToken: '   ' },
-  ])('Given missing confirmation metadata, When validated, Then rejects it', (request) => {
-    expect(() => createBatchRequest(request)).toThrow(TypeError);
-  });
+  ])(
+    'Given missing confirmation metadata, When validated, Then rejects it',
+    (request) => {
+      expect(() => createBatchRequest(request)).toThrow(TypeError);
+    },
+  );
 
   it('Given an empty target list, When validated, Then rejects the batch', () => {
     expect(() =>

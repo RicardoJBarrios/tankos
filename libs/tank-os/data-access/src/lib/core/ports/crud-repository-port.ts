@@ -26,7 +26,5 @@ export interface CrudRepositoryPort<
 
 /** Read/write contract for a provider that can freeze a filtered scope. */
 export interface BatchScopeRepositoryPort<TFilter = unknown> {
-  materializeScope(
-    request: ListRequest<TFilter>,
-  ): Promise<readonly EntityId[]>;
+  materializeScope(request: ListRequest<TFilter>): Promise<readonly EntityId[]>;
 }

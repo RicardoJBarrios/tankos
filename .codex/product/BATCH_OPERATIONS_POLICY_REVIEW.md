@@ -26,8 +26,9 @@ The following rules form a consistent batch model:
   later filter changes and later record changes do not alter that scope.
 - The frozen operation scope and progress are held in a temporary operation
   entity while the batch is active, allowing interruption and manual resume.
-- The temporary operation entity is deleted when the batch finishes, including
-  after partial failures. Durable follow-up state belongs on affected records.
+- Successful and warning-only terminal operations may be cleaned; failed
+  operations remain inspectable and retryable until explicit administrative
+  cleanup. Durable follow-up state belongs on affected records.
 - One confirmation applies to a complete batch. Before confirmation, the
   administrator sees its scope, count and selected records. This is the general
   pattern for equivalent bulk operations.
@@ -66,8 +67,10 @@ The original record is not extended with `lastDeletionError` or another
 batch-specific warning/error field. The temporary batch operation schema owns
 the batch ID, affected record schema/type, frozen record IDs, processing state
 and mandatory operation metadata, including warnings and execution results.
-That entity is deleted when the batch finishes; the original record retains
-only its normal lifecycle state.
+Successful and warning-only terminal entities may be deleted while their
+idempotency reservation remains; failed entities retain their diagnostics for
+inspection and retry until explicit administrative cleanup. The original
+record retains only its normal lifecycle state.
 
 ## Risks that are understood but not contradictions
 

@@ -15,7 +15,7 @@ const firestoreMocks = vi.hoisted(() => ({
   limit: vi.fn((value) => value),
   setDoc: vi.fn(),
   runTransaction: vi.fn(),
-  serverTimestamp: vi.fn(() => ({ serverTimestamp: true })),
+  Timestamp: { now: vi.fn() },
   updateDoc: vi.fn(),
   deleteDoc: vi.fn(),
 }));
@@ -59,6 +59,7 @@ describe('createFirestoreCrudRepository', () => {
       updateData: (_data, input: { name: string }) => input,
       buildQuery: () => ({}) as never,
       encodeCursor: () => 'cursor' as never,
+      authorize: () => undefined,
     });
   }
 
@@ -147,6 +148,18 @@ describe('createFirestoreCrudRepository', () => {
     ).resolves.toMatchObject({ lifecycle: { status: 'marked-for-deletion' } });
   });
 
+  it('Given a record excluded by the lifecycle filter, When read, Then returns undefined', async () => {
+    firestoreMocks.getDoc.mockResolvedValue(snapshot(true));
+
+    await expect(
+      repository().get({
+        access,
+        id: createEntityId('unit-1'),
+        lifecycle: ['inactive'],
+      }),
+    ).resolves.toBeUndefined();
+  });
+
   it('Given a missing Firestore document, When read, Then returns undefined', async () => {
     firestoreMocks.getDoc.mockResolvedValue(snapshot(false));
 
@@ -155,22 +168,44 @@ describe('createFirestoreCrudRepository', () => {
     ).resolves.toBeUndefined();
   });
 
-  it('Given a valid create command, When persisted, Then uses server timestamps and maps the stored record', async () => {
-    firestoreMocks.setDoc.mockResolvedValue(undefined);
-    firestoreMocks.getDoc.mockResolvedValue(snapshot(true));
+  it('Given a valid create command, When persisted, Then uses injected technical timestamps without a read-after-write', async () => {
+    const transaction = {
+      get: vi.fn().mockResolvedValue(snapshot(false)),
+      set: vi.fn(),
+    };
+    firestoreMocks.Timestamp.now.mockReturnValue(instant);
+    firestoreMocks.getDoc.mockClear();
+    firestoreMocks.runTransaction.mockImplementation(
+      async (_firestore, callback) => callback(transaction),
+    );
 
     await expect(
-      repository().create({ access, input: { name: 'litre' } }),
+      repository().create({
+        access: { ...access, requestId: 'create-unit-1' },
+        input: { name: 'litre' },
+      }),
     ).resolves.toMatchObject({
-      id: 'unit-1',
+      id: 'litre',
       revision: 1,
     });
-    expect(firestoreMocks.serverTimestamp).toHaveBeenCalled();
+    expect(transaction.set).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        metadata: expect.objectContaining({ createdAt: instant }),
+      }),
+    );
+    expect(firestoreMocks.getDoc).not.toHaveBeenCalled();
   });
 
   it('Given a configured schema version, When creating a record, Then writes that version to Firestore', async () => {
-    firestoreMocks.setDoc.mockResolvedValue(undefined);
-    firestoreMocks.getDoc.mockResolvedValue(snapshot(true));
+    const transaction = {
+      get: vi.fn().mockResolvedValue(snapshot(false)),
+      set: vi.fn(),
+    };
+    firestoreMocks.Timestamp.now.mockReturnValue(instant);
+    firestoreMocks.runTransaction.mockImplementation(
+      async (_firestore, callback) => callback(transaction),
+    );
     const configured = createFirestoreCrudRepository({
       firestore: {} as never,
       collectionPath: 'units',
@@ -185,12 +220,27 @@ describe('createFirestoreCrudRepository', () => {
 
     await configured.create({ access, input: { name: 'gallon' } });
 
-    expect(firestoreMocks.setDoc).toHaveBeenCalledWith(
+    expect(transaction.set).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
         metadata: expect.objectContaining({ schemaVersion: 2 }),
       }),
     );
+  });
+
+  it('Given an existing generated id, When creating a record, Then rejects before overwriting it', async () => {
+    const transaction = {
+      get: vi.fn().mockResolvedValue(snapshot(true)),
+      set: vi.fn(),
+    };
+    firestoreMocks.runTransaction.mockImplementation(
+      async (_firestore, callback) => callback(transaction),
+    );
+
+    await expect(
+      repository().create({ access, input: { name: 'litre' } }),
+    ).rejects.toMatchObject({ code: 'conflict' });
+    expect(transaction.set).not.toHaveBeenCalled();
   });
 
   it('Given an invalid schema version, When creating the repository, Then rejects the configuration', () => {
@@ -211,6 +261,7 @@ describe('createFirestoreCrudRepository', () => {
 
   it('Given an active record, When replaced, Then updates its data in a transaction', async () => {
     const { repository: current, transaction } = transactionalRepository();
+    firestoreMocks.getDoc.mockClear();
 
     await expect(
       current.replace(
@@ -221,6 +272,7 @@ describe('createFirestoreCrudRepository', () => {
       id: 'unit-1',
     });
     expect(transaction.update).toHaveBeenCalled();
+    expect(firestoreMocks.getDoc).not.toHaveBeenCalled();
   });
 
   it('Given an active record, When marked for deletion, Then updates its lifecycle in a transaction', async () => {
@@ -384,6 +436,24 @@ describe('createFirestoreCrudRepository', () => {
     });
   });
 
+  it('Given a missing record, When replaced, Then reports not found before writing', async () => {
+    const transaction = {
+      get: vi.fn().mockResolvedValue(snapshot(false)),
+      update: vi.fn(),
+    };
+    firestoreMocks.runTransaction.mockImplementation(
+      async (_firestore, callback) => callback(transaction),
+    );
+
+    await expect(
+      repository().replace(
+        { access, id: createEntityId('missing') },
+        { name: 'gallon' },
+      ),
+    ).rejects.toMatchObject({ code: 'not-found' });
+    expect(transaction.update).not.toHaveBeenCalled();
+  });
+
   it('Given an authorization callback, When an operation runs, Then delegates the operation and access context', async () => {
     const authorize = vi.fn();
     const authorizedRepository = createFirestoreCrudRepository({
@@ -401,7 +471,7 @@ describe('createFirestoreCrudRepository', () => {
     firestoreMocks.getDoc.mockResolvedValue(snapshot(false));
     await authorizedRepository.get({ access, id: createEntityId('missing') });
 
-    expect(authorize).toHaveBeenCalledWith(access, 'get');
+    expect(authorize).toHaveBeenCalledWith(access, 'get', undefined);
   });
 
   it('Given a malformed Firestore document, When read, Then rejects at the DTO boundary', async () => {
@@ -425,4 +495,31 @@ describe('createFirestoreCrudRepository', () => {
       strictRepository.get({ access, id: createEntityId('unit-1') }),
     ).rejects.toThrow();
   });
+
+  it.each([
+    ['permission-denied', 'forbidden'],
+    ['not-found', 'not-found'],
+    ['already-exists', 'conflict'],
+    ['aborted', 'transient'],
+    ['invalid-argument', 'validation'],
+    ['failed-precondition', 'permanent'],
+    ['deadline-exceeded', 'transient'],
+    ['unavailable', 'transient'],
+    ['resource-exhausted', 'transient'],
+    ['unknown-provider-code', 'transient'],
+    [undefined, 'transient'],
+  ])(
+    'Given a Firestore provider error (%s), When read, Then maps it to %s',
+    async (providerCode, expectedCode) => {
+      firestoreMocks.getDoc.mockRejectedValue(
+        providerCode === undefined
+          ? new Error('unknown')
+          : { code: providerCode },
+      );
+
+      await expect(
+        repository().get({ access, id: createEntityId('unit-1') }),
+      ).rejects.toMatchObject({ code: expectedCode });
+    },
+  );
 });

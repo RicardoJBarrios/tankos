@@ -1,7 +1,6 @@
 import type { EntityId } from './entity-id';
-import type { ServerTimestamp } from './record-metadata';
-import type { BatchSelection, FrozenBatchScope, BatchChunk } from './batch-scope';
-import type { BatchItemResult, BatchWarning } from './batch-result';
+import type { TechnicalTimestamp } from './record-metadata';
+import type { BatchSelection, FrozenBatchScope } from './batch-scope';
 import type { AccessContext } from './access-context';
 import { createAccessContext } from './access-context';
 
@@ -10,6 +9,7 @@ export type BatchOperation = 'update' | 'mark-for-deletion' | 'delete';
 
 /** Execution state of an asynchronous batch. */
 export type BatchStatus =
+  | 'materializing'
   | 'queued'
   | 'running'
   | 'interrupted'
@@ -58,7 +58,10 @@ export function createBatchRequest<TPayload = unknown, TFilter = unknown>(
     throw new TypeError('Batch selection kind is invalid');
   }
   if (request.selection.kind === 'ids') {
-    if (!Array.isArray(request.selection.ids) || request.selection.ids.length === 0) {
+    if (
+      !Array.isArray(request.selection.ids) ||
+      request.selection.ids.length === 0
+    ) {
       throw new RangeError('An id batch must contain at least one target');
     }
     if (new Set(request.selection.ids).size !== request.selection.ids.length) {
@@ -78,17 +81,25 @@ export interface BatchProgress {
   readonly processed: number;
   readonly warnings: number;
   readonly failures: number;
-  readonly createdAt: ServerTimestamp;
-  readonly updatedAt: ServerTimestamp;
+  readonly createdAt: TechnicalTimestamp;
+  readonly updatedAt: TechnicalTimestamp;
   readonly currentChunk?: EntityId;
   readonly retryCount: number;
+  /** Current trusted worker lease, when one is active. */
+  readonly leaseOwner?: string;
+  readonly leaseUntil?: TechnicalTimestamp;
 }
 
-/** Temporary persisted workflow record for a logical asynchronous batch. */
-export interface BatchOperationRecord<TPayload = unknown> extends BatchProgress {
+/** Durable summary record for a logical asynchronous batch. */
+export interface BatchOperationRecord<
+  TPayload = unknown,
+> extends BatchProgress {
+  /** Principal that submitted the operation. */
+  readonly principalId: EntityId;
   readonly selection: FrozenBatchScope;
+  /** Original selection retained while the trusted worker materializes IDs. */
+  readonly requestedSelection?: BatchSelection<unknown>;
   readonly payload?: TPayload;
-  readonly chunks: readonly BatchChunk[];
-  readonly results: readonly BatchItemResult[];
-  readonly warningsDetail: readonly BatchWarning[];
+  /** Fingerprint of the complete request, excluding the idempotency key. */
+  readonly requestFingerprint: string;
 }

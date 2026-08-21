@@ -33,6 +33,10 @@ export default [
               sourceTag: 'scope:shared',
               onlyDependOnLibsWithTags: ['scope:shared', 'scope:tank-os'],
             },
+            {
+              sourceTag: 'scope:tank-os',
+              onlyDependOnLibsWithTags: ['scope:tank-os'],
+            },
           ],
         },
       ],

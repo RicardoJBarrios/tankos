@@ -4,10 +4,15 @@ import {
   type EnvironmentProviders,
   type Provider,
 } from '@angular/core';
-import type { BatchOperationPort, CrudRepositoryPort } from '../../core';
+import type {
+  BatchOperationPort,
+  CacheInvalidationPort,
+  CrudRepositoryPort,
+} from '../../core';
 import { createCrudService } from '../../application';
 import {
   BATCH_OPERATION_PORT,
+  CACHE_INVALIDATION_PORT,
   createCrudRepositoryToken,
   createCrudServiceToken,
 } from './data-access-tokens';
@@ -26,6 +31,15 @@ export function provideTankOsDataAccess(
   ];
 
   return makeEnvironmentProviders(providers);
+}
+
+/** Registers the host application's scoped cache invalidation port. */
+export function provideCacheInvalidation(
+  invalidation: CacheInvalidationPort,
+): EnvironmentProviders {
+  return makeEnvironmentProviders([
+    { provide: CACHE_INVALIDATION_PORT, useValue: invalidation },
+  ]);
 }
 
 /** Registers one typed repository token in an Angular environment. */

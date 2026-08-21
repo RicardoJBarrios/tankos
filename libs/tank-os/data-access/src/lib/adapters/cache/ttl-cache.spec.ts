@@ -34,7 +34,9 @@ describe('createTtlCache', () => {
     const cache = createTtlCache<string>(timer);
     await cache.set('units', 'catalogue', 100);
 
-    await expect(cache.get('units', { forceRefresh: true })).resolves.toBeUndefined();
+    for (const mode of ['network-only', 'refresh'] as const) {
+      await expect(cache.get('units', { mode })).resolves.toBeUndefined();
+    }
     await expect(cache.get('units')).resolves.toBe('catalogue');
   });
 

@@ -1,12 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import type { BatchOperationPort } from '../../core';
 import {
+  provideCacheInvalidation,
   provideCrudRepository,
   provideCrudService,
   provideTankOsDataAccess,
 } from './data-access-providers';
 import {
   BATCH_OPERATION_PORT,
+  CACHE_INVALIDATION_PORT,
   createCrudRepositoryToken,
   createCrudServiceToken,
 } from './data-access-tokens';
@@ -56,5 +58,20 @@ describe('provideTankOsDataAccess', () => {
       access: { principalId: 'keeper', roles: ['keeper'] },
       input: { name: 'typed' },
     });
+  });
+});
+
+describe('provideCacheInvalidation', () => {
+  it('Given a scoped invalidation port, When composed in Angular, Then registers it', () => {
+    const invalidation = {
+      clear: async () => undefined,
+      clearAll: async () => undefined,
+    };
+
+    TestBed.configureTestingModule({
+      providers: [provideCacheInvalidation(invalidation)],
+    });
+
+    expect(TestBed.inject(CACHE_INVALIDATION_PORT)).toBe(invalidation);
   });
 });

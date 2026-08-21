@@ -8,7 +8,11 @@ import type {
   Page,
   RecordCommand,
 } from '@tank-os/data-access';
-import { createAccessContext, createPageRequest } from '@tank-os/data-access';
+import {
+  createAccessContext,
+  createDataAccessError,
+  createPageRequest,
+} from '@tank-os/data-access';
 import type { JsonHttpClientPort } from './json-http-client';
 
 /** Endpoint and schema configuration for one typed JSON/HTTP resource. */
@@ -42,6 +46,17 @@ export function createJsonHttpCrudRepository<
   const url = (path: string) => `${options.baseUrl}${path}`;
   const parseRecord = (value: unknown) => options.schemas.record.parse(value);
   const parsePage = (value: unknown) => options.schemas.page.parse(value);
+  const idempotencyKey = (request: {
+    readonly access: { readonly requestId?: string };
+  }) => {
+    if (!request.access.requestId) {
+      throw createDataAccessError(
+        'validation',
+        'Mutating HTTP commands require AccessContext.requestId',
+      );
+    }
+    return request.access.requestId;
+  };
 
   return {
     async list(request) {
@@ -71,6 +86,7 @@ export function createJsonHttpCrudRepository<
         method: 'POST',
         url: url(options.recordUrl('')),
         access,
+        idempotencyKey: idempotencyKey(request),
         body: options.serializeCreate(request.input),
       });
       return parseRecord(response);
@@ -81,6 +97,7 @@ export function createJsonHttpCrudRepository<
         method: 'PUT',
         url: url(options.recordUrl(request.id)),
         access,
+        idempotencyKey: idempotencyKey(request),
         body: {
           input: options.serializeUpdate(input),
           expectedRevision: request.expectedRevision,
@@ -94,6 +111,7 @@ export function createJsonHttpCrudRepository<
         method: 'POST',
         url: url(`${options.recordUrl(request.id)}/mark-for-deletion`),
         access,
+        idempotencyKey: idempotencyKey(request),
         body: { expectedRevision: request.expectedRevision },
       });
       return parseRecord(response);
@@ -104,6 +122,7 @@ export function createJsonHttpCrudRepository<
         method: 'POST',
         url: url(`${options.recordUrl(request.id)}/restore`),
         access,
+        idempotencyKey: idempotencyKey(request),
         body: { expectedRevision: request.expectedRevision },
       });
       return parseRecord(response);
@@ -114,6 +133,7 @@ export function createJsonHttpCrudRepository<
         method: 'DELETE',
         url: url(options.recordUrl(request.id)),
         access,
+        idempotencyKey: idempotencyKey(request),
         body: { expectedRevision: request.expectedRevision },
       });
     },

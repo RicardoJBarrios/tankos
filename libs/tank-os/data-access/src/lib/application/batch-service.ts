@@ -9,6 +9,7 @@ import { createBatchRequest } from '../core';
 /** Composable application API for asynchronous batch operations. */
 export interface BatchService<TPayload = unknown, TFilter = unknown> {
   submit(request: BatchRequest<TPayload, TFilter>): Promise<BatchProgress>;
+  materialize(batchId: EntityId): Promise<BatchProgress>;
   get(batchId: EntityId): Promise<BatchProgress | undefined>;
   resume(batchId: EntityId): Promise<BatchProgress>;
   cancel(batchId: EntityId): Promise<BatchProgress>;
@@ -20,6 +21,7 @@ export function createBatchService<TPayload = unknown, TFilter = unknown>(
 ): BatchService<TPayload, TFilter> {
   return {
     submit: async (request) => execution.submit(createBatchRequest(request)),
+    materialize: (batchId) => execution.materialize(batchId),
     get: (batchId) => execution.get(batchId),
     resume: (batchId) => execution.resume(batchId),
     cancel: (batchId) => execution.cancel(batchId),

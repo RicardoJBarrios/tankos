@@ -31,7 +31,8 @@ The persistence adapter owns:
 - collection paths and document mapping;
 - queries, cursors and index requirements;
 - retry translation and provider errors;
-- Security Rules and emulator integration;
+- provider-emulator integration contracts and tests; Firebase initialization,
+  Security Rules, IAM and indexes remain host/application configuration;
 - operation and cost metrics.
 
 The application layer owns authorization intent, use-case orchestration and
@@ -123,7 +124,23 @@ See [`BATCH_OPERATIONS_FINAL_SPEC.md`](../product/BATCH_OPERATIONS_FINAL_SPEC.md
 
 Security Rules are not filters. A query is allowed only when its potential
 result set satisfies the rule; Rules do not remove unauthorized documents from
-an otherwise broad query.
+an otherwise broad query. The adapter can test its contract against an
+emulator, but the application/server host owns the deployed Rules, IAM,
+indexes and Firebase connection configuration.
+
+The Admin SDK is a trusted server path and bypasses Firestore Security Rules.
+Administrative batches therefore require both an authoritative server-side
+claims check and a least-privilege IAM/service-account boundary. Client Rules
+and emulator tests protect the browser path but cannot replace those controls.
+
+Asynchronous batches add a second cost and reliability boundary: the submitted
+selection is materialized once into bounded chunks, workers claim summaries with
+an expiring lease, and each worker invocation applies a maximum chunk count.
+Expired leases allow recovery after a crashed worker. Failed summaries are kept
+for explicit retry; successful or warning-only detail may be removed in bounded
+provider operations while idempotency reservations are retained. This prevents
+stuck work, duplicate execution and unbounded reads without adding a global
+batch dashboard to every host application.
 
 ## 4. Write and consistency policy
 
@@ -150,8 +167,10 @@ the domain contract says that losing a concurrent change is harmless. Otherwise
 the operation needs a transaction or explicit precondition. This does not
 require a user-facing conflict-management subsystem.
 
-Lifecycle timestamps are server-generated. Client clocks never decide command
-ordering or deletion precedence.
+Technical persistence timestamps are normalized instants produced by the
+adapter's injected clock and are not business facts. Client timestamps never
+decide command ordering, revision precedence or deletion precedence; those are
+controlled by the command contract and provider transaction semantics.
 
 ## 5. NoSQL and denormalization
 
@@ -313,6 +332,14 @@ must not silently disable caching for the rest of the session, and it must
 remain subject to authorization, connectivity and the use case's freshness
 policy.
 
+TankOS implements this contract with `CacheScope` and `CachedCrudRepository`.
+The scope contains the domain and may contain the entity, authenticated
+principal and Aquarium identifiers. Those segments form the namespace, so a
+mutation can invalidate one domain/context without flushing unrelated domains.
+`createCacheInvalidation(cache)` exposes the same scoped operation to application
+services, plus an explicit `clearAll()` for sign-out, schema migration or
+recovery. Identical concurrent reads share one in-flight backing request.
+
 The default read sequence is:
 
 ```text
@@ -348,10 +375,13 @@ Cache rules:
 - a failed mutation must not invalidate a still-valid cache entry unless the
   failure response proves that the cached value is no longer authoritative.
 
-Firestore offline persistence may provide the underlying local cache, but the
-use case still owns freshness, privacy and invalidation semantics. A separate
-custom cache is introduced only when it provides a documented benefit and does
-not duplicate Firestore's persistence without a clear TTL and ownership model.
+Firestore offline persistence may provide the underlying local cache through the
+optional `createFirestoreLocalCache` adapter. Its default is in-memory; single-
+tab and multi-tab persistence are explicit host choices and require trusted-
+device consent for private data. The use case still owns freshness, privacy and
+invalidation semantics. Firebase's local cache does not replace the scoped
+TankOS cache contract, and the Angular Service Worker is intentionally limited
+to static assets rather than private Firestore/API responses.
 
 This local-cache TTL policy is separate from Firestore server-side TTL. Local
 TTL controls freshness and privacy in the client; Firestore TTL controls

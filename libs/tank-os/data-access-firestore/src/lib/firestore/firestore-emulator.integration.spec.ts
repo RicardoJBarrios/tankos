@@ -56,7 +56,7 @@ describe('Firestore CRUD adapter against Firebase Emulator Suite', () => {
   }
 
   emulatorTest(
-    'Given the emulator is running, When a record is created and read, Then the adapter maps server timestamps and data',
+    'Given the emulator is running, When a record is created and read, Then the adapter maps technical timestamps and data',
     async () => {
       const repository = createFirestoreCrudRepository({
         firestore,

@@ -8,13 +8,12 @@ export interface AccessContext {
   readonly principalId: EntityId;
   readonly roles: readonly AccessRole[];
   readonly aquariumId?: EntityId;
+  /** Stable idempotency key for one mutating command, when available. */
   readonly requestId?: string;
 }
 
 /** Creates a validated access context at an application boundary. */
-export function createAccessContext(
-  context: AccessContext,
-): AccessContext {
+export function createAccessContext(context: AccessContext): AccessContext {
   if (!context || typeof context !== 'object') {
     throw new TypeError('Access context must be an object');
   }
@@ -32,6 +31,12 @@ export function createAccessContext(
     (typeof context.aquariumId !== 'string' || !context.aquariumId.trim())
   ) {
     throw new TypeError('Aquarium scope must be a non-empty string');
+  }
+  if (
+    context.requestId !== undefined &&
+    (typeof context.requestId !== 'string' || !context.requestId.trim())
+  ) {
+    throw new TypeError('Request id must be a non-empty string');
   }
   return {
     ...context,

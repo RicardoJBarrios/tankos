@@ -326,13 +326,14 @@ reports any per-record failures.
 
 **Recorded batch-lifecycle direction:** every batch operation persists a
 temporary operation entity while it is in progress. That entity contains the
-frozen scope and processing state. Once the batch finishes, including a
-partial-failure result, the operation entity is deleted. Durable per-record
-state needed for follow-up remains on the affected records; the batch operation
-itself is not retained. If the application closes or connectivity is lost while
-the batch is in progress, the temporary entity preserves its scope and progress
-so the operation can resume later. Resumption does not revalidate the current
-state of each record before applying the operation. Batch operations may apply
+frozen scope and processing state. Once the batch finishes, successful and
+warning-only terminal operations may be cleaned, while failed operations remain
+inspectable and retryable until explicit administrative cleanup. Durable
+per-record state needed for follow-up remains on the affected records. If the
+application closes or connectivity is lost while the batch is in progress, the
+temporary entity preserves its scope and progress so the operation can resume
+later. Resumption does not revalidate the current state of each record before
+applying the operation. Batch operations may apply
 bulk modification or deletion directly to the frozen set; reported execution
 warnings and failures belong to the batch operation and do not add batch-specific
 fields to the original record. Bulk modifications do not preserve a copy of
@@ -346,8 +347,9 @@ schema/type, the logical frozen record IDs, processing state and all mandatory
 operation metadata. The IDs and progress must be physically chunked or stored
 in an `items` subcollection when the set cannot fit safely in one document. It
 is the source for batch warnings and execution results while the operation
-exists; it is deleted when the batch finishes. The server materializes the
-frozen set at confirmation time.
+exists. Successful and warning-only terminal operations may be cleaned, while
+failed operations remain until explicit administrative cleanup. The server
+materializes the frozen set at confirmation time.
 
 ```text
 BatchOperation
@@ -366,8 +368,8 @@ but does not require a before/after preview of the business values.
 
 Temporary batch-operation entities are an explicit exception to the global
 persisted-data schema rule: they do not require `schemaVersion` or a versioned
-completeness schema because they are operational, short-lived structures that
-are deleted when the batch finishes.
+completeness schema because they are operational structures with bounded
+retention and explicit cleanup semantics.
 
 Real-time progress display for an in-progress batch is optional rather than a
 correctness requirement. Batch execution, resumability and final reporting

@@ -5,6 +5,26 @@ import {
   type BatchAuthorizationPort,
 } from '@tank-os/data-access';
 
+function authorizationFailure(error: unknown): DataAccessError {
+  if (error instanceof DataAccessError) return error;
+  const code =
+    typeof error === 'object' && error !== null && 'code' in error
+      ? String((error as { readonly code: unknown }).code)
+      : '';
+  return new DataAccessError(
+    code.includes('internal') ||
+      code.includes('unavailable') ||
+      code.includes('network') ||
+      code.includes('deadline')
+      ? 'transient'
+      : 'forbidden',
+    code.includes('internal') || code.includes('unavailable')
+      ? 'Firebase authorization provider is temporarily unavailable'
+      : 'The Firebase principal is not authorized',
+    { retryable: code.includes('internal') || code.includes('unavailable') },
+  );
+}
+
 /** Minimal Firebase Admin Auth surface required by the server adapter. */
 export interface FirebaseAdminAuthPort {
   /** Loads the authoritative Firebase user and custom claims. */
@@ -42,19 +62,12 @@ export function createFirebaseAdminBatchAuthorization(
       let user;
       try {
         user = await options.auth.getUser(access.principalId);
-      } catch {
-        throw new DataAccessError(
-          'forbidden',
-          'The Firebase principal is not authorized',
-        );
+      } catch (error) {
+        throw authorizationFailure(error);
       }
       const claims = user.customClaims?.[rolesClaim];
       const roles = Array.isArray(claims) ? claims : [];
-      if (
-        user.uid !== access.principalId ||
-        !access.roles.includes(requiredRole) ||
-        !roles.includes(requiredRole)
-      ) {
+      if (user.uid !== access.principalId || !roles.includes(requiredRole)) {
         throw new DataAccessError(
           'forbidden',
           'The Firebase principal is not authorized',

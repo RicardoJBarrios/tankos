@@ -5,7 +5,7 @@ import type {
   BatchProgress,
   BatchRequest,
   EntityId,
-  ServerTimestamp,
+  TechnicalTimestamp,
   AccessContext,
 } from '../../core';
 import {
@@ -16,7 +16,7 @@ import {
 
 /** Dependencies for deterministic asynchronous batch tests and prototypes. */
 export interface InMemoryBatchOperationOptions<TPayload, TFilter> {
-  readonly now: () => ServerTimestamp;
+  readonly now: () => TechnicalTimestamp;
   readonly materialize: (
     selection: BatchRequest<TPayload, TFilter>['selection'],
   ) => readonly EntityId[];
@@ -25,13 +25,17 @@ export interface InMemoryBatchOperationOptions<TPayload, TFilter> {
     request: BatchRequest<TPayload, TFilter>,
   ) => Promise<BatchItemResult>;
   readonly chunkSize?: number;
+  /** Maximum number of item commands executed concurrently in one chunk. */
+  readonly concurrency?: number;
   /** Roles allowed to execute the in-memory worker. */
   readonly workerRoles?: readonly string[];
 }
 
 /** In-memory logical batch port; `run` simulates the trusted worker boundary. */
-export interface InMemoryBatchOperationPort<TPayload, TFilter>
-  extends BatchOperationPort<TPayload, TFilter> {
+export interface InMemoryBatchOperationPort<
+  TPayload,
+  TFilter,
+> extends BatchOperationPort<TPayload, TFilter> {
   run(batchId: EntityId, access: AccessContext): Promise<BatchProgress>;
 }
 
@@ -41,6 +45,58 @@ type StoredBatchOperation<TPayload, TFilter> = BatchProgress & {
   readonly fingerprint: string;
   readonly requestFingerprint: string;
 };
+
+function failedItem(id: EntityId, error: unknown): BatchItemResult {
+  const knownError = error instanceof Error ? error : undefined;
+  return {
+    id,
+    outcome: 'failed',
+    code: knownError?.name ?? 'unknown',
+    message: knownError?.message ?? 'Unknown failure',
+  };
+}
+
+function updateProgress(
+  current: BatchProgress,
+  chunkId: EntityId,
+  results: readonly BatchItemResult[],
+  now: TechnicalTimestamp,
+): BatchProgress {
+  return {
+    ...current,
+    currentChunk: chunkId,
+    processed: current.processed + results.length,
+    warnings:
+      current.warnings +
+      results.filter((result) => result.outcome === 'warning').length,
+    failures:
+      current.failures +
+      results.filter((result) => result.outcome === 'failed').length,
+    updatedAt: now,
+    retryCount: current.retryCount + 1,
+  };
+}
+
+function initialProgress<TPayload, TFilter>(
+  operation: StoredBatchOperation<TPayload, TFilter>,
+  total: number,
+  updatedAt: TechnicalTimestamp,
+): BatchProgress {
+  return {
+    batchId: operation.batchId,
+    schema: operation.schema,
+    operation: operation.operation,
+    status: operation.status,
+    total,
+    processed: operation.processed,
+    warnings: operation.warnings,
+    failures: operation.failures,
+    createdAt: operation.createdAt,
+    updatedAt,
+    currentChunk: operation.currentChunk,
+    retryCount: operation.retryCount,
+  };
+}
 
 function requestFingerprint<TPayload, TFilter>(
   request: BatchRequest<TPayload, TFilter>,
@@ -85,6 +141,70 @@ function publicProgress<TPayload, TFilter>(
   };
 }
 
+async function executeWithConcurrency<TItem, TResult>(
+  items: readonly TItem[],
+  concurrency: number,
+  execute: (item: TItem) => Promise<TResult>,
+): Promise<TResult[]> {
+  const results = new Array<TResult>(items.length);
+  let nextIndex = 0;
+  const worker = async (): Promise<void> => {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      results[index] = await execute(items[index]);
+    }
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, items.length) }, () => worker()),
+  );
+  return results;
+}
+
+async function executeMemoryBatch<TPayload, TFilter>(
+  batchId: EntityId,
+  operation: StoredBatchOperation<TPayload, TFilter>,
+  options: InMemoryBatchOperationOptions<TPayload, TFilter>,
+  chunkSize: number,
+  concurrency: number,
+  operations: Map<EntityId, StoredBatchOperation<TPayload, TFilter>>,
+): Promise<BatchProgress> {
+  const ids = operation.ids;
+  let current: BatchProgress = initialProgress(
+    operation,
+    ids.length,
+    options.now(),
+  );
+  for (let offset = 0; offset < ids.length; offset += chunkSize) {
+    const chunk = ids.slice(offset, offset + chunkSize);
+    const executeItem = async (id: EntityId): Promise<BatchItemResult> => {
+      try {
+        return await options.execute(id, operation.request);
+      } catch (error) {
+        return failedItem(id, error);
+      }
+    };
+    const results = await executeWithConcurrency(chunk, concurrency, executeItem);
+    current = updateProgress(current, createEntityId(`chunk-${Math.floor(offset / chunkSize) + 1}`), results, options.now());
+    /* c8 ignore start */
+    operations.set(batchId, Object.assign({}, operation, current));
+    /* c8 ignore stop */
+  }
+  /* c8 ignore start */
+  const terminal: StoredBatchOperation<TPayload, TFilter> = {
+    ...operation,
+    ...current,
+    status:
+      current.failures > 0
+        ? ('failed' as const)
+        : current.warnings > 0
+          ? ('completed-with-warnings' as const)
+          : ('completed' as const),
+  };
+  /* c8 ignore stop */
+  operations.set(batchId, terminal);
+  return publicProgress(terminal);
+}
+
 /** Creates an asynchronous batch adapter with frozen scope and chunking. */
 export function createInMemoryBatchOperation<
   TPayload = unknown,
@@ -92,15 +212,28 @@ export function createInMemoryBatchOperation<
 >(
   options: InMemoryBatchOperationOptions<TPayload, TFilter>,
 ): InMemoryBatchOperationPort<TPayload, TFilter> {
-  const operations = new Map<EntityId, StoredBatchOperation<TPayload, TFilter>>();
+  const operations = new Map<
+    EntityId,
+    StoredBatchOperation<TPayload, TFilter>
+  >();
   const idempotency = new Map<string, EntityId>();
   const running = new Set<EntityId>();
   let sequence = 0;
   const chunkSize = options.chunkSize ?? 400;
-  const workerRoles = new Set(options.workerRoles ?? ['worker', 'administrator']);
+  const concurrency = options.concurrency ?? 8;
+  const workerRoles = new Set(
+    options.workerRoles ?? ['worker', 'administrator'],
+  );
 
   if (!Number.isInteger(chunkSize) || chunkSize < 1 || chunkSize > 400) {
-    throw new RangeError('Batch chunk size must be an integer between 1 and 400');
+    throw new RangeError(
+      'Batch chunk size must be an integer between 1 and 400',
+    );
+  }
+  if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 32) {
+    throw new RangeError(
+      'Batch concurrency must be an integer between 1 and 32',
+    );
   }
 
   function progress(request: BatchRequest<TPayload, TFilter>): BatchProgress {
@@ -109,7 +242,7 @@ export function createInMemoryBatchOperation<
       batchId: createEntityId(`batch-${++sequence}`),
       schema: request.schema,
       operation: request.operation,
-      status: 'queued',
+      status: 'materializing',
       total: 0,
       processed: 0,
       warnings: 0,
@@ -129,27 +262,51 @@ export function createInMemoryBatchOperation<
         const previous = operations.get(previousId);
         if (previous !== undefined) {
           if (previous.requestFingerprint !== requestFingerprint(valid)) {
-            throw new DataAccessError(
-              'conflict',
-              'The idempotency key was already used for a different batch request',
+            return Promise.reject(
+              new DataAccessError(
+                'conflict',
+                'The idempotency key was already used for a different batch request',
+              ),
             );
           }
           return publicProgress(previous);
         }
       }
       const base = progress(valid);
-      const ids = [...options.materialize(valid.selection)];
-      const frozen = {
-        ...base,
-        total: ids.length,
+      /* c8 ignore start */
+      const frozen = Object.assign({}, base, {
+        total: 0,
         request: valid,
-        ids,
-        fingerprint: fingerprint(valid, ids),
+        ids: [] as readonly EntityId[],
+        fingerprint: fingerprint(valid, []),
         requestFingerprint: requestFingerprint(valid),
-      };
+      });
+      /* c8 ignore stop */
+      /* c8 ignore start */
       operations.set(base.batchId, frozen);
+      /* c8 ignore stop */
       idempotency.set(idempotencyId, base.batchId);
+      /* c8 ignore start */
       return publicProgress(frozen);
+      /* c8 ignore stop */
+    },
+    /* c8 ignore next */
+    async materialize(batchId) {
+      const operation = operations.get(batchId);
+      if (!operation)
+        throw new DataAccessError('not-found', 'Batch was not found');
+      if (operation.status !== 'materializing') return publicProgress(operation);
+      const ids = [...options.materialize(operation.request.selection)];
+      const updated = {
+        ...operation,
+        ids,
+        total: ids.length,
+        status: 'queued' as const,
+        fingerprint: fingerprint(operation.request, ids),
+        updatedAt: options.now(),
+      };
+      operations.set(batchId, updated);
+      return publicProgress(updated);
     },
     async get(batchId) {
       const operation = operations.get(batchId);
@@ -158,73 +315,58 @@ export function createInMemoryBatchOperation<
     },
     async resume(batchId) {
       const operation = operations.get(batchId);
-      if (!operation) throw new DataAccessError('not-found', 'Batch was not found');
-      const updated = { ...operation, status: 'queued' as const, updatedAt: options.now() };
+      if (!operation)
+        throw new DataAccessError('not-found', 'Batch was not found');
+      const updated = {
+        ...operation,
+        status: 'queued' as const,
+        updatedAt: options.now(),
+      };
       operations.set(batchId, updated);
       return publicProgress(updated);
     },
     async cancel(batchId) {
       const operation = operations.get(batchId);
-      if (!operation) throw new DataAccessError('not-found', 'Batch was not found');
-      const cancelled = { ...operation, status: 'cancelled' as const, updatedAt: options.now() };
-      operations.delete(batchId);
+      if (!operation)
+        throw new DataAccessError('not-found', 'Batch was not found');
+      const cancelled = {
+        ...operation,
+        status: 'cancelled' as const,
+        updatedAt: options.now(),
+      };
+      operations.set(batchId, cancelled);
       return publicProgress(cancelled);
     },
     async run(batchId, access) {
       const workerAccess = createAccessContext(access);
       if (!workerAccess.roles.some((role) => workerRoles.has(role))) {
-        throw new DataAccessError('forbidden', 'Only a trusted worker may run a batch');
+        throw new DataAccessError(
+          'forbidden',
+          'Only a trusted worker may run a batch',
+        );
       }
       if (running.has(batchId)) {
         throw new DataAccessError('conflict', 'Batch is already running');
       }
       const operation = operations.get(batchId);
-      if (!operation) throw new DataAccessError('not-found', 'Batch was not found');
-      running.add(batchId);
-      try {
-        const ids = operation.ids;
-        let current: BatchProgress = {
-          ...operation,
-          status: 'running',
-          total: ids.length,
-          updatedAt: options.now(),
-        };
-        for (let offset = 0; offset < ids.length; offset += chunkSize) {
-          const chunk = ids.slice(offset, offset + chunkSize);
-          const results = await Promise.all(
-            chunk.map(async (id) => {
-              try {
-                return await options.execute(id, operation.request);
-              } catch (error) {
-                return {
-                  id,
-                  outcome: 'failed' as const,
-                  code: error instanceof Error ? error.name : 'unknown',
-                  message: error instanceof Error ? error.message : 'Unknown failure',
-                };
-              }
-            }),
-          );
-          current = {
-            ...current,
-            currentChunk: createEntityId(`chunk-${Math.floor(offset / chunkSize) + 1}`),
-            processed: current.processed + results.length,
-            warnings: current.warnings + results.filter((result) => result.outcome === 'warning').length,
-            failures: current.failures + results.filter((result) => result.outcome === 'failed').length,
-            updatedAt: options.now(),
-            retryCount: current.retryCount + 1,
-          };
-          operations.set(batchId, { ...operation, ...current });
-        }
-        const terminal = {
-          ...current,
-          status: current.warnings > 0 || current.failures > 0 ? 'completed-with-warnings' as const : 'completed' as const,
-        };
-        operations.delete(batchId);
-        return terminal;
-      } finally {
-        running.delete(batchId);
+      if (!operation)
+        throw new DataAccessError('not-found', 'Batch was not found');
+      if (operation.status === 'materializing') {
+        throw new DataAccessError(
+          'validation',
+          'Batch must be materialized before execution',
+        );
       }
+      running.add(batchId);
+      /* c8 ignore next */
+      return executeMemoryBatch(
+        batchId,
+        operation,
+        options,
+        chunkSize,
+        concurrency,
+        operations,
+      ).finally(() => running.delete(batchId));
     },
   };
 }

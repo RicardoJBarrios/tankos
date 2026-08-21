@@ -10,25 +10,14 @@
     "importHelpers": true,
     "target": "es2015",
     "module": "esnext",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
+    "lib": ["es2020", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "paths": {
-      "@tank-os/units": [
-        "./libs/tank-os/units/src/index.ts"
-      ],
-      "@tank-os/time": [
-        "./libs/tank-os/time/src/index.ts"
-      ],
-      "@tank-os/decimal": [
-        "./libs/tank-os/decimal/src/index.ts"
-      ],
-      "@tank-os/data-access": [
-        "./libs/tank-os/data-access/src/index.ts"
-      ],
+      "@tank-os/units": ["./libs/tank-os/units/src/index.ts"],
+      "@tank-os/time": ["./libs/tank-os/time/src/index.ts"],
+      "@tank-os/decimal": ["./libs/tank-os/decimal/src/index.ts"],
+      "@tank-os/data-access": ["./libs/tank-os/data-access/src/index.ts"],
       "@tank-os/data-access-firestore": [
         "./libs/tank-os/data-access-firestore/src/index.ts"
       ],
@@ -38,25 +27,15 @@
       "@tank-os/data-access-server": [
         "./libs/tank-os/data-access-server/src/index.ts"
       ],
-      "@tank-os/time-firestore": [
-        "./libs/tank-os/time-firestore/src/index.ts"
-      ],
-      "@tank-os/time-json-http": [
-        "./libs/tank-os/time-json-http/src/index.ts"
-      ],
-      "@tank-os/time-zod": [
-        "./libs/tank-os/time-zod/src/index.ts"
-      ],
-      "@tank-os/decimal-big-js": [
-        "./libs/tank-os/decimal-big-js/src/index.ts"
-      ],
-      "@tank-os/decimal-zod": [
-        "./libs/tank-os/decimal-zod/src/index.ts"
+      "@tank-os/time-firestore": ["./libs/tank-os/time-firestore/src/index.ts"],
+      "@tank-os/time-json-http": ["./libs/tank-os/time-json-http/src/index.ts"],
+      "@tank-os/time-zod": ["./libs/tank-os/time-zod/src/index.ts"],
+      "@tank-os/decimal-big-js": ["./libs/tank-os/decimal-big-js/src/index.ts"],
+      "@tank-os/decimal-zod": ["./libs/tank-os/decimal-zod/src/index.ts"],
+      "@tank-os/data-access-firestore-admin": [
+        "./libs/tank-os/data-access-firestore-admin/src/index.ts"
       ]
     }
   },
-  "exclude": [
-    "node_modules",
-    "tmp"
-  ]
+  "exclude": ["node_modules", "tmp"]
 }

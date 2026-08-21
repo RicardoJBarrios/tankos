@@ -10,13 +10,16 @@ interface CacheEntry<TValue> {
   readonly expiresAt: number;
 }
 
-/** In-memory TTL cache with explicit force-refresh and invalidation semantics. */
+/** In-memory TTL cache with explicit read modes and invalidation semantics. */
 export function createTtlCache<TValue>(clock: CacheClock): CachePort<TValue> {
   const entries = new Map<string, CacheEntry<TValue>>();
 
   return {
-    async get(key: string, options?: CacheReadOptions): Promise<TValue | undefined> {
-      if (options?.forceRefresh) {
+    async get(
+      key: string,
+      options?: CacheReadOptions,
+    ): Promise<TValue | undefined> {
+      if (options?.mode === 'network-only' || options?.mode === 'refresh') {
         return undefined;
       }
 
@@ -39,7 +42,9 @@ export function createTtlCache<TValue>(clock: CacheClock): CachePort<TValue> {
     },
     async clearNamespace(namespace) {
       for (const key of entries.keys()) {
-        if (key.startsWith(`${namespace}:`)) entries.delete(key);
+        if (key === namespace || key.startsWith(`${namespace}:`)) {
+          entries.delete(key);
+        }
       }
     },
     async clear() {

@@ -610,8 +610,9 @@ schema/type, the logical frozen record IDs, processing state and all mandatory
 operation metadata. The IDs and progress must be physically chunked or stored
 in an `items` subcollection when the set cannot fit safely in one document. It
 is the source for batch warnings and execution results while the operation
-exists; it is deleted when the batch finishes. The server materializes the
-frozen set at confirmation time.
+exists. Successful and warning-only terminal operations may be cleaned, while
+failed operations remain until explicit administrative cleanup. The server
+materializes the frozen set at confirmation time.
 
 ```text
 BatchOperation
@@ -630,8 +631,8 @@ but does not require a before/after preview of the business values.
 
 Temporary batch-operation entities are an explicit exception to the global
 persisted-data schema rule: they do not require `schemaVersion` or a versioned
-completeness schema because they are operational, short-lived structures that
-are deleted when the batch finishes.
+completeness schema because they are operational structures with bounded
+retention and explicit cleanup semantics.
 
 Real-time progress display for an in-progress batch is optional rather than a
 correctness requirement. Batch execution, resumability and final reporting

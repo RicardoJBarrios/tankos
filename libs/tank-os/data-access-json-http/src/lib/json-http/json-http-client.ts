@@ -7,5 +7,9 @@ export interface JsonHttpClientPort {
     readonly url: string;
     readonly access: AccessContext;
     readonly body?: unknown;
+    /** Abort signal owned by the host transport, when supported. */
+    readonly signal?: AbortSignal;
+    /** Stable key the server can use to deduplicate mutations. */
+    readonly idempotencyKey?: string;
   }): Promise<TResponse>;
 }

@@ -90,6 +90,11 @@ rule applies uniformly to Firestore, JSON/HTTP, server, native and third-party
 runtime adapters whenever their isolation improves dependency or bundle
 boundaries.
 
+Firestore client CRUD and Firestore Admin batch execution are different
+physical adapters. The Admin SDK must never be imported by a browser-facing
+package. Atomic finite writes and durable logical batch workflows must also
+remain distinct contracts, even when both use Firestore underneath.
+
 Secondary entrypoints are appropriate only when the implementation genuinely
 belongs to the same package and physical isolation is not a requirement. They
 must still have matching `ng-package.json`, workspace TypeScript paths and
@@ -128,6 +133,18 @@ meaningful contract information.
 Do not use undocumented public APIs, `TODO` comments as a substitute for a
 decision, or comments that expose stale historical reasoning. Update the
 library's local `docs/` when a public contract or durable decision changes.
+
+## Provider adapter and cost guardrails
+
+Provider adapters must not perform a read-after-write merely to reconstruct a
+successful mutation response. Return a projected record from the write result,
+or make any required precondition read part of the same transaction. Mutations
+must expose a stable idempotency key when a retry can repeat them. Technical
+timestamps must come from an injectable boundary clock whose trust model is
+documented; do not hide an extra network read behind timestamp normalization.
+Server-side authorization must use authoritative claims or IAM, never a role
+list supplied by the browser. Batch adapters must bound both logical chunk size
+and item concurrency.
 
 ## Library coverage requirement
 

@@ -312,6 +312,14 @@ modules['libs/tank-os/data-access-server/src/lib/server'] = [
   'context:tank-os',
   'tank-os:layer:adapter',
 ];
+modules['libs/tank-os/data-access-firestore-admin/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/data-access-firestore-admin/src/lib/firestore-admin'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
 
 export const config: SheriffConfig = {
   entryPoints: {
@@ -362,7 +370,6 @@ export const config: SheriffConfig = {
     ],
     'tank-os:layer:application': [
       'tank-os:layer:application',
-      'tank-os:layer:adapter',
       'tank-os:layer:core',
       'context:tank-os',
     ],

@@ -28,3 +28,18 @@ export class DataAccessError extends Error {
     this.retryable = options.retryable ?? false;
   }
 }
+
+/** Creates a stable provider-neutral error while retaining a useful cause message. */
+export function createDataAccessError(
+  code: DataAccessErrorCode,
+  message: string,
+  cause?: unknown,
+): DataAccessError {
+  const error = new DataAccessError(code, message, {
+    retryable: code === 'transient',
+  });
+  if (cause !== undefined) {
+    error.message = `${error.message}: ${cause instanceof Error ? cause.message : String(cause)}`;
+  }
+  return error;
+}
