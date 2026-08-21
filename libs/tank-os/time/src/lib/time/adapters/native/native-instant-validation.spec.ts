@@ -36,4 +36,8 @@ describe('native-instant-validation', () => {
       expect(adapter.isValidInstant(value)).toBe(true);
     },
   );
+
+  it('Given fractional epoch milliseconds, When validating it, Then it returns true because it is truncatable', () => {
+    expect(adapter.isValidInstant(1.5)).toBe(true);
+  });
 });

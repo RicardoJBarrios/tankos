@@ -47,12 +47,9 @@ export function createFirestoreTimeAdapter(
         throw new RangeError('Expected a Firestore Timestamp');
       }
       const timestamp = firestoreTimestampSchema.parse(value);
-      if (timestamp.nanoseconds % 1_000_000 !== 0) {
-        throw new RangeError(
-          'Firestore Timestamp must have millisecond precision',
-        );
-      }
-      const milliseconds = timestamp.toMillis();
+      const milliseconds =
+        timestamp.seconds * 1_000 +
+        Math.trunc(timestamp.nanoseconds / 1_000_000);
       return timeAdapter.parseInstant(milliseconds);
     },
     toLocalDate(value) {
@@ -68,10 +65,13 @@ export function createFirestoreTimeAdapter(
       return timeAdapter.parseDuration(value).milliseconds;
     },
     fromDuration(value) {
-      if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
-        throw new RangeError('Expected integer millisecond duration');
+      if (
+        typeof value !== 'number' ||
+        !Number.isSafeInteger(Math.trunc(value))
+      ) {
+        throw new RangeError('Expected finite duration milliseconds');
       }
-      return timeAdapter.parseDuration(value);
+      return timeAdapter.parseDuration(Math.trunc(value));
     },
   };
 }

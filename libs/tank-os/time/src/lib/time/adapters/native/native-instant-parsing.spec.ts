@@ -24,6 +24,13 @@ describe('native-instant-parsing', () => {
     });
   });
 
+  it('Given nanosecond ISO precision, When parsing it, Then it truncates after milliseconds', () => {
+    expect(adapter.parseInstant('2026-08-20T15:30:01.250999999Z')).toEqual({
+      kind: 'instant',
+      epochMilliseconds: Date.parse('2026-08-20T15:30:01.250Z'),
+    });
+  });
+
   it('Given a previously parsed instant object, When parsing it, Then it preserves its epoch value', () => {
     expect(
       adapter.parseInstant({ kind: 'instant', epochMilliseconds: 0 }),
@@ -62,17 +69,19 @@ describe('native-instant-parsing', () => {
     },
   );
 
-  it.each([
-    1.5,
-    Number.NaN,
-    Number.POSITIVE_INFINITY,
-    Number.NEGATIVE_INFINITY,
-  ])(
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
     'Given invalid epoch value %s, When parsing it, Then it raises a range error',
     (value) => {
       expect(() => adapter.parseInstant(value)).toThrow(RangeError);
     },
   );
+
+  it('Given fractional epoch milliseconds, When parsing it, Then it truncates toward zero', () => {
+    expect(adapter.parseInstant(-1.9)).toEqual({
+      kind: 'instant',
+      epochMilliseconds: -1,
+    });
+  });
 
   it('Given an empty string, When parsing it, Then it raises a range error', () => {
     expect(() => adapter.parseInstant('')).toThrow(RangeError);

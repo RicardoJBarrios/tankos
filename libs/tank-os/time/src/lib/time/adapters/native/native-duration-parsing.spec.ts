@@ -7,6 +7,8 @@ describe('native-duration-parsing', () => {
     ['P1D', 86_400_000],
     ['PT1H30M', 5_400_000],
     ['-PT0.001S', -1],
+    ['PT1.000999S', 1_000],
+    [1.9, 1],
     [{ kind: 'duration', milliseconds: 2_000 }, 2_000],
   ])(
     'Given a supported duration %s, When parsing it, Then it returns %s milliseconds',
@@ -21,7 +23,6 @@ describe('native-duration-parsing', () => {
   it.each([
     NaN,
     Infinity,
-    1.5,
     '',
     'P',
     'PT',
@@ -29,8 +30,7 @@ describe('native-duration-parsing', () => {
     'P1M',
     'P1Y',
     'P1W',
-    'PT1.0001S',
-    { kind: 'duration', milliseconds: 1.5 },
+    { kind: 'duration', milliseconds: NaN },
     { kind: 'instant', epochMilliseconds: 1 },
   ])(
     'Given an unsupported duration %s, When parsing it, Then it raises a range error',

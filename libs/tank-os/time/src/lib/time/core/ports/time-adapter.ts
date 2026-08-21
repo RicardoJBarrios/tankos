@@ -5,7 +5,16 @@ import {
   LocalDateInput,
   Duration,
   DurationInput,
+  ZonedDateTimeResolution,
 } from '../value-types';
+
+/** Replaceable source of IANA time-zone rules used by a temporal adapter. */
+export interface TimeZoneDatabasePort {
+  /** Returns whether the identifier is recognized by the configured database. */
+  isValid(timeZone: string): boolean;
+  /** Returns the offset in minutes applicable at an instant. */
+  getOffsetMinutes(instant: Instant, timeZone: string): number;
+}
 
 /**
  * Port for the time implementation used by TankOS.
@@ -23,5 +32,10 @@ export interface TimeAdapter {
   parseLocalDate(value: LocalDateInput): LocalDate;
   isValidLocalDate(value: unknown): value is LocalDateInput;
   fromZonedDateTime(value: string, timeZone: string): Instant;
+  /** Resolves a local date-time and retains its source zone metadata. */
+  resolveZonedDateTime(
+    value: string,
+    timeZone: string,
+  ): ZonedDateTimeResolution;
   isValidTimeZone(timeZone: string): boolean;
 }

@@ -97,7 +97,7 @@ describe('json-http-time-adapter', () => {
     },
   );
 
-  it.each([null, undefined, 0, {}, 'PT', 'P1M', 'PT1.0001S'])(
+  it.each([null, undefined, 0, {}, 'PT', 'P1M', 'PT1Y'])(
     'Given an invalid JSON duration %s, When deserializing it, Then it raises a range error',
     (value) => {
       expect(() => adapter.deserializeDuration(value)).toThrow(RangeError);

@@ -7,6 +7,7 @@ import {
   InstantInput,
   LocalDate,
   LocalDateInput,
+  ZonedDateTimeResolution,
 } from '../core';
 
 @Injectable({ providedIn: 'root' })
@@ -63,6 +64,14 @@ export class TimeService {
   /** Resolves a local date-time in an explicit zone. */
   fromZonedDateTime(value: string, timeZone: string): Instant {
     return this.#adapter.fromZonedDateTime(value, timeZone);
+  }
+
+  /** Resolves a local date-time and retains its original zone metadata. */
+  resolveZonedDateTime(
+    value: string,
+    timeZone: string,
+  ): ZonedDateTimeResolution {
+    return this.#adapter.resolveZonedDateTime(value, timeZone);
   }
 
   /** Validates an IANA time-zone identifier. */

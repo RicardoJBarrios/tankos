@@ -44,8 +44,8 @@ Their meaning determines validation, normalization, persistence and display.
 
 When a user, device or imported source declares a date-time, TankOS preserves
 the declared instant and normalizes the stored instant to UTC at the server
-boundary. The original time-zone context may be retained when it is required to
-explain how the instant was interpreted.
+boundary. When required, the original time-zone context is retained in a
+separate resolution envelope; it is never added to the `Instant` value itself.
 
 The server receipt timestamp is different from the declared event or
 observation time. A receipt timestamp must not replace the time declared by the
@@ -94,11 +94,11 @@ const jsonHttp = createJsonHttpTimeAdapter(timeAdapter);
 ```
 
 The Firestore adapter uses the client SDK `Timestamp` and stores `Instant` at
-the library's millisecond precision. It rejects timestamps containing
-sub-millisecond information instead of silently truncating it. `LocalDate` is
-stored as the canonical `YYYY-MM-DD` string because it is a calendar value,
-not a timestamp. The adapter rejects Admin SDK or unrelated timestamp objects
-instead of silently accepting a structurally similar value.
+the library's millisecond precision. Nanoseconds below milliseconds are
+truncated, never rounded. `LocalDate` is stored as the canonical `YYYY-MM-DD`
+string because it is a calendar value, not a timestamp. The adapter rejects
+Admin SDK or unrelated timestamp objects instead of silently accepting a
+structurally similar value.
 
 The JSON/HTTP adapter serializes `Instant` as canonical UTC ISO 8601 with
 millisecond precision and `LocalDate` as `YYYY-MM-DD`. Deserializers validate
@@ -156,9 +156,12 @@ Tests for the library are intentionally split by public operation and use
 Given/When/Then descriptions so that the test suite acts as executable
 documentation of each temporal contract.
 
-The initial implementation uses millisecond precision, accepts only ISO
-date-times with `Z` or an explicit offset for `Instant`, and rejects local
-date-times that are nonexistent or ambiguous in their time zone.
+The implementation uses millisecond precision permanently for this library.
+ISO date-times with `Z` or an explicit offset may contain finer fractions, but
+those fractions are truncated after the first three digits. Numeric epoch
+values and Firestore nanoseconds follow the same truncation rule. The library
+accepts only ISO date-times with `Z` or an explicit offset for `Instant`, and
+rejects local date-times that are nonexistent or ambiguous in their time zone.
 
 The public API does not accept or expose JavaScript `Date` or `Intl` objects.
 Those runtimes are confined to the native and Angular adapters.
@@ -348,15 +351,30 @@ to the consuming Angular application when a component is present.
 
 Runtime boundaries validate structured values before they enter the temporal
 model. JSON/HTTP strings use Zod followed by the active adapter; Firestore
-timestamps must be client SDK `Timestamp` instances and must represent whole
-milliseconds. Native structured values must contain their correct discriminant
+timestamps must be client SDK `Timestamp` instances; sub-millisecond
+nanoseconds are truncated at the boundary. Native structured values must
+contain their correct discriminant
 (`instant` or `local-date`) and all required numeric fields.
+
+## Time-zone database and origin metadata
+
+Time-zone identifiers use the IANA TZDB vocabulary. The native adapter obtains
+rules from the runtime's `Intl` implementation through the
+`TimeZoneDatabasePort`; the port allows a future adapter to provide another
+TZDB or Temporal implementation. Abbreviations such as `CET` and `PST` are
+not accepted because they are ambiguous. Invalid identifiers raise
+`RangeError` when used for resolution and return `false` during validation.
+
+`fromZonedDateTime()` returns only the normalized `Instant` for callers that
+do not need provenance. `resolveZonedDateTime()` returns an envelope with the
+instant and the declared IANA zone plus the offset applicable at that instant.
+The owning observation, measurement or event may persist this envelope when
+provenance matters; the source metadata never changes the normalized instant.
 
 ## Future decisions
 
-1. Whether a future slice should support precision finer than milliseconds.
-2. The supported time-zone database and invalid-zone behavior.
-3. Which original zone metadata is retained with a normalized instant.
+1. Whether to add a bundled or Temporal-backed TZDB adapter.
+2. Which original zone metadata domain records require persistence.
 
 These future decisions do not invalidate the current `Instant`, `LocalDate`,
 `TimeAdapter`, Angular provider or presentation contracts.

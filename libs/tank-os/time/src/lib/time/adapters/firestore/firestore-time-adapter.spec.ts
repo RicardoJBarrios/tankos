@@ -99,15 +99,16 @@ describe('firestore-time-adapter', () => {
     },
   );
 
-  it('Given a Firestore Timestamp with sub-millisecond precision, When converting it, Then it raises a range error instead of losing precision', () => {
+  it('Given a Firestore Timestamp with sub-millisecond precision, When converting it, Then it truncates to milliseconds', () => {
     const timestamp = new Timestamp(1_756_000_001, 1);
 
-    expect(() => adapter.fromTimestamp(timestamp)).toThrow(
-      'millisecond precision',
-    );
+    expect(adapter.fromTimestamp(timestamp)).toEqual({
+      kind: 'instant',
+      epochMilliseconds: 1_756_000_001_000,
+    });
   });
 
-  it.each([null, undefined, 1.5, '3600000', Infinity])(
+  it.each([null, undefined, NaN, '3600000', Infinity])(
     'Given invalid Firestore duration %s, When converting it, Then it raises a range error',
     (value) => {
       expect(() => adapter.fromDuration(value)).toThrow(RangeError);

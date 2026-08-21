@@ -89,6 +89,24 @@ describe('time-service', () => {
     });
   });
 
+  it('Given a local date-time and zone, When resolving with origin through Angular, Then it retains the source zone metadata', () => {
+    expect(
+      TestBed.inject(TimeService).resolveZonedDateTime(
+        '2026-08-20T15:30:00',
+        'Atlantic/Canary',
+      ),
+    ).toEqual({
+      instant: {
+        kind: 'instant',
+        epochMilliseconds: Date.parse('2026-08-20T14:30:00.000Z'),
+      },
+      origin: {
+        declaredTimeZone: 'Atlantic/Canary',
+        declaredOffsetMinutes: 60,
+      },
+    });
+  });
+
   it.each([
     ['', 'Atlantic/Canary'],
     ['2026-08-20T15:30:00', ''],
@@ -124,7 +142,7 @@ describe('time-service', () => {
     },
   );
 
-  it.each(['P1Y', 'P1M', 'PT1.0001S', '', null, undefined, Number.NaN])(
+  it.each(['P1Y', 'P1M', 'PT', '', null, undefined, Number.NaN])(
     'Given invalid duration value %s, When validating it through Angular, Then it returns false',
     (value) => {
       expect(TestBed.inject(TimeService).isValidDuration(value)).toBe(false);

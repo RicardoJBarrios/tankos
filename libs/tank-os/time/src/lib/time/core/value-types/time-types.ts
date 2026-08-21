@@ -35,6 +35,22 @@ export type Duration = {
 /** Accepted duration input forms. Strings use the supported ISO 8601 syntax. */
 export type DurationInput = Duration | number | string;
 
+/** Metadata describing how a local date-time was interpreted. */
+export type TemporalOrigin = {
+  /** Original IANA zone, when the source declared one. */
+  readonly declaredTimeZone?: string;
+  /** Original numeric offset in minutes at the resolved instant. */
+  readonly declaredOffsetMinutes?: number;
+};
+
+/** Result of resolving a local date-time while retaining its source context. */
+export type ZonedDateTimeResolution = {
+  /** Normalized instant used by the temporal model. */
+  readonly instant: Instant;
+  /** Source context retained outside the instant value. */
+  readonly origin: TemporalOrigin;
+};
+
 /** Date-time fields used by calendar and time-zone calculations. */
 export type DateTimeParts = {
   /** Calendar year. */

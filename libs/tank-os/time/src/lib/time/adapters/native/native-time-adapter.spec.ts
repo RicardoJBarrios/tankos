@@ -15,6 +15,7 @@ describe('native-time-adapter', () => {
         parseLocalDate: expect.any(Function),
         isValidLocalDate: expect.any(Function),
         fromZonedDateTime: expect.any(Function),
+        resolveZonedDateTime: expect.any(Function),
         isValidTimeZone: expect.any(Function),
       }),
     );

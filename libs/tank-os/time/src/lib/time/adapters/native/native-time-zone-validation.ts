@@ -6,8 +6,8 @@ import { getFormatter } from './native-time-zone-runtime';
  * @param timeZone - IANA time-zone identifier.
  * @returns `true` when `Intl` can construct a formatter for the zone.
  */
-export function nativeIsValidTimeZone(timeZone: string): boolean {
-  if (!timeZone) {
+export function nativeIsValidTimeZone(timeZone: unknown): timeZone is string {
+  if (typeof timeZone !== 'string' || !timeZone) {
     return false;
   }
 

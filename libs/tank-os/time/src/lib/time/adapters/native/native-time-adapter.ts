@@ -4,8 +4,11 @@ import { nativeParseInstant } from './native-instant-parsing';
 import { nativeToUtcIsoString } from './native-instant-serialization';
 import { nativeIsValidLocalDate } from './native-local-date-validation';
 import { nativeParseLocalDate } from './native-local-date-parsing';
-import { nativeFromZonedDateTime } from './native-zoned-date-time-resolution';
-import { nativeIsValidTimeZone } from './native-time-zone-validation';
+import {
+  nativeFromZonedDateTime,
+  nativeResolveZonedDateTime,
+} from './native-zoned-date-time-resolution';
+import { createNativeTimeZoneDatabase } from './native-time-zone-database';
 import { nativeIsValidDuration } from './native-duration-validation';
 import { nativeParseDuration } from './native-duration-parsing';
 import { nativeToDurationIsoString } from './native-duration-serialization';
@@ -13,9 +16,12 @@ import { nativeToDurationIsoString } from './native-duration-serialization';
 /**
  * Creates the adapter backed by the current JavaScript/Intl runtime.
  *
+ * @param timeZoneDatabase - Optional IANA rules source; defaults to `Intl`.
  * @returns A complete native implementation of the `TimeAdapter` port.
  */
-export function createNativeTimeAdapter(): TimeAdapter {
+export function createNativeTimeAdapter(
+  timeZoneDatabase = createNativeTimeZoneDatabase(),
+): TimeAdapter {
   return {
     parseInstant: nativeParseInstant,
     isValidInstant: nativeIsValidInstant,
@@ -25,7 +31,10 @@ export function createNativeTimeAdapter(): TimeAdapter {
     toDurationIsoString: nativeToDurationIsoString,
     parseLocalDate: nativeParseLocalDate,
     isValidLocalDate: nativeIsValidLocalDate,
-    fromZonedDateTime: nativeFromZonedDateTime,
-    isValidTimeZone: nativeIsValidTimeZone,
+    fromZonedDateTime: (value, timeZone) =>
+      nativeFromZonedDateTime(value, timeZone, timeZoneDatabase),
+    resolveZonedDateTime: (value, timeZone) =>
+      nativeResolveZonedDateTime(value, timeZone, timeZoneDatabase),
+    isValidTimeZone: timeZoneDatabase.isValid,
   };
 }

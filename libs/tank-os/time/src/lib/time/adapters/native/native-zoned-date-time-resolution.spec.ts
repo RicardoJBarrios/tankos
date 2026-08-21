@@ -27,6 +27,21 @@ describe('native-zoned-date-time-resolution', () => {
     ).toBe('2026-08-20T14:30:01.250Z');
   });
 
+  it('Given a local date-time and IANA zone, When resolving with origin, Then it returns the instant and the applicable source offset', () => {
+    expect(
+      adapter.resolveZonedDateTime('2026-08-20T15:30:00', 'Atlantic/Canary'),
+    ).toEqual({
+      instant: {
+        kind: 'instant',
+        epochMilliseconds: Date.parse('2026-08-20T14:30:00.000Z'),
+      },
+      origin: {
+        declaredTimeZone: 'Atlantic/Canary',
+        declaredOffsetMinutes: 60,
+      },
+    });
+  });
+
   it('Given a nonexistent DST local time, When resolving it, Then it raises a range error', () => {
     expect(() =>
       adapter.fromZonedDateTime('2026-03-08T02:30:00', 'America/New_York'),

@@ -2,7 +2,7 @@ import { Duration, DurationInput } from '../../core';
 import { nativeIsValidDuration } from './native-duration-validation';
 
 const DURATION_PATTERN =
-  /^([-+])?P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:\.(\d{1,3}))?S)?)?$/;
+  /^([-+])?P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:\.(\d+))?S)?)?$/;
 const MILLISECONDS_PER_SECOND = 1_000;
 const MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND;
 const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
@@ -14,14 +14,17 @@ export function nativeParseDuration(value: DurationInput): Duration {
     if (!nativeIsValidDuration(value)) {
       throw new RangeError('Invalid duration');
     }
-    return { kind: 'duration', milliseconds: value };
+    return { kind: 'duration', milliseconds: Math.trunc(value) };
   }
 
   if (typeof value === 'object') {
     if (!nativeIsValidDuration(value)) {
       throw new RangeError('Invalid duration');
     }
-    return { kind: 'duration', milliseconds: value.milliseconds };
+    return {
+      kind: 'duration',
+      milliseconds: Math.trunc(value.milliseconds),
+    };
   }
 
   const match = DURATION_PATTERN.exec(value);
@@ -56,5 +59,5 @@ function toInteger(value: string | undefined): number {
 }
 
 function fractionToMilliseconds(value: string | undefined): number {
-  return value === undefined ? 0 : Number(value.padEnd(3, '0'));
+  return value === undefined ? 0 : Number(value.slice(0, 3).padEnd(3, '0'));
 }

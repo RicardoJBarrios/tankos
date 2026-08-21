@@ -2,7 +2,7 @@ import { isValidCalendarDate } from '../../core/validation';
 import { Instant, InstantInput } from '../../core';
 
 const INSTANT_PATTERN =
-  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?(Z|[+-]\d{2}:\d{2})$/;
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})$/;
 
 function parseInstantString(value: string): number {
   const match = INSTANT_PATTERN.exec(value);
@@ -12,7 +12,7 @@ function parseInstantString(value: string): number {
     );
   }
 
-  const [, year, month, day, hour, minute, second, , offset] = match;
+  const [, year, month, day, hour, minute, second, fraction, offset] = match;
   const numericOffset = offset === 'Z' ? 0 : Number(offset.slice(1, 3));
   const offsetMinutes = offset === 'Z' ? 0 : Number(offset.slice(4, 6));
   const parsedYear = Number(year);
@@ -30,7 +30,9 @@ function parseInstantString(value: string): number {
     throw new RangeError(`Invalid instant: ${value}`);
   }
 
-  const timestamp = new Date(value).getTime();
+  const milliseconds = (fraction ?? '').slice(0, 3).padEnd(3, '0');
+  const normalizedValue = `${year}-${month}-${day}T${hour}:${minute}:${second}.${milliseconds}${offset}`;
+  const timestamp = new Date(normalizedValue).getTime();
   if (!Number.isFinite(timestamp)) {
     throw new RangeError(`Invalid instant: ${value}`);
   }
@@ -51,7 +53,7 @@ export function nativeParseInstant(value: InstantInput): Instant {
   if (typeof value === 'string') {
     epochMilliseconds = parseInstantString(value);
   } else if (typeof value === 'number') {
-    epochMilliseconds = value;
+    epochMilliseconds = Math.trunc(value);
   } else {
     if (
       typeof value !== 'object' ||
@@ -61,12 +63,12 @@ export function nativeParseInstant(value: InstantInput): Instant {
     ) {
       throw new RangeError('Invalid instant');
     }
-    epochMilliseconds = value.epochMilliseconds;
+    epochMilliseconds = Math.trunc(value.epochMilliseconds);
   }
 
   if (
     !Number.isFinite(epochMilliseconds) ||
-    !Number.isInteger(epochMilliseconds)
+    !Number.isSafeInteger(epochMilliseconds)
   ) {
     throw new RangeError('Invalid instant');
   }
