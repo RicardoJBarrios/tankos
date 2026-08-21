@@ -106,6 +106,13 @@ The contracts distinguish two provider capabilities:
   those remain submission/control capabilities. Terminal deletion is a
   separate cleanup capability and is opt-in at the executor boundary.
 
+Each capability also has its own summary-patch type: submission can change only
+control status and timestamps, materialization can change selection totals and
+its own lease, and workers can change execution counters and their own lease.
+Worker chunk reads are exposed only by `BatchWorkerStorePort`. This prevents a
+caller from expressing another capability's lease fields through a shared
+patch type, even before the adapter applies runtime fencing.
+
 The Firestore Admin adapter exposes separate submission, materializer and worker
 capabilities backed by the same database. Technical time is supplied through
 `@tank-os/time`'s `ClockPort` (normally `TimeService`), not through a second

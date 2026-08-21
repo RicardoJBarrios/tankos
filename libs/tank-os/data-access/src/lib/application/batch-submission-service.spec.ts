@@ -45,7 +45,6 @@ function storeHarness(initial = record()) {
       current = { ...(current as BatchOperationRecord), ...patch };
       return current;
     },
-    listRunnableChunks: async () => [],
     requestCancellation: async () => {
       cancellationRequested = true;
       return current as BatchOperationRecord;

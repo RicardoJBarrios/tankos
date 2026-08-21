@@ -602,15 +602,11 @@ describe('createFirestoreAdminBatchStore', () => {
     await expect(
       store.update(createEntityId('batch-1'), {
         updatedAt: { kind: 'instant', epochMilliseconds: 1 },
-        materializationLeaseOwner: null,
-        materializationLeaseUntil: null,
-        leaseUntil: null,
       }),
     ).resolves.toMatchObject({ batchId: 'batch-1' });
     await expect(
       store.update(createEntityId('batch-1'), {
         updatedAt: { kind: 'instant', epochMilliseconds: 2 },
-        leaseUntil: { kind: 'instant', epochMilliseconds: 60_000 },
       }),
     ).resolves.toMatchObject({ batchId: 'batch-1' });
     await expect(
@@ -626,7 +622,20 @@ describe('createFirestoreAdminBatchStore', () => {
     await expect(
       worker.update(
         createEntityId('batch-1'),
-        { updatedAt: { kind: 'instant', epochMilliseconds: 1 } },
+        {
+          updatedAt: { kind: 'instant', epochMilliseconds: 1 },
+          leaseUntil: { kind: 'instant', epochMilliseconds: 60_000 },
+        },
+        leaseOf(claim),
+      ),
+    ).resolves.toMatchObject({ status: 'running' });
+    await expect(
+      worker.update(
+        createEntityId('batch-1'),
+        {
+          updatedAt: { kind: 'instant', epochMilliseconds: 1 },
+          leaseUntil: undefined,
+        },
         leaseOf(claim),
       ),
     ).resolves.toMatchObject({ status: 'running' });
@@ -643,10 +652,10 @@ describe('createFirestoreAdminBatchStore', () => {
       leaseOf(claim),
     );
     await expect(
-      store.listRunnableChunks(createEntityId('batch-1')),
+      worker.listRunnableChunks(createEntityId('batch-1')),
     ).resolves.toHaveLength(1);
     await expect(
-      store.listRunnableChunks(createEntityId('batch-1'), 1),
+      worker.listRunnableChunks(createEntityId('batch-1'), 1),
     ).resolves.toHaveLength(1);
   });
 

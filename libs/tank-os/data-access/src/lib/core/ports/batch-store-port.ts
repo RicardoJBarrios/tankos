@@ -6,22 +6,34 @@ import type {
   TechnicalTimestamp,
 } from '../value-types';
 
-/** Fields that a worker may change on a durable batch summary. */
-export interface BatchSummaryPatch {
+/** Fields that submission control may change on a durable batch summary. */
+export interface BatchSubmissionPatch {
+  readonly status?: BatchOperationRecord['status'];
+  readonly updatedAt: TechnicalTimestamp;
+}
+
+/** Fields that selection materialization may change on a durable batch summary. */
+export interface BatchMaterializerPatch {
   readonly status?: BatchOperationRecord['status'];
   readonly total?: number;
+  readonly selection?: BatchOperationRecord['selection'];
+  readonly updatedAt: TechnicalTimestamp;
+  readonly materializationLeaseOwner?: string | null;
+  readonly materializationLeaseToken?: string | null;
+  readonly materializationLeaseUntil?: TechnicalTimestamp | null;
+}
+
+/** Fields that execution workers may change on a durable batch summary. */
+export interface BatchWorkerPatch {
+  readonly status?: BatchOperationRecord['status'];
   readonly processed?: number;
   readonly warnings?: number;
   readonly failures?: number;
   readonly retryCount?: number;
   readonly currentChunk?: EntityId;
-  readonly selection?: BatchOperationRecord['selection'];
   readonly updatedAt: TechnicalTimestamp;
   readonly leaseOwner?: string | null;
   readonly leaseUntil?: TechnicalTimestamp | null;
-  readonly materializationLeaseOwner?: string | null;
-  readonly materializationLeaseToken?: string | null;
-  readonly materializationLeaseUntil?: TechnicalTimestamp | null;
 }
 
 /** Result of an atomic worker claim attempt. */
@@ -60,13 +72,8 @@ export interface BatchSubmissionStorePort<TPayload = unknown> {
   /** Updates only the bounded summary fields of an operation. */
   update(
     batchId: EntityId,
-    patch: BatchSummaryPatch,
+    patch: BatchSubmissionPatch,
   ): Promise<BatchOperationRecord<TPayload>>;
-  /** Lists at most `limit` chunks eligible for execution or retry. */
-  listRunnableChunks(
-    batchId: EntityId,
-    limit?: number,
-  ): Promise<readonly BatchChunk[]>;
   /** Requests cooperative cancellation without deleting operation state. */
   requestCancellation(
     batchId: EntityId,
@@ -95,7 +102,7 @@ export interface BatchMaterializerStorePort<TPayload = unknown> {
   /** Updates materialization state only with the current materializer lease. */
   update(
     batchId: EntityId,
-    patch: BatchSummaryPatch,
+    patch: BatchMaterializerPatch,
     lease: BatchLease,
   ): Promise<BatchOperationRecord<TPayload>>;
   /** Persists one bounded physical chunk with materializer fencing. */
@@ -110,17 +117,22 @@ export interface BatchMaterializerStorePort<TPayload = unknown> {
  * Worker-owned writes require the fencing lease by type. This prevents a
  * reclaimed worker from accidentally using the unguarded control API.
  */
-export interface BatchWorkerStorePort<TPayload = unknown>
-  extends Pick<
-    BatchSubmissionStorePort<TPayload>,
-    'get' | 'listRunnableChunks' | 'isCancellationRequested'
-  > {
+export interface BatchWorkerStorePort<TPayload = unknown> {
+  /** Loads the operation summary without loading all item results. */
+  get(batchId: EntityId): Promise<BatchOperationRecord<TPayload> | undefined>;
+  /** Lists at most `limit` chunks eligible for execution or retry. */
+  listRunnableChunks(
+    batchId: EntityId,
+    limit?: number,
+  ): Promise<readonly BatchChunk[]>;
+  /** Reads the cancellation flag used between chunks and items. */
+  isCancellationRequested(batchId: EntityId): Promise<boolean>;
   /** Claims a non-terminal operation so only one worker executes it. */
   claim(batchId: EntityId, request: BatchClaimRequest): Promise<BatchClaim<TPayload>>;
   /** Updates a summary only when the supplied lease is still current. */
   update(
     batchId: EntityId,
-    patch: BatchSummaryPatch,
+    patch: BatchWorkerPatch,
     lease: BatchLease,
   ): Promise<BatchOperationRecord<TPayload>>;
   /** Writes a chunk only when the supplied lease is still current. */

@@ -16,6 +16,11 @@ contract. The summary lives at the configured root collection, while chunks and
 item results live in subcollections. The idempotency reservation is kept in a
 separate collection and survives terminal cleanup.
 
+The three capabilities use distinct summary-patch contracts. Submission can
+only update control fields, materialization can only update selection and its
+materialization lease, and workers can only update execution progress and their
+worker lease. Runnable-chunk reads are available only through `workerStore`.
+
 The submission service first persists the request and materializes filters into
 bounded chunks. The executor requires a host authorization gate, claims the
 operation transactionally, owns a renewable-by-retry worker lease with a fencing

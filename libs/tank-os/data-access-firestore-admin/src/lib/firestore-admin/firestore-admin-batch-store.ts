@@ -4,12 +4,14 @@ import {
   type BatchItemResult,
   type BatchClaim,
   type BatchClaimRequest,
+  type BatchMaterializerPatch,
   type BatchMaterializerStorePort,
   type BatchChunk,
   type BatchLease,
   type BatchOperationRecord,
-  type BatchSummaryPatch,
+  type BatchSubmissionPatch,
   type BatchSubmissionStorePort,
+  type BatchWorkerPatch,
   type BatchWorkerStorePort,
   type EntityId,
   type TechnicalTimestamp,
@@ -34,7 +36,6 @@ export interface FirestoreAdminBatchStoreOptions {
   readonly firestore: Firestore;
   /** Root collection used for batch summaries. */
   readonly collectionPath: string;
-  /** Technical clock used for provider metadata. */
   /** Technical clock supplied by the trusted host, normally backed by `TimeService`. */
   readonly clock?: ClockPort;
 }
@@ -81,7 +82,6 @@ type FirestoreAdminBatchImplementation<TPayload> = Pick<
   BatchSubmissionStorePort<TPayload>,
   'create' |
     'get' |
-    'listRunnableChunks' |
     'requestCancellation' |
     'isCancellationRequested' |
     'remove'
@@ -92,10 +92,14 @@ type FirestoreAdminBatchImplementation<TPayload> = Pick<
   ): Promise<BatchClaim<TPayload>>;
   update(
     batchId: EntityId,
-    patch: BatchSummaryPatch,
+    patch: BatchSubmissionPatch | BatchMaterializerPatch | BatchWorkerPatch,
     lease?: BatchLease,
     leaseKind?: LeaseKind,
   ): Promise<BatchOperationRecord<TPayload>>;
+  listRunnableChunks(
+    batchId: EntityId,
+    limit?: number,
+  ): Promise<readonly BatchChunk[]>;
   putChunk(
     batchId: EntityId,
     chunk: BatchChunk,
@@ -256,18 +260,22 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
     }
   };
 
-  const encodePatch = (patch: BatchSummaryPatch): Record<string, unknown> => {
+  const encodePatch = (
+    patch: BatchSubmissionPatch | BatchMaterializerPatch | BatchWorkerPatch,
+  ): Record<string, unknown> => {
     const encoded: Record<string, unknown> = {
-      ...patch,
       updatedAt: toTimestamp(patch.updatedAt),
     };
-    if (patch.leaseUntil !== undefined) {
+    Object.entries(patch).forEach(([key, value]) => {
+      if (key !== 'updatedAt' && value !== undefined) encoded[key] = value;
+    });
+    if ('leaseUntil' in patch && patch.leaseUntil !== undefined) {
       encoded['leaseUntil'] = patch.leaseUntil
         ? toTimestamp(patch.leaseUntil)
         : null;
       if (patch.leaseUntil === null) encoded['leaseToken'] = null;
     }
-    if (patch.materializationLeaseUntil !== undefined) {
+    if ('materializationLeaseUntil' in patch && patch.materializationLeaseUntil !== undefined) {
       encoded['materializationLeaseUntil'] = patch.materializationLeaseUntil
         ? toTimestamp(patch.materializationLeaseUntil)
         : null;
@@ -275,7 +283,7 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
         encoded['materializationLeaseToken'] = null;
       }
     }
-    if (patch.materializationLeaseOwner !== undefined) {
+    if ('materializationLeaseOwner' in patch && patch.materializationLeaseOwner !== undefined) {
       encoded['materializationLeaseOwner'] = patch.materializationLeaseOwner;
     }
     return encoded;
@@ -487,7 +495,7 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
     },
     async update(
       batchId,
-      patch: BatchSummaryPatch,
+      patch: BatchSubmissionPatch | BatchMaterializerPatch | BatchWorkerPatch,
       lease,
       leaseKind: LeaseKind = 'worker',
     ) {
@@ -506,16 +514,22 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
               ...current,
               ...encoded,
               leaseUntil:
-                patch.leaseUntil === null
-                  ? undefined
+                !('leaseUntil' in patch)
+                  ? current.leaseUntil
+                  : patch.leaseUntil === null
+                    ? undefined
                   : patch.leaseUntil
                     ? toTimestamp(patch.leaseUntil)
                     : current.leaseUntil,
-              leaseToken: patch.leaseUntil === null ? undefined : current.leaseToken,
+              leaseToken:
+                !('leaseUntil' in patch) || patch.leaseUntil !== null
+                  ? current.leaseToken
+                  : undefined,
               materializationLeaseToken:
-                patch.materializationLeaseUntil === null
-                  ? undefined
-                  : current.materializationLeaseToken,
+                !('materializationLeaseUntil' in patch) ||
+                patch.materializationLeaseUntil !== null
+                  ? current.materializationLeaseToken
+                  : undefined,
             });
           });
         }
@@ -526,12 +540,6 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
         return fromDto<TPayload>({
           ...(snapshot.data() as BatchDto),
           ...encoded,
-          leaseUntil:
-            patch.leaseUntil === null
-              ? undefined
-              : patch.leaseUntil
-                ? toTimestamp(patch.leaseUntil)
-                : (snapshot.data() as BatchDto).leaseUntil,
         });
       } catch (error) {
         return mapError(error, 'Firestore Admin batch update failed');
@@ -662,7 +670,6 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
       create: implementation.create,
       get: implementation.get,
       update: (batchId, patch) => implementation.update(batchId, patch),
-      listRunnableChunks: implementation.listRunnableChunks,
       requestCancellation: implementation.requestCancellation,
       isCancellationRequested: implementation.isCancellationRequested,
       remove: implementation.remove,
