@@ -25,6 +25,7 @@ describe('calendar-date-validation', () => {
     [Number.POSITIVE_INFINITY, 8, 20],
     [2026.5, 8, 20],
     [-1, 8, 20],
+    [10000, 1, 1],
   ])(
     'Given %s-%s-%s, When validating it, Then it is rejected',
     (year, month, day) => {

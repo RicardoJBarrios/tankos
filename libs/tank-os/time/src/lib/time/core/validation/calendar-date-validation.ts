@@ -2,7 +2,7 @@
  * Validates a proleptic Gregorian calendar date without consulting a runtime
  * date implementation.
  *
- * @param year - Calendar year starting at 1.
+ * @param year - Calendar year from 1 through 9999.
  * @param month - Calendar month from 1 through 12.
  * @param day - Calendar day within the month.
  * @returns `true` when the fields form an actual Gregorian date.
@@ -15,6 +15,7 @@ export function isValidCalendarDate(
   if (
     !Number.isInteger(year) ||
     year < 1 ||
+    year > 9999 ||
     !Number.isInteger(month) ||
     month < 1 ||
     month > 12 ||

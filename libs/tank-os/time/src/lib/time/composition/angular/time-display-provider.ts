@@ -3,32 +3,16 @@ import {
   DATE_PIPE_DEFAULT_TIMEZONE,
   DatePipe,
 } from '@angular/common';
-import { inject, InjectionToken, LOCALE_ID, Provider } from '@angular/core';
-import { createAngularTimeDisplayAdapter } from '../adapters/angular';
-import { TimeDisplayAdapter, TimeDisplayContext } from '../core';
-import { TIME_ADAPTER } from './time-provider';
+import { inject, LOCALE_ID, Provider } from '@angular/core';
+import { createAngularTimeDisplayAdapter } from '../../adapters/angular';
+import { TimeDisplayAdapter, TimeDisplayContext } from '../../core';
+import {
+  TIME_ADAPTER,
+  TIME_DISPLAY_ADAPTER,
+  TIME_DISPLAY_CONTEXT,
+} from '../../application';
 
-/** Angular token for the zones available to temporal presentation. */
-export const TIME_DISPLAY_CONTEXT = new InjectionToken<TimeDisplayContext>(
-  'TIME_DISPLAY_CONTEXT',
-  { providedIn: 'root', factory: () => ({}) },
-);
-
-/** Angular token for the active temporal display implementation. */
-export const TIME_DISPLAY_ADAPTER = new InjectionToken<TimeDisplayAdapter>(
-  'TIME_DISPLAY_ADAPTER',
-  {
-    providedIn: 'root',
-    factory: createDefaultAngularTimeDisplayAdapter,
-  },
-);
-
-/**
- * Registers a temporal display adapter for Angular consumers.
- *
- * @param adapter - Adapter implementation to provide.
- * @returns Angular provider configuration.
- */
+/** Registers a custom temporal display adapter for Angular consumers. */
 export function provideTimeDisplayAdapter(
   adapter: TimeDisplayAdapter,
 ): Provider {
@@ -39,7 +23,7 @@ export function provideTimeDisplayAdapter(
  * Registers Angular's `DatePipe` as the active localized display adapter.
  *
  * @param defaultTimeZone - Fallback zone used when a view supplies no zone.
- * @returns Angular providers for the adapter and its `DatePipe`.
+ * @returns Angular provider for the display adapter.
  */
 export function provideAngularTimeDisplayAdapter(
   defaultTimeZone?: string,
@@ -58,14 +42,10 @@ export function provideTimeDisplayContext(
   return { provide: TIME_DISPLAY_CONTEXT, useValue: context };
 }
 
-function createDefaultAngularTimeDisplayAdapter(): TimeDisplayAdapter {
-  return createConfiguredAngularTimeDisplayAdapter();
-}
-
 function createConfiguredAngularTimeDisplayAdapter(
   explicitDefaultTimeZone?: string,
 ): TimeDisplayAdapter {
-  const context = inject(TIME_DISPLAY_CONTEXT);
+  const context = inject(TIME_DISPLAY_CONTEXT, { optional: true }) ?? {};
   return createAngularTimeDisplayAdapter(
     new DatePipe(
       inject(LOCALE_ID),

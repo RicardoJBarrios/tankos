@@ -1,7 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTankOsTime } from '../composition';
 import { TimeDisplayService } from './time-display-service';
 
 describe('time-display-service', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [provideTankOsTime()] });
+  });
+
   it('Given an instant, When formatting it through Angular, Then it returns a display string', () => {
     expect(
       TestBed.inject(TimeDisplayService).formatInstant('2026-08-20T15:30:00Z', {

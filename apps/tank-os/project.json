@@ -4,7 +4,7 @@
   "projectType": "application",
   "prefix": "tankos",
   "sourceRoot": "apps/tank-os/src",
-  "tags": [],
+  "tags": ["scope:app"],
   "targets": {
     "build": {
       "executor": "@angular/build:application",

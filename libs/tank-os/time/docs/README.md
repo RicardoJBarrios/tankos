@@ -22,8 +22,7 @@ It must not own:
 
 - Measurement or ParameterDefinition records;
 - Aquarium or AquariumSystem identity;
-- Firestore persistence;
-- Firebase adapters;
+- Firestore persistence or repository operations;
 - FIWARE or IoT transport;
 - user-facing care workflows.
 
@@ -129,8 +128,10 @@ The first public adapter slice exports:
 
 - `Instant`, `LocalDate` and `LocalDateInput` typed values;
 - the `TimeAdapter` port;
+- the `ClockPort` port and `TimeService.now()`;
 - `createNativeTimeAdapter()`;
-- `TIME_ADAPTER`, `provideTimeAdapter(...)` and `TimeService`;
+- `TIME_ADAPTER`, `TIME_CLOCK`, `provideTimeAdapter(...)`,
+  `provideTimeClock(...)` and `provideTankOsTime()`;
 - `TimeDisplayAdapter`, `TimeDisplayService` and the `tankInstant` and
   `tankLocalDate` presentation pipes.
 - Firestore and JSON/HTTP conversion adapters through their dedicated entry
@@ -183,6 +184,15 @@ import { createJsonHttpTimeAdapter } from '@tank-os/time/json-http';
 
 This keeps transport-specific dependencies outside consumers that only need
 temporal values, Angular services or presentation pipes.
+
+Angular applications should register the default composition explicitly:
+
+```ts
+providers: [provideTankOsTime()];
+```
+
+The application layer exposes tokens and services; concrete native and
+Angular providers are kept in the composition layer.
 
 Date presentation is provided by the Angular pipes `tankInstant` and
 `tankLocalDate`. They delegate to `TimeDisplayService`, whose
@@ -250,8 +260,8 @@ tankInstant / tankLocalDate
 
 The native temporal adapter remains available for non-Angular consumers and
 continues to use the JavaScript runtime for parsing and normalization. It does
-not provide a second display implementation. Angular applications normally
-need no display-provider wiring. They may use
+not provide a second display implementation. Angular applications should use
+`provideTankOsTime()` for the default composition. They may use
 `provideTimeDisplayContext(...)` for aquarium and user fallback zones, or
 `provideAngularTimeDisplayAdapter(...)` when a scoped explicit fallback must
 override that context.
@@ -273,7 +283,8 @@ time/
 │   ├── ports/             # runtime-independent contracts
 │   ├── value-types/       # temporal values and accepted inputs
 │   └── validation/        # pure calendar and temporal rules
-├── application/           # Angular services, tokens and provider wiring
+├── application/           # Angular services and injection tokens
+├── composition/angular/   # Angular provider composition
 ├── adapters/native/       # current JavaScript temporal implementation
 ├── adapters/angular/      # Angular DatePipe integration
 └── presentation/         # Angular presentation entry point

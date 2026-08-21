@@ -20,7 +20,8 @@ describe('native-local-date-parsing', () => {
       day: 20,
     };
 
-    expect(adapter.parseLocalDate(value)).toBe(value);
+    expect(adapter.parseLocalDate(value)).toEqual(value);
+    expect(adapter.parseLocalDate(value)).not.toBe(value);
   });
 
   it('Given a structured local date with invalid fields, When parsing it, Then it raises a range error', () => {

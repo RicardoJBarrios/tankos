@@ -1,7 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { provideTankOsTime } from '../composition';
 import { TimeService } from './time-service';
 
 describe('time-service', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [provideTankOsTime()] });
+  });
+
   it('Given an ISO instant, When parsing it through Angular, Then it returns an Instant', () => {
     expect(
       TestBed.inject(TimeService).parseInstant('2026-08-20T15:30:00Z'),

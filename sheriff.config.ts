@@ -53,6 +53,11 @@ modules['apps/veril/src/app/composition/shared-access'] = [
   'context:composition',
   'layer:composition',
 ];
+modules['apps/tank-os/src'] = ['context:tank-os', 'tank-os:layer:composition'];
+modules['apps/tank-os/src/app'] = [
+  'context:tank-os',
+  'tank-os:layer:composition',
+];
 
 modules['libs/tank-os/time'] = ['context:tank-os'];
 modules['libs/tank-os/units'] = ['context:tank-os'];
@@ -85,6 +90,7 @@ for (const layer of layers) {
 }
 
 const tankOsTimeLayers: Record<string, string[]> = {
+  'libs/tank-os/time/src': ['context:tank-os', 'tank-os:layer:library-root'],
   'libs/tank-os/time/src/lib/time': [
     'context:tank-os',
     'tank-os:layer:library-root',
@@ -108,6 +114,14 @@ const tankOsTimeLayers: Record<string, string[]> = {
   'libs/tank-os/time/src/lib/time/application': [
     'context:tank-os',
     'tank-os:layer:application',
+  ],
+  'libs/tank-os/time/src/lib/time/composition': [
+    'context:tank-os',
+    'tank-os:layer:composition',
+  ],
+  'libs/tank-os/time/src/lib/time/composition/angular': [
+    'context:tank-os',
+    'tank-os:layer:composition',
   ],
   'libs/tank-os/time/src/lib/time/adapters': [
     'context:tank-os',
@@ -142,6 +156,10 @@ const tankOsTimeLayers: Record<string, string[]> = {
 Object.assign(modules, tankOsTimeLayers);
 
 modules['libs/tank-os/units/src/lib/units'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/units/src'] = [
   'context:tank-os',
   'tank-os:layer:library-root',
 ];
@@ -201,6 +219,13 @@ export const config: SheriffConfig = {
     'tank-os:layer:presentation': [
       'tank-os:layer:presentation',
       'tank-os:layer:application',
+      'tank-os:layer:core',
+      'context:tank-os',
+    ],
+    'tank-os:layer:composition': [
+      'tank-os:layer:composition',
+      'tank-os:layer:application',
+      'tank-os:layer:adapter',
       'tank-os:layer:core',
       'context:tank-os',
     ],

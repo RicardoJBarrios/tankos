@@ -2,15 +2,18 @@ import { TestBed } from '@angular/core/testing';
 import { LOCALE_ID } from '@angular/core';
 import {
   provideAngularTimeDisplayAdapter,
-  provideTimeDisplayContext,
   provideTimeDisplayAdapter,
+  provideTimeDisplayContext,
 } from './time-display-provider';
-import { TimeDisplayService } from './time-display-service';
+import { provideTimeAdapter, provideTimeClock } from './time-adapter-provider';
+import { TimeDisplayService } from '../../application';
 
 describe('time-display-provider', () => {
   it('Given an Angular locale, When configuring the default display provider, Then DatePipe formats with that locale', () => {
     TestBed.configureTestingModule({
       providers: [
+        provideTimeAdapter(),
+        provideTimeClock(),
         provideAngularTimeDisplayAdapter('UTC'),
         { provide: LOCALE_ID, useValue: 'en-US' },
       ],
@@ -31,7 +34,11 @@ describe('time-display-provider', () => {
     };
 
     TestBed.configureTestingModule({
-      providers: [provideTimeDisplayAdapter(adapter)],
+      providers: [
+        provideTimeAdapter(),
+        provideTimeClock(),
+        provideTimeDisplayAdapter(adapter),
+      ],
     });
 
     expect(
@@ -41,7 +48,11 @@ describe('time-display-provider', () => {
 
   it('Given the Angular display provider, When configuring Angular, Then the service uses DatePipe-backed formatting', () => {
     TestBed.configureTestingModule({
-      providers: [provideAngularTimeDisplayAdapter('UTC')],
+      providers: [
+        provideTimeAdapter(),
+        provideTimeClock(),
+        provideAngularTimeDisplayAdapter('UTC'),
+      ],
     });
 
     expect(
@@ -55,10 +66,13 @@ describe('time-display-provider', () => {
   it('Given an aquarium display zone, When no pipe zone is provided, Then the aquarium zone wins over the user zone', () => {
     TestBed.configureTestingModule({
       providers: [
+        provideTimeAdapter(),
+        provideTimeClock(),
         provideTimeDisplayContext({
           aquariumTimeZone: 'Europe/Madrid',
           userTimeZone: 'Pacific/Honolulu',
         }),
+        provideAngularTimeDisplayAdapter(),
       ],
     });
 
@@ -72,7 +86,10 @@ describe('time-display-provider', () => {
   it('Given only a user display zone, When no pipe zone is provided, Then the user zone is used', () => {
     TestBed.configureTestingModule({
       providers: [
+        provideTimeAdapter(),
+        provideTimeClock(),
         provideTimeDisplayContext({ userTimeZone: 'Pacific/Honolulu' }),
+        provideAngularTimeDisplayAdapter(),
       ],
     });
 

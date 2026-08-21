@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideTimeDisplayAdapter } from '../../application';
+import { provideTimeDisplayAdapter } from '../../composition';
 import { InstantPipe } from './instant.pipe';
 
 describe('instant.pipe', () => {

@@ -4,7 +4,7 @@
   "sourceRoot": "libs/tank-os/time/src",
   "prefix": "tankos",
   "projectType": "library",
-  "tags": ["scope:tank-os", "type:feature"],
+  "tags": ["scope:shared", "scope:tank-os", "type:feature"],
   "targets": {
     "build": {
       "executor": "nx:run-commands",

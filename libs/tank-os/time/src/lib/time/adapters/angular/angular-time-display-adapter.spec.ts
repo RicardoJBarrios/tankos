@@ -114,6 +114,22 @@ describe('angular-time-display-adapter', () => {
     );
   });
 
+  it('Given a formatter that returns no local-date result, When formatting it, Then it returns an empty string', () => {
+    const datePipe = new DatePipe('en-GB');
+    vi.spyOn(datePipe, 'transform').mockReturnValue(null);
+    const adapter = createAngularTimeDisplayAdapter(datePipe, timeAdapter);
+
+    expect(adapter.formatLocalDate('2026-08-20')).toBe('');
+  });
+
+  it('Given a formatter that returns no instant result, When formatting it, Then it returns an empty string', () => {
+    const datePipe = new DatePipe('en-GB');
+    vi.spyOn(datePipe, 'transform').mockReturnValue(null);
+    const adapter = createAngularTimeDisplayAdapter(datePipe, timeAdapter);
+
+    expect(adapter.formatInstant(0)).toBe('');
+  });
+
   it('Given an invalid instant, When formatting it, Then it raises a range error before invoking DatePipe', () => {
     const datePipe = new DatePipe('en-GB');
     const transform = vi.spyOn(datePipe, 'transform');

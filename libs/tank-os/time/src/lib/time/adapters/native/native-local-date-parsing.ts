@@ -23,7 +23,12 @@ export function nativeParseLocalDate(value: LocalDateInput): LocalDate {
     ) {
       throw new RangeError('Invalid local date');
     }
-    return value;
+    return {
+      kind: 'local-date',
+      year: value.year,
+      month: value.month,
+      day: value.day,
+    };
   }
 
   const match = LOCAL_DATE_PATTERN.exec(value);

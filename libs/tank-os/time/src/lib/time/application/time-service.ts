@@ -1,11 +1,17 @@
 import { inject, Injectable } from '@angular/core';
-import { TIME_ADAPTER } from './time-provider';
+import { TIME_ADAPTER, TIME_CLOCK } from './time-tokens';
 import { Instant, InstantInput, LocalDate, LocalDateInput } from '../core';
 
 @Injectable({ providedIn: 'root' })
 /** Facade exposing the active adapter through Angular DI. */
 export class TimeService {
   readonly #adapter = inject(TIME_ADAPTER);
+  readonly #clock = inject(TIME_CLOCK);
+
+  /** Returns the current instant from the configured clock. */
+  now(): Instant {
+    return this.#clock.now();
+  }
 
   /** Parses an instant through the configured adapter. */
   parseInstant(value: InstantInput): Instant {
