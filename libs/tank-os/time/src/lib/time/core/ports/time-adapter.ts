@@ -3,6 +3,8 @@ import {
   InstantInput,
   LocalDate,
   LocalDateInput,
+  Duration,
+  DurationInput,
 } from '../value-types';
 
 /**
@@ -15,6 +17,9 @@ export interface TimeAdapter {
   parseInstant(value: InstantInput): Instant;
   isValidInstant(value: unknown): value is InstantInput;
   toUtcIsoString(value: InstantInput): string;
+  parseDuration(value: DurationInput): Duration;
+  isValidDuration(value: unknown): value is DurationInput;
+  toDurationIsoString(value: DurationInput): string;
   parseLocalDate(value: LocalDateInput): LocalDate;
   isValidLocalDate(value: unknown): value is LocalDateInput;
   fromZonedDateTime(value: string, timeZone: string): Instant;

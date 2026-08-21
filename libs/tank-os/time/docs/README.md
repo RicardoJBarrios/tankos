@@ -1,7 +1,7 @@
 # TankOS Time
 
-**Status:** Angular-centric first slice implemented; future temporal concepts
-remain intentionally separate from the current stable contracts.
+**Status:** Angular-centric temporal slice implemented, including fixed elapsed
+durations and boundary conversions.
 
 This library owns the reusable temporal capability for TankOS. It is separate
 from `@tank-os/units`: dates and times are not measurement units, even though
@@ -105,6 +105,13 @@ millisecond precision and `LocalDate` as `YYYY-MM-DD`. Deserializers validate
 the transport value with Zod and then through the active `TimeAdapter`; they
 raise `RangeError` for malformed or unsupported input.
 
+`Duration` is an elapsed, fixed-unit value normalized to an integer number of
+milliseconds. JSON/HTTP represents it as canonical ISO 8601 using days, hours,
+minutes and seconds, with at most three fractional digits. Firestore stores
+the normalized integer milliseconds as a number. Calendar units such as years,
+months and weeks are rejected because they require a calendar reference to
+have a stable elapsed meaning.
+
 Both adapters are deliberately conversion adapters, not database clients or
 HTTP clients. Repository and API services own the actual read/write operation
 and call the corresponding `to...` method on output and `from...` or
@@ -127,6 +134,7 @@ The current slice does not decide or implement:
 The first public adapter slice exports:
 
 - `Instant`, `LocalDate` and `LocalDateInput` typed values;
+- `Duration` and `DurationInput` typed values;
 - the `TimeAdapter` port;
 - the `TimeLocalePort` port for replaceable locale sources;
 - the `ClockPort` port and `TimeService.now()`;
@@ -138,6 +146,8 @@ The first public adapter slice exports:
   `tankLocalDate` presentation pipes.
 - Firestore and JSON/HTTP conversion adapters through their dedicated entry
   points.
+- `TimeService.parseDuration()`, `TimeService.isValidDuration()` and
+  `TimeService.toDurationIsoString()`;
 
 The temporal operations are methods on `TimeAdapter` and `TimeService`, not
 global functions.
@@ -344,13 +354,9 @@ milliseconds. Native structured values must contain their correct discriminant
 
 ## Future decisions
 
-1. Whether `ZonedDateTime` and `Duration` become public value types in a later
-   slice.
-2. Whether a future slice should support precision finer than milliseconds.
-3. The supported time-zone database and invalid-zone behavior.
-4. Which original zone metadata is retained with a normalized instant.
-5. Whether duration conversion is part of this library or remains delegated to
-   `@tank-os/units`.
+1. Whether a future slice should support precision finer than milliseconds.
+2. The supported time-zone database and invalid-zone behavior.
+3. Which original zone metadata is retained with a normalized instant.
 
 These future decisions do not invalidate the current `Instant`, `LocalDate`,
 `TimeAdapter`, Angular provider or presentation contracts.

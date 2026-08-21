@@ -65,6 +65,24 @@ describe('json-http-time-adapter', () => {
     });
   });
 
+  it.each([
+    ['PT1H30M', 'PT1H30M'],
+    [90_000, 'PT1M30S'],
+    [{ kind: 'duration', milliseconds: -1_500 }, '-PT1.5S'],
+  ])(
+    'Given a duration %s, When serializing it for JSON, Then it returns %s',
+    (value, expected) => {
+      expect(adapter.serializeDuration(value as never)).toBe(expected);
+    },
+  );
+
+  it('Given a JSON duration, When deserializing it, Then it returns normalized milliseconds', () => {
+    expect(adapter.deserializeDuration('P1DT1S')).toEqual({
+      kind: 'duration',
+      milliseconds: 86_401_000,
+    });
+  });
+
   it.each([null, undefined, 0, {}, '2026-08-20'])(
     'Given an invalid JSON instant %s, When deserializing it, Then it raises a range error',
     (value) => {
@@ -76,6 +94,13 @@ describe('json-http-time-adapter', () => {
     'Given an invalid JSON local date %s, When deserializing it, Then it raises a range error',
     (value) => {
       expect(() => adapter.deserializeLocalDate(value)).toThrow(RangeError);
+    },
+  );
+
+  it.each([null, undefined, 0, {}, 'PT', 'P1M', 'PT1.0001S'])(
+    'Given an invalid JSON duration %s, When deserializing it, Then it raises a range error',
+    (value) => {
+      expect(() => adapter.deserializeDuration(value)).toThrow(RangeError);
     },
   );
 });

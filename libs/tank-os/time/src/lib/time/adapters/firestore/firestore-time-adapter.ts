@@ -6,10 +6,15 @@ import {
   LocalDate,
   LocalDateInput,
   TimeAdapter,
+  Duration,
+  DurationInput,
 } from '../../core';
 
 /** Firestore representation used for a normalized TankOS instant. */
 export type FirestoreInstant = Timestamp;
+
+/** Firestore representation used for a duration, in integer milliseconds. */
+export type FirestoreDuration = number;
 
 /** Adapter for temporal values stored in Firestore documents. */
 export interface FirestoreTimeAdapter {
@@ -17,6 +22,8 @@ export interface FirestoreTimeAdapter {
   fromTimestamp(value: unknown): Instant;
   toLocalDate(value: LocalDateInput): string;
   fromLocalDate(value: unknown): LocalDate;
+  toDuration(value: DurationInput): FirestoreDuration;
+  fromDuration(value: unknown): Duration;
 }
 
 /**
@@ -56,6 +63,15 @@ export function createFirestoreTimeAdapter(
         throw new RangeError('Expected a Firestore local date string');
       }
       return timeAdapter.parseLocalDate(value);
+    },
+    toDuration(value) {
+      return timeAdapter.parseDuration(value).milliseconds;
+    },
+    fromDuration(value) {
+      if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
+        throw new RangeError('Expected integer millisecond duration');
+      }
+      return timeAdapter.parseDuration(value);
     },
   };
 }

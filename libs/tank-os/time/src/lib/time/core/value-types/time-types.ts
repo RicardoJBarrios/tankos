@@ -24,6 +24,17 @@ export type LocalDateInput = LocalDate | string;
 /** Accepted input forms for parsing an instant. */
 export type InstantInput = Instant | number | string;
 
+/** A signed elapsed amount normalized to integer milliseconds. */
+export type Duration = {
+  /** Discriminator identifying a normalized duration. */
+  readonly kind: 'duration';
+  /** Elapsed milliseconds; negative values represent reverse elapsed time. */
+  readonly milliseconds: number;
+};
+
+/** Accepted duration input forms. Strings use the supported ISO 8601 syntax. */
+export type DurationInput = Duration | number | string;
+
 /** Date-time fields used by calendar and time-zone calculations. */
 export type DateTimeParts = {
   /** Calendar year. */

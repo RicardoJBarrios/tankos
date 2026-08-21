@@ -62,6 +62,24 @@ describe('firestore-time-adapter', () => {
   });
 
   it.each([
+    ['PT1H', 3_600_000],
+    [-1_500, -1_500],
+    [{ kind: 'duration', milliseconds: 60_000 }, 60_000],
+  ])(
+    'Given a duration %s, When converting it to Firestore, Then it stores integer milliseconds %s',
+    (value, expected) => {
+      expect(adapter.toDuration(value as never)).toBe(expected);
+    },
+  );
+
+  it('Given Firestore duration milliseconds, When converting it, Then it returns a normalized duration', () => {
+    expect(adapter.fromDuration(3_600_000)).toEqual({
+      kind: 'duration',
+      milliseconds: 3_600_000,
+    });
+  });
+
+  it.each([
     null,
     undefined,
     20260820,
@@ -88,4 +106,11 @@ describe('firestore-time-adapter', () => {
       'millisecond precision',
     );
   });
+
+  it.each([null, undefined, 1.5, '3600000', Infinity])(
+    'Given invalid Firestore duration %s, When converting it, Then it raises a range error',
+    (value) => {
+      expect(() => adapter.fromDuration(value)).toThrow(RangeError);
+    },
+  );
 });

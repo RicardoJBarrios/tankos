@@ -1,6 +1,13 @@
 import { inject, Injectable } from '@angular/core';
 import { TIME_ADAPTER, TIME_CLOCK } from './time-tokens';
-import { Instant, InstantInput, LocalDate, LocalDateInput } from '../core';
+import {
+  Duration,
+  DurationInput,
+  Instant,
+  InstantInput,
+  LocalDate,
+  LocalDateInput,
+} from '../core';
 
 @Injectable({ providedIn: 'root' })
 /** Facade exposing the active adapter through Angular DI. */
@@ -26,6 +33,21 @@ export class TimeService {
   /** Serializes an instant as UTC through the configured adapter. */
   toUtcIsoString(value: InstantInput): string {
     return this.#adapter.toUtcIsoString(value);
+  }
+
+  /** Parses an elapsed duration through the configured adapter. */
+  parseDuration(value: DurationInput): Duration {
+    return this.#adapter.parseDuration(value);
+  }
+
+  /** Validates an elapsed duration through the configured adapter. */
+  isValidDuration(value: unknown): value is DurationInput {
+    return this.#adapter.isValidDuration(value);
+  }
+
+  /** Serializes an elapsed duration as canonical ISO 8601. */
+  toDurationIsoString(value: DurationInput): string {
+    return this.#adapter.toDurationIsoString(value);
   }
 
   /** Parses a time-zone-independent calendar date. */

@@ -107,4 +107,27 @@ describe('time-service', () => {
       expect(TestBed.inject(TimeService).isValidTimeZone(timeZone)).toBe(false);
     },
   );
+
+  it('Given an elapsed duration, When parsing it through Angular, Then it returns normalized milliseconds', () => {
+    expect(TestBed.inject(TimeService).parseDuration('PT1H30M')).toEqual({
+      kind: 'duration',
+      milliseconds: 5_400_000,
+    });
+  });
+
+  it.each([0, -1, { kind: 'duration', milliseconds: 1_500 }])(
+    'Given supported duration value %s, When serializing it through Angular, Then it returns canonical ISO notation',
+    (value) => {
+      expect(
+        TestBed.inject(TimeService).toDurationIsoString(value as never),
+      ).toMatch(/^-?P/);
+    },
+  );
+
+  it.each(['P1Y', 'P1M', 'PT1.0001S', '', null, undefined, Number.NaN])(
+    'Given invalid duration value %s, When validating it through Angular, Then it returns false',
+    (value) => {
+      expect(TestBed.inject(TimeService).isValidDuration(value)).toBe(false);
+    },
+  );
 });
