@@ -15,15 +15,14 @@
       }
     },
     "test": {
-      "executor": "@nx/vitest:test",
-      "outputs": ["{options.reportsDirectory}"],
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/libs/tank-os/time"
+      ],
       "options": {
-        "reportsDirectory": "coverage/libs/tank-os/time",
-        "coverage": true
+        "coverage": true,
+        "coverage.reportsDirectory": "../../../coverage/libs/tank-os/time"
       }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint"
     }
   }
 }

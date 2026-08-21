@@ -65,14 +65,13 @@
         "buildTarget": "tank-os:build"
       }
     },
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "test": {
-      "executor": "@nx/vitest:test",
-      "outputs": ["{options.reportsDirectory}"],
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/apps/tank-os"
+      ],
       "options": {
-        "reportsDirectory": "coverage/apps/tank-os"
+        "coverage.reportsDirectory": "../../coverage/apps/tank-os"
       }
     },
     "serve-static": {

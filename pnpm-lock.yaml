@@ -219,9 +219,9 @@ importers:
       vite:
         specifier: 8.0.9
         version: 8.0.9(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.4.2)(less@4.6.4)(sass-embedded@1.100.0)(sass@1.90.0)(terser@5.49.2)(yaml@2.9.0)
-      vite-tsconfig-paths:
-        specifier: ^5.1.4
-        version: 5.1.4(supports-color@7.2.0)(typescript@5.8.3)(vite@8.0.9(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.4.2)(less@4.6.4)(sass-embedded@1.100.0)(sass@1.90.0)(terser@5.49.2)(yaml@2.9.0))
+      vite-plugin-static-copy:
+        specifier: ^4.1.1
+        version: 4.1.1(vite@8.0.9(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.4.2)(less@4.6.4)(sass-embedded@1.100.0)(sass@1.90.0)(terser@5.49.2)(yaml@2.9.0))
       vitest:
         specifier: ~3.2.4
         version: 3.2.4(@types/node@24.13.3)(@vitest/ui@3.2.4)(jiti@2.4.2)(jsdom@22.1.0(supports-color@7.2.0))(less@4.6.4)(lightningcss@1.33.0)(sass-embedded@1.100.0)(sass@1.90.0)(supports-color@7.2.0)(terser@5.49.2)(yaml@2.9.0)
@@ -6489,9 +6489,6 @@ packages:
     resolution: {integrity: sha512-m/MvAW61QVU5VDNF1Vj8axt016h8w7L5TU1e9zlab7XIttAT2YAlCwl75K1fOqvMM9apmD7lbCIRhpfkhmxhCg==}
     engines: {node: '>=18'}
 
-  globrex@0.1.2:
-    resolution: {integrity: sha512-uHJgbwAMwNFf5mLst7IWLNg14x1CkeqglJb/K3doi4dw6q2IvAAmM/Y81kevy83wP+Sst+nutFTYOGg3d1lsxg==}
-
   google-auth-library@10.5.0:
     resolution: {integrity: sha512-7ABviyMOlX5hIVD60YOfHw4/CxOfBhyduaYB+wbFWCWoni4N7SLcV46hrVRktuBbZjFC9ONyqamZITN7q3n32w==}
     engines: {node: '>=18'}
@@ -9739,17 +9736,6 @@ packages:
       '@swc/wasm':
         optional: true
 
-  tsconfck@3.1.6:
-    resolution: {integrity: sha512-ks6Vjr/jEw0P1gmOVwutM3B7fWxoWBL2KRDb1JfqGVawBmO5UsvmWOQFGHBPl5yxYz4eERr19E6L7NMv+Fej4w==}
-    engines: {node: ^18 || >=20}
-    deprecated: unmaintained
-    hasBin: true
-    peerDependencies:
-      typescript: ^5.0.0
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-
   tsconfig-paths-webpack-plugin@4.2.0:
     resolution: {integrity: sha512-zbem3rfRS8BgeNK50Zz5SIQgXzLafiHjOwUAvk/38/o1jHn/V5QAgVUcz884or7WYcPaH3N2CIfUc2u0ul7UcA==}
     engines: {node: '>=10.13.0'}
@@ -9950,13 +9936,11 @@ packages:
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
 
-  vite-tsconfig-paths@5.1.4:
-    resolution: {integrity: sha512-cYj0LRuLV2c2sMqhqhGpaO3LretdtMn/BVX4cPLanIZuwwrkVl+lK84E/miEXkCHWXuq65rhNN4rXsBcOB3S4w==}
+  vite-plugin-static-copy@4.1.1:
+    resolution: {integrity: sha512-GrlA8YklrAfSyxJ4M3fdQLOo9oNkp56IM9FYgX/WtEgeIFkPwhu4wzpufBCIuNKCa6Fn77FkRdYxkHqV0FwjAw==}
+    engines: {node: ^22.0.0 || >=24.0.0}
     peerDependencies:
-      vite: '*'
-    peerDependenciesMeta:
-      vite:
-        optional: true
+      vite: ^6.0.0 || ^7.0.0 || ^8.0.0
 
   vite@7.3.2:
     resolution: {integrity: sha512-Bby3NOsna2jsjfLVOHKes8sGwgl4TT0E6vvpYgnAYDIF/tie7MRaFthmKuHx1NSXjiTueXH3do80FMQgvEktRg==}
@@ -18525,8 +18509,6 @@ snapshots:
 
   globals@17.9.0: {}
 
-  globrex@0.1.2: {}
-
   google-auth-library@10.5.0(supports-color@7.2.0):
     dependencies:
       base64-js: 1.5.1
@@ -22469,10 +22451,6 @@ snapshots:
     optionalDependencies:
       '@swc/core': 1.15.8(@swc/helpers@0.5.23)
 
-  tsconfck@3.1.6(typescript@5.8.3):
-    optionalDependencies:
-      typescript: 5.8.3
-
   tsconfig-paths-webpack-plugin@4.2.0:
     dependencies:
       chalk: 4.1.2
@@ -22704,16 +22682,13 @@ snapshots:
       - tsx
       - yaml
 
-  vite-tsconfig-paths@5.1.4(supports-color@7.2.0)(typescript@5.8.3)(vite@8.0.9(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.4.2)(less@4.6.4)(sass-embedded@1.100.0)(sass@1.90.0)(terser@5.49.2)(yaml@2.9.0)):
+  vite-plugin-static-copy@4.1.1(vite@8.0.9(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.4.2)(less@4.6.4)(sass-embedded@1.100.0)(sass@1.90.0)(terser@5.49.2)(yaml@2.9.0)):
     dependencies:
-      debug: 4.4.3(supports-color@7.2.0)
-      globrex: 0.1.2
-      tsconfck: 3.1.6(typescript@5.8.3)
-    optionalDependencies:
+      chokidar: 3.6.0
+      p-map: 7.0.6
+      picocolors: 1.1.1
+      tinyglobby: 0.2.17
       vite: 8.0.9(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.4.2)(less@4.6.4)(sass-embedded@1.100.0)(sass@1.90.0)(terser@5.49.2)(yaml@2.9.0)
-    transitivePeerDependencies:
-      - supports-color
-      - typescript
 
   vite@7.3.2(@types/node@24.13.3)(jiti@2.4.2)(less@4.4.0)(lightningcss@1.33.0)(sass-embedded@1.100.0)(sass@1.90.0)(terser@5.43.1)(yaml@2.9.0):
     dependencies:

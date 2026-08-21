@@ -7,15 +7,14 @@
   "tags": ["scope:tank-os", "type:feature"],
   "targets": {
     "test": {
-      "executor": "@nx/vitest:test",
-      "outputs": ["{options.reportsDirectory}"],
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/libs/tank-os/units"
+      ],
       "options": {
-        "reportsDirectory": "coverage/libs/tank-os/units",
-        "coverage": true
+        "coverage": true,
+        "coverage.reportsDirectory": "../../../coverage/libs/tank-os/units"
       }
-    },
-    "lint": {
-      "executor": "@nx/eslint:lint"
     }
   }
 }
