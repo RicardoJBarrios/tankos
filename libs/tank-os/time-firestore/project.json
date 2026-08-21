@@ -29,9 +29,6 @@
         "packageRoot": "dist/{projectRoot}"
       }
     },
-    "lint": {
-      "executor": "@nx/eslint:lint"
-    },
     "test": {
       "outputs": [
         "{projectRoot}/{options.coverage.reportsDirectory}",

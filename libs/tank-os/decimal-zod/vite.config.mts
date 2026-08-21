@@ -1,17 +1,17 @@
 /// <reference types='vitest' />
 import { defineConfig } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
-import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../../node_modules/.vite/libs/tank-os/decimal-zod',
-  plugins: [angular(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
-  // Uncomment this if you are using workers.
-  // worker: {
-  //   plugins: () => [ nxViteTsPaths() ],
-  // },
+  plugins: [
+    angular(),
+    tsconfigPaths(),
+    viteStaticCopy({ targets: [{ src: '*.md', dest: '.' }] }),
+  ],
   test: {
     name: 'decimal-zod',
     watch: false,
@@ -23,7 +23,12 @@ export default defineConfig(() => ({
     coverage: {
       reportsDirectory: '../../../coverage/libs/tank-os/decimal-zod',
       provider: 'v8' as const,
-      thresholds: { lines: 100, statements: 100, functions: 100, branches: 100 },
-    }
+      thresholds: {
+        lines: 100,
+        statements: 100,
+        functions: 100,
+        branches: 100,
+      },
+    },
   },
 }));
