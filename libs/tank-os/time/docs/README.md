@@ -107,6 +107,15 @@ millisecond precision and `LocalDate` as `YYYY-MM-DD`. Deserializers validate
 the transport value with Zod and then through the active capability ports; they
 raise `RangeError` for malformed or unsupported input.
 
+The reusable `@tank-os/time/zod` entry point exposes `createZodTimeSchemas()`. It
+creates schemas for instants, local dates, durations and IANA time zones using
+the active Time ports and zone database. It is a validation/mapping adapter,
+not a JSON client, Firestore adapter or replacement for the existing transport
+adapters. It never uses `z.coerce.date()` and never infers a time zone.
+
+It is imported separately as `@tank-os/time/zod`; the main `@tank-os/time`
+entry point does not export Zod, Firestore or JSON/HTTP-only integration code.
+
 `Duration` is an elapsed, fixed-unit value normalized to an integer number of
 milliseconds. JSON/HTTP represents it as canonical ISO 8601 using days, hours,
 minutes and seconds, with at most three fractional digits. Firestore stores
@@ -395,6 +404,7 @@ time/
 ├── composition/angular/   # Angular provider composition
 ├── adapters/native/       # current JavaScript temporal implementation
 ├── adapters/angular/      # Angular DatePipe integration
+├── adapters/zod/          # Zod boundary schemas backed by Time ports
 └── presentation/         # Angular presentation entry point
 ```
 
