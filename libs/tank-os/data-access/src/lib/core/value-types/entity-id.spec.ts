@@ -11,4 +11,8 @@ describe('createEntityId', () => {
       expect(() => createEntityId(value)).toThrow(TypeError);
     },
   );
+
+  it('Given an identifier with surrounding whitespace, When created, Then preserves the supplied identifier for stable storage', () => {
+    expect(createEntityId(' unit-1 ')).toBe(' unit-1 ');
+  });
 });

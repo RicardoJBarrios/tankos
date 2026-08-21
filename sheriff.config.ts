@@ -294,6 +294,14 @@ modules['libs/tank-os/data-access/src/lib/adapters'] = [
   'context:tank-os',
   'tank-os:layer:adapter',
 ];
+modules['libs/tank-os/data-access/src/lib/adapters/cache'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/data-access/src/lib/adapters/memory'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
 modules['libs/tank-os/data-access/src/lib/composition'] = [
   'context:tank-os',
   'tank-os:layer:composition',

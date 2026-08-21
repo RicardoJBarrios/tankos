@@ -9,18 +9,27 @@ describe('createCrudService', () => {
   type Filter = { readonly name?: string };
 
   const id = createEntityId('record-1');
+  const instant = { kind: 'instant' as const, epochMilliseconds: 0 };
   const record: CrudRecord<Data> = {
     id,
     data: { name: 'record' },
     lifecycle: { status: 'active' },
     version: 1,
+    metadata: {
+      schemaVersion: 1,
+      createdAt: instant,
+      updatedAt: instant,
+    },
   };
   const page: Page<CrudRecord<Data>> = {
     items: [record],
     hasMore: false,
   };
   const request: ListRequest<Filter> = {
-    page: { pageSize: 20 },
+    page: {
+      pageSize: 20,
+      orderBy: [{ field: 'updatedAt', direction: 'desc' }],
+    },
     filter: { name: 'record' },
   };
 
