@@ -1,8 +1,9 @@
 # TankOS Units
 
-**Status:** the provider-independent unit model, standard catalogue and
-deterministic conversion slice are implemented. Custom-unit management and
-transport adapters are not part of this library's current public API.
+**Status:** the provider-independent unit model, standard catalogue,
+deterministic conversion slice and custom-unit CRUD application contract are
+implemented. Persistence, transport adapters and the standard CRUD UI are not
+part of this library's current public API.
 
 `@tank-os/units` is an Angular-centric capability library for unit identity,
 dimensional compatibility, scientific representation and declared conversion.
@@ -17,7 +18,8 @@ Units owns:
 - symbols, Unicode notation, ASCII fallbacks and symbol placement;
 - immutable conversion definitions and conversion execution;
 - read-only catalogue and conversion ports;
-- the standard catalogue composition.
+- the standard catalogue composition;
+- the global custom-unit CRUD application boundary.
 
 Units does not own:
 
@@ -26,7 +28,7 @@ Units does not own:
 - `ParameterDefinition`, aquarium configuration, instruments or IoT devices;
 - salinity, dosing or other contextual aquarium algorithms;
 - Firestore, JSON/HTTP or FIWARE clients;
-- custom-unit CRUD, moderation screens or batch workflows.
+- custom-unit persistence adapters, moderation screens or batch workflows.
 
 The core depends on the public arithmetic port from
 [`@tank-os/decimal`](../../decimal/docs/README.md). It does not import Big.js
@@ -125,10 +127,12 @@ standard composition
 The core is framework- and provider-neutral. The standard adapter owns the
 catalogue and conversion definitions. `createStandardUnitConversionService()`
 composes the standard catalogue with the injected decimal arithmetic adapter.
-No Angular component or template contains conversion logic.
+`createUnitDefinitionCrudService()` composes the generic CRUD port for the
+global custom catalogue and rejects standard definitions at the application
+boundary. No Angular component or template contains conversion logic.
 
-The library currently has no persistence adapter. If custom units or transport
-integration are added later, they must be published behind separate entry
+The library currently has no persistence adapter. Custom-unit persistence or
+transport integration must be published behind separate entry
 points, validate DTOs at their boundary and keep provider types out of the
 core contracts. Authorization, Firestore configuration, indexes, cache policy
 and batch execution belong to the hosting application and shared data-access

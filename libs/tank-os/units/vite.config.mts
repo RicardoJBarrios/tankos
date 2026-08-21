@@ -19,6 +19,10 @@ export default defineConfig(() => ({
         '../decimal-big-js/src/index.ts',
       ),
       '@tank-os/decimal': resolve(__dirname, '../decimal/src/index.ts'),
+      '@tank-os/data-access': resolve(
+        __dirname,
+        '../data-access/src/index.ts',
+      ),
     },
   },
   test: {
