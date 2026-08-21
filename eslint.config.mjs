@@ -20,7 +20,10 @@ export default [
         'error',
         {
           enforceBuildableLibDependency: true,
-          allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
+          allow: [
+            '^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$',
+            '^.*\\.spec\\.[cm]?[jt]s$',
+          ],
           depConstraints: [
             {
               sourceTag: 'scope:app',

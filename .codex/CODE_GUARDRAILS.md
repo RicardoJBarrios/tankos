@@ -75,6 +75,26 @@ Angular library packaging must use `ng-packagr` through the Nx
 another packager only when that choice is explicit in its local documentation.
 Public secondary entrypoints must be declared in the library's
 `ng-package.json` layout and must build through the same packaging contract.
+Every public secondary entrypoint must also have a matching workspace TypeScript
+path and test-runner alias. This keeps source consumers, tests and the compiled
+package on the same import contract; adding only an `ng-package.json` is
+incomplete.
+
+Concrete runtime adapters that have materially different dependencies or bundle
+costs must be physically isolated as independent publishable Nx libraries. A
+physical adapter package owns its `src`, public `index.ts`, paired tests,
+documentation, manifest, build target and peer dependencies. The primary
+provider-independent package must not re-export or import that adapter. Consumer
+imports must use the adapter package name, not a legacy secondary path. This
+rule applies uniformly to Firestore, JSON/HTTP, server, native and third-party
+runtime adapters whenever their isolation improves dependency or bundle
+boundaries.
+
+Secondary entrypoints are appropriate only when the implementation genuinely
+belongs to the same package and physical isolation is not a requirement. They
+must still have matching `ng-package.json`, workspace TypeScript paths and
+test-runner aliases. Never use a secondary barrel as a substitute for physical
+bundle isolation when the adapter brings a heavy or environment-specific SDK.
 
 TankOS libraries must declare their internal modules and architectural layers
 in `sheriff.config.ts`. The default dependency direction is strict:

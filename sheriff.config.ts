@@ -59,31 +59,6 @@ modules['apps/tank-os/src/app'] = [
   'tank-os:layer:composition',
 ];
 
-modules['libs/tank-os/time'] = ['context:tank-os'];
-modules['libs/tank-os/units'] = ['context:tank-os'];
-modules['libs/tank-os/decimal'] = ['context:tank-os'];
-
-for (const modulePath of [
-  'libs/tank-os/time/src',
-  'libs/tank-os/time/src/lib/time',
-  'libs/tank-os/time/src/lib/time/core',
-  'libs/tank-os/time/src/lib/time/core/ports',
-  'libs/tank-os/time/src/lib/time/core/value-types',
-  'libs/tank-os/time/src/lib/time/core/validation',
-  'libs/tank-os/time/src/lib/time/adapters',
-  'libs/tank-os/time/src/lib/time/adapters/angular',
-  'libs/tank-os/time/src/lib/time/adapters/firestore',
-  'libs/tank-os/time/src/lib/time/adapters/json-http',
-  'libs/tank-os/time/src/lib/time/adapters/native',
-  'libs/tank-os/time/src/lib/time/application',
-  'libs/tank-os/time/src/lib/time/presentation',
-  'libs/tank-os/time/src/lib/time/presentation/pipes',
-  'libs/tank-os/units/src',
-  'libs/tank-os/decimal/src',
-]) {
-  modules[modulePath] = ['context:tank-os'];
-}
-
 for (const layer of layers) {
   modules[`apps/veril/src/app/shared-access/${layer}`] = [
     'context:shared-access',
@@ -133,19 +108,7 @@ const tankOsTimeLayers: Record<string, string[]> = {
     'context:tank-os',
     'tank-os:layer:adapter',
   ],
-  'libs/tank-os/time/src/lib/time/adapters/firestore': [
-    'context:tank-os',
-    'tank-os:layer:adapter',
-  ],
-  'libs/tank-os/time/src/lib/time/adapters/json-http': [
-    'context:tank-os',
-    'tank-os:layer:adapter',
-  ],
   'libs/tank-os/time/src/lib/time/adapters/native': [
-    'context:tank-os',
-    'tank-os:layer:adapter',
-  ],
-  'libs/tank-os/time/src/lib/time/adapters/zod': [
     'context:tank-os',
     'tank-os:layer:adapter',
   ],
@@ -197,15 +160,14 @@ modules['libs/tank-os/units/src/lib/units/application'] = [
   'context:tank-os',
   'tank-os:layer:application',
 ];
-modules['libs/tank-os/time/firestore'] = [
+modules['libs/tank-os/units/src/lib/units/composition'] = [
   'context:tank-os',
-  'tank-os:layer:adapter',
+  'tank-os:layer:composition',
 ];
-modules['libs/tank-os/time/json-http'] = [
+modules['libs/tank-os/units/src/lib/units/composition/standard'] = [
   'context:tank-os',
-  'tank-os:layer:adapter',
+  'tank-os:layer:composition',
 ];
-modules['libs/tank-os/time/zod'] = ['context:tank-os', 'tank-os:layer:adapter'];
 modules['libs/tank-os/decimal/src/lib/decimal'] = [
   'context:tank-os',
   'tank-os:layer:library-root',
@@ -213,18 +175,6 @@ modules['libs/tank-os/decimal/src/lib/decimal'] = [
 modules['libs/tank-os/decimal/src'] = [
   'context:tank-os',
   'tank-os:layer:library-root',
-];
-modules['libs/tank-os/decimal/core'] = [
-  'context:tank-os',
-  'tank-os:layer:core',
-];
-modules['libs/tank-os/decimal/big-js'] = [
-  'context:tank-os',
-  'tank-os:layer:adapter',
-];
-modules['libs/tank-os/decimal/zod'] = [
-  'context:tank-os',
-  'tank-os:layer:adapter',
 ];
 modules['libs/tank-os/decimal/src/lib/decimal/core'] = [
   'context:tank-os',
@@ -250,14 +200,6 @@ modules['libs/tank-os/decimal/src/lib/decimal/adapters'] = [
   'context:tank-os',
   'tank-os:layer:adapter',
 ];
-modules['libs/tank-os/decimal/src/lib/decimal/adapters/big-js'] = [
-  'context:tank-os',
-  'tank-os:layer:adapter',
-];
-modules['libs/tank-os/decimal/src/lib/decimal/adapters/zod'] = [
-  'context:tank-os',
-  'tank-os:layer:adapter',
-];
 modules['libs/tank-os/decimal/src/lib/decimal/composition'] = [
   'context:tank-os',
   'tank-os:layer:composition',
@@ -265,6 +207,42 @@ modules['libs/tank-os/decimal/src/lib/decimal/composition'] = [
 modules['libs/tank-os/decimal/src/lib/decimal/composition/angular'] = [
   'context:tank-os',
   'tank-os:layer:composition',
+];
+for (const adapterPackage of [
+  'time-firestore',
+  'time-json-http',
+  'time-zod',
+  'decimal-big-js',
+  'decimal-zod',
+]) {
+  modules[`libs/tank-os/${adapterPackage}/src`] = [
+    'context:tank-os',
+    'tank-os:layer:library-root',
+  ];
+  modules[`libs/tank-os/${adapterPackage}/src/lib`] = [
+    'context:tank-os',
+    'tank-os:layer:adapter',
+  ];
+}
+modules['libs/tank-os/time-firestore/src/lib/firestore'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/time-json-http/src/lib/json-http'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/time-zod/src/lib/zod'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/decimal-big-js/src/lib/big-js'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/decimal-zod/src/lib/zod'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
 ];
 modules['libs/tank-os/data-access/src'] = [
   'context:tank-os',
@@ -309,6 +287,30 @@ modules['libs/tank-os/data-access/src/lib/composition'] = [
 modules['libs/tank-os/data-access/src/lib/composition/angular'] = [
   'context:tank-os',
   'tank-os:layer:composition',
+];
+modules['libs/tank-os/data-access-firestore/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/data-access-firestore/src/lib/firestore'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/data-access-json-http/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/data-access-json-http/src/lib/json-http'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/data-access-server/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/data-access-server/src/lib/server'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
 ];
 
 export const config: SheriffConfig = {
@@ -355,6 +357,7 @@ export const config: SheriffConfig = {
     'tank-os:layer:adapter': [
       'tank-os:layer:adapter',
       'tank-os:layer:core',
+      'tank-os:layer:library-root',
       'context:tank-os',
     ],
     'tank-os:layer:application': [
