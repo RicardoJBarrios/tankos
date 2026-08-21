@@ -8,6 +8,7 @@
   "targets": {
     "build": {
       "executor": "@nx/angular:ng-packagr-lite",
+      "dependsOn": ["time:build"],
       "outputs": ["{workspaceRoot}/dist/libs/tank-os/data-access"],
       "options": {
         "project": "libs/tank-os/data-access/ng-package.json",

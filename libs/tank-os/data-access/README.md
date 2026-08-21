@@ -1,21 +1,29 @@
 # TankOS Data Access
 
-The implementation and architectural decisions for this library are documented
-in [`docs/README.md`](docs/README.md).
+`@tank-os/data-access` is the provider-independent package for CRUD, lifecycle,
+pagination, caching and asynchronous batch contracts. It contains no Firebase,
+HTTP or server-runtime implementation.
 
-The library provides composable, provider-independent contracts and use cases
-for CRUD and asynchronous batch operations. Firestore, JSON/HTTP and Angular
-integration remain adapters around those contracts.
+Provider adapters are physically isolated publishable packages:
 
-Its Angular package is built with Nx `@nx/angular:ng-packagr-lite` and emits
-the public package under `dist/libs/tank-os/data-access`.
+```ts
+import { createFirestoreCrudRepository } from '@tank-os/data-access-firestore';
+import { createJsonHttpCrudRepository } from '@tank-os/data-access-json-http';
+import { createFirebaseAdminBatchAuthorization } from '@tank-os/data-access-server';
+```
+
+The primary package can therefore be used without installing Firebase, Zod or
+Firebase Admin. Each adapter has its own source tree, public barrel, tests,
+documentation, peer dependencies and build artifact.
+
+Commands:
 
 - `pnpm nx run data-access:build`
 - `pnpm nx run data-access:test`
 - `pnpm nx run data-access:lint`
+- `pnpm nx run data-access-firestore:build`
+- `pnpm nx run data-access-firestore:test`
+- `pnpm nx run data-access-firestore:test-integration`
 
-This library was generated with [Nx](https://nx.dev).
-
-## Running unit tests
-
-Run `nx test data-access` to execute the unit tests.
+The architectural decisions and current contract are documented in
+[`docs/README.md`](docs/README.md).

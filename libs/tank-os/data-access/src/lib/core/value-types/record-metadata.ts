@@ -1,10 +1,8 @@
 import type { EntityId } from './entity-id';
+import type { Instant } from '@tank-os/time';
 
-/** Provider-neutral UTC instant shape compatible with TankOS Time. */
-export interface ServerTimestamp {
-  readonly kind: 'instant';
-  readonly epochMilliseconds: number;
-}
+/** Server timestamp represented by the workspace-wide Time contract. */
+export type ServerTimestamp = Instant;
 
 /** Server-owned metadata required to interpret a persisted record. */
 export interface RecordMetadata {
@@ -18,4 +16,8 @@ export interface RecordMetadata {
   readonly createdBy?: EntityId;
   /** Actor that performed the latest normal lifecycle change. */
   readonly updatedBy?: EntityId;
+  /** Server timestamp of the latest lifecycle transition, when distinct. */
+  readonly lifecycleChangedAt?: ServerTimestamp;
+  /** Actor that performed the latest lifecycle transition. */
+  readonly lifecycleChangedBy?: EntityId;
 }

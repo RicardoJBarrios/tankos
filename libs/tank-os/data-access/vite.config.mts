@@ -22,6 +22,14 @@ export default defineConfig(() => ({
     coverage: {
       reportsDirectory: '../../../coverage/libs/tank-os/data-access',
       provider: 'v8' as const,
+      include: [
+        'src/index.ts',
+        'src/lib/core/**/*.ts',
+        'src/lib/application/**/*.ts',
+        'src/lib/adapters/cache/**/*.ts',
+        'src/lib/adapters/memory/**/*.ts',
+        'src/lib/composition/**/*.ts',
+      ],
       thresholds: {
         lines: 100,
         statements: 100,

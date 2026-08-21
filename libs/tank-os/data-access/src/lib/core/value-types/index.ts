@@ -1,6 +1,7 @@
 export * from './batch-operation';
 export * from './batch-result';
 export * from './batch-scope';
+export * from './access-context';
 export * from './crud-record';
 export * from './crud-request';
 export * from './entity-id';

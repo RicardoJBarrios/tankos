@@ -14,7 +14,7 @@ describe('createCrudService', () => {
     id,
     data: { name: 'record' },
     lifecycle: { status: 'active' },
-    version: 1,
+    revision: 1,
     metadata: {
       schemaVersion: 1,
       createdAt: instant,
@@ -26,6 +26,7 @@ describe('createCrudService', () => {
     hasMore: false,
   };
   const request: ListRequest<Filter> = {
+    access: { principalId: id, roles: ['keeper'] },
     page: {
       pageSize: 20,
       orderBy: [{ field: 'updatedAt', direction: 'desc' }],
@@ -88,12 +89,12 @@ describe('createCrudService', () => {
   it('Given a CRUD command, When composed, Then delegates each operation unchanged', async () => {
     const dependency = repository();
     const service = createCrudService(dependency.port);
-    const command = { id };
+    const command = { access: { principalId: id, roles: ['keeper'] as const }, id };
     const create = { name: 'new' };
     const update = { name: 'updated' };
 
     await service.get(command);
-    await service.create(create);
+    await service.create({ access: command.access, input: create });
     await service.replace(command, update);
     await service.markForDeletion(command);
     await service.restore(command);
@@ -101,7 +102,7 @@ describe('createCrudService', () => {
 
     expect(dependency.calls).toEqual({
       get: [command],
-      create: [create],
+      create: [{ access: command.access, input: create }],
       replace: [command, update],
       markForDeletion: [command],
       restore: [command],

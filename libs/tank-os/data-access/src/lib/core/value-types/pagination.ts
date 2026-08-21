@@ -27,14 +27,29 @@ export interface Page<TRecord> {
 export function createPageRequest(
   request: PageRequest,
 ): PageRequest {
+  if (!request || typeof request !== 'object') {
+    throw new TypeError('Page request must be an object');
+  }
   if (!Number.isInteger(request.pageSize) || request.pageSize < 1 || request.pageSize > 500) {
     throw new RangeError('Page size must be an integer between 1 and 500');
   }
-  if (request.orderBy.length === 0) {
+  if (!Array.isArray(request.orderBy) || request.orderBy.length === 0) {
     throw new TypeError('Page ordering must contain at least one field');
   }
-  if (request.orderBy.some((item) => !item.field.trim())) {
+  if (
+    request.orderBy.some(
+      (item) =>
+        !item ||
+        typeof item.field !== 'string' ||
+        !item.field.trim() ||
+        (item.direction !== 'asc' && item.direction !== 'desc'),
+    )
+  ) {
     throw new TypeError('Page ordering fields must be non-empty');
+  }
+  const fields = request.orderBy.map((item) => item.field);
+  if (new Set(fields).size !== fields.length) {
+    throw new TypeError('Page ordering fields must be unique');
   }
   return request;
 }

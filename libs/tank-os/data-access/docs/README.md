@@ -1,136 +1,111 @@
-# TankOS Data Access
+# Data Access: current architecture
 
-**Estado:** contratos core, fachadas de aplicación, composición Angular y
-adaptadores deterministas de memoria y caché TTL implementados. Los
-adaptadores concretos de Firestore, JSON/HTTP y el worker confiable de
-producción siguen siendo fronteras pendientes.
+`@tank-os/data-access` is a provider-independent Angular library. It defines
+CRUD, lifecycle, pagination, caching and asynchronous batch contracts for
+TankOS domains such as Units, Parameters and Aquarium Systems. It does not
+define business entities and does not depend on Firebase, Zod, HTTP or a
+server runtime.
 
-`data-access` contiene comportamiento reutilizable para dominios como Units,
-Parameters y Aquarium Systems. No es un dominio de negocio y no define campos
-de ninguna entidad concreta.
+## Physical package boundaries
 
-## Límites
+The runtime adapters are separate publishable Nx libraries:
 
-```text
-dominio de aplicación
-        |
-        v
-   contratos core
-        |
-        v
-    puertos
-     /   \
-    v     v
- memoria  caché/decoradores
-    |
-    v
- Firestore | JSON/HTTP | worker confiable
-```
+| Package                          | Responsibility                                                                  | Runtime dependencies        |
+| -------------------------------- | ------------------------------------------------------------------------------- | --------------------------- |
+| `@tank-os/data-access`           | Core ports, application services, memory/cache adapters and Angular composition | Angular, `@tank-os/time`    |
+| `@tank-os/data-access-firestore` | Firestore CRUD persistence and DTO validation                                   | Firebase, Zod, core package |
+| `@tank-os/data-access-json-http` | JSON/HTTP CRUD transport and response validation                                | Zod, core package           |
+| `@tank-os/data-access-server`    | Trusted Firebase Admin batch authorization                                      | Core package                |
 
-- `core`: tipos, errores y puertos provider-neutral; no depende de Angular ni
-  de un proveedor de persistencia.
-- `application`: fachadas composables de CRUD y operaciones batch.
-- `adapters`: implementaciones intercambiables. `memory` sirve para pruebas y
-  prototipos; `cache` añade lectura con TTL e invalidación.
-- `composition/angular`: tokens y providers para conectar puertos concretos
-  al árbol de inyección de Angular.
+Each package has its own `src`, public `index.ts`, tests, documentation,
+`ng-packagr-lite` build and coverage target. Adapter source is never reexported
+from the primary package. This is physical isolation, not merely a semantic
+independent package boundary.
 
-Firestore y HTTP no deben filtrarse al `core`, a una entidad de dominio ni a
-los contratos públicos. Sus DTOs se convertirán en adaptadores separados,
-incluyendo la validación de entrada y salida que corresponda.
+Adapters depend on the primary public contract through `@tank-os/data-access`.
+The primary package never imports an adapter, so the dependency direction is
+one-way and its bundle cannot acquire provider SDKs transitively.
 
-## CRUD y lifecycle
-
-`CrudRepositoryPort<TData, TCreate, TUpdate, TFilter>` expone listado,
-consulta, creación, reemplazo, marcado para eliminación, restauración y
-eliminación definitiva. El registro común contiene `id`, `lifecycle`, número
-de versión y `RecordMetadata` con `schemaVersion`, fechas de servidor y,
-cuando proceda, los actores.
-
-Las lecturas no filtran por defecto registros `marked-for-deletion` ni
-`deleted`. El acceso explícito a estados no visibles es responsabilidad de un
-adaptador autorizado. No se usan foreign keys ni cascadas: las referencias
-son identificadores y la consistencia entre entidades se coordina en la
-capa de aplicación.
-
-Para contratos versionables existe `VersionedRepositoryPort`. Las
-modificaciones crean la nueva versión y dejan la anterior inmutable; la
-retirada de versiones es una operación explícita y autorizada.
-
-La paginación usa `PageCursor`, un valor opaco y no un `EntityId`. Toda
-consulta paginada declara un `pageSize` acotado y un `orderBy` estable; el
-cursor solo debe reutilizarse con la misma consulta y orden.
-
-## Operaciones batch
-
-Una operación batch lógica no es un `Firestore WriteBatch`. `submit` congela
-el alcance mediante ids o un filtro completo, registra su huella y devuelve
-inmediatamente un estado `queued`. La ejecución posterior trabaja en chunks
-acotados y publica progreso, warnings y fallos.
+## Layers in the primary package
 
 ```text
-submit(selection, confirmationToken) -> queued
-                                      |
-                                      v
-                               worker / chunks
-                                      |
-                                      v
-                               get(batchId)
+core ports and value types
+          |
+application CRUD and batch services
+          |
+memory and cache adapters
+          |
+Angular composition providers
 ```
 
-El contrato contempla `update`, `mark-for-deletion` y `delete`, reanudación,
-cancelación, resultados por elemento y estados terminales. El estado de
-ejecución es temporal: se elimina al completar, fallar definitivamente o
-cancelar. Los datos originales no reciben campos de batch.
+- `core` is provider-neutral and contains errors, value types and ports.
+- `application` exposes composable CRUD and batch use cases.
+- `adapters/memory` is deterministic and suitable for tests and prototypes.
+- `adapters/cache` provides TTL reads, force-refresh and namespace invalidation.
+- `composition/angular` connects ports through Angular `inject()` factories.
 
-Las reglas globales aplicables al adaptador de producción son: una sola
-confirmación por batch, el filtro afecta a todo el conjunto y no solo a la
-página visible, chunks limitados, ejecución asíncrona, idempotencia, orden
-natural de última escritura y borrado ganador frente a una modificación
-posterior. La autoridad y la autorización del worker no se simulan en el
-`core`.
+## CRUD and lifecycle
 
-## Caché
+`CrudRepositoryPort<TData, TCreate, TUpdate, TFilter>` supports list, get,
+create, replace, mark-for-deletion, restore and permanent delete. Records carry
+an opaque id, lifecycle, revision and server metadata. Normal reads expose only
+active/inactive records; hidden lifecycle values require an explicit request and
+host authorization. No foreign keys or cascades are used: references are ids
+and cross-entity consistency is coordinated by application workflows.
 
-`TtlCache` es una caché en memoria con reloj inyectable para pruebas. El
-decorador `CachedCrudRepository` aplica lectura-through, TTL por instancia,
-`forceRefresh` en lecturas y limpieza conservadora tras cualquier escritura.
-La invalidación completa evita servir listas o registros obsoletos cuando no
-existe todavía un mecanismo fiable de invalidación por consulta.
+Pagination uses an opaque `PageCursor`, bounded `pageSize` and stable ordering.
+Firestore asks for one extra record to calculate `hasMore` without empty pages.
 
-La política por defecto para catálogos estables, como Units, debe usar TTL
-largo. Las mutaciones invalidan inmediatamente; una acción explícita de
-actualización puede usar `forceRefresh` sin eliminar la caché global.
+## Versioning
 
-## Composición Angular
+`VersionedRepositoryPort` is provider-neutral. `revision` is technical
+concurrency metadata; `versionId` and `versionNumber` identify immutable
+business versions. A domain decides whether a versioned contract is needed.
 
-Cada entidad tiene sus propios tokens tipados. No existe un token global de
-CRUD basado en `unknown`:
+## Batches
+
+Submitting a batch freezes either its ids or its complete filter, stores the
+request fingerprint and returns `queued` immediately. A trusted worker processes
+bounded chunks and publishes progress, warnings and item-level results. The
+batch state is separate from the affected records and can be removed after a
+terminal state.
+
+The contract supports update, mark-for-deletion and permanent delete. There is
+one confirmation per batch; a filter applies to the whole matching set, not
+only the visible page. Execution is asynchronous and naturally ordered by
+last-write arrival: deletion wins when it arrives after a modification, while
+the last modification wins against another modification. Reusing an
+idempotency key with a different request is a conflict.
+
+`BatchWorkerPort` and `BatchAuthorizationPort` are integration contracts. The
+production worker, durable batch repository, chunk scheduling, retries and
+cleanup belong to the host. `@tank-os/data-access-server` provides the Firebase
+Admin Auth authorization boundary; browser claims are never authoritative.
+
+## Caching and cost control
+
+`TtlCache` uses an injected clock. `CachedCrudRepository` applies read-through
+TTL, `forceRefresh` and namespace invalidation after writes. Stable catalogs can
+use long TTLs; user-triggered changes invalidate immediately. Query-specific
+invalidation can be added by a host when its cost/complexity justifies it.
+
+Firestore query construction remains entity-specific through
+`buildQuery`. Hosts must define allowed filters, aquarium scopes, indexes,
+limits and Security Rules. The adapter validates request shape and response
+DTOs but does not replace authorization policy.
+
+## Testing and publication
+
+Every executable source file has a focused Given/When/Then test in the same
+package boundary. Each package enforces 100% lines, statements, functions and
+branches without coverage exclusions. Firestore has an additional emulator
+target; Security Rules and IAM remain host-level integration concerns.
+
+All packages use Nx `@nx/angular:ng-packagr-lite`. The public contracts are:
 
 ```ts
-const repositoryToken = createCrudRepositoryToken<UnitData, CreateUnit, UpdateUnit, UnitFilter>('units.repository');
-const serviceToken = createCrudServiceToken<UnitData, CreateUnit, UpdateUnit, UnitFilter>('units.service');
-
-providers: [
-  provideTankOsDataAccess({ batchOperation }),
-  provideCrudRepository(repositoryToken, unitRepository),
-  provideCrudService(serviceToken, repositoryToken),
-];
+@tank-os/data-access
+@tank-os/data-access-firestore
+@tank-os/data-access-json-http
+@tank-os/data-access-server
 ```
-
-Los factories usan `inject()` y Angular solo compone dependencias. La
-selección de Firestore, HTTP, caché y funciones backend pertenece al host.
-
-## Pendiente
-
-1. Implementar el repositorio Firestore con paginación, metadatos de servidor,
-   reglas de lifecycle, costes controlados y pruebas contra emulador.
-2. Implementar mappers y adaptadores JSON/HTTP con contratos de DTO y errores
-   tipados.
-3. Implementar el worker confiable para materializar scopes y ejecutar batches
-   de forma reanudable e idempotente.
-4. Añadir integración de cada dominio y sus pantallas de gestión.
-
-Cada archivo ejecutable debe tener una responsabilidad y un test enfocado
-asociado. Los tests se escriben como especificaciones Given/When/Then y la
-librería exige 100% de statements, lines, functions y branches.

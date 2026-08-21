@@ -47,8 +47,14 @@ describe('provideTankOsDataAccess', () => {
       ],
     });
 
-    await expect(TestBed.inject(serviceToken).create({ name: 'typed' })).resolves.toEqual({
-      name: 'typed',
+    await expect(
+      TestBed.inject(serviceToken).create({
+        access: { principalId: 'keeper' as never, roles: ['keeper'] },
+        input: { name: 'typed' },
+      }),
+    ).resolves.toEqual({
+      access: { principalId: 'keeper', roles: ['keeper'] },
+      input: { name: 'typed' },
     });
   });
 });

@@ -11,49 +11,62 @@ describe('createTtlCache', () => {
     };
   }
 
-  it('Given a cached value within its TTL, When read, Then returns the value', () => {
+  it('Given a cached value within its TTL, When read, Then returns the value', async () => {
     const timer = clock();
     const cache = createTtlCache<string>(timer);
-    cache.set('units', 'catalogue', 100);
+    await cache.set('units', 'catalogue', 100);
 
-    expect(cache.get('units')).toBe('catalogue');
+    await expect(cache.get('units')).resolves.toBe('catalogue');
   });
 
-  it('Given an expired value, When read, Then removes and returns undefined', () => {
+  it('Given an expired value, When read, Then removes and returns undefined', async () => {
     const timer = clock();
     const cache = createTtlCache<string>(timer);
-    cache.set('units', 'catalogue', 100);
+    await cache.set('units', 'catalogue', 100);
     timer.advance(100);
 
-    expect(cache.get('units')).toBeUndefined();
-    expect(cache.get('units')).toBeUndefined();
+    await expect(cache.get('units')).resolves.toBeUndefined();
+    await expect(cache.get('units')).resolves.toBeUndefined();
   });
 
-  it('Given a present value, When force refresh is requested, Then bypasses it', () => {
+  it('Given a present value, When force refresh is requested, Then bypasses it', async () => {
     const timer = clock();
     const cache = createTtlCache<string>(timer);
-    cache.set('units', 'catalogue', 100);
+    await cache.set('units', 'catalogue', 100);
 
-    expect(cache.get('units', { forceRefresh: true })).toBeUndefined();
-    expect(cache.get('units')).toBe('catalogue');
+    await expect(cache.get('units', { forceRefresh: true })).resolves.toBeUndefined();
+    await expect(cache.get('units')).resolves.toBe('catalogue');
   });
 
-  it('Given a non-positive or non-finite TTL, When stored, Then rejects it', () => {
+  it('Given a non-positive or non-finite TTL, When stored, Then rejects it', async () => {
     const cache = createTtlCache<string>(clock());
 
     for (const ttl of [0, -1, NaN, Infinity, -Infinity]) {
-      expect(() => cache.set('units', 'catalogue', ttl)).toThrow(RangeError);
+      await expect(cache.set('units', 'catalogue', ttl)).rejects.toThrow(RangeError);
     }
   });
 
-  it('Given entries, When deleted or cleared, Then they are no longer available', () => {
+  it('Given entries, When deleted or cleared, Then they are no longer available', async () => {
     const cache = createTtlCache<string>(clock());
-    cache.set('one', '1', 100);
-    cache.set('two', '2', 100);
+    await cache.set('one', '1', 100);
+    await cache.set('two', '2', 100);
 
-    cache.delete('one');
-    expect(cache.get('one')).toBeUndefined();
-    cache.clear();
-    expect(cache.get('two')).toBeUndefined();
+    await cache.delete('one');
+    await expect(cache.get('one')).resolves.toBeUndefined();
+    await cache.clear();
+    await expect(cache.get('two')).resolves.toBeUndefined();
+  });
+
+  it('Given entries in multiple namespaces, When one namespace is cleared, Then unrelated entries remain', async () => {
+    const cache = createTtlCache<string>(clock());
+    await cache.set('units:list:a', 'units', 100);
+    await cache.set('units:get:a', 'unit', 100);
+    await cache.set('parameters:list:a', 'parameters', 100);
+
+    await cache.clearNamespace('units');
+
+    await expect(cache.get('units:list:a')).resolves.toBeUndefined();
+    await expect(cache.get('units:get:a')).resolves.toBeUndefined();
+    await expect(cache.get('parameters:list:a')).resolves.toBe('parameters');
   });
 });

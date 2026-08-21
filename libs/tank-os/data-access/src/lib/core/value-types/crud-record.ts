@@ -7,6 +7,7 @@ export interface CrudRecord<TData> {
   readonly id: EntityId;
   readonly data: TData;
   readonly lifecycle: LifecycleState;
-  readonly version: number;
+  /** Mutable persistence revision used for optimistic concurrency. */
+  readonly revision: number;
   readonly metadata: RecordMetadata;
 }

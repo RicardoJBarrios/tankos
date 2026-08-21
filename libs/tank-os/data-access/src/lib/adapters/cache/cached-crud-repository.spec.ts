@@ -3,6 +3,7 @@ import { createCachedCrudRepository } from './cached-crud-repository';
 import { createTtlCache } from './ttl-cache';
 
 describe('createCachedCrudRepository', () => {
+  const access = { principalId: 'keeper' as never, roles: ['keeper'] as const };
   it('Given a backing repository, When a query repeats, Then serves the second read from cache', async () => {
     let reads = 0;
     const page = { items: [], hasMore: false };
@@ -24,6 +25,7 @@ describe('createCachedCrudRepository', () => {
       ttlMilliseconds: 100,
     });
     const request = {
+      access,
       page: { pageSize: 20, orderBy: [{ field: 'id', direction: 'asc' as const }] },
     };
 
@@ -52,12 +54,40 @@ describe('createCachedCrudRepository', () => {
       { keyPrefix: 'units', ttlMilliseconds: 100 },
     );
     const request = {
+      access,
       page: { pageSize: 20, orderBy: [{ field: 'id', direction: 'asc' as const }] },
     };
 
     await repository.list(request);
     await repository.list(request, { forceRefresh: true });
     expect(reads).toBe(2);
+  });
+
+  it('Given equivalent requests with different property order, When read, Then uses one stable cache key', async () => {
+    let reads = 0;
+    const backing = {
+      list: async () => {
+        reads += 1;
+        return { items: [], hasMore: false };
+      },
+    } as unknown as CrudRepositoryPort<unknown, unknown, unknown>;
+    const repository = createCachedCrudRepository(
+      backing,
+      createTtlCache({ now: () => 0 }),
+      { keyPrefix: 'units', ttlMilliseconds: 100 },
+    );
+
+    await repository.list({
+      access,
+      page: { pageSize: 20, orderBy: [{ field: 'id', direction: 'asc' }] },
+      filter: { first: 'one', second: 'two' },
+    });
+    await repository.list({
+      page: { orderBy: [{ direction: 'asc', field: 'id' }], pageSize: 20 },
+      filter: { second: 'two', first: 'one' },
+      access,
+    });
+    expect(reads).toBe(1);
   });
 
   it('Given cached reads, When a mutation succeeds, Then invalidates all cached entity reads', async () => {
@@ -81,6 +111,7 @@ describe('createCachedCrudRepository', () => {
       { keyPrefix: 'units', ttlMilliseconds: 100 },
     );
     const request = {
+      access,
       page: { pageSize: 20, orderBy: [{ field: 'id', direction: 'asc' as const }] },
     };
 
@@ -96,7 +127,7 @@ describe('createCachedCrudRepository', () => {
       id: 'one' as never,
       data: { name: 'one' },
       lifecycle: { status: 'active' as const },
-      version: 1,
+      revision: 1,
       metadata: {
         schemaVersion: 1,
         createdAt: { kind: 'instant' as const, epochMilliseconds: 0 },
@@ -121,11 +152,11 @@ describe('createCachedCrudRepository', () => {
       { keyPrefix: 'units', ttlMilliseconds: 100 },
     );
 
-    await repository.get({ id: 'one' as never });
-    await repository.get({ id: 'one' as never });
+    await repository.get({ access, id: 'one' as never });
+    await repository.get({ access, id: 'one' as never });
     expect(reads).toBe(1);
-    await repository.get({ id: 'missing' as never });
-    await repository.get({ id: 'missing' as never });
+    await repository.get({ access, id: 'missing' as never });
+    await repository.get({ access, id: 'missing' as never });
     expect(reads).toBe(3);
   });
 
@@ -147,10 +178,10 @@ describe('createCachedCrudRepository', () => {
     );
 
     await repository.create({});
-    await repository.replace({ id: 'one' as never }, {});
-    await repository.markForDeletion({ id: 'one' as never });
-    await repository.restore({ id: 'one' as never });
-    await repository.delete({ id: 'one' as never });
+    await repository.replace({ access, id: 'one' as never }, {});
+    await repository.markForDeletion({ access, id: 'one' as never });
+    await repository.restore({ access, id: 'one' as never });
+    await repository.delete({ access, id: 'one' as never });
     expect(calls).toEqual(['create', 'replace', 'mark', 'restore', 'delete']);
   });
 });

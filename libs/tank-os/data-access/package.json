@@ -4,6 +4,7 @@
   "sideEffects": false,
   "peerDependencies": {
     "@angular/common": "^20.3.0",
-    "@angular/core": "^20.3.0"
+    "@angular/core": "^20.3.0",
+    "@tank-os/time": "^0.0.0"
   }
 }

@@ -6,8 +6,10 @@ export interface CacheReadOptions {
 
 /** Provider-neutral cache port used by TTL decorators. */
 export interface CachePort<TValue> {
-  get(key: string, options?: CacheReadOptions): TValue | undefined;
-  set(key: string, value: TValue, ttlMilliseconds: number): void;
-  delete(key: string): void;
-  clear(): void;
+  get(key: string, options?: CacheReadOptions): Promise<TValue | undefined>;
+  set(key: string, value: TValue, ttlMilliseconds: number): Promise<void>;
+  delete(key: string): Promise<void>;
+  /** Removes every key belonging to one cache namespace. */
+  clearNamespace(namespace: string): Promise<void>;
+  clear(): Promise<void>;
 }

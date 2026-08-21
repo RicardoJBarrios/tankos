@@ -1,6 +1,7 @@
 import type { CrudRepositoryPort } from '../core';
 import type {
   CrudRecord,
+  CreateRequest,
   GetRequest,
   ListRequest,
   Page,
@@ -11,7 +12,7 @@ import type {
 export interface CrudService<TData, TCreate, TUpdate, TFilter = unknown> {
   list(request: ListRequest<TFilter>): Promise<Page<CrudRecord<TData>>>;
   get(request: GetRequest): Promise<CrudRecord<TData> | undefined>;
-  create(input: TCreate): Promise<CrudRecord<TData>>;
+  create(request: CreateRequest<TCreate>): Promise<CrudRecord<TData>>;
   replace(request: RecordCommand, input: TUpdate): Promise<CrudRecord<TData>>;
   markForDeletion(request: RecordCommand): Promise<CrudRecord<TData>>;
   restore(request: RecordCommand): Promise<CrudRecord<TData>>;
@@ -25,7 +26,7 @@ export function createCrudService<TData, TCreate, TUpdate, TFilter = unknown>(
   return {
     list: (request) => repository.list(request),
     get: (request) => repository.get(request),
-    create: (input) => repository.create(input),
+    create: (request) => repository.create(request),
     replace: (request, input) => repository.replace(request, input),
     markForDeletion: (request) => repository.markForDeletion(request),
     restore: (request) => repository.restore(request),

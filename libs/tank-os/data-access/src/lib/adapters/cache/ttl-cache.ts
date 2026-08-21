@@ -15,7 +15,7 @@ export function createTtlCache<TValue>(clock: CacheClock): CachePort<TValue> {
   const entries = new Map<string, CacheEntry<TValue>>();
 
   return {
-    get(key: string, options?: CacheReadOptions): TValue | undefined {
+    async get(key: string, options?: CacheReadOptions): Promise<TValue | undefined> {
       if (options?.forceRefresh) {
         return undefined;
       }
@@ -28,16 +28,21 @@ export function createTtlCache<TValue>(clock: CacheClock): CachePort<TValue> {
 
       return entry.value;
     },
-    set(key, value, ttlMilliseconds) {
+    async set(key, value, ttlMilliseconds) {
       if (!Number.isFinite(ttlMilliseconds) || ttlMilliseconds <= 0) {
         throw new RangeError('Cache TTL must be a positive finite number');
       }
       entries.set(key, { value, expiresAt: clock.now() + ttlMilliseconds });
     },
-    delete(key) {
+    async delete(key) {
       entries.delete(key);
     },
-    clear() {
+    async clearNamespace(namespace) {
+      for (const key of entries.keys()) {
+        if (key.startsWith(`${namespace}:`)) entries.delete(key);
+      }
+    },
+    async clear() {
       entries.clear();
     },
   };

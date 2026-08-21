@@ -6,8 +6,8 @@ import type { RecordCommand } from './crud-request';
 export interface VersionedRecord<TData> extends CrudRecord<TData> {
   /** Stable identity of this immutable version. */
   readonly versionId: EntityId;
-  /** Human-readable sequential version number. */
-  readonly version: number;
+  /** Human-readable sequential business version number. */
+  readonly versionNumber: number;
 }
 
 /** Port for immutable version creation and lifecycle transitions. */

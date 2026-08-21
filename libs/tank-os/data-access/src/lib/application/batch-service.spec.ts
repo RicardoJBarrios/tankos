@@ -10,10 +10,12 @@ import { createBatchService } from './batch-service';
 describe('createBatchService', () => {
   const batchId = createEntityId('batch-1');
   const request: BatchRequest = {
+    access: { principalId: createEntityId('keeper'), roles: ['keeper'] },
     schema: 'units',
     operation: 'mark-for-deletion',
     selection: { kind: 'ids', ids: [createEntityId('unit-1')] },
     confirmationToken: 'confirmed-by-test',
+    idempotencyKey: 'batch-service-test',
   };
   const progress: BatchProgress = {
     batchId,

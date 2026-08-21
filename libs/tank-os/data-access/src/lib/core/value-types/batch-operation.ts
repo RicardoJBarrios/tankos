@@ -2,6 +2,8 @@ import type { EntityId } from './entity-id';
 import type { ServerTimestamp } from './record-metadata';
 import type { BatchSelection, FrozenBatchScope, BatchChunk } from './batch-scope';
 import type { BatchItemResult, BatchWarning } from './batch-result';
+import type { AccessContext } from './access-context';
+import { createAccessContext } from './access-context';
 
 /** Operation supported by the reusable batch boundary. */
 export type BatchOperation = 'update' | 'mark-for-deletion' | 'delete';
@@ -18,11 +20,14 @@ export type BatchStatus =
 
 /** Immutable scope and command submitted for asynchronous execution. */
 export interface BatchRequest<TPayload = unknown, TFilter = unknown> {
+  readonly access: AccessContext;
   readonly schema: string;
   readonly operation: BatchOperation;
   readonly selection: BatchSelection<TFilter>;
   /** One confirmation token proves the whole logical scope was confirmed. */
   readonly confirmationToken: string;
+  /** Client-generated key making submission idempotent. */
+  readonly idempotencyKey: string;
   readonly payload?: TPayload;
 }
 
@@ -30,21 +35,37 @@ export interface BatchRequest<TPayload = unknown, TFilter = unknown> {
 export function createBatchRequest<TPayload = unknown, TFilter = unknown>(
   request: BatchRequest<TPayload, TFilter>,
 ): BatchRequest<TPayload, TFilter> {
-  if (!request.schema.trim()) {
+  if (typeof request.schema !== 'string' || !request.schema.trim()) {
     throw new TypeError('Batch schema must be a non-empty string');
   }
-  if (!request.confirmationToken.trim()) {
+  const access = createAccessContext(request.access);
+  if (
+    typeof request.confirmationToken !== 'string' ||
+    !request.confirmationToken.trim()
+  ) {
     throw new TypeError('Batch confirmation token must be a non-empty string');
   }
+  if (
+    typeof request.idempotencyKey !== 'string' ||
+    !request.idempotencyKey.trim()
+  ) {
+    throw new TypeError('Batch idempotency key must be a non-empty string');
+  }
+  if (!request.selection || typeof request.selection !== 'object') {
+    throw new TypeError('Batch selection must be an object');
+  }
+  if (request.selection.kind !== 'ids' && request.selection.kind !== 'filter') {
+    throw new TypeError('Batch selection kind is invalid');
+  }
   if (request.selection.kind === 'ids') {
-    if (request.selection.ids.length === 0) {
+    if (!Array.isArray(request.selection.ids) || request.selection.ids.length === 0) {
       throw new RangeError('An id batch must contain at least one target');
     }
     if (new Set(request.selection.ids).size !== request.selection.ids.length) {
       throw new RangeError('A batch cannot contain duplicate target ids');
     }
   }
-  return request;
+  return { ...request, access };
 }
 
 /** Progress projection returned without waiting for execution. */
