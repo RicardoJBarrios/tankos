@@ -22,6 +22,15 @@ describe('firestore-time-adapter', () => {
     });
   });
 
+  it('Given a valid instant, When converting it to Firestore and back, Then the temporal value is preserved', () => {
+    const value = '2026-08-20T15:30:01.250Z';
+
+    expect(adapter.fromTimestamp(adapter.toTimestamp(value))).toEqual({
+      kind: 'instant',
+      epochMilliseconds: Date.parse(value),
+    });
+  });
+
   it.each([
     '2026-08-20',
     { kind: 'local-date', year: 2026, month: 8, day: 20 } as const,
@@ -34,6 +43,17 @@ describe('firestore-time-adapter', () => {
 
   it('Given a Firestore local date string, When converting it, Then it returns a LocalDate', () => {
     expect(adapter.fromLocalDate('2026-08-20')).toEqual({
+      kind: 'local-date',
+      year: 2026,
+      month: 8,
+      day: 20,
+    });
+  });
+
+  it('Given a valid local date, When converting it to Firestore and back, Then the calendar value is preserved', () => {
+    const value = '2026-08-20';
+
+    expect(adapter.fromLocalDate(adapter.toLocalDate(value))).toEqual({
       kind: 'local-date',
       year: 2026,
       month: 8,

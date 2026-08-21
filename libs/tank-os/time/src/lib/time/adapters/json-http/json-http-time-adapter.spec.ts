@@ -22,6 +22,17 @@ describe('json-http-time-adapter', () => {
     });
   });
 
+  it('Given a valid instant, When serializing it and deserializing it, Then the temporal value is preserved', () => {
+    const value = '2026-08-20T15:30:01.250Z';
+
+    expect(adapter.deserializeInstant(adapter.serializeInstant(value))).toEqual(
+      {
+        kind: 'instant',
+        epochMilliseconds: Date.parse(value),
+      },
+    );
+  });
+
   it.each([
     '2026-08-20',
     { kind: 'local-date', year: 2026, month: 8, day: 20 } as const,
@@ -34,6 +45,19 @@ describe('json-http-time-adapter', () => {
 
   it('Given a JSON local date, When deserializing it, Then it returns a LocalDate', () => {
     expect(adapter.deserializeLocalDate('2026-08-20')).toEqual({
+      kind: 'local-date',
+      year: 2026,
+      month: 8,
+      day: 20,
+    });
+  });
+
+  it('Given a valid local date, When serializing it and deserializing it, Then the calendar value is preserved', () => {
+    const value = '2026-08-20';
+
+    expect(
+      adapter.deserializeLocalDate(adapter.serializeLocalDate(value)),
+    ).toEqual({
       kind: 'local-date',
       year: 2026,
       month: 8,

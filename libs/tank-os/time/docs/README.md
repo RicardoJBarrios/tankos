@@ -105,6 +105,11 @@ millisecond precision and `LocalDate` as `YYYY-MM-DD`. Deserializers validate
 the transport value through the active `TimeAdapter` and raise `RangeError`
 for malformed or unsupported input.
 
+Both adapters are deliberately conversion adapters, not database clients or
+HTTP clients. Repository and API services own the actual read/write operation
+and call the corresponding `to...` method on output and `from...` or
+`deserialize...` method on input.
+
 ## Current non-goals
 
 The current slice does not decide or implement:
