@@ -13,8 +13,13 @@ const LOCAL_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 export function nativeParseLocalDate(value: LocalDateInput): LocalDate {
   if (typeof value !== 'string') {
     if (
-      !isValidCalendarDate(value.year, value.month, value.day) ||
-      value.kind !== 'local-date'
+      typeof value !== 'object' ||
+      value === null ||
+      value.kind !== 'local-date' ||
+      typeof value.year !== 'number' ||
+      typeof value.month !== 'number' ||
+      typeof value.day !== 'number' ||
+      !isValidCalendarDate(value.year, value.month, value.day)
     ) {
       throw new RangeError('Invalid local date');
     }

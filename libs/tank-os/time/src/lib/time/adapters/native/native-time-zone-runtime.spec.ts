@@ -1,4 +1,5 @@
 import {
+  FORMATTER_CACHE_LIMIT,
   getCandidateOffsets,
   getFormatter,
   getLocalParts,
@@ -35,5 +36,19 @@ describe('native-time-zone-runtime', () => {
 
     expect(getTimeZoneOffset(timestamp, 'UTC')).toBe(0);
     expect(getCandidateOffsets(timestamp, 'UTC')).toContain(0);
+  });
+
+  it('Given more zones than the cache limit, When requesting another formatter, Then the oldest formatter is evicted', () => {
+    const zones = Intl.supportedValuesOf('timeZone').slice(
+      0,
+      FORMATTER_CACHE_LIMIT + 1,
+    );
+    const firstFormatter = getFormatter(zones[0]);
+
+    for (const zone of zones.slice(1)) {
+      getFormatter(zone);
+    }
+
+    expect(getFormatter(zones[0])).not.toBe(firstFormatter);
   });
 });

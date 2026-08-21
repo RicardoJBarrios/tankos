@@ -53,6 +53,14 @@ export function nativeParseInstant(value: InstantInput): Instant {
   } else if (typeof value === 'number') {
     epochMilliseconds = value;
   } else {
+    if (
+      typeof value !== 'object' ||
+      value === null ||
+      value.kind !== 'instant' ||
+      typeof value.epochMilliseconds !== 'number'
+    ) {
+      throw new RangeError('Invalid instant');
+    }
     epochMilliseconds = value.epochMilliseconds;
   }
 

@@ -92,8 +92,23 @@ describe('angular-time-display-adapter', () => {
       }),
     ).toBe('date');
     expect(transform).toHaveBeenCalledWith(
-      Date.UTC(2026, 7, 20),
+      Date.parse('2026-08-20T00:00:00.000Z'),
       'fullDate',
+      '+0000',
+      undefined,
+    );
+  });
+
+  it('Given a local date in the first century, When formatting it, Then it preserves the actual year', () => {
+    const datePipe = new DatePipe('en-GB');
+    const transform = vi.spyOn(datePipe, 'transform').mockReturnValue('date');
+    const adapter = createAngularTimeDisplayAdapter(datePipe, timeAdapter);
+
+    adapter.formatLocalDate('0001-01-02');
+
+    expect(transform).toHaveBeenCalledWith(
+      Date.parse('0001-01-02T00:00:00.000Z'),
+      'mediumDate',
       '+0000',
       undefined,
     );

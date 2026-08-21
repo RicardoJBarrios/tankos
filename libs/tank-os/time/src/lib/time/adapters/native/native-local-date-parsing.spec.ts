@@ -34,6 +34,20 @@ describe('native-local-date-parsing', () => {
     ).toThrow(RangeError);
   });
 
+  it.each([
+    {},
+    { year: 2026, month: 8, day: 20 },
+    { kind: 'instant', year: 2026, month: 8, day: 20 },
+    { kind: 'local-date', year: '2026', month: 8, day: 20 },
+    null,
+    undefined,
+  ])(
+    'Given a structurally invalid local date object %s, When parsing it, Then it raises a range error',
+    (value) => {
+      expect(() => adapter.parseLocalDate(value as never)).toThrow(RangeError);
+    },
+  );
+
   it.each(['2026-13-01', '2026-02-29', 'not-a-date', ''])(
     'Given invalid date %s, When parsing it, Then it raises a range error',
     (value) => {

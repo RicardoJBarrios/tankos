@@ -5,6 +5,7 @@ import {
   LocalDateInput,
   TimeAdapter,
 } from '../../core';
+import { jsonHttpDateStringSchema } from './json-http-schemas';
 
 /** JSON/HTTP representation of a normalized instant. */
 export type JsonHttpInstant = string;
@@ -33,20 +34,26 @@ export function createJsonHttpTimeAdapter(
   return {
     serializeInstant: (value) => timeAdapter.toUtcIsoString(value),
     deserializeInstant: (value) => {
-      if (typeof value !== 'string') {
-        throw new RangeError('Expected an ISO 8601 instant string');
-      }
-      return timeAdapter.parseInstant(value);
+      return timeAdapter.parseInstant(
+        parseJsonDateString(value, 'Expected an ISO 8601 instant string'),
+      );
     },
     serializeLocalDate: (value) =>
       formatLocalDate(timeAdapter.parseLocalDate(value)),
     deserializeLocalDate: (value) => {
-      if (typeof value !== 'string') {
-        throw new RangeError('Expected a YYYY-MM-DD local date string');
-      }
-      return timeAdapter.parseLocalDate(value);
+      return timeAdapter.parseLocalDate(
+        parseJsonDateString(value, 'Expected a YYYY-MM-DD local date string'),
+      );
     },
   };
+}
+
+function parseJsonDateString(value: unknown, message: string): string {
+  const result = jsonHttpDateStringSchema.safeParse(value);
+  if (!result.success) {
+    throw new RangeError(message);
+  }
+  return result.data;
 }
 
 function formatLocalDate(value: LocalDate): string {

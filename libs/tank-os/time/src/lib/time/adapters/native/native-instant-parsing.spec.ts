@@ -34,6 +34,20 @@ describe('native-instant-parsing', () => {
   });
 
   it.each([
+    {},
+    { epochMilliseconds: 0 },
+    { kind: 'local-date', epochMilliseconds: 0 },
+    { kind: 'instant', epochMilliseconds: '0' },
+    null,
+    undefined,
+  ])(
+    'Given a structurally invalid instant object %s, When parsing it, Then it raises a range error',
+    (value) => {
+      expect(() => adapter.parseInstant(value as never)).toThrow(RangeError);
+    },
+  );
+
+  it.each([
     '2026-08-20T15:30:00',
     '2026-02-30T15:30:00Z',
     '2026-08-20T24:00:00Z',

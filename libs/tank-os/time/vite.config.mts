@@ -25,6 +25,8 @@ export default defineConfig(() => ({
       provider: 'v8' as const,
       exclude: [
         '**/src/index.ts',
+        '**/src/firestore.ts',
+        '**/src/json-http.ts',
         '**/index.ts',
         '**/*-types.ts',
         '**/*-context.ts',

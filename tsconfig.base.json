@@ -15,7 +15,9 @@
     "skipDefaultLibCheck": true,
     "paths": {
       "@tank-os/units": ["./libs/tank-os/units/src/index.ts"],
-      "@tank-os/time": ["./libs/tank-os/time/src/index.ts"]
+      "@tank-os/time": ["./libs/tank-os/time/src/index.ts"],
+      "@tank-os/time/firestore": ["./libs/tank-os/time/src/firestore.ts"],
+      "@tank-os/time/json-http": ["./libs/tank-os/time/src/json-http.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

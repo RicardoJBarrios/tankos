@@ -1,4 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
+import { firestoreTimestampSchema } from './firestore-schemas';
 import {
   Instant,
   InstantInput,
@@ -38,7 +39,14 @@ export function createFirestoreTimeAdapter(
       if (!(value instanceof Timestamp)) {
         throw new RangeError('Expected a Firestore Timestamp');
       }
-      return timeAdapter.parseInstant(value.toMillis());
+      const timestamp = firestoreTimestampSchema.parse(value);
+      if (timestamp.nanoseconds % 1_000_000 !== 0) {
+        throw new RangeError(
+          'Firestore Timestamp must have millisecond precision',
+        );
+      }
+      const milliseconds = timestamp.toMillis();
+      return timeAdapter.parseInstant(milliseconds);
     },
     toLocalDate(value) {
       return toLocalDateString(timeAdapter.parseLocalDate(value));

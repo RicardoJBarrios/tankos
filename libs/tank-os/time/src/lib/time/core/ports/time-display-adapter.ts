@@ -4,7 +4,9 @@ import { InstantInput, LocalDateInput } from '../value-types';
 export type TimeDisplayOptions = Readonly<{
   /** Angular-compatible date format, such as `medium` or `fullDate`. */
   format?: string;
+  /** Locale override passed to the final display formatter. */
   locale?: string;
+  /** Explicit presentation zone; it does not alter the stored value. */
   timeZone?: string;
 }>;
 

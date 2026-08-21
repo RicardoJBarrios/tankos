@@ -95,15 +95,16 @@ const jsonHttp = createJsonHttpTimeAdapter(timeAdapter);
 ```
 
 The Firestore adapter uses the client SDK `Timestamp` and stores `Instant` at
-the library's current millisecond precision. `LocalDate` is stored as the
-canonical `YYYY-MM-DD` string because it is a calendar value, not a timestamp.
-The adapter rejects Admin SDK or unrelated timestamp objects instead of
-silently accepting a structurally similar value.
+the library's millisecond precision. It rejects timestamps containing
+sub-millisecond information instead of silently truncating it. `LocalDate` is
+stored as the canonical `YYYY-MM-DD` string because it is a calendar value,
+not a timestamp. The adapter rejects Admin SDK or unrelated timestamp objects
+instead of silently accepting a structurally similar value.
 
 The JSON/HTTP adapter serializes `Instant` as canonical UTC ISO 8601 with
 millisecond precision and `LocalDate` as `YYYY-MM-DD`. Deserializers validate
-the transport value through the active `TimeAdapter` and raise `RangeError`
-for malformed or unsupported input.
+the transport value with Zod and then through the active `TimeAdapter`; they
+raise `RangeError` for malformed or unsupported input.
 
 Both adapters are deliberately conversion adapters, not database clients or
 HTTP clients. Repository and API services own the actual read/write operation
@@ -132,6 +133,8 @@ The first public adapter slice exports:
 - `TIME_ADAPTER`, `provideTimeAdapter(...)` and `TimeService`;
 - `TimeDisplayAdapter`, `TimeDisplayService` and the `tankInstant` and
   `tankLocalDate` presentation pipes.
+- Firestore and JSON/HTTP conversion adapters through their dedicated entry
+  points.
 
 The temporal operations are methods on `TimeAdapter` and `TimeService`, not
 global functions.
@@ -169,6 +172,17 @@ the native implementation directly. Consumers should use `TimeService` inside
 Angular or call methods on an explicit adapter created with
 `createNativeTimeAdapter()` outside Angular. There are no parallel global
 helper functions.
+
+The main entry point contains the Angular-facing API and native adapter. The
+Firestore and JSON/HTTP conversion adapters use dedicated entry points:
+
+```ts
+import { createFirestoreTimeAdapter } from '@tank-os/time/firestore';
+import { createJsonHttpTimeAdapter } from '@tank-os/time/json-http';
+```
+
+This keeps transport-specific dependencies outside consumers that only need
+temporal values, Angular services or presentation pipes.
 
 Date presentation is provided by the Angular pipes `tankInstant` and
 `tankLocalDate`. They delegate to `TimeDisplayService`, whose
@@ -303,15 +317,20 @@ contracts, the public barrel and test/build tooling; public contracts are
 tested through the adapter, Angular DI and pipe tests. Component fixtures belong
 to the consuming Angular application when a component is present.
 
+Runtime boundaries validate structured values before they enter the temporal
+model. JSON/HTTP strings use Zod followed by the active adapter; Firestore
+timestamps must be client SDK `Timestamp` instances and must represent whole
+milliseconds. Native structured values must contain their correct discriminant
+(`instant` or `local-date`) and all required numeric fields.
+
 ## Future decisions
 
 1. Whether `ZonedDateTime` and `Duration` become public value types in a later
    slice.
 2. Whether a future slice should support precision finer than milliseconds.
 3. The supported time-zone database and invalid-zone behavior.
-4. The wire representation used at the Firebase and HTTP boundaries.
-5. Which original zone metadata is retained with a normalized instant.
-6. Whether duration conversion is part of this library or remains delegated to
+4. Which original zone metadata is retained with a normalized instant.
+5. Whether duration conversion is part of this library or remains delegated to
    `@tank-os/units`.
 
 These future decisions do not invalidate the current `Instant`, `LocalDate`,

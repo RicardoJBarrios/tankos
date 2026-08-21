@@ -2,6 +2,8 @@ import { createUtcTimestamp } from './native-calendar-date';
 import { DateTimeParts } from '../../core';
 
 const formatterCache = new Map<string, Intl.DateTimeFormat>();
+/** Maximum number of zone formatters retained by the native adapter. */
+export const FORMATTER_CACHE_LIMIT = 64;
 
 /** Returns a cached formatter for an IANA time zone. */
 export function getFormatter(timeZone: string): Intl.DateTimeFormat {
@@ -23,6 +25,12 @@ export function getFormatter(timeZone: string): Intl.DateTimeFormat {
     year: 'numeric',
   });
   formatterCache.set(timeZone, formatter);
+  if (formatterCache.size > FORMATTER_CACHE_LIMIT) {
+    const oldestTimeZone = formatterCache.keys().next().value;
+    if (oldestTimeZone !== undefined) {
+      formatterCache.delete(oldestTimeZone);
+    }
+  }
   return formatter;
 }
 

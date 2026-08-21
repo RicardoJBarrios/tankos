@@ -34,14 +34,12 @@ export function createAngularTimeDisplayAdapter(
     },
     formatLocalDate(value, options) {
       const localDate = timeAdapter.parseLocalDate(value);
-      const epochMilliseconds = Date.UTC(
-        localDate.year,
-        localDate.month - 1,
-        localDate.day,
-      );
+      const date = new Date(0);
+      date.setUTCFullYear(localDate.year, localDate.month - 1, localDate.day);
+      date.setUTCHours(0, 0, 0, 0);
       return (
         datePipe.transform(
-          epochMilliseconds,
+          date.getTime(),
           options?.format ?? 'mediumDate',
           '+0000',
           options?.locale,
