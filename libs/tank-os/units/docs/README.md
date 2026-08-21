@@ -1,12 +1,16 @@
 # TankOS Units
 
-**Status:** domain boundary and accepted architectural decisions. No runtime
-unit catalogue or conversion API has been implemented yet.
+**Status:** core value types and dimensional compatibility are implemented.
+Catalogue, conversion and Angular management slices remain pending.
 
 `Units` is an Angular-centric library for the identity, representation,
 compatibility and conversion of units. It is intentionally independent from
 values observed in the world and from the domains that may later consume those
 units.
+
+Decimal arithmetic is provided by the separate
+[`Decimal`](../../decimal/docs/README.md) library through its public arithmetic
+port. `Units` must not import `big.js` or own decimal normalization.
 
 ## Scope
 
@@ -693,7 +697,8 @@ The first implementation must not add:
 - device, sensor or IoT integrations;
 - Firestore persistence;
 - FIWARE synchronization clients;
-- marketplace, moderation or administration workflows;
+- advanced marketplace discovery, external moderation workflows or cross-domain
+  administration dashboards;
 - automatic dosing, alerts or recommendations.
 
 ## Accepted implementation decisions
@@ -718,9 +723,11 @@ The following decisions are closed for the first implementation:
    declared input and output schemas. Linear, affine, compound and contextual
    conversions are supported. Salinity is a contextual family, not a special
    hardcoded exception.
-6. **Precision:** use replaceable decimal arithmetic internally. Accept finite
-   numbers and canonical decimal strings, reject `NaN` and infinities, avoid
-   implicit rounding, and declare range and rounding policies per function.
+6. **Precision:** use replaceable decimal arithmetic internally. The first
+   adapter is `big.js`; the public/core contracts do not expose its types.
+   Accept finite numbers and canonical decimal strings, reject `NaN` and
+   infinities, avoid implicit rounding, and declare range and rounding policies
+   per function.
 7. **Representation:** use canonical scientific Unicode symbols, explicit
    ASCII fallbacks, localized names through a replaceable locale port and
    standard spacing/composition rules.
@@ -745,12 +752,135 @@ The canonical internal value is a decimal string:
 type DecimalValue = string;
 ```
 
+The first concrete arithmetic adapter is `big.js`, installed at workspace level
+because the library is currently not a separately published package. Only the
+adapter may import `big.js`; core contracts and application ports use
+`DecimalValue` and decimal contexts. A future adapter may replace it without
+changing the public Units API.
+
 Public boundaries may accept finite JavaScript numbers and canonical decimal
-strings, but normalize them immediately. `NaN`, positive and negative
-infinity, empty strings, whitespace and ambiguous numeric formats are rejected.
-Arithmetic is provided through a replaceable decimal adapter. Conversion does
-not round implicitly; rounding and precision are explicit function or display
-policies.
+strings, but normalize them immediately. Exact values from forms, JSON,
+Firestore or measurements should use strings. `NaN`, positive and negative
+infinity, `null`, `undefined`, empty strings, whitespace, locale separators,
+hexadecimal values and other ambiguous numeric formats are rejected.
+
+Scientific notation such as `1e-6` is accepted and normalized to the canonical
+decimal representation. Negative zero is normalized to `0`. Arithmetic never
+uses JavaScript `number` after normalization.
+
+Conversion does not round implicitly. Addition, subtraction and multiplication
+retain the exact representable decimal result. Division and any other
+non-terminating operation require an explicit context:
+
+```ts
+type DecimalValue = string;
+
+interface DecimalContext {
+  decimalPlaces: number;
+  rounding: RoundingMode;
+}
+
+interface DecimalArithmeticPort {
+  add(left: DecimalValue, right: DecimalValue): DecimalValue;
+  subtract(left: DecimalValue, right: DecimalValue): DecimalValue;
+  multiply(left: DecimalValue, right: DecimalValue): DecimalValue;
+  divide(left: DecimalValue, right: DecimalValue, context: DecimalContext): DecimalValue;
+  compare(left: DecimalValue, right: DecimalValue): -1 | 0 | 1;
+}
+```
+
+The decimal adapter owns conversion to and from `big.js`, division-by-zero
+errors and mapping of arithmetic failures. Precision of calculation is
+separate from precision of display. Display pipes may round only when their
+explicit presentation options require it.
+
+The initial RoundingMode vocabulary is:
+
+```text
+up
+down
+half-up
+half-even
+ceil
+floor
+```
+
+The adapter must use an isolated configuration per operation or request. A
+mutable process-wide precision setting is not part of the Units contract.
+
+### First implementation slices
+
+Implementation proceeds in this order:
+
+1. `DecimalValue`, validation, `DecimalContext` and the decimal adapter;
+2. `UnitCode`, `DimensionSignature`, `QuantityKind` and immutable definitions;
+3. compatibility and the generated aquarium-first standard catalogue;
+4. linear, affine and compound conversion functions;
+5. scientific representation, locale port and `tankUnit` presentation;
+6. in-memory custom catalogue and application ports;
+7. Angular CRUD components and services;
+8. local cache with TTL and manual refresh;
+9. Firestore and JSON/HTTP adapters;
+10. contextual conversions such as salinity.
+
+The first slices must not introduce Measurement, ParameterDefinition,
+Firestore persistence, FIWARE clients or salinity algorithms.
+
+### Identity and lifecycle state
+
+The qualified `namespace:code` identifies the logical unit. A server-generated
+immutable `versionId` identifies one published definition. Codes are never
+reused for a different meaning and standard/custom namespaces cannot collide.
+
+Publication and availability are separate state machines:
+
+```text
+draft -> submitted -> published -> rejected
+published/active -> deprecated -> retired
+```
+
+Keepers may create and edit their own drafts and submit proposals. Moderators
+or administrators publish global custom units. Administrators may retire,
+restore or remove eligible drafts. Published or used versions are never
+edited or physically deleted in normal application flows; editing creates a
+complete replacement version.
+
+### Initial conversions and test vectors
+
+The first conversion set is:
+
+```text
+L <-> mL
+m <-> cm
+kg <-> g
+°C <-> K
+°C <-> °F
+bar <-> Pa
+L/min <-> m³/h
+mS/cm <-> S/m
+```
+
+Each conversion has deterministic reference vectors, declared range and
+rounding behavior. Contextual salinity functions are deferred until the
+function input/output contract is implemented; they will accept parameters
+such as conductivity, temperature and method rather than becoming special
+hardcoded unit formulas.
+
+### Cache defaults
+
+The standard catalogue is generated, immutable reference data and uses a
+versioned application asset with a long local-cache lifetime. The initial
+custom-catalogue cache policy is:
+
+```text
+standard catalogue: up to 30 days or application-version invalidation
+custom catalogue: 7 days, invalidated after successful local mutation
+drafts: session cache or short TTL
+```
+
+All reads remain `cache-first` by default. The management UI exposes a one-shot
+`refresh`/`network-only` action. User, permission and Aquarium-scope changes
+invalidate incompatible entries before rendering.
 
 ### Quantity kinds and dimensions
 
