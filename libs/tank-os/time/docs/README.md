@@ -140,9 +140,11 @@ The first public adapter slice exports:
 - the `InstantPort`, `DurationPort`, `CalendarPort` and `TimeZonePort`
   contracts, composed as `TimePort` when all capabilities are required;
 - the `TimeZoneDatabasePort` port;
-- the `TemporalCalculationPort` port for deterministic temporal arithmetic;
+- the `TemporalCalculationPort` aggregate and its focused
+  `InstantCalculationPort`, `DurationCalculationPort`,
+  `IntervalCalculationPort` and `LocalDateCalculationPort` contracts;
 - the `TimeLocalePort` port for replaceable locale sources;
-- the `ClockPort` port and `TimeService`;
+- the `ClockPort` port, `TimeService` and `TemporalCalculationService`;
 - `createNativeClock()`, `createNativeTimeAdapter()` and
   `createNativeTimeZoneDatabase()`;
 - the native duration validation, parsing and serialization helpers;
@@ -152,21 +154,32 @@ The first public adapter slice exports:
   `provideTankOsTime()`;
 - `TimeDisplayAdapter`, `TimeDisplayService` and the `tankInstant`,
   `tankLocalDate`, `tankDuration` and `tankHumanizeDuration` presentation
-  pipes. `tankDuration` uses the `iso`, `short`, `long`, `digital` and
-  `relative` styles; ISO is a presentation style, while ISO serialization
+  pipes. `tankDuration` uses the `iso`, `short`, `long` and `digital` styles;
+  ISO is a presentation style, while ISO serialization
   remains a separate transport operation. `tankHumanizeDuration` is the
   dedicated relative-text entry point.
 - Firestore and JSON/HTTP conversion adapters through their dedicated entry
   points.
 - `TimeService.parseDuration()`, `TimeService.isValidDuration()` and
   `TimeService.toDurationIsoString()`;
-- `TimeService.durationBetween()`, `addDuration()`, temporal comparisons,
-  closed intervals, `addLocalDate()` and calendar-date duration differences;
+- `TemporalCalculationService.durationBetween()`, `addDuration()`, temporal
+  comparisons, closed intervals, `addLocalDate()` and calendar-date duration
+  differences;
 - `TimeService.resolveZonedDateTime()` and
   `TimeService.resolveOffsetDateTime()`;
 
-The temporal operations are methods on the capability ports and `TimeService`, not
-global functions.
+The temporal operations are methods on the capability ports and
+`TemporalCalculationService`, not global functions.
+
+## Documentation boundary
+
+All documentation and architecture decisions specific to this library belong
+under `libs/tank-os/time/docs`. The repository `.codex` directory is reserved
+for shared guardrails and cross-library decisions; do not add `Time`-specific
+ADRs or design notes there.
+
+The public capability split and presentation boundary are recorded in
+[`architecture-decisions.md`](./architecture-decisions.md).
 
 ## Temporal calculations
 
@@ -208,7 +221,7 @@ Those runtimes are confined to the native and Angular adapters.
 
 ## Runtime abstraction
 
-The library exposes capability ports and an Angular `TimeService`. Angular
+The library exposes capability ports and Angular application services. Angular
 consumers receive the `DatePipe`-backed display adapter by default:
 
 ```text
@@ -223,11 +236,11 @@ provideTimeDisplayAdapter(customDisplayAdapter);
 
 The adapter is the only place where a concrete date-time runtime, JavaScript
 standard, polyfill or third-party library may be selected. The Angular display
-adapter consumes the active capability ports; it does not import
-the native implementation directly. Consumers should use `TimeService` inside
-Angular or call methods on an explicit adapter created with
-`createNativeTimeAdapter()` outside Angular. There are no parallel global
-helper functions.
+adapter consumes the active capability ports; it does not import the native
+implementation directly. Consumers should use `TimeService` for normalization
+and `TemporalCalculationService` for calculations inside Angular, or call
+methods on an explicit adapter created with `createNativeTimeAdapter()` outside
+Angular. There are no parallel global helper functions.
 
 The main entry point contains the Angular-facing API and native adapter. The
 Firestore and JSON/HTTP conversion adapters use dedicated entry points:
@@ -254,14 +267,13 @@ Date and duration presentation is provided by the Angular pipes `tankInstant`,
 `TimeDisplayAdapter` port keeps locale and runtime formatting outside the
 presentation classes.
 
-`tankDuration` accepts `style` (`iso`, `short`, `long`, `digital` or
-`relative`) and an
+`tankDuration` accepts `style` (`iso`, `short`, `long` or `digital`) and an
 optional locale. Its `iso` style is deterministic and does not use
 internationalization; the other styles are delegated to the active display
 adapter. The pipe remains a single presentation entry point for all duration
 styles.
 
-`tankHumanizeDuration` interprets the duration sign relative to the current
+`tankHumanizeDuration` is the dedicated relative-text pipe. It interprets the duration sign relative to the current
 moment: negative values become past text such as “3 hours ago”, positive values
 become future text such as “in 2 hours”, and zero becomes the locale's “now”.
 It chooses seconds, minutes, hours or days according to the largest applicable
@@ -344,7 +356,7 @@ final localized formatting to `DatePipe`. It is an adapter, not a dependency
 of the native temporal implementation:
 
 ```text
-tankInstant / tankLocalDate / tankDuration
+tankInstant / tankLocalDate / tankDuration / tankHumanizeDuration
           -> TimeDisplayService
           -> TimeDisplayAdapter
           -> AngularTimeDisplayAdapter
@@ -357,7 +369,10 @@ not provide a second display implementation. Angular applications should use
 `provideTankOsTime()` for the default composition. They may use
 `provideTimeDisplayContext(...)` for aquarium and user fallback zones, or
 `provideAngularTimeDisplayAdapter(...)` when a scoped explicit fallback must
-override that context.
+override that context. The lower-level
+`createAngularTimeDisplayAdapter(...)` factory requires an explicit
+`TimeZoneDatabasePort`; default runtime choices belong to the composition
+layer, not to the adapter itself.
 
 Angular's `DatePipe` accepts numeric timezone offsets rather than arbitrary
 IANA zone identifiers. The Angular adapter therefore resolves an IANA

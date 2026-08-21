@@ -35,6 +35,9 @@ Read only the documents needed for the task. Do not load the whole repository.
 - Validate external data with Zod before mapping it into the domain.
 - Do not expose transport DTOs directly to domain or UI code.
 - Do not add dependencies, abstractions or Nx projects without justification.
+- Keep library-specific documentation and architecture decisions inside that
+  library's `docs` directory. Use `.codex` only for shared guardrails and
+  cross-library decisions.
 - Apply [`CODE_GUARDRAILS.md`](CODE_GUARDRAILS.md): public code requires TSDoc,
   and libraries require 100% coverage plus public-API breaking/contract tests.
 - Do not run `git push` or `git reset --hard`.
