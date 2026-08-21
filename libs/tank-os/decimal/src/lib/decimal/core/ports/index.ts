@@ -1,1 +1,4 @@
-export type { DecimalArithmeticPort } from './decimal-arithmetic-port';
+export type {
+  DecimalArithmeticPort,
+  DecimalOperands,
+} from './decimal-arithmetic-port';

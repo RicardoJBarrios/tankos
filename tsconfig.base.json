@@ -20,6 +20,7 @@
       "@tank-os/time/json-http": ["./libs/tank-os/time/src/json-http.ts"],
       "@tank-os/decimal": ["./libs/tank-os/decimal/src/index.ts"],
       "@tank-os/decimal/zod": ["./libs/tank-os/decimal/src/zod.ts"],
+      "@tank-os/decimal/big-js": ["./libs/tank-os/decimal/src/big-js.ts"],
       "@tank-os/time/zod": ["./libs/tank-os/time/src/zod.ts"]
     }
   },

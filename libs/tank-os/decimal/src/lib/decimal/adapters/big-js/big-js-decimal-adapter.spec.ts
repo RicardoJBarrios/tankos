@@ -21,12 +21,30 @@ describe('createBigJsDecimalAdapter', () => {
     },
   );
 
+  it('Given three decimals, When added, Then accumulates all operands from left to right', () => {
+    expect(adapter.add('0.1' as never, '0.2' as never, '0.7' as never)).toBe(
+      '1',
+    );
+  });
+
   it('Given two decimals, When subtracted, Then returns the exact decimal result', () => {
     expect(adapter.subtract('1' as never, '0.1' as never)).toBe('0.9');
   });
 
+  it('Given three decimals, When subtracted, Then subtracts each following operand sequentially', () => {
+    expect(adapter.subtract('10' as never, '2' as never, '3' as never)).toBe(
+      '5',
+    );
+  });
+
   it('Given two decimals, When multiplied, Then returns the exact decimal result', () => {
     expect(adapter.multiply('0.1' as never, '0.2' as never)).toBe('0.02');
+  });
+
+  it('Given three decimals, When multiplied, Then accumulates all operands from left to right', () => {
+    expect(adapter.multiply('2' as never, '3' as never, '0.5' as never)).toBe(
+      '3',
+    );
   });
 
   it.each([
@@ -66,6 +84,17 @@ describe('createBigJsDecimalAdapter', () => {
     ).toBe('-0.34');
   });
 
+  it('Given three divisors, When divided, Then applies the same context to every sequential division', () => {
+    expect(
+      adapter.divide(
+        '1' as never,
+        '3' as never,
+        createDecimalContext(4, 'half-up'),
+        '2' as never,
+      ),
+    ).toBe('0.1667');
+  });
+
   it.each([
     ['1', '-3', '-0.33', '-0.34'],
     ['-1', '-3', '0.34', '0.33'],
@@ -97,6 +126,90 @@ describe('createBigJsDecimalAdapter', () => {
         createDecimalContext(2, 'down'),
       ),
     ).toThrow(DecimalDivisionByZeroError);
+  });
+
+  it('Given two decimals, When remainder is calculated, Then returns the JavaScript `%` equivalent', () => {
+    expect(adapter.remainder('7' as never, '3' as never)).toBe('1');
+  });
+
+  it('Given a zero remainder divisor, When calculated, Then throws a typed division error', () => {
+    expect(() => adapter.remainder('7' as never, '0' as never)).toThrow(
+      DecimalDivisionByZeroError,
+    );
+  });
+
+  it('Given an integer exponent, When power is calculated, Then returns the JavaScript `**` equivalent', () => {
+    expect(adapter.power('2' as never, '3' as never)).toBe('8');
+  });
+
+  it('Given a negative integer exponent and a context, When power is calculated, Then applies explicit rounding', () => {
+    expect(
+      adapter.power(
+        '3' as never,
+        '-1' as never,
+        createDecimalContext(2, 'half-up'),
+      ),
+    ).toBe('0.33');
+  });
+
+  it('Given a negative base and an even negative exponent, When rounded up or down, Then uses the positive result sign', () => {
+    expect(
+      adapter.power(
+        '-3' as never,
+        '-2' as never,
+        createDecimalContext(2, 'ceil'),
+      ),
+    ).toBe('0.12');
+    expect(
+      adapter.power(
+        '-3' as never,
+        '-2' as never,
+        createDecimalContext(2, 'floor'),
+      ),
+    ).toBe('0.11');
+  });
+
+  it('Given a negative base and an odd negative exponent, When rounded up or down, Then uses the negative result sign', () => {
+    expect(
+      adapter.power(
+        '-3' as never,
+        '-3' as never,
+        createDecimalContext(2, 'ceil'),
+      ),
+    ).toBe('-0.03');
+    expect(
+      adapter.power(
+        '-3' as never,
+        '-3' as never,
+        createDecimalContext(2, 'floor'),
+      ),
+    ).toBe('-0.04');
+  });
+
+  it('Given a negative integer exponent without a context, When power is calculated, Then rejects implicit precision', () => {
+    expect(() => adapter.power('3' as never, '-1' as never)).toThrow(
+      DecimalAdapterError,
+    );
+  });
+
+  it('Given zero and a negative exponent, When power is calculated, Then throws a typed division error', () => {
+    expect(() =>
+      adapter.power(
+        '0' as never,
+        '-1' as never,
+        createDecimalContext(2, 'half-up'),
+      ),
+    ).toThrow(DecimalDivisionByZeroError);
+  });
+
+  it('Given a non-integer exponent, When power is calculated, Then maps it to an adapter error', () => {
+    expect(() => adapter.power('2' as never, '0.5' as never)).toThrow(
+      DecimalAdapterError,
+    );
+  });
+
+  it('Given a decimal, When negated, Then returns its additive inverse', () => {
+    expect(adapter.negate('-2.5' as never)).toBe('2.5');
   });
 
   it('Given an invalid canonical input at the adapter boundary, When added, Then throws the shared input error', () => {

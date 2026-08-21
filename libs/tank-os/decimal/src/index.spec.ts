@@ -24,6 +24,9 @@ describe('Decimal public entry point', () => {
       subtract: (left) => left,
       multiply: (left) => left,
       divide: (left) => left,
+      remainder: (left) => left,
+      power: (left) => left,
+      negate: (left) => left,
       compare: () => 0,
     };
 
@@ -32,5 +35,10 @@ describe('Decimal public entry point', () => {
 
   it('Given the public entry point, When imported, Then does not expose the concrete big.js adapter', () => {
     expect('createBigJsDecimalAdapter' in publicApi).toBe(false);
+  });
+
+  it('Given the public entry point, When imported, Then does not expose the internal Decimal factory or runtime implementation', () => {
+    expect('createDecimal' in publicApi).toBe(false);
+    expect('DecimalValueObject' in publicApi).toBe(false);
   });
 });

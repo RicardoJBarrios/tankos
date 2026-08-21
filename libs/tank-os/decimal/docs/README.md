@@ -48,7 +48,7 @@ The core must not depend on Angular, Firebase, Firestore, Units, Time or
 The canonical value is a decimal string:
 
 ```ts
-type DecimalValue = string;
+type DecimalValue = string & { readonly __decimalValue: unique symbol };
 ```
 
 Strings are used because they preserve the decimal representation at external
@@ -94,27 +94,76 @@ undefined
 
 ## Arithmetic adapter
 
-The first implementation uses [`big.js`](https://github.com/MikeMcl/big.js/)
-7.x. It is an implementation detail and must not appear in public contracts.
-The dependency is installed at workspace level while TankOS libraries remain
-internal Nx libraries.
+The reference implementation uses [`big.js`](https://github.com/MikeMcl/big.js/)
+7.x. It is an implementation detail and must not appear in the core public
+contract. Big.js is available through the separate `@tank-os/decimal/big-js`
+entry point so importing `@tank-os/decimal` does not pull the concrete engine
+into the core entry point.
 
 The adapter is replaceable through a port:
 
 ```ts
 interface DecimalArithmeticPort {
-  add(left: DecimalValue, right: DecimalValue): DecimalValue;
-  subtract(left: DecimalValue, right: DecimalValue): DecimalValue;
-  multiply(left: DecimalValue, right: DecimalValue): DecimalValue;
-  divide(left: DecimalValue, right: DecimalValue, context: DecimalContext): DecimalValue;
+  add(...operands: DecimalOperands): DecimalValue;
+  subtract(...operands: DecimalOperands): DecimalValue;
+  multiply(...operands: DecimalOperands): DecimalValue;
+  divide(left: DecimalValue, right: DecimalValue, context: DecimalContext, ...additionalDivisors: DecimalValue[]): DecimalValue;
+  remainder(left: DecimalValue, right: DecimalValue): DecimalValue;
+  power(base: DecimalValue, exponent: DecimalValue, context?: DecimalContext): DecimalValue;
+  negate(value: DecimalValue): DecimalValue;
   compare(left: DecimalValue, right: DecimalValue): -1 | 0 | 1;
 }
 ```
 
-Only the adapter imports `big.js` and maps its exceptions to typed Decimal
-errors. The concrete adapter is intentionally not exported by the public entry
-point; consumers select it through `provideTankOsDecimal()` or provide another
-implementation of `DecimalArithmeticPort`. A future implementation may use
+The arithmetic methods accept at least two operands. Addition and multiplication
+are accumulated left to right; subtraction and division apply each following
+operand to the current result in order. Division keeps the existing compatible
+signature, with the explicit context before any additional divisors, and uses
+that context for every division in the chain.
+
+JavaScript and TypeScript do not support operator overloading. Decimal therefore
+exposes explicit equivalents for the standard arithmetic operators: `add` (`+`),
+`subtract` (`-`), `multiply` (`*`), `divide` (`/`), `remainder` (`%`), and
+`power` (`**`). `negate` represents unary `-`. The API intentionally does not
+coerce values through JavaScript `number` arithmetic.
+
+`power` accepts integer decimal exponents, including negative integers. A
+non-integer or unsafe exponent is rejected by the adapter boundary. Negative
+exponents require an explicit `DecimalContext`; otherwise the operation would
+silently depend on mutable provider precision. Non-negative integer powers do
+not require a context because they are exact multiplications.
+
+## Fluent arithmetic
+
+`DecimalService` is the only application entry point for arithmetic. It creates
+an immutable `Decimal`, and every operation returns a new `Decimal`. `Decimal`
+is exported as a type contract; its runtime value object and factory are
+application-internal. There is no public constructor or `Decimal.create()`
+factory. This keeps
+grouping and precedence visible in TypeScript without an expression parser:
+
+```ts
+const result = service.decimal('2.5').add('1.5').multiply('3').subtract('2').divide('3', service.context(2, 'half-up'));
+
+// result.value === '3.33'
+```
+
+Every operation returns a new immutable `Decimal`; the preceding value is not
+modified. A `Decimal` from the same configured service can also be passed as an
+operand. The fluent API does not implement `valueOf()` intentionally, so using
+`+`, `-`, `*` or `/` raises a `TypeError` instead of silently converting the
+value to JavaScript number arithmetic or concatenating strings. `String(value)`
+and `JSON.stringify(value)` use the canonical decimal string.
+
+Use intermediate variables when a formula has domain meaning, such as
+`subtotal`, `scaled` or `average`. Domain services should own named formulas
+and their business rules.
+
+Only the Big.js adapter imports `big.js` and maps its exceptions to typed Decimal
+errors. Consumers using the reference implementation import
+`provideTankOsDecimalWithBigJs()` from `@tank-os/decimal/big-js`. Consumers with
+another engine import `provideTankOsDecimal()` from the core entry point and
+provide their own `DecimalArithmeticPort`. A future implementation may use
 another decimal engine without changing Units or consuming domains.
 
 ## Precision and rounding
@@ -197,8 +246,8 @@ unusable persisted values. The current limits are:
 - input and canonical serialized length: at most `4_096` characters;
 - no trimming, locale conversion or implicit coercion.
 
-These are Decimal contract limits, not `big.js` configuration. Both the
-application facade and each adapter validate their runtime boundary. An adapter may
+These are Decimal contract limits, not `big.js` configuration. The `Decimal`
+value object and each adapter validate their runtime boundary. An adapter may
 have stricter operational capabilities and must report unsupported contexts as
 `DecimalAdapterError` rather than leaking its own exception type. Arithmetic
 results that exceed the contract are reported as `DecimalRangeError`.
@@ -211,13 +260,13 @@ adapter and application facade:
 ```text
 Decimal ports and value types
   -> DecimalService
-  -> provideTankOsDecimal()
+  -> provideTankOsDecimalWithBigJs()
   -> Angular consumers
 ```
 
-The public Angular API will use `inject()`. It will not expose constructor
+The public Angular API uses `inject()`. It does not expose constructor
 injection, `Big` instances or mutable global configuration. `DecimalService` is
-provided by `provideTankOsDecimal()` at the same injector scope as the selected
+provided by the selected provider composition at the same injector scope as the
 arithmetic port; it is not an unconditional root singleton. This allows a
 consumer to select a different adapter in a child application scope without
 reusing a service bound to the root adapter.
@@ -232,7 +281,7 @@ Implementation is intentionally incremental:
 4. typed errors and boundary mapping;
 5. Angular provider and service;
 6. contract tests and adapter tests;
-7. integration consumed by Units.
+7. fluent integration consumed by Units.
 
 Units then owns physical compatibility and conversion functions. Decimal does
 not know what a litre, kilogram or salinity is.
@@ -267,8 +316,23 @@ There is no source exclusion list.
 
 The adapter tests also cover all sign combinations relevant to directional
 rounding, invalid direct adapter inputs, provider-limit failures and division
-by zero, and forged contexts. Facade tests cover representative delegation and
-normalization/error behavior without duplicating the complete normalizer matrix.
+by zero, and forged contexts. Service tests cover fluent value creation,
+numeric inputs and context creation; arithmetic behavior is tested on the
+fluent `Decimal` value object and the adapter contract.
+
+The `build` target compiles the library and emits declarations under
+`dist/libs/tank-os/decimal`. It is a compilation/package-boundary check, not a
+database or HTTP client build. The public entry-point tests additionally pin
+that implementation factories remain internal to the main entry point.
+
+Run `pnpm nx run decimal:build` to compile the library or
+`pnpm nx run decimal:test` to execute the 100% V8 coverage gate.
+
+Any future arithmetic adapter must satisfy the complete
+`DecimalArithmeticPort` contract: every operation receives canonical finite
+decimal values, returns a canonical finite decimal value (except `compare`),
+and maps unsupported or provider-specific failures to the Decimal error model.
+The Big.js adapter tests are the executable reference for these semantics.
 
 ## Non-goals
 

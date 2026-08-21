@@ -1,18 +1,17 @@
-import { Provider } from '@angular/core';
-import { createBigJsDecimalAdapter } from '../../adapters';
+import type { Provider } from '@angular/core';
 import type { DecimalArithmeticPort } from '../../core';
 import { DECIMAL_ARITHMETIC, DecimalService } from '../../application';
 
 /** Registers the selected Decimal arithmetic implementation. */
 export function provideDecimalArithmetic(
-  arithmetic: DecimalArithmeticPort = createBigJsDecimalAdapter(),
+  arithmetic: DecimalArithmeticPort,
 ): Provider {
   return { provide: DECIMAL_ARITHMETIC, useValue: arithmetic };
 }
 
-/** Registers the default TankOS Decimal providers. */
+/** Registers TankOS Decimal providers for the selected arithmetic implementation. */
 export function provideTankOsDecimal(
-  arithmetic?: DecimalArithmeticPort,
+  arithmetic: DecimalArithmeticPort,
 ): Provider[] {
   return [
     provideDecimalArithmetic(arithmetic),

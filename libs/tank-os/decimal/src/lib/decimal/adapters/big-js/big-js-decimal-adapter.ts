@@ -17,19 +17,26 @@ import {
 /** Creates the default decimal adapter backed by `big.js`. */
 export function createBigJsDecimalAdapter(): DecimalArithmeticPort {
   return {
-    add: (left, right) =>
-      executeDecimal('add', () =>
-        Big(toBigValue(left)).plus(toBigValue(right)),
-      ),
-    subtract: (left, right) =>
-      executeDecimal('subtract', () =>
-        Big(toBigValue(left)).minus(toBigValue(right)),
-      ),
-    multiply: (left, right) =>
-      executeDecimal('multiply', () =>
-        Big(toBigValue(left)).times(toBigValue(right)),
-      ),
-    divide: (left, right, context) => divide(left, right, context),
+    add: (...operands) =>
+      reduceDecimal('add', operands, (left, right) => left.plus(right)),
+    subtract: (...operands) =>
+      reduceDecimal('subtract', operands, (left, right) => left.minus(right)),
+    multiply: (...operands) =>
+      reduceDecimal('multiply', operands, (left, right) => left.times(right)),
+    divide: (left, right, context, ...additionalDivisors) =>
+      divide(left, [right, ...additionalDivisors], context),
+    remainder: (left, right) =>
+      executeDecimal('remainder', () => {
+        const normalizedRight = toBigValue(right);
+        if (normalizedRight === '0') {
+          throw new DecimalDivisionByZeroError();
+        }
+
+        return Big(toBigValue(left)).mod(normalizedRight);
+      }),
+    power: (base, exponent, context) => power(base, exponent, context),
+    negate: (value) =>
+      executeDecimal('negate', () => Big(toBigValue(value)).times(-1)),
     compare: (left, right) =>
       executeCompare('compare', () =>
         Big(toBigValue(left)).cmp(toBigValue(right)),
@@ -37,33 +44,102 @@ export function createBigJsDecimalAdapter(): DecimalArithmeticPort {
   };
 }
 
+function power(
+  base: DecimalValue,
+  exponent: DecimalValue,
+  context?: DecimalContext,
+): DecimalValue {
+  return executeDecimal('power', () => {
+    const normalizedExponent = toBigValue(exponent);
+    const numericExponent = Number(normalizedExponent);
+
+    if (!Number.isSafeInteger(numericExponent)) {
+      throw new DecimalAdapterError('power');
+    }
+
+    if (numericExponent >= 0) {
+      return Big(toBigValue(base)).pow(numericExponent);
+    }
+
+    if (!context) {
+      throw new DecimalAdapterError('power');
+    }
+
+    const normalizedBase = toBigValue(base);
+    if (normalizedBase === '0') {
+      throw new DecimalDivisionByZeroError();
+    }
+
+    const validatedContext = createDecimalContext(
+      context.decimalPlaces,
+      context.rounding,
+    );
+    const configuredBig = Big();
+    configuredBig.DP = validatedContext.decimalPlaces;
+    configuredBig.RM = toBigRoundingMode(
+      validatedContext.rounding,
+      powerSign(normalizedBase, numericExponent),
+      normalizeDecimalInput('1'),
+    );
+
+    return configuredBig(normalizedBase).pow(numericExponent);
+  });
+}
+
+function powerSign(base: DecimalValue, exponent: number): DecimalValue {
+  return base.startsWith('-') && Math.abs(exponent) % 2 === 1
+    ? normalizeDecimalInput('-1')
+    : normalizeDecimalInput('1');
+}
+
 function divide(
   left: DecimalValue,
-  right: DecimalValue,
+  divisors: DecimalValue[],
   context: DecimalContext,
 ): DecimalValue {
   return executeDecimal('divide', () => {
-    const normalizedLeft = toBigValue(left);
-    const normalizedRight = toBigValue(right);
     const validatedContext = createDecimalContext(
       context.decimalPlaces,
       context.rounding,
     );
 
-    if (normalizedRight === '0') {
-      throw new DecimalDivisionByZeroError();
-    }
+    return divisors.reduce(
+      (current, divisor) => {
+        const normalizedLeft = normalizeDecimalInput(current.toString());
+        const normalizedRight = toBigValue(divisor);
 
-    const configuredBig = Big();
-    configuredBig.DP = validatedContext.decimalPlaces;
-    configuredBig.RM = toBigRoundingMode(
-      validatedContext.rounding,
-      normalizedLeft,
-      normalizedRight,
+        if (normalizedRight === '0') {
+          throw new DecimalDivisionByZeroError();
+        }
+
+        const configuredBig = Big();
+        configuredBig.DP = validatedContext.decimalPlaces;
+        configuredBig.RM = toBigRoundingMode(
+          validatedContext.rounding,
+          normalizedLeft,
+          normalizedRight,
+        );
+
+        return configuredBig(normalizedLeft).div(normalizedRight);
+      },
+      Big(toBigValue(left)),
     );
-
-    return configuredBig(normalizedLeft).div(normalizedRight);
   });
+}
+
+function reduceDecimal(
+  operation: string,
+  operands: readonly [DecimalValue, DecimalValue, ...DecimalValue[]],
+  operationFn: (left: Big, right: Big) => Big,
+): DecimalValue {
+  return executeDecimal(operation, () =>
+    operands
+      .slice(1)
+      .reduce(
+        (current, operand) => operationFn(current, Big(toBigValue(operand))),
+        Big(toBigValue(operands[0])),
+      ),
+  );
 }
 
 function executeDecimal(operation: string, callback: () => Big): DecimalValue {
