@@ -136,11 +136,13 @@ The first public adapter slice exports:
 - `Instant`, `LocalDate` and `LocalDateInput` typed values;
 - `Duration` and `DurationInput` typed values;
 - the `TimeAdapter` port;
+- the `TimeZoneDatabasePort` port;
 - the `TimeLocalePort` port for replaceable locale sources;
 - the `ClockPort` port and `TimeService.now()`;
 - `createNativeTimeAdapter()`;
 - `TIME_ADAPTER`, `TIME_CLOCK`, `provideTimeAdapter(...)`,
-  `provideTimeClock(...)`, `provideTimeLocale(...)` and
+  `provideTimeClock(...)`, `provideTimeZoneDatabase(...)`,
+  `provideTimeLocale(...)` and
   `provideTankOsTime()`;
 - `TimeDisplayAdapter`, `TimeDisplayService` and the `tankInstant` and
   `tankLocalDate` presentation pipes.
@@ -148,6 +150,8 @@ The first public adapter slice exports:
   points.
 - `TimeService.parseDuration()`, `TimeService.isValidDuration()` and
   `TimeService.toDurationIsoString()`;
+- `TimeService.resolveZonedDateTime()` and
+  `TimeService.resolveOffsetDateTime()`;
 
 The temporal operations are methods on `TimeAdapter` and `TimeService`, not
 global functions.
@@ -356,6 +360,10 @@ nanoseconds are truncated at the boundary. Native structured values must
 contain their correct discriminant
 (`instant` or `local-date`) and all required numeric fields.
 
+All temporal millisecond normalization uses the shared validation helpers in
+`core/validation`; adapters must not implement their own rounding or
+truncation formula.
+
 ## Time-zone database and origin metadata
 
 Time-zone identifiers use the IANA TZDB vocabulary. The native adapter obtains
@@ -368,6 +376,8 @@ not accepted because they are ambiguous. Invalid identifiers raise
 `fromZonedDateTime()` returns only the normalized `Instant` for callers that
 do not need provenance. `resolveZonedDateTime()` returns an envelope with the
 instant and the declared IANA zone plus the offset applicable at that instant.
+`resolveOffsetDateTime()` provides the equivalent contract when the source only
+declared a numeric offset.
 The owning observation, measurement or event may persist this envelope when
 provenance matters; the source metadata never changes the normalized instant.
 

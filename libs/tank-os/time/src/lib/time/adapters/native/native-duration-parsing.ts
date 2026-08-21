@@ -1,4 +1,5 @@
 import { Duration, DurationInput } from '../../core';
+import { truncateMilliseconds } from '../../core/validation';
 import { nativeIsValidDuration } from './native-duration-validation';
 
 const DURATION_PATTERN =
@@ -14,7 +15,7 @@ export function nativeParseDuration(value: DurationInput): Duration {
     if (!nativeIsValidDuration(value)) {
       throw new RangeError('Invalid duration');
     }
-    return { kind: 'duration', milliseconds: Math.trunc(value) };
+    return { kind: 'duration', milliseconds: truncateMilliseconds(value) };
   }
 
   if (typeof value === 'object') {
@@ -23,7 +24,7 @@ export function nativeParseDuration(value: DurationInput): Duration {
     }
     return {
       kind: 'duration',
-      milliseconds: Math.trunc(value.milliseconds),
+      milliseconds: truncateMilliseconds(value.milliseconds),
     };
   }
 
@@ -40,10 +41,10 @@ export function nativeParseDuration(value: DurationInput): Duration {
     fractionToMilliseconds(match[6]);
   const signedMilliseconds = match[1] === '-' ? -milliseconds : milliseconds;
 
-  if (!Number.isSafeInteger(signedMilliseconds)) {
-    throw new RangeError('Duration exceeds safe millisecond precision');
-  }
-  return { kind: 'duration', milliseconds: signedMilliseconds };
+  return {
+    kind: 'duration',
+    milliseconds: truncateMilliseconds(signedMilliseconds),
+  };
 }
 
 function hasDurationComponent(match: RegExpExecArray): boolean {

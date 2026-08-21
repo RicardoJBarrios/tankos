@@ -6,6 +6,7 @@ import { nativeIsValidLocalDate } from './native-local-date-validation';
 import { nativeParseLocalDate } from './native-local-date-parsing';
 import {
   nativeFromZonedDateTime,
+  nativeResolveOffsetDateTime,
   nativeResolveZonedDateTime,
 } from './native-zoned-date-time-resolution';
 import { createNativeTimeZoneDatabase } from './native-time-zone-database';
@@ -35,6 +36,7 @@ export function createNativeTimeAdapter(
       nativeFromZonedDateTime(value, timeZone, timeZoneDatabase),
     resolveZonedDateTime: (value, timeZone) =>
       nativeResolveZonedDateTime(value, timeZone, timeZoneDatabase),
+    resolveOffsetDateTime: nativeResolveOffsetDateTime,
     isValidTimeZone: timeZoneDatabase.isValid,
   };
 }

@@ -11,8 +11,10 @@ import {
   TIME_DISPLAY_ADAPTER,
   TIME_DISPLAY_CONTEXT,
   TIME_LOCALE,
+  TIME_ZONE_DATABASE,
 } from '../../application';
 import { createAngularTimeLocaleAdapter } from '../../adapters/angular';
+import { createNativeTimeZoneDatabase } from '../../adapters/native';
 
 /** Registers a custom temporal display adapter for Angular consumers. */
 export function provideTimeDisplayAdapter(
@@ -67,5 +69,7 @@ function createConfiguredAngularTimeDisplayAdapter(
       context.aquariumTimeZone ??
       context.userTimeZone ??
       'UTC',
+    inject(TIME_ZONE_DATABASE, { optional: true }) ??
+      createNativeTimeZoneDatabase(),
   );
 }

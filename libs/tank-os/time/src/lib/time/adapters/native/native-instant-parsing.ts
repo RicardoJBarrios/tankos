@@ -1,4 +1,7 @@
-import { isValidCalendarDate } from '../../core/validation';
+import {
+  isValidCalendarDate,
+  truncateMilliseconds,
+} from '../../core/validation';
 import { Instant, InstantInput } from '../../core';
 
 const INSTANT_PATTERN =
@@ -53,7 +56,7 @@ export function nativeParseInstant(value: InstantInput): Instant {
   if (typeof value === 'string') {
     epochMilliseconds = parseInstantString(value);
   } else if (typeof value === 'number') {
-    epochMilliseconds = Math.trunc(value);
+    epochMilliseconds = truncateMilliseconds(value);
   } else {
     if (
       typeof value !== 'object' ||
@@ -63,15 +66,10 @@ export function nativeParseInstant(value: InstantInput): Instant {
     ) {
       throw new RangeError('Invalid instant');
     }
-    epochMilliseconds = Math.trunc(value.epochMilliseconds);
+    epochMilliseconds = truncateMilliseconds(value.epochMilliseconds);
   }
 
-  if (
-    !Number.isFinite(epochMilliseconds) ||
-    !Number.isSafeInteger(epochMilliseconds)
-  ) {
-    throw new RangeError('Invalid instant');
-  }
+  epochMilliseconds = truncateMilliseconds(epochMilliseconds);
 
   const date = new Date(epochMilliseconds);
   if (Number.isNaN(date.getTime())) {

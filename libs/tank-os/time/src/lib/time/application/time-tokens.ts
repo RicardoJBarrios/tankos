@@ -5,6 +5,7 @@ import {
   TimeDisplayAdapter,
   TimeDisplayContext,
   TimeLocalePort,
+  TimeZoneDatabasePort,
 } from '../core';
 
 /** Angular token for the active time implementation. */
@@ -25,3 +26,8 @@ export const TIME_DISPLAY_ADAPTER = new InjectionToken<TimeDisplayAdapter>(
 
 /** Angular token for the active locale source used by temporal presentation. */
 export const TIME_LOCALE = new InjectionToken<TimeLocalePort>('TIME_LOCALE');
+
+/** Angular token for the active IANA time-zone rules source. */
+export const TIME_ZONE_DATABASE = new InjectionToken<TimeZoneDatabasePort>(
+  'TIME_ZONE_DATABASE',
+);

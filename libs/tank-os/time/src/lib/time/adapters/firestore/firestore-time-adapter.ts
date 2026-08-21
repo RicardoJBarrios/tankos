@@ -9,6 +9,10 @@ import {
   Duration,
   DurationInput,
 } from '../../core';
+import {
+  truncateMilliseconds,
+  truncateTimestampMilliseconds,
+} from '../../core/validation';
 
 /** Firestore representation used for a normalized TankOS instant. */
 export type FirestoreInstant = Timestamp;
@@ -47,9 +51,10 @@ export function createFirestoreTimeAdapter(
         throw new RangeError('Expected a Firestore Timestamp');
       }
       const timestamp = firestoreTimestampSchema.parse(value);
-      const milliseconds =
-        timestamp.seconds * 1_000 +
-        Math.trunc(timestamp.nanoseconds / 1_000_000);
+      const milliseconds = truncateTimestampMilliseconds(
+        timestamp.seconds,
+        timestamp.nanoseconds,
+      );
       return timeAdapter.parseInstant(milliseconds);
     },
     toLocalDate(value) {
@@ -71,7 +76,7 @@ export function createFirestoreTimeAdapter(
       ) {
         throw new RangeError('Expected finite duration milliseconds');
       }
-      return timeAdapter.parseDuration(Math.trunc(value));
+      return timeAdapter.parseDuration(truncateMilliseconds(value));
     },
   };
 }

@@ -101,8 +101,26 @@ describe('time-service', () => {
         epochMilliseconds: Date.parse('2026-08-20T14:30:00.000Z'),
       },
       origin: {
-        declaredTimeZone: 'Atlantic/Canary',
-        declaredOffsetMinutes: 60,
+        sourceTimeZone: 'Atlantic/Canary',
+        resolvedOffsetMinutes: 60,
+      },
+    });
+  });
+
+  it('Given a local date-time and offset, When resolving with origin through Angular, Then it retains the source offset', () => {
+    expect(
+      TestBed.inject(TimeService).resolveOffsetDateTime(
+        '2026-08-20T15:30:00',
+        60,
+      ),
+    ).toEqual({
+      instant: {
+        kind: 'instant',
+        epochMilliseconds: Date.parse('2026-08-20T14:30:00.000Z'),
+      },
+      origin: {
+        sourceOffsetMinutes: 60,
+        resolvedOffsetMinutes: 60,
       },
     });
   });

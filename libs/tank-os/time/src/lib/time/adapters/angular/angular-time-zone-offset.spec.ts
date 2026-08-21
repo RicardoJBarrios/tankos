@@ -44,6 +44,20 @@ describe('angular-time-zone-offset', () => {
     expect(() => toDatePipeTimeZone('Not/A_Time_Zone', 0)).toThrow(RangeError);
   });
 
+  it('Given a replacement timezone database, When converting an IANA zone, Then it uses that database offset', () => {
+    const database = {
+      isValid: vi.fn().mockReturnValue(true),
+      resolveLocalDateTime: vi.fn(),
+      getOffsetMinutes: vi.fn().mockReturnValue(120),
+    };
+
+    expect(toDatePipeTimeZone('Custom/Zone', 0, database)).toBe('+0200');
+    expect(database.getOffsetMinutes).toHaveBeenCalledWith(
+      { kind: 'instant', epochMilliseconds: 0 },
+      'Custom/Zone',
+    );
+  });
+
   it.each(['+24:00', '-01:60'])(
     'Given an invalid fixed offset %s, When converting it, Then it raises a range error',
     (timeZone) => {

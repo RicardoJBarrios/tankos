@@ -8,14 +8,6 @@ import {
   ZonedDateTimeResolution,
 } from '../value-types';
 
-/** Replaceable source of IANA time-zone rules used by a temporal adapter. */
-export interface TimeZoneDatabasePort {
-  /** Returns whether the identifier is recognized by the configured database. */
-  isValid(timeZone: string): boolean;
-  /** Returns the offset in minutes applicable at an instant. */
-  getOffsetMinutes(instant: Instant, timeZone: string): number;
-}
-
 /**
  * Port for the time implementation used by TankOS.
  *
@@ -36,6 +28,11 @@ export interface TimeAdapter {
   resolveZonedDateTime(
     value: string,
     timeZone: string,
+  ): ZonedDateTimeResolution;
+  /** Resolves a local date-time with an explicit numeric offset. */
+  resolveOffsetDateTime(
+    value: string,
+    offsetMinutes: number,
   ): ZonedDateTimeResolution;
   isValidTimeZone(timeZone: string): boolean;
 }

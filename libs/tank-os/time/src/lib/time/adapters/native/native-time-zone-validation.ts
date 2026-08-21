@@ -1,4 +1,4 @@
-import { getFormatter } from './native-time-zone-runtime';
+import { getFormatter } from './native-time-zone-formatter';
 
 /**
  * Checks whether the runtime recognizes an IANA time-zone identifier.

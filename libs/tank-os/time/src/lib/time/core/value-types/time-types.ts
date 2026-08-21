@@ -38,9 +38,11 @@ export type DurationInput = Duration | number | string;
 /** Metadata describing how a local date-time was interpreted. */
 export type TemporalOrigin = {
   /** Original IANA zone, when the source declared one. */
-  readonly declaredTimeZone?: string;
-  /** Original numeric offset in minutes at the resolved instant. */
-  readonly declaredOffsetMinutes?: number;
+  readonly sourceTimeZone?: string;
+  /** Original numeric offset, when the source declared one. */
+  readonly sourceOffsetMinutes?: number;
+  /** Offset actually applied when resolving the value. */
+  readonly resolvedOffsetMinutes?: number;
 };
 
 /** Result of resolving a local date-time while retaining its source context. */

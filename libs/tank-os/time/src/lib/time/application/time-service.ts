@@ -74,6 +74,14 @@ export class TimeService {
     return this.#adapter.resolveZonedDateTime(value, timeZone);
   }
 
+  /** Resolves a local date-time with an explicit numeric offset. */
+  resolveOffsetDateTime(
+    value: string,
+    offsetMinutes: number,
+  ): ZonedDateTimeResolution {
+    return this.#adapter.resolveOffsetDateTime(value, offsetMinutes);
+  }
+
   /** Validates an IANA time-zone identifier. */
   isValidTimeZone(timeZone: string): boolean {
     return this.#adapter.isValidTimeZone(timeZone);
