@@ -15,7 +15,10 @@ const firestoreMocks = vi.hoisted(() => ({
   limit: vi.fn((value) => value),
   setDoc: vi.fn(),
   runTransaction: vi.fn(),
-  Timestamp: { now: vi.fn() },
+  Timestamp: {
+    now: vi.fn(),
+    fromMillis: vi.fn((value: number) => ({ toMillis: () => value })),
+  },
   updateDoc: vi.fn(),
   deleteDoc: vi.fn(),
 }));
@@ -211,6 +214,7 @@ describe('createFirestoreCrudRepository', () => {
       collectionPath: 'units',
       recordSchema: schema,
       schemaVersion: 2,
+      clock: { now: () => ({ kind: 'instant', epochMilliseconds: 1234 }) },
       createId: (input: { name: string }) => input.name,
       createData: (input: { name: string }) => input,
       updateData: (_data, input: { name: string }) => input,
@@ -265,7 +269,7 @@ describe('createFirestoreCrudRepository', () => {
 
     await expect(
       current.replace(
-        { access, id: createEntityId('unit-1') },
+        { access, id: createEntityId('unit-1'), expectedRevision: 1 },
         { name: 'gallon' },
       ),
     ).resolves.toMatchObject({
@@ -278,7 +282,7 @@ describe('createFirestoreCrudRepository', () => {
   it('Given an active record, When marked for deletion, Then updates its lifecycle in a transaction', async () => {
     const { repository: current, transaction } = transactionalRepository();
 
-    await current.markForDeletion({ access, id: createEntityId('unit-1') });
+    await current.markForDeletion({ access, id: createEntityId('unit-1'), expectedRevision: 1 });
 
     expect(transaction.update).toHaveBeenCalledWith(
       expect.anything(),
@@ -289,7 +293,7 @@ describe('createFirestoreCrudRepository', () => {
   it('Given a marked record, When restored, Then updates its lifecycle to active', async () => {
     const { repository: current, transaction } = transactionalRepository();
 
-    await current.restore({ access, id: createEntityId('unit-1') });
+    await current.restore({ access, id: createEntityId('unit-1'), expectedRevision: 1 });
 
     expect(transaction.update).toHaveBeenCalledWith(
       expect.anything(),
@@ -312,7 +316,7 @@ describe('createFirestoreCrudRepository', () => {
     );
 
     await expect(
-      repository().delete({ access, id: createEntityId('unit-1') }),
+      repository().delete({ access, id: createEntityId('unit-1'), expectedRevision: 1 }),
     ).resolves.toBeUndefined();
 
     expect(transaction.delete).toHaveBeenCalled();
@@ -392,7 +396,7 @@ describe('createFirestoreCrudRepository', () => {
     );
 
     await expect(
-      repository().restore({ access, id: createEntityId('unit-1') }),
+      repository().restore({ access, id: createEntityId('unit-1'), expectedRevision: 1 }),
     ).rejects.toMatchObject({
       code: 'lifecycle',
     });
@@ -414,7 +418,7 @@ describe('createFirestoreCrudRepository', () => {
 
     await expect(
       repository().replace(
-        { access, id: createEntityId('unit-1') },
+        { access, id: createEntityId('unit-1'), expectedRevision: 1 },
         { name: 'gallon' },
       ),
     ).rejects.toMatchObject({
@@ -447,7 +451,7 @@ describe('createFirestoreCrudRepository', () => {
 
     await expect(
       repository().replace(
-        { access, id: createEntityId('missing') },
+        { access, id: createEntityId('missing'), expectedRevision: 1 },
         { name: 'gallon' },
       ),
     ).rejects.toMatchObject({ code: 'not-found' });

@@ -8,6 +8,7 @@ import type {
   TechnicalTimestamp,
   AccessContext,
 } from '../../core';
+import type { ClockPort } from '@tank-os/time';
 import {
   createAccessContext,
   createBatchRequest,
@@ -16,7 +17,7 @@ import {
 
 /** Dependencies for deterministic asynchronous batch tests and prototypes. */
 export interface InMemoryBatchOperationOptions<TPayload, TFilter> {
-  readonly now: () => TechnicalTimestamp;
+  readonly clock: ClockPort;
   readonly materialize: (
     selection: BatchRequest<TPayload, TFilter>['selection'],
   ) => readonly EntityId[];
@@ -172,7 +173,7 @@ async function executeMemoryBatch<TPayload, TFilter>(
   let current: BatchProgress = initialProgress(
     operation,
     ids.length,
-    options.now(),
+    options.clock.now(),
   );
   for (let offset = 0; offset < ids.length; offset += chunkSize) {
     const chunk = ids.slice(offset, offset + chunkSize);
@@ -184,13 +185,13 @@ async function executeMemoryBatch<TPayload, TFilter>(
       }
     };
     const results = await executeWithConcurrency(chunk, concurrency, executeItem);
-    current = updateProgress(current, createEntityId(`chunk-${Math.floor(offset / chunkSize) + 1}`), results, options.now());
-    /* c8 ignore start */
-    operations.set(batchId, Object.assign({}, operation, current));
-    /* c8 ignore stop */
+    current = updateProgress(current, createEntityId(`chunk-${Math.floor(offset / chunkSize) + 1}`), results, options.clock.now());
+    /* c8 ignore next -- V8 reports object spread in the async loop as a synthetic branch. */
+    operations.set(batchId, { ...operation, ...current });
   }
-  /* c8 ignore start */
+  /* c8 ignore next -- V8 reports the async terminal object as a synthetic branch. */
   const terminal: StoredBatchOperation<TPayload, TFilter> = {
+    /* c8 ignore next -- V8 reports object spread in the terminal snapshot as a synthetic branch. */
     ...operation,
     ...current,
     status:
@@ -200,7 +201,6 @@ async function executeMemoryBatch<TPayload, TFilter>(
           ? ('completed-with-warnings' as const)
           : ('completed' as const),
   };
-  /* c8 ignore stop */
   operations.set(batchId, terminal);
   return publicProgress(terminal);
 }
@@ -237,7 +237,7 @@ export function createInMemoryBatchOperation<
   }
 
   function progress(request: BatchRequest<TPayload, TFilter>): BatchProgress {
-    const now = options.now();
+    const now = options.clock.now();
     return {
       batchId: createEntityId(`batch-${++sequence}`),
       schema: request.schema,
@@ -273,24 +273,21 @@ export function createInMemoryBatchOperation<
         }
       }
       const base = progress(valid);
-      /* c8 ignore start */
-      const frozen = Object.assign({}, base, {
+      /* c8 ignore next -- V8 reports object spread in the immutable snapshot as a synthetic branch. */
+      const frozen = {
+        ...base,
         total: 0,
         request: valid,
+        /* c8 ignore next -- V8 reports the type assertion as a synthetic branch. */
         ids: [] as readonly EntityId[],
+        /* c8 ignore next -- V8 reports the empty immutable snapshot branch as synthetic. */
         fingerprint: fingerprint(valid, []),
         requestFingerprint: requestFingerprint(valid),
-      });
-      /* c8 ignore stop */
-      /* c8 ignore start */
+      };
       operations.set(base.batchId, frozen);
-      /* c8 ignore stop */
       idempotency.set(idempotencyId, base.batchId);
-      /* c8 ignore start */
       return publicProgress(frozen);
-      /* c8 ignore stop */
     },
-    /* c8 ignore next */
     async materialize(batchId) {
       const operation = operations.get(batchId);
       if (!operation)
@@ -303,7 +300,7 @@ export function createInMemoryBatchOperation<
         total: ids.length,
         status: 'queued' as const,
         fingerprint: fingerprint(operation.request, ids),
-        updatedAt: options.now(),
+        updatedAt: options.clock.now(),
       };
       operations.set(batchId, updated);
       return publicProgress(updated);
@@ -320,7 +317,7 @@ export function createInMemoryBatchOperation<
       const updated = {
         ...operation,
         status: 'queued' as const,
-        updatedAt: options.now(),
+        updatedAt: options.clock.now(),
       };
       operations.set(batchId, updated);
       return publicProgress(updated);
@@ -332,7 +329,7 @@ export function createInMemoryBatchOperation<
       const cancelled = {
         ...operation,
         status: 'cancelled' as const,
-        updatedAt: options.now(),
+        updatedAt: options.clock.now(),
       };
       operations.set(batchId, cancelled);
       return publicProgress(cancelled);
@@ -358,7 +355,6 @@ export function createInMemoryBatchOperation<
         );
       }
       running.add(batchId);
-      /* c8 ignore next */
       return executeMemoryBatch(
         batchId,
         operation,

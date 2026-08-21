@@ -57,6 +57,15 @@ export function createJsonHttpCrudRepository<
     }
     return request.access.requestId;
   };
+  const expectedRevision = (request: RecordCommand): number => {
+    if (!Number.isInteger(request.expectedRevision)) {
+      throw createDataAccessError(
+        'validation',
+        'Record commands require an integer expectedRevision',
+      );
+    }
+    return request.expectedRevision;
+  };
 
   return {
     async list(request) {
@@ -100,7 +109,7 @@ export function createJsonHttpCrudRepository<
         idempotencyKey: idempotencyKey(request),
         body: {
           input: options.serializeUpdate(input),
-          expectedRevision: request.expectedRevision,
+          expectedRevision: expectedRevision(request),
         },
       });
       return parseRecord(response);
@@ -112,7 +121,7 @@ export function createJsonHttpCrudRepository<
         url: url(`${options.recordUrl(request.id)}/mark-for-deletion`),
         access,
         idempotencyKey: idempotencyKey(request),
-        body: { expectedRevision: request.expectedRevision },
+        body: { expectedRevision: expectedRevision(request) },
       });
       return parseRecord(response);
     },
@@ -123,7 +132,7 @@ export function createJsonHttpCrudRepository<
         url: url(`${options.recordUrl(request.id)}/restore`),
         access,
         idempotencyKey: idempotencyKey(request),
-        body: { expectedRevision: request.expectedRevision },
+        body: { expectedRevision: expectedRevision(request) },
       });
       return parseRecord(response);
     },
@@ -134,7 +143,7 @@ export function createJsonHttpCrudRepository<
         url: url(options.recordUrl(request.id)),
         access,
         idempotencyKey: idempotencyKey(request),
-        body: { expectedRevision: request.expectedRevision },
+        body: { expectedRevision: expectedRevision(request) },
       });
     },
   };

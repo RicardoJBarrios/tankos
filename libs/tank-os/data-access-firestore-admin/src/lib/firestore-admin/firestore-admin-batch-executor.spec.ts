@@ -1,8 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   createEntityId,
   type BatchOperationRecord,
-  type BatchStorePort,
+  type BatchWorkerStorePort,
 } from '@tank-os/data-access';
 import { createFirestoreAdminBatchExecutor } from './firestore-admin-batch-executor';
 
@@ -39,8 +39,7 @@ function storeHarness(
   let cancellation = false;
   const results: unknown[] = [];
   const chunksWritten: unknown[] = [];
-  const store: BatchStorePort = {
-    create: async (record) => record,
+  const store: BatchWorkerStorePort = {
     get: async () => current,
     update: async (_id, patch) => {
       current = { ...current, ...patch };
@@ -48,20 +47,27 @@ function storeHarness(
     },
     claim: async () => {
       current = { ...current, status: 'running', updatedAt: now };
-      return { claimed: true, record: current };
+      return {
+        claimed: true,
+        record: current,
+        lease: { owner: 'test-worker', token: 'lease-1' },
+      };
     },
     putChunk: async (_id, chunk) => chunksWritten.push(chunk),
     listRunnableChunks: async (_id, limit) =>
       limit === undefined ? chunks : chunks.slice(0, limit),
-    putResult: async (_batchId, _chunkId, result) => results.push(result),
-    requestCancellation: async () => current,
+    putResults: async (_batchId, _chunkId, batchResults) =>
+      results.push(...batchResults),
     isCancellationRequested: async () => cancellation,
+  };
+  const cleanup = {
     remove: async () => {
       current = { ...current, status: 'completed' };
     },
   };
   return {
     store,
+    cleanup,
     results,
     chunksWritten,
     setCancellation: (value: boolean) => (cancellation = value),
@@ -75,18 +81,55 @@ describe('createFirestoreAdminBatchExecutor', () => {
       store: harness.store,
       workerId: 'test-worker',
       authorize,
-      now: () => now,
+      clock: { now: () => now },
       cleanupTerminal: false,
       execute: async (id) => ({ id, outcome: 'succeeded' }),
       concurrency: 1,
     });
 
-    await expect(executor.run(base.batchId)).resolves.toMatchObject({
+    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
       status: 'completed',
       processed: 2,
     });
     expect(harness.results).toHaveLength(2);
     expect(harness.chunksWritten).toHaveLength(2);
+  });
+
+  it('Given a claimed batch without a fencing lease, When executed, Then rejects the unsafe claim', async () => {
+    const harness = storeHarness();
+    harness.store.claim = async () => ({
+      claimed: true,
+      record: base,
+    });
+    const executor = createFirestoreAdminBatchExecutor({
+      store: harness.store,
+      workerId: 'test-worker',
+      authorize,
+      clock: { now: () => now },
+      cleanupTerminal: false,
+      execute: async (id) => ({ id, outcome: 'succeeded' }),
+    });
+
+    await expect(executor.run(base.batchId, base.principalId)).rejects.toThrow(
+      'A claimed batch must include a fencing lease',
+    );
+  });
+
+  it('Given a missing batch, When executed, Then rejects before authorization', async () => {
+    const harness = storeHarness();
+    harness.store.get = async () => undefined;
+    const authorize = vi.fn();
+    const executor = createFirestoreAdminBatchExecutor({
+      store: harness.store,
+      workerId: 'test-worker',
+      authorize,
+      clock: { now: () => now },
+      cleanupTerminal: false,
+      execute: async (id) => ({ id, outcome: 'succeeded' }),
+    });
+
+    await expect(executor.run(base.batchId, base.principalId)).rejects.toThrow('Batch was not found');
+    expect(authorize).not.toHaveBeenCalled();
   });
 
   it('Given item warnings and failures, When executed, Then completes with warnings and continues', async () => {
@@ -95,7 +138,7 @@ describe('createFirestoreAdminBatchExecutor', () => {
       store: harness.store,
       workerId: 'test-worker',
       authorize,
-      now: () => now,
+      clock: { now: () => now },
       cleanupTerminal: false,
       execute: async (id) => {
         if (id === 'one') return { id, outcome: 'warning' as const };
@@ -103,7 +146,7 @@ describe('createFirestoreAdminBatchExecutor', () => {
       },
     });
 
-    await expect(executor.run(base.batchId)).resolves.toMatchObject({
+    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
       status: 'failed',
       warnings: 1,
       failures: 1,
@@ -117,12 +160,12 @@ describe('createFirestoreAdminBatchExecutor', () => {
       store: harness.store,
       workerId: 'test-worker',
       authorize,
-      now: () => now,
+      clock: { now: () => now },
       cleanupTerminal: false,
       execute: async (id) => ({ id, outcome: 'warning' as const }),
     });
 
-    await expect(executor.run(base.batchId)).resolves.toMatchObject({
+    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
       status: 'completed-with-warnings',
       warnings: 2,
     });
@@ -134,14 +177,14 @@ describe('createFirestoreAdminBatchExecutor', () => {
       store: harness.store,
       workerId: 'test-worker',
       authorize,
-      now: () => now,
+      clock: { now: () => now },
       cleanupTerminal: false,
       execute: async () => {
         throw 'failure';
       },
     });
 
-    await expect(executor.run(base.batchId)).resolves.toMatchObject({
+    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
       status: 'failed',
       failures: 2,
     });
@@ -155,7 +198,7 @@ describe('createFirestoreAdminBatchExecutor', () => {
       store: harness.store,
       workerId: 'test-worker',
       authorize,
-      now: () => now,
+      clock: { now: () => now },
       cleanupTerminal: false,
       execute: async (id) => {
         executions += 1;
@@ -163,7 +206,7 @@ describe('createFirestoreAdminBatchExecutor', () => {
       },
     });
 
-    await expect(executor.run(base.batchId)).resolves.toMatchObject({
+    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
       status: 'cancelled',
     });
     expect(executions).toBe(0);
@@ -179,11 +222,11 @@ describe('createFirestoreAdminBatchExecutor', () => {
       store: harness.store,
       workerId: 'test-worker',
       authorize,
-      now: () => now,
+      clock: { now: () => now },
       execute: async (id) => ({ id, outcome: 'succeeded' }),
     });
 
-    await expect(executor.run(base.batchId)).resolves.toMatchObject({
+    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
       status: 'completed',
     });
   });
@@ -197,11 +240,11 @@ describe('createFirestoreAdminBatchExecutor', () => {
       store: harness.store,
       workerId: 'test-worker',
       authorize,
-      now: () => now,
+      clock: { now: () => now },
       execute: async (id) => ({ id, outcome: 'succeeded' }),
     });
 
-    await expect(executor.run(base.batchId)).rejects.toMatchObject({
+    await expect(executor.run(base.batchId, base.principalId)).rejects.toMatchObject({
       code: 'not-found',
     });
   });
@@ -215,7 +258,7 @@ describe('createFirestoreAdminBatchExecutor', () => {
           store: harness.store,
           workerId: 'test-worker',
           authorize,
-          now: () => now,
+          clock: { now: () => now },
           execute: async (id) => ({ id, outcome: 'succeeded' }),
           concurrency,
         }),
@@ -230,7 +273,7 @@ describe('createFirestoreAdminBatchExecutor', () => {
         store: harness.store,
         workerId: ' ',
         authorize,
-        now: () => now,
+        clock: { now: () => now },
         execute: async (id) => ({ id, outcome: 'succeeded' }),
       }),
     ).toThrow(RangeError);
@@ -240,7 +283,7 @@ describe('createFirestoreAdminBatchExecutor', () => {
         workerId: 'worker',
         authorize,
         leaseDurationMilliseconds: 0,
-        now: () => now,
+        clock: { now: () => now },
         execute: async (id) => ({ id, outcome: 'succeeded' }),
       }),
     ).toThrow(RangeError);
@@ -250,10 +293,20 @@ describe('createFirestoreAdminBatchExecutor', () => {
         workerId: 'worker',
         authorize,
         maxChunks: 0,
-        now: () => now,
+        clock: { now: () => now },
         execute: async (id) => ({ id, outcome: 'succeeded' }),
       }),
     ).toThrow(RangeError);
+    expect(() =>
+      createFirestoreAdminBatchExecutor({
+        store: harness.store,
+        workerId: 'worker',
+        authorize,
+        cleanupTerminal: true,
+        clock: { now: () => now },
+        execute: async (id) => ({ id, outcome: 'succeeded' }),
+      }),
+    ).toThrow('cleanup capability');
   });
 
   it('Given more runnable chunks than allowed, When executed, Then rejects without materializing all chunks', async () => {
@@ -276,11 +329,11 @@ describe('createFirestoreAdminBatchExecutor', () => {
       workerId: 'test-worker',
       authorize,
       maxChunks: 1,
-      now: () => now,
+      clock: { now: () => now },
       execute: async (id) => ({ id, outcome: 'succeeded' }),
     });
 
-    await expect(executor.run(base.batchId)).rejects.toThrow(
+    await expect(executor.run(base.batchId, base.principalId)).rejects.toThrow(
       'exceeds the 1 chunk limit',
     );
   });
@@ -288,18 +341,20 @@ describe('createFirestoreAdminBatchExecutor', () => {
   it('Given no runnable chunks, When executed, Then completes without item execution', async () => {
     const harness = storeHarness([]);
     let removed = false;
-    harness.store.remove = async () => {
+    harness.cleanup.remove = async () => {
       removed = true;
     };
     const executor = createFirestoreAdminBatchExecutor({
       store: harness.store,
       workerId: 'test-worker',
       authorize,
-      now: () => now,
+      cleanup: harness.cleanup,
+      cleanupTerminal: true,
+      clock: { now: () => now },
       execute: async (id) => ({ id, outcome: 'succeeded' }),
     });
 
-    await expect(executor.run(base.batchId)).resolves.toMatchObject({
+    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
       status: 'completed',
     });
     expect(removed).toBe(true);
@@ -323,7 +378,7 @@ describe('createFirestoreAdminBatchExecutor', () => {
         store: harness.store,
         workerId: 'test-worker',
         authorize,
-        now: () => now,
+        clock: { now: () => now },
         cleanupTerminal: false,
         execute: async (id) => ({ id, outcome: 'succeeded' }),
       }).run(base.batchId),

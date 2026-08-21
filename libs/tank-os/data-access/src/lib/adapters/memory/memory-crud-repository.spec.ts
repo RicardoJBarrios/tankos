@@ -36,7 +36,7 @@ describe('createInMemoryCrudRepository', () => {
   function repository() {
     return createInMemoryCrudRepository({
       initialRecords: initial,
-      now: () => instant,
+      clock: { now: () => instant },
       create: (input: { name: string }) => ({
         id: createEntityId(input.name),
         data: input,
@@ -143,7 +143,7 @@ describe('createInMemoryCrudRepository', () => {
   it('Given a numeric order field, When listed descending, Then applies the requested direction', async () => {
     const result = await createInMemoryCrudRepository({
       initialRecords: initial.map((record, index) => ({ ...record, revision: index + 1 })),
-      now: () => instant,
+      clock: { now: () => instant },
       create: (input: { name: string }) => ({
         id: createEntityId(input.name),
         data: input,
@@ -174,7 +174,7 @@ describe('createInMemoryCrudRepository', () => {
     }));
     const numericRepository = createInMemoryCrudRepository({
       initialRecords: numericRecords,
-      now: () => instant,
+      clock: { now: () => instant },
       create: (input: { name: string }) => ({
         id: createEntityId(input.name),
         data: input,
@@ -194,13 +194,13 @@ describe('createInMemoryCrudRepository', () => {
   it('Given a record, When replaced, marked and restored, Then updates data, version and lifecycle', async () => {
     const service = repository();
     const id = createEntityId('one');
-    const replaced = await service.replace({ access, id }, { name: 'updated' });
+    const replaced = await service.replace({ access, id, expectedRevision: 1 }, { name: 'updated' });
     expect(replaced.data.name).toBe('updated');
     expect(replaced.revision).toBe(2);
-    expect((await service.markForDeletion({ access: administrator, id })).lifecycle.status).toBe(
+    expect((await service.markForDeletion({ access: administrator, id, expectedRevision: 2 })).lifecycle.status).toBe(
       'marked-for-deletion',
     );
-    expect((await service.restore({ access: administrator, id })).lifecycle.status).toBe('active');
+    expect((await service.restore({ access: administrator, id, expectedRevision: 3 })).lifecycle.status).toBe('active');
   });
 
   it('Given a missing record, When modified, Then returns a not-found data-access error', async () => {
@@ -227,15 +227,15 @@ describe('createInMemoryCrudRepository', () => {
   it('Given a marked record, When physically deleted, Then it is absent and cannot be restored', async () => {
     const service = repository();
     const id = createEntityId('deleted');
-    await service.delete({ access: administrator, id });
-    await expect(service.restore({ access: administrator, id })).rejects.toMatchObject({
+    await service.delete({ access: administrator, id, expectedRevision: 1 });
+    await expect(service.restore({ access: administrator, id, expectedRevision: 1 })).rejects.toMatchObject({
       code: 'not-found',
     });
   });
 
   it('Given no initial records or filter matcher, When created, Then starts with an empty catalogue', async () => {
     const service = createInMemoryCrudRepository({
-      now: () => instant,
+      clock: { now: () => instant },
       create: (input: { name: string }) => ({
         id: createEntityId(input.name),
         data: input,

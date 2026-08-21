@@ -11,7 +11,7 @@ describe('createCacheInvalidation', () => {
 
     await invalidation.clear({ domain: 'units' });
 
-    expect(cache.clearNamespace).toHaveBeenCalledWith('tankos:units');
+    expect(cache.clearNamespace).toHaveBeenCalledWith('tankos:v1:units');
     expect(cache.clear).not.toHaveBeenCalled();
   });
 

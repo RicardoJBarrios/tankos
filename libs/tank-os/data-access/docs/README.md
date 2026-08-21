@@ -49,7 +49,9 @@ Angular composition providers
 ## CRUD and lifecycle
 
 `CrudRepositoryPort<TData, TCreate, TUpdate, TFilter>` supports list, get,
-create, replace, mark-for-deletion, restore and permanent delete. Records carry
+create, replace, mark-for-deletion, restore and permanent delete. Existing-record
+commands require the last returned `revision`; omitting it is a validation
+error. Records carry
 an opaque id, lifecycle, revision and server metadata. Normal reads expose only
 active/inactive records; hidden lifecycle values require an explicit request and
 host authorization. No foreign keys or cascades are used: references are ids
@@ -91,14 +93,28 @@ boundary; browser claims are never authoritative.
 The contracts distinguish two provider capabilities:
 
 - `AtomicBatchPort` represents one finite all-or-nothing write command.
-- `BatchStorePort` represents durable state for a logical asynchronous batch;
+- `BatchSubmissionStorePort` represents durable submission/control state for a
+  logical asynchronous batch;
   its chunks and item results are separate records, not unbounded arrays in the
   summary document.
+- `BatchMaterializerStorePort` is the materialization capability. Its claim,
+  summary and chunk writes require the current materialization fencing lease;
+  it does not expose submission, worker execution or cleanup operations.
+- `BatchWorkerStorePort` is the worker capability. Its summary, chunk and
+  result writes require a matching fencing lease at the type boundary. It
+  does not expose creation, materialization, removal or cancellation requests;
+  those remain submission/control capabilities. Terminal deletion is a
+  separate cleanup capability and is opt-in at the executor boundary.
 
-The Firestore Admin adapter implements the durable store and trusted executor.
-Workers first pass a mandatory host authorization gate and claim an operation
-in a Firestore transaction. A lease identifies the worker and expires after a
-bounded interval, allowing a later worker to reclaim a crashed execution.
+The Firestore Admin adapter exposes separate submission, materializer and worker
+capabilities backed by the same database. Technical time is supplied through
+`@tank-os/time`'s `ClockPort` (normally `TimeService`), not through a second
+clock abstraction. Workers first pass a mandatory host authorization
+gate using both the authenticated caller and the persisted submitting principal,
+then claim an operation in a Firestore transaction. A lease identifies the worker and expires after a
+bounded interval, allowing a later worker to reclaim a crashed execution. Every
+worker write carries a fencing token; writes from an expired or reclaimed
+worker are rejected instead of being allowed to overwrite the new owner.
 Runnable chunks are read with a hard limit; the executor rejects an operation
 that exceeds that limit instead of materializing an unbounded array. Failed
 chunks remain retryable and failed terminal summaries are retained for an
@@ -108,6 +124,17 @@ therefore be idempotent. The application still owns the scheduler,
 authorization composition and operation-specific item executor. The Admin
 package is deliberately a server-only dependency and must not be imported by
 an Angular browser entry point.
+
+Materialization has its own short-lived claim and fencing token, so concurrent
+hosts do not resolve the same filter simultaneously and a reclaimed host cannot
+publish stale chunks or transitions. The claim expires after a crash and
+chunks are written idempotently before the operation is queued. Batch requests
+are bounded by a serialized payload limit below the Firestore document limit.
+
+Cancellation is cooperative. The application records a cancellation request;
+the materializer and worker observe it and the worker performs the terminal
+`cancelled` transition. A running worker is never silently treated as stopped
+while it can still write progress.
 
 ## Caching and cost control
 
@@ -129,8 +156,11 @@ Neither mode changes the policy for later reads.
 Cache namespaces are created from a `CacheScope`:
 
 ```ts
-{ domain: 'units', principalId: 'keeper-1', aquariumId: 'tank-1' }
+{ version: 'v1', domain: 'units', principalId: 'keeper-1', aquariumId: 'tank-1' }
 ```
+
+The version is part of the namespace and must be incremented when the cached
+representation changes incompatibly.
 
 The scope is part of the cache key and prevents data from different users or
 aquariums sharing entries. `createCacheInvalidation(cache)` exposes
@@ -152,8 +182,11 @@ DTOs but does not replace authorization policy.
 
 Every executable source file has a focused Given/When/Then test in the same
 package boundary. Each package enforces 100% lines, statements, functions and
-branches without coverage exclusions. Firestore has an additional emulator
-target; Security Rules and IAM remain host-level integration concerns.
+branches without a manual exclusion list. Declaration-only contracts naturally
+have no runtime statements; their guarantees are checked through public-entry,
+consumer and implementation contract tests. Firestore has an additional
+emulator target with authenticated and unauthenticated Rules checks; IAM and
+production service-account policy remain host-level concerns.
 
 All packages use Nx `@nx/angular:ng-packagr-lite`. The public contracts are:
 

@@ -2,7 +2,7 @@ import { createCacheNamespace } from './cache-scope';
 
 describe('createCacheNamespace', () => {
   it('Given a domain scope, When converted, Then returns the root namespace', () => {
-    expect(createCacheNamespace({ domain: 'units' })).toBe('tankos:units');
+    expect(createCacheNamespace({ domain: 'units' })).toBe('tankos:v1:units');
   });
 
   it('Given a contextual scope, When converted, Then preserves its hierarchy', () => {
@@ -13,7 +13,7 @@ describe('createCacheNamespace', () => {
         principalId: 'user-1',
         aquariumId: 'aquarium-1',
       }),
-    ).toBe('tankos:measurements:list:user-1:aquarium-1');
+    ).toBe('tankos:v1:measurements:list:user-1:aquarium-1');
   });
 
   it('Given an empty or colon-containing segment, When converted, Then rejects it', () => {

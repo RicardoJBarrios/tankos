@@ -40,8 +40,8 @@ export function createCachedCrudRepository<
   options: {
     readonly ttlMilliseconds: number;
     readonly scope: CacheScope;
-    /** Observes stale-cache recovery errors without failing a durable mutation. */
-    readonly onInvalidationError?: (error: unknown) => void;
+    /** Observes cache read, write and invalidation errors without failing a durable operation. */
+    readonly onCacheError?: (error: unknown) => void;
   },
 ): CachedCrudRepository<TData, TCreate, TUpdate, TFilter> {
   if (
@@ -68,12 +68,11 @@ export function createCachedCrudRepository<
     try {
       await cache.clearNamespace(namespace);
     } catch (error) {
-      options.onInvalidationError?.(error);
+      options.onCacheError?.(error);
     }
   };
   const listKey = (request: ListRequest<TFilter>) =>
     `${namespace}:list:${stableJson(request)}`;
-  /* c8 ignore next -- V8 reports the typed key projection as a synthetic branch. */
   const getKey = (request: GetRequest) =>
     `${namespace}:get:${stableJson({
       id: request.id,
@@ -93,7 +92,7 @@ export function createCachedCrudRepository<
           | Page<CrudRecord<TData>>
           | undefined;
       } catch (error) {
-        options.onInvalidationError?.(error);
+        options.onCacheError?.(error);
       }
       if (cached !== undefined && isCacheFirst(readOptions)) return cached;
       const existing = inFlight.get(key) as
@@ -107,20 +106,15 @@ export function createCachedCrudRepository<
             try {
               await cache.set(key, result, options.ttlMilliseconds);
             } catch (error) {
-              options.onInvalidationError?.(error);
+              options.onCacheError?.(error);
             }
           }
-          /* c8 ignore next -- V8 instruments this async return as a synthetic branch. */
           return result;
-        /* c8 ignore next -- V8 instruments this async cleanup boundary as a synthetic branch. */
         } finally {
           inFlight.delete(key);
         }
-      /* c8 ignore start */
       })();
-      /* c8 ignore stop */
       inFlight.set(key, requestPromise);
-      /* c8 ignore next */
       return await requestPromise;
     },
     get(request, readOptions) {
@@ -132,7 +126,7 @@ export function createCachedCrudRepository<
           | CrudRecord<TData>
           | undefined;
       } catch (error) {
-        options.onInvalidationError?.(error);
+        options.onCacheError?.(error);
       }
       if (cached !== undefined && isCacheFirst(readOptions)) return cached;
       const existing = inFlight.get(key) as
@@ -141,20 +135,18 @@ export function createCachedCrudRepository<
       const requestPromise = (async () => {
         const readGeneration = invalidationGeneration;
         const result = await backing.get(request);
-        /* c8 ignore next 2 -- V8 maps this optional cache write as a synthetic branch. */
         if (result !== undefined && readGeneration === invalidationGeneration) {
           await cache
             .set(key, result, options.ttlMilliseconds)
-            .catch((error) => options.onInvalidationError?.(error));
+            .catch((error) => options.onCacheError?.(error));
         }
+        /* c8 ignore next -- V8 reports the async return boundary as a synthetic branch. */
         return result;
       })().finally(() => inFlight.delete(key));
       inFlight.set(key, requestPromise);
       return requestPromise;
       })();
-    /* c8 ignore next */
     },
-    /* c8 ignore next */
     async create(input) {
       const result = await backing.create(input);
       await invalidate();

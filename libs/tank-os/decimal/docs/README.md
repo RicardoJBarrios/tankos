@@ -1,6 +1,7 @@
 # TankOS Decimal
 
-**Status:** first runtime slice implemented; Units integration remains pending.
+**Status:** provider-independent decimal value model, fluent arithmetic port,
+Big.js adapter and Zod boundary are implemented.
 
 `Decimal` is the reusable TankOS capability for exact decimal input,
 arithmetic, comparison, precision and rounding. It is independent from Units,

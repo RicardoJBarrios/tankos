@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "peerDependencies": {
     "@tank-os/data-access": "^0.0.0",
-    "firebase-admin": "^14.2.0"
+    "@tank-os/time": "^0.0.0",
+    "firebase-admin": "^14.2.0",
+    "zod": "^4.4.3"
   },
   "sideEffects": false
 }

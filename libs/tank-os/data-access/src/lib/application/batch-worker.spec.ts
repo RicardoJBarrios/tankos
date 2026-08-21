@@ -2,7 +2,7 @@ import { createEntityId } from '../core';
 import { createAuthorizedBatchWorker } from './batch-worker';
 
 describe('createAuthorizedBatchWorker', () => {
-  it('Given an authorized caller, When a batch is run, Then authorizes before execution', async () => {
+  it('Given a caller, When a batch is run, Then forwards the caller identity to execution', async () => {
     const calls: string[] = [];
     const batchId = createEntityId('batch-1');
     const progress = {
@@ -20,11 +20,8 @@ describe('createAuthorizedBatchWorker', () => {
     };
     const worker = createAuthorizedBatchWorker(
       {
-        authorize: async () => calls.push('authorize'),
-      },
-      {
-        run: async () => {
-          calls.push('run');
+        run: async (_batchId, principalId) => {
+          calls.push(`run:${principalId}`);
           return progress;
         },
       },
@@ -36,17 +33,14 @@ describe('createAuthorizedBatchWorker', () => {
         roles: ['administrator'],
       }),
     ).resolves.toBe(progress);
-    expect(calls).toEqual(['authorize', 'run']);
+    expect(calls).toEqual(['run:administrator']);
   });
 
-  it('Given a rejected caller, When a batch is run, Then does not execute it', async () => {
-    const run = vi.fn();
+  it('Given an execution boundary, When a batch is run, Then does not invent an authorization result', async () => {
+    const run = vi.fn(async () => {
+      throw new Error('IAM denied');
+    });
     const worker = createAuthorizedBatchWorker(
-      {
-        authorize: async () => {
-          throw new Error('IAM denied');
-        },
-      },
       { run },
     );
 
@@ -56,6 +50,9 @@ describe('createAuthorizedBatchWorker', () => {
         roles: ['keeper'],
       }),
     ).rejects.toThrow('IAM denied');
-    expect(run).not.toHaveBeenCalled();
+    expect(run).toHaveBeenCalledWith(
+      createEntityId('batch-1'),
+      createEntityId('keeper'),
+    );
   });
 });

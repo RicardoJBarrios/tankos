@@ -248,7 +248,7 @@ describe('createCachedCrudRepository', () => {
 
   it('Given a cache invalidation failure, When a mutation succeeds, Then preserves the mutation result and reports the cache error', async () => {
     const cacheError = new Error('cache unavailable');
-    const onInvalidationError = vi.fn();
+    const onCacheError = vi.fn();
     const backing = {
       list: async () => ({ items: [], hasMore: false }),
       get: async () => undefined,
@@ -270,11 +270,11 @@ describe('createCachedCrudRepository', () => {
     const repository = createCachedCrudRepository(backing, cache, {
       scope: { domain: 'units' },
       ttlMilliseconds: 100,
-      onInvalidationError,
+      onCacheError,
     });
 
     await expect(repository.create({})).resolves.toBeUndefined();
-    expect(onInvalidationError).toHaveBeenCalledWith(cacheError);
+    expect(onCacheError).toHaveBeenCalledWith(cacheError);
   });
 
   it('Given a cache read or write failure, When a read is requested, Then falls back to the backing repository and reports it', async () => {
@@ -298,7 +298,7 @@ describe('createCachedCrudRepository', () => {
     const repository = createCachedCrudRepository(backing, cache, {
       scope: { domain: 'units' },
       ttlMilliseconds: 100,
-      onInvalidationError: (error) => errors.push(error),
+      onCacheError: (error) => errors.push(error),
     });
 
     await repository.list({ access, page: { pageSize: 20, orderBy: [] } });

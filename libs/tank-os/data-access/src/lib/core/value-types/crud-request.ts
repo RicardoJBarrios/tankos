@@ -30,5 +30,6 @@ export interface CreateRequest<TCreate> {
 export interface RecordCommand {
   readonly access: AccessContext;
   readonly id: EntityId;
-  readonly expectedRevision?: number;
+  /** Revision returned by the last read; required for optimistic concurrency. */
+  readonly expectedRevision: number;
 }

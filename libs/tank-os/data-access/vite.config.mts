@@ -22,16 +22,6 @@ export default defineConfig(() => ({
     coverage: {
       reportsDirectory: '../../../coverage/libs/tank-os/data-access',
       provider: 'v8' as const,
-      exclude: [
-        'vite.config.mts',
-        'src/lib/core/ports/*.ts',
-        'src/lib/core/value-types/batch-result.ts',
-        'src/lib/core/value-types/batch-scope.ts',
-        'src/lib/core/value-types/crud-record.ts',
-        'src/lib/core/value-types/crud-request.ts',
-        'src/lib/core/value-types/record-metadata.ts',
-        'src/lib/core/value-types/versioning.ts',
-      ],
       thresholds: {
         lines: 100,
         statements: 100,

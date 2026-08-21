@@ -14,3 +14,7 @@ Build, unit-test and emulator-test this package independently:
 - `pnpm nx run data-access-firestore:build`
 - `pnpm nx run data-access-firestore:test`
 - `pnpm nx run data-access-firestore:test-integration`
+
+Mutations against an existing record require its integer `expectedRevision`.
+The emulator integration suite runs authenticated and unauthenticated requests
+against the package Rules file.

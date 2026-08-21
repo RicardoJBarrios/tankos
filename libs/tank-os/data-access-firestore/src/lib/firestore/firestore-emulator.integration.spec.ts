@@ -1,12 +1,15 @@
-import { initializeApp } from 'firebase/app';
 import {
-  connectFirestoreEmulator,
-  getFirestore,
+  initializeTestEnvironment,
+  type RulesTestEnvironment,
+} from '@firebase/rules-unit-testing';
+import {
   orderBy,
   query,
   type Timestamp,
 } from 'firebase/firestore';
+import { readFileSync } from 'node:fs';
 import { z } from 'zod';
+import { afterAll, beforeAll } from 'vitest';
 import { createEntityId, createPageCursor } from '@tank-os/data-access';
 import {
   createFirestoreCrudRepository,
@@ -27,15 +30,7 @@ const emulatorTest = (name: string, test: () => Promise<void>): void =>
   });
 
 describe('Firestore CRUD adapter against Firebase Emulator Suite', () => {
-  const access = {
-    principalId: createEntityId('emulator-keeper'),
-    roles: ['keeper'] as const,
-  };
-  const app = initializeApp(
-    { projectId: 'demo-veril' },
-    'data-access-emulator',
-  );
-  const firestore = getFirestore(app);
+  let testEnvironment: RulesTestEnvironment | undefined;
   const collectionPath = `data-access-test-${Date.now()}`;
   const recordSchema = z.object({
     data: z.object({ name: z.string() }),
@@ -50,14 +45,39 @@ describe('Firestore CRUD adapter against Firebase Emulator Suite', () => {
     }),
   }) satisfies z.ZodType<FirestoreRecordDto<{ name: string }>>;
 
-  if (process.env['FIRESTORE_EMULATOR_HOST']) {
-    const [host, port] = process.env['FIRESTORE_EMULATOR_HOST'].split(':');
-    connectFirestoreEmulator(firestore, host, Number(port));
-  }
+  beforeAll(async () => {
+    if (!process.env['FIRESTORE_EMULATOR_HOST']) return;
+    testEnvironment = await initializeTestEnvironment({
+      projectId: 'demo-veril',
+      firestore: {
+        rules: readFileSync(
+          'libs/tank-os/data-access-firestore/emulator/emulator.rules',
+          'utf8',
+        ),
+      },
+    });
+  });
+  const requireTestEnvironment = (): RulesTestEnvironment => {
+    if (!testEnvironment) {
+      throw new Error('Firestore test environment is unavailable');
+    }
+    return testEnvironment;
+  };
+
+  afterAll(async () => {
+    await testEnvironment?.cleanup();
+  });
 
   emulatorTest(
     'Given the emulator is running, When a record is created and read, Then the adapter maps technical timestamps and data',
     async () => {
+      const access = {
+        principalId: createEntityId('emulator-keeper'),
+        roles: ['keeper'] as const,
+      };
+      const firestore = requireTestEnvironment().authenticatedContext(
+        'emulator-keeper',
+      ).firestore();
       const repository = createFirestoreCrudRepository({
         firestore,
         collectionPath,
@@ -82,6 +102,36 @@ describe('Firestore CRUD adapter against Firebase Emulator Suite', () => {
         data: { name: 'emulator' },
         revision: 1,
       });
+    },
+  );
+
+  emulatorTest(
+    'Given no authenticated Firebase principal, When a protected record is read, Then Firestore denies the request',
+    async () => {
+      const unauthenticatedFirestore = requireTestEnvironment()
+        .unauthenticatedContext()
+        .firestore();
+      const repository = createFirestoreCrudRepository({
+        firestore: unauthenticatedFirestore,
+        collectionPath,
+        recordSchema,
+        createId: (input: { name: string }) => input.name,
+        createData: (input: { name: string }) => input,
+        updateData: (_data: { name: string }, input: { name: string }) => input,
+        buildQuery: (reference, request) =>
+          query(reference, orderBy(request.page.orderBy[0].field)),
+        encodeCursor: () => createPageCursor('emulator-cursor'),
+      });
+
+      await expect(
+        repository.get({
+          access: {
+            principalId: createEntityId('anonymous'),
+            roles: ['keeper'],
+          },
+          id: createEntityId('emulator'),
+        }),
+      ).rejects.toMatchObject({ code: 'forbidden' });
     },
   );
 });

@@ -1,5 +1,7 @@
 /** Identifies the ownership and domain boundaries of a cached value. */
 export interface CacheScope {
+  /** Cache contract version; changing it invalidates incompatible persisted data. */
+  readonly version?: string;
   /** Top-level TankOS domain, for example `units` or `measurements`. */
   readonly domain: string;
   /** Optional entity within the domain. */
@@ -13,6 +15,7 @@ export interface CacheScope {
 /** Converts a scope into a stable hierarchical cache namespace. */
 export function createCacheNamespace(scope: CacheScope): string {
   const values = [
+    scope.version ?? 'v1',
     scope.domain,
     scope.entity,
     scope.principalId,

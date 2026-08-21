@@ -1,6 +1,5 @@
 import {
   DataAccessError,
-  type AccessContext,
   type EntityId,
   type BatchAuthorizationPort,
 } from '@tank-os/data-access';
@@ -11,17 +10,17 @@ function authorizationFailure(error: unknown): DataAccessError {
     typeof error === 'object' && error !== null && 'code' in error
       ? String((error as { readonly code: unknown }).code)
       : '';
-  return new DataAccessError(
+  const transient =
     code.includes('internal') ||
-      code.includes('unavailable') ||
-      code.includes('network') ||
-      code.includes('deadline')
-      ? 'transient'
-      : 'forbidden',
-    code.includes('internal') || code.includes('unavailable')
+    code.includes('unavailable') ||
+    code.includes('network') ||
+    code.includes('deadline');
+  return new DataAccessError(
+    transient ? 'transient' : 'forbidden',
+    transient
       ? 'Firebase authorization provider is temporarily unavailable'
       : 'The Firebase principal is not authorized',
-    { retryable: code.includes('internal') || code.includes('unavailable') },
+    { retryable: transient },
   );
 }
 
@@ -58,16 +57,24 @@ export function createFirebaseAdminBatchAuthorization(
   const requiredRole = options.requiredRole ?? 'worker';
 
   return {
-    async authorize(_batchId: EntityId, access: AccessContext): Promise<void> {
+    async authorize(
+      _batchId: EntityId,
+      callerPrincipalId: EntityId,
+      submittedPrincipalId: EntityId,
+    ): Promise<void> {
       let user;
       try {
-        user = await options.auth.getUser(access.principalId);
+        user = await options.auth.getUser(callerPrincipalId);
       } catch (error) {
         throw authorizationFailure(error);
       }
       const claims = user.customClaims?.[rolesClaim];
       const roles = Array.isArray(claims) ? claims : [];
-      if (user.uid !== access.principalId || !roles.includes(requiredRole)) {
+      if (
+        user.uid !== callerPrincipalId ||
+        callerPrincipalId !== submittedPrincipalId ||
+        !roles.includes(requiredRole)
+      ) {
         throw new DataAccessError(
           'forbidden',
           'The Firebase principal is not authorized',

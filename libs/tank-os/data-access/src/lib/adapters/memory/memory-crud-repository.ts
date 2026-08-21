@@ -9,6 +9,7 @@ import type {
   Page,
   RecordCommand,
 } from '../../core';
+import type { ClockPort } from '@tank-os/time';
 import { createPageCursor } from '../../core';
 import type { TechnicalTimestamp } from '../../core';
 import { createAccessContext, createPageRequest } from '../../core';
@@ -24,7 +25,7 @@ export interface InMemoryCrudRepositoryOptions<
   readonly create: (input: TCreate, now: TechnicalTimestamp) => CrudRecord<TData>;
   readonly update: (data: TData, input: TUpdate) => TData;
   readonly matches?: (record: CrudRecord<TData>, filter: TFilter) => boolean;
-  readonly now: () => TechnicalTimestamp;
+  readonly clock: ClockPort;
   /** Roles allowed to perform lifecycle operations in this test adapter. */
   readonly elevatedRoles?: readonly string[];
 }
@@ -80,10 +81,10 @@ export function createInMemoryCrudRepository<
   }
 
   function requireRevision(record: CrudRecord<TData>, request: RecordCommand): void {
-    if (
-      request.expectedRevision !== undefined &&
-      request.expectedRevision !== record.revision
-    ) {
+    if (!Number.isInteger(request.expectedRevision)) {
+      throw failure('validation', 'Record commands require an integer expectedRevision');
+    }
+    if (request.expectedRevision !== record.revision) {
       throw failure('conflict', `Record ${record.id} revision is stale`);
     }
   }
@@ -99,11 +100,11 @@ export function createInMemoryCrudRepository<
       revision: record.revision + 1,
       metadata: {
         ...record.metadata,
-        updatedAt: options.now(),
+        updatedAt: options.clock.now(),
         updatedBy: access.principalId,
         ...(lifecycle.status !== record.lifecycle.status
           ? {
-              lifecycleChangedAt: options.now(),
+              lifecycleChangedAt: options.clock.now(),
               lifecycleChangedBy: access.principalId,
             }
           : {}),
@@ -183,7 +184,7 @@ export function createInMemoryCrudRepository<
     },
     async create(request: CreateRequest<TCreate>) {
       validateAccess(request.access);
-      const record = options.create(request.input, options.now());
+      const record = options.create(request.input, options.clock.now());
       if (records.has(record.id)) {
         throw failure('conflict', `Record ${record.id} already exists`);
       }

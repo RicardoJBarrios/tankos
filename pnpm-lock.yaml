@@ -96,6 +96,9 @@ importers:
       '@eslint/js':
         specifier: ^9.8.0
         version: 9.39.5
+      '@firebase/rules-unit-testing':
+        specifier: ^4.0.1
+        version: 4.0.1(firebase@12.17.1)
       '@ngneat/spectator':
         specifier: 20.0.0
         version: 20.0.0(@angular/animations@20.3.27(@angular/core@20.3.27(@angular/compiler@20.3.27)(rxjs@7.8.2)(zone.js@0.15.0)))(@angular/common@20.3.27(@angular/core@20.3.27(@angular/compiler@20.3.27)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/router@20.3.27(@angular/common@20.3.27(@angular/core@20.3.27(@angular/compiler@20.3.27)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.27(@angular/compiler@20.3.27)(rxjs@7.8.2)(zone.js@0.15.0))(@angular/platform-browser@20.3.27(@angular/animations@20.3.27(@angular/core@20.3.27(@angular/compiler@20.3.27)(rxjs@7.8.2)(zone.js@0.15.0)))(@angular/common@20.3.27(@angular/core@20.3.27(@angular/compiler@20.3.27)(rxjs@7.8.2)(zone.js@0.15.0))(rxjs@7.8.2))(@angular/core@20.3.27(@angular/compiler@20.3.27)(rxjs@7.8.2)(zone.js@0.15.0)))(rxjs@7.8.2))
@@ -2312,6 +2315,12 @@ packages:
     resolution: {integrity: sha512-nzQUSJnk1zAZEl2Q5O3I7Z61cYLK5JI4H6wyyOiHkVZ+bmgy1YXNNMptNbVjixMQ/eCzgA6nZRaC+1eBcJGUFA==}
     peerDependencies:
       '@firebase/app': 0.x
+
+  '@firebase/rules-unit-testing@4.0.1':
+    resolution: {integrity: sha512-Vu8iMLP+dO9hCAqUCitWZQdORyM6CxucilRZtleeTZd5bejZmyOiaBPwYm3NOYG6025ac99CEeA+ETmJRxa9zg==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      firebase: ^11.0.0
 
   '@firebase/storage-compat@0.3.24':
     resolution: {integrity: sha512-XHn2tLniiP7BFKJaPZ0P8YQXKiVJX+bMyE2j2YWjYfaddqiJnROJYqSomwW6L3Y+gZAga35ONXUJQju6MB6SOQ==}
@@ -14259,6 +14268,10 @@ snapshots:
       '@firebase/logger': 0.5.1
       '@firebase/util': 1.15.2
       tslib: 2.8.1
+
+  '@firebase/rules-unit-testing@4.0.1(firebase@12.17.1)':
+    dependencies:
+      firebase: 12.17.1
 
   '@firebase/storage-compat@0.3.24(@firebase/app-compat@0.4.2)(@firebase/app-types@0.9.3)(@firebase/app@0.13.2)':
     dependencies:

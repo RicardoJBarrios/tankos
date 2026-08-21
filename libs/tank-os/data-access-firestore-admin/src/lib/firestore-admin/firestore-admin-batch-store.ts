@@ -1,20 +1,32 @@
 import {
   DataAccessError,
   createDataAccessError,
+  type BatchItemResult,
   type BatchClaim,
   type BatchClaimRequest,
+  type BatchMaterializerStorePort,
   type BatchChunk,
+  type BatchLease,
   type BatchOperationRecord,
   type BatchSummaryPatch,
-  type BatchStorePort,
+  type BatchSubmissionStorePort,
+  type BatchWorkerStorePort,
   type EntityId,
   type TechnicalTimestamp,
+  createEntityId,
 } from '@tank-os/data-access';
+import type { ClockPort } from '@tank-os/time';
 import {
   Timestamp,
+  type CollectionReference,
   type DocumentData,
   type Firestore,
 } from 'firebase-admin/firestore';
+import { randomUUID } from 'node:crypto';
+import {
+  firestoreAdminBatchChunkSchema,
+  firestoreAdminBatchDtoSchema,
+} from './firestore-admin-schemas';
 
 /** Dependencies for the durable Firestore Admin batch store. */
 export interface FirestoreAdminBatchStoreOptions {
@@ -23,7 +35,18 @@ export interface FirestoreAdminBatchStoreOptions {
   /** Root collection used for batch summaries. */
   readonly collectionPath: string;
   /** Technical clock used for provider metadata. */
-  readonly now?: () => Timestamp;
+  /** Technical clock supplied by the trusted host, normally backed by `TimeService`. */
+  readonly clock?: ClockPort;
+}
+
+/** Submission and worker capabilities backed by the same Firestore store. */
+export interface FirestoreAdminBatchStores<TPayload = unknown> {
+  /** Unfenced capability used only by submission and materialization flows. */
+  readonly submissionStore: BatchSubmissionStorePort<TPayload>;
+  /** Fenced capability used to materialize selections into chunks. */
+  readonly materializerStore: BatchMaterializerStorePort<TPayload>;
+  /** Fenced capability used only by the trusted worker. */
+  readonly workerStore: BatchWorkerStorePort<TPayload>;
 }
 
 interface BatchDto extends DocumentData {
@@ -47,8 +70,51 @@ interface BatchDto extends DocumentData {
   readonly cancellationRequested?: boolean;
   readonly idempotencyKey?: string;
   readonly leaseOwner?: string;
+  readonly leaseToken?: string;
   readonly leaseUntil?: Timestamp;
+  readonly materializationLeaseOwner?: string;
+  readonly materializationLeaseToken?: string;
+  readonly materializationLeaseUntil?: Timestamp;
 }
+
+type FirestoreAdminBatchImplementation<TPayload> = Pick<
+  BatchSubmissionStorePort<TPayload>,
+  'create' |
+    'get' |
+    'listRunnableChunks' |
+    'requestCancellation' |
+    'isCancellationRequested' |
+    'remove'
+> & {
+  claim(
+    batchId: EntityId,
+    request: BatchClaimRequest,
+  ): Promise<BatchClaim<TPayload>>;
+  update(
+    batchId: EntityId,
+    patch: BatchSummaryPatch,
+    lease?: BatchLease,
+    leaseKind?: LeaseKind,
+  ): Promise<BatchOperationRecord<TPayload>>;
+  putChunk(
+    batchId: EntityId,
+    chunk: BatchChunk,
+    lease: BatchLease,
+    leaseKind?: LeaseKind,
+  ): Promise<void>;
+  putResults(
+    batchId: EntityId,
+    chunkId: EntityId,
+    results: readonly BatchItemResult[],
+    lease: BatchLease,
+  ): Promise<void>;
+  claimMaterialization(
+    batchId: EntityId,
+    request: BatchClaimRequest,
+  ): Promise<BatchClaim<TPayload>>;
+};
+
+type LeaseKind = 'worker' | 'materialization';
 
 const toTimestamp = (value: TechnicalTimestamp): Timestamp =>
   Timestamp.fromMillis(value.epochMilliseconds);
@@ -78,9 +144,16 @@ const toDto = <TPayload>(record: BatchOperationRecord<TPayload>): BatchDto => ({
   requestFingerprint: record.requestFingerprint,
   leaseOwner: record.leaseOwner,
   leaseUntil: record.leaseUntil ? toTimestamp(record.leaseUntil) : undefined,
+  materializationLeaseOwner: record.materializationLeaseOwner,
+  materializationLeaseToken: record.materializationLeaseToken,
+  materializationLeaseUntil: record.materializationLeaseUntil
+    ? toTimestamp(record.materializationLeaseUntil)
+    : undefined,
 });
 
-const fromDto = <TPayload>(dto: BatchDto): BatchOperationRecord<TPayload> => ({
+const fromDto = <TPayload>(value: unknown): BatchOperationRecord<TPayload> => {
+  const dto = firestoreAdminBatchDtoSchema.parse(value) as BatchDto;
+  return {
   batchId: dto.batchId as EntityId,
   principalId: dto.principalId as EntityId,
   schema: dto.schema,
@@ -102,7 +175,13 @@ const fromDto = <TPayload>(dto: BatchDto): BatchOperationRecord<TPayload> => ({
   leaseUntil: dto.leaseUntil
     ? toTechnicalTimestamp(dto.leaseUntil)
     : undefined,
-});
+  materializationLeaseOwner: dto.materializationLeaseOwner ?? undefined,
+  materializationLeaseToken: dto.materializationLeaseToken ?? undefined,
+  materializationLeaseUntil: dto.materializationLeaseUntil
+    ? toTechnicalTimestamp(dto.materializationLeaseUntil)
+    : undefined,
+  };
+};
 
 const mapError = (error: unknown, message: string): never => {
   if (error instanceof DataAccessError) throw error;
@@ -126,8 +205,14 @@ const mapError = (error: unknown, message: string): never => {
 /** Creates durable batch summaries, chunks, results and idempotency records. */
 export function createFirestoreAdminBatchStore<TPayload = unknown>(
   options: FirestoreAdminBatchStoreOptions,
-): BatchStorePort<TPayload> {
-  const now = options.now ?? (() => Timestamp.now());
+): FirestoreAdminBatchStores<TPayload> {
+  const clock = options.clock ?? {
+    now: () => ({
+      kind: 'instant' as const,
+      epochMilliseconds: Timestamp.now().toMillis(),
+    }),
+  } satisfies ClockPort;
+  const timestampNow = () => Timestamp.fromMillis(clock.now().epochMilliseconds);
   const root = options.firestore.collection(options.collectionPath);
   const idempotency = options.firestore.collection(
     `${options.collectionPath}__idempotency`,
@@ -144,7 +229,78 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
   ) =>
     batchReference(batchId).collection('results').doc(`${chunkId}:${itemId}`);
 
-  return {
+  const requireLease = (
+    current: BatchDto,
+    lease: BatchLease,
+    kind: LeaseKind,
+  ): void => {
+    const owner = kind === 'worker'
+      ? current.leaseOwner
+      : current.materializationLeaseOwner;
+    const token = kind === 'worker'
+      ? current.leaseToken
+      : current.materializationLeaseToken;
+    const until = kind === 'worker'
+      ? current.leaseUntil
+      : current.materializationLeaseUntil;
+    const active =
+      owner === lease.owner &&
+      token === lease.token &&
+      until !== undefined &&
+      until.toMillis() > timestampNow().toMillis();
+    if (!active) {
+      throw createDataAccessError(
+        'conflict',
+        `The batch ${kind} lease is no longer valid`,
+      );
+    }
+  };
+
+  const encodePatch = (patch: BatchSummaryPatch): Record<string, unknown> => {
+    const encoded: Record<string, unknown> = {
+      ...patch,
+      updatedAt: toTimestamp(patch.updatedAt),
+    };
+    if (patch.leaseUntil !== undefined) {
+      encoded['leaseUntil'] = patch.leaseUntil
+        ? toTimestamp(patch.leaseUntil)
+        : null;
+      if (patch.leaseUntil === null) encoded['leaseToken'] = null;
+    }
+    if (patch.materializationLeaseUntil !== undefined) {
+      encoded['materializationLeaseUntil'] = patch.materializationLeaseUntil
+        ? toTimestamp(patch.materializationLeaseUntil)
+        : null;
+      if (patch.materializationLeaseUntil === null) {
+        encoded['materializationLeaseToken'] = null;
+      }
+    }
+    if (patch.materializationLeaseOwner !== undefined) {
+      encoded['materializationLeaseOwner'] = patch.materializationLeaseOwner;
+    }
+    return encoded;
+  };
+
+  const idempotencyProjection = (dto: BatchDto): BatchDto => ({
+    ...dto,
+    requestedSelection: undefined,
+    payload: undefined,
+  });
+
+  const removeDetails = async (
+    collection: CollectionReference,
+  ): Promise<void> => {
+    while (true) {
+      const page = await collection.limit(400).get();
+      if (page.empty) return;
+      const batch = options.firestore.batch();
+      page.docs.forEach((item) => batch.delete(item.ref));
+      await batch.commit();
+      if (page.size < 400) return;
+    }
+  };
+
+  const implementation: FirestoreAdminBatchImplementation<TPayload> = {
     async create(record, idempotencyKey) {
       try {
         const result = await options.firestore.runTransaction(
@@ -186,12 +342,16 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
             }
             const dto = toDto(record);
             const durableDto = { ...dto, idempotencyKey };
+            const retainedDto = {
+              ...idempotencyProjection(durableDto),
+              idempotencyKey,
+            };
             transaction.create(operationRef, durableDto);
             transaction.create(keyRef, {
               fingerprint: record.requestFingerprint,
               batchId: record.batchId,
-              record: durableDto,
-              createdAt: now(),
+              record: retainedDto,
+              createdAt: timestampNow(),
             });
             return record;
           },
@@ -211,11 +371,66 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
         return mapError(error, 'Firestore Admin batch read failed');
       }
     },
+    async claimMaterialization(batchId, request) {
+      try {
+        if (
+          typeof request.ownerId !== 'string' ||
+          !request.ownerId.trim() ||
+          !Number.isInteger(request.leaseDurationMilliseconds) ||
+          request.leaseDurationMilliseconds < 1
+        ) {
+          throw createDataAccessError(
+            'validation',
+            'Materializer identity and lease duration are invalid',
+          );
+        }
+        return await options.firestore.runTransaction(async (transaction) => {
+          const reference = batchReference(batchId);
+          const snapshot = await transaction.get(reference);
+          if (!snapshot.exists)
+            throw createDataAccessError('not-found', 'Batch was not found');
+          const current = fromDto<TPayload>(snapshot.data() as BatchDto);
+          const active =
+            current.materializationLeaseUntil !== undefined &&
+            current.materializationLeaseUntil.epochMilliseconds >
+              request.now.epochMilliseconds;
+          if (current.status !== 'materializing' || active) {
+            return { claimed: false, record: current };
+          }
+          const leaseUntil = {
+            kind: 'instant' as const,
+            epochMilliseconds:
+              request.now.epochMilliseconds + request.leaseDurationMilliseconds,
+          };
+          const leaseToken = randomUUID();
+          transaction.update(reference, {
+            materializationLeaseOwner: request.ownerId,
+            materializationLeaseToken: leaseToken,
+            materializationLeaseUntil: toTimestamp(leaseUntil),
+          });
+          return {
+            claimed: true,
+            record: {
+              ...current,
+              materializationLeaseOwner: request.ownerId,
+              materializationLeaseToken: leaseToken,
+              materializationLeaseUntil: leaseUntil,
+            },
+            lease: {
+              owner: request.ownerId,
+              token: leaseToken,
+            },
+          };
+        });
+      } catch (error) {
+        return mapError(error, 'Firestore Admin materialization claim failed');
+      }
+    },
     async claim(batchId, request: BatchClaimRequest): Promise<BatchClaim<TPayload>> {
       try {
         if (
-          typeof request.workerId !== 'string' ||
-          !request.workerId.trim() ||
+          typeof request.ownerId !== 'string' ||
+          !request.ownerId.trim() ||
           !Number.isInteger(request.leaseDurationMilliseconds) ||
           request.leaseDurationMilliseconds < 1
         ) {
@@ -246,10 +461,12 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
             epochMilliseconds:
               request.now.epochMilliseconds + request.leaseDurationMilliseconds,
           };
+          const leaseToken = randomUUID();
           transaction.update(reference, {
             status: 'running',
             updatedAt: toTimestamp(request.now),
-            leaseOwner: request.workerId,
+            leaseOwner: request.ownerId,
+            leaseToken,
             leaseUntil: toTimestamp(leaseUntil),
           });
           return {
@@ -258,38 +475,57 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
               ...current,
               status: 'running',
               updatedAt: request.now,
-              leaseOwner: request.workerId,
+              leaseOwner: request.ownerId,
               leaseUntil,
             },
+            lease: { owner: request.ownerId, token: leaseToken },
           };
         });
       } catch (error) {
         return mapError(error, 'Firestore Admin batch claim failed');
       }
     },
-    async update(batchId, patch: BatchSummaryPatch) {
+    async update(
+      batchId,
+      patch: BatchSummaryPatch,
+      lease,
+      leaseKind: LeaseKind = 'worker',
+    ) {
       try {
         const reference = batchReference(batchId);
+        const encoded = encodePatch(patch);
+        if (lease) {
+          return await options.firestore.runTransaction(async (transaction) => {
+            const snapshot = await transaction.get(reference);
+            if (!snapshot.exists)
+              throw createDataAccessError('not-found', 'Batch was not found');
+            const current = snapshot.data() as BatchDto;
+            requireLease(current, lease, leaseKind);
+            transaction.update(reference, encoded as never);
+            return fromDto<TPayload>({
+              ...current,
+              ...encoded,
+              leaseUntil:
+                patch.leaseUntil === null
+                  ? undefined
+                  : patch.leaseUntil
+                    ? toTimestamp(patch.leaseUntil)
+                    : current.leaseUntil,
+              leaseToken: patch.leaseUntil === null ? undefined : current.leaseToken,
+              materializationLeaseToken:
+                patch.materializationLeaseUntil === null
+                  ? undefined
+                  : current.materializationLeaseToken,
+            });
+          });
+        }
         const snapshot = await reference.get();
         if (!snapshot.exists)
           throw createDataAccessError('not-found', 'Batch was not found');
-        const encoded: Record<string, unknown> = {
-          ...patch,
-          updatedAt: toTimestamp(patch.updatedAt),
-        };
-        if (patch.leaseUntil !== undefined) {
-          encoded['leaseUntil'] = patch.leaseUntil
-            ? toTimestamp(patch.leaseUntil)
-            : null;
-        }
-        await reference.update({
-          ...encoded,
-          updatedAt: toTimestamp(patch.updatedAt),
-        });
+        await reference.update(encoded);
         return fromDto<TPayload>({
           ...(snapshot.data() as BatchDto),
           ...encoded,
-          updatedAt: toTimestamp(patch.updatedAt),
           leaseUntil:
             patch.leaseUntil === null
               ? undefined
@@ -301,9 +537,20 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
         return mapError(error, 'Firestore Admin batch update failed');
       }
     },
-    async putChunk(batchId, chunk) {
+    async putChunk(
+      batchId,
+      chunk,
+      lease,
+      leaseKind: LeaseKind = 'worker',
+    ) {
       try {
-        await chunkReference(batchId, chunk.chunkId).set(chunk);
+        await options.firestore.runTransaction(async (transaction) => {
+          const batchSnapshot = await transaction.get(batchReference(batchId));
+          if (!batchSnapshot.exists)
+            throw createDataAccessError('not-found', 'Batch was not found');
+          requireLease(batchSnapshot.data() as BatchDto, lease, leaseKind);
+          transaction.set(chunkReference(batchId, chunk.chunkId), chunk);
+        });
       } catch (error) {
         return mapError(error, 'Firestore Admin batch chunk write failed');
       }
@@ -314,17 +561,32 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
           .collection('chunks')
           .where('status', 'in', ['pending', 'failed']);
         const result = await (limit === undefined ? query : query.limit(limit)).get();
-        return result.docs.map((item) => item.data() as BatchChunk);
+        return result.docs.map((item) => {
+          const parsed = firestoreAdminBatchChunkSchema.parse(item.data());
+          return {
+            ...parsed,
+            chunkId: createEntityId(parsed.chunkId),
+            ids: parsed.ids.map((id) => createEntityId(id)),
+          } satisfies BatchChunk;
+        });
       } catch (error) {
         return mapError(error, 'Firestore Admin batch chunk read failed');
       }
     },
-    async putResult(batchId, chunkId, result) {
+    async putResults(batchId, chunkId, results, lease: BatchLease) {
       try {
-        await resultReference(batchId, chunkId, result.id).set({
-          ...result,
-          chunkId,
-          completedAt: now(),
+        await options.firestore.runTransaction(async (transaction) => {
+          const batchSnapshot = await transaction.get(batchReference(batchId));
+          if (!batchSnapshot.exists)
+            throw createDataAccessError('not-found', 'Batch was not found');
+          requireLease(batchSnapshot.data() as BatchDto, lease, 'worker');
+          for (const result of results) {
+            transaction.set(resultReference(batchId, chunkId, result.id), {
+              ...result,
+              chunkId,
+              completedAt: timestampNow(),
+            });
+          }
         });
       } catch (error) {
         return mapError(error, 'Firestore Admin batch result write failed');
@@ -333,15 +595,27 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
     async requestCancellation(batchId) {
       try {
         const reference = batchReference(batchId);
-        const snapshot = await reference.get();
-        if (!snapshot.exists)
-          throw createDataAccessError('not-found', 'Batch was not found');
-        const updatedAt = now();
-        await reference.update({ cancellationRequested: true, updatedAt });
-        return fromDto<TPayload>({
-          ...(snapshot.data() as BatchDto),
-          cancellationRequested: true,
-          updatedAt,
+        return await options.firestore.runTransaction(async (transaction) => {
+          const snapshot = await transaction.get(reference);
+          if (!snapshot.exists)
+            throw createDataAccessError('not-found', 'Batch was not found');
+          const current = snapshot.data() as BatchDto;
+          const terminal =
+            current.status === 'completed' ||
+            current.status === 'completed-with-warnings' ||
+            current.status === 'failed' ||
+            current.status === 'cancelled';
+          if (terminal) return fromDto<TPayload>(current);
+          const updatedAt = timestampNow();
+          transaction.update(reference, {
+            cancellationRequested: true,
+            updatedAt,
+          });
+          return fromDto<TPayload>({
+            ...current,
+            cancellationRequested: true,
+            updatedAt,
+          });
         });
       } catch (error) {
         return mapError(error, 'Firestore Admin batch cancellation failed');
@@ -363,30 +637,17 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
     async remove(batchId) {
       try {
         const reference = batchReference(batchId);
-        const [snapshot, chunks, results] = await Promise.all([
-          reference.get(),
-          reference.collection('chunks').get(),
-          reference.collection('results').get(),
-        ]);
+        const snapshot = await reference.get();
         if (!snapshot.exists)
           throw createDataAccessError('not-found', 'Batch was not found');
         const dto = snapshot.data() as BatchDto;
-        const references = [
-          ...chunks.docs.map((item) => item.ref),
-          ...results.docs.map((item) => item.ref),
-        ];
-        for (let offset = 0; offset < references.length; offset += 400) {
-          const batch = options.firestore.batch();
-          references
-            .slice(offset, offset + 400)
-            .forEach((item) => batch.delete(item));
-          await batch.commit();
-        }
+        await removeDetails(reference.collection('chunks'));
+        await removeDetails(reference.collection('results'));
         const finalBatch = options.firestore.batch();
         if (dto.idempotencyKey) {
           finalBatch.update(
             idempotencyReference(dto.principalId as EntityId, dto.idempotencyKey),
-            { record: dto },
+            { record: idempotencyProjection(dto) },
           );
         }
         finalBatch.delete(reference);
@@ -394,6 +655,37 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
       } catch (error) {
         return mapError(error, 'Firestore Admin batch removal failed');
       }
+    },
+  };
+  return {
+    submissionStore: {
+      create: implementation.create,
+      get: implementation.get,
+      update: (batchId, patch) => implementation.update(batchId, patch),
+      listRunnableChunks: implementation.listRunnableChunks,
+      requestCancellation: implementation.requestCancellation,
+      isCancellationRequested: implementation.isCancellationRequested,
+      remove: implementation.remove,
+    },
+    materializerStore: {
+      get: implementation.get,
+      claimMaterialization: implementation.claimMaterialization,
+      update: (batchId, patch, lease) =>
+        implementation.update(batchId, patch, lease, 'materialization'),
+      putChunk: (batchId, chunk, lease) =>
+        implementation.putChunk(batchId, chunk, lease, 'materialization'),
+      isCancellationRequested: implementation.isCancellationRequested,
+    },
+    workerStore: {
+      get: implementation.get,
+      claim: implementation.claim,
+      update: (batchId, patch, lease) =>
+        implementation.update(batchId, patch, lease),
+      putChunk: (batchId, chunk, lease) =>
+        implementation.putChunk(batchId, chunk, lease),
+      listRunnableChunks: implementation.listRunnableChunks,
+      putResults: implementation.putResults,
+      isCancellationRequested: implementation.isCancellationRequested,
     },
   };
 }

@@ -2,7 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { createBatchSubmissionService } from './batch-submission-service';
 import {
   type BatchOperationRecord,
-  type BatchStorePort,
+  type BatchMaterializerStorePort,
+  type BatchSubmissionStorePort,
   createEntityId,
 } from '../core';
 
@@ -33,25 +34,49 @@ function record(
 function storeHarness(initial = record()) {
   let current: BatchOperationRecord | undefined = initial;
   const chunks: unknown[] = [];
-  const store: BatchStorePort = {
+  let cancellationRequested = false;
+  const store: BatchSubmissionStorePort = {
     create: async (value) => {
       current = value;
       return value;
     },
     get: async () => current,
-    claim: async () => ({ claimed: false, record: current as BatchOperationRecord }),
+    update: async (_id, patch) => {
+      current = { ...(current as BatchOperationRecord), ...patch };
+      return current;
+    },
+    listRunnableChunks: async () => [],
+    requestCancellation: async () => {
+      cancellationRequested = true;
+      return current as BatchOperationRecord;
+    },
+    isCancellationRequested: async () => cancellationRequested,
+    remove: async () => undefined,
+  };
+  const materializerStore: BatchMaterializerStorePort = {
+    get: async () => current,
+    claimMaterialization: async () => ({
+      claimed: current?.status === 'materializing',
+      record: current as BatchOperationRecord,
+      lease: { owner: 'materializer-1', token: 'materializer-token-1' },
+    }),
     update: async (_id, patch) => {
       current = { ...(current as BatchOperationRecord), ...patch };
       return current;
     },
     putChunk: async (_id, chunk) => chunks.push(chunk),
-    listRunnableChunks: async () => [],
-    putResult: async () => undefined,
-    requestCancellation: async () => current as BatchOperationRecord,
-    isCancellationRequested: async () => false,
-    remove: async () => undefined,
+    isCancellationRequested: async () => cancellationRequested,
   };
-  return { store, chunks, setCurrent: (value: BatchOperationRecord | undefined) => (current = value) };
+  return {
+    store,
+    materializerStore,
+    chunks,
+    get cancellationRequested() {
+      return cancellationRequested;
+    },
+    setCancellation: (value: boolean) => (cancellationRequested = value),
+    setCurrent: (value: BatchOperationRecord | undefined) => (current = value),
+  };
 }
 
 describe('createBatchSubmissionService', () => {
@@ -59,8 +84,9 @@ describe('createBatchSubmissionService', () => {
     const harness = storeHarness();
     const service = createBatchSubmissionService({
       store: harness.store,
+      materializerStore: harness.materializerStore,
       materializer: { materialize: async () => [] },
-      now: () => now,
+      clock: { now: () => now },
       createBatchId: () => createEntityId('batch-1'),
     });
 
@@ -76,12 +102,28 @@ describe('createBatchSubmissionService', () => {
     ).resolves.toMatchObject({ status: 'materializing', total: 0 });
   });
 
+  it('Given an active request, When cancelled, Then requests cooperative cancellation from the store', async () => {
+    const harness = storeHarness(record('queued'));
+    const service = createBatchSubmissionService({
+      store: harness.store,
+      materializerStore: harness.materializerStore,
+      materializer: { materialize: async () => [] },
+      clock: { now: () => now },
+      createBatchId: () => createEntityId('batch-1'),
+    });
+
+    await service.cancel(createEntityId('batch-1'));
+
+    expect(harness.cancellationRequested).toBe(true);
+  });
+
   it('Given a primitive payload, When submitted, Then includes it in the stable request fingerprint', async () => {
     const harness = storeHarness();
     const service = createBatchSubmissionService({
       store: harness.store,
+      materializerStore: harness.materializerStore,
       materializer: { materialize: async () => [] },
-      now: () => now,
+      clock: { now: () => now },
       createBatchId: () => createEntityId('batch-1'),
     });
 
@@ -103,8 +145,9 @@ describe('createBatchSubmissionService', () => {
     const ids = [1, 2, 3, 4, 5].map((id) => createEntityId(`unit-${id}`));
     const service = createBatchSubmissionService({
       store: harness.store,
+      materializerStore: harness.materializerStore,
       materializer: { materialize: async () => ids },
-      now: () => now,
+      clock: { now: () => now },
       createBatchId: () => createEntityId('batch-1'),
       chunkSize: 2,
     });
@@ -117,6 +160,27 @@ describe('createBatchSubmissionService', () => {
     expect(harness.chunks[2]).toMatchObject({ ids: [createEntityId('unit-5')] });
   });
 
+  it('Given cancellation during materialization, When materialized, Then does not queue or write chunks', async () => {
+    const harness = storeHarness();
+    const service = createBatchSubmissionService({
+      store: harness.store,
+      materializerStore: harness.materializerStore,
+      materializer: {
+        materialize: async () => {
+          harness.setCancellation(true);
+          return [createEntityId('unit-1')];
+        },
+      },
+      clock: { now: () => now },
+      createBatchId: () => createEntityId('batch-1'),
+    });
+
+    await expect(service.materialize(createEntityId('batch-1'))).resolves.toMatchObject({
+      status: 'cancelled',
+    });
+    expect(harness.chunks).toHaveLength(0);
+  });
+
   it('Given a selection above the configured limit, When materialized, Then rejects before writing chunks', async () => {
     const harness = storeHarness();
     const materialize = vi.fn().mockResolvedValue([
@@ -125,8 +189,9 @@ describe('createBatchSubmissionService', () => {
     ]);
     const service = createBatchSubmissionService({
       store: harness.store,
+      materializerStore: harness.materializerStore,
       materializer: { materialize },
-      now: () => now,
+      clock: { now: () => now },
       createBatchId: () => createEntityId('batch-1'),
       maxTargets: 1,
     });
@@ -146,8 +211,9 @@ describe('createBatchSubmissionService', () => {
     const materialize = vi.fn().mockResolvedValue([]);
     const service = createBatchSubmissionService({
       store: harness.store,
+      materializerStore: harness.materializerStore,
       materializer: { materialize },
-      now: () => now,
+      clock: { now: () => now },
       createBatchId: () => createEntityId('batch-1'),
     });
 
@@ -159,11 +225,12 @@ describe('createBatchSubmissionService', () => {
 
   it('Given a store that loses the record while queuing, When materialized, Then reports the missing result', async () => {
     const harness = storeHarness();
-    harness.store.update = async () => undefined;
+    harness.materializerStore.update = async () => undefined as never;
     const service = createBatchSubmissionService({
       store: harness.store,
+      materializerStore: harness.materializerStore,
       materializer: { materialize: async () => [] },
-      now: () => now,
+      clock: { now: () => now },
       createBatchId: () => createEntityId('batch-1'),
     });
 
@@ -176,14 +243,66 @@ describe('createBatchSubmissionService', () => {
     const duplicate = storeHarness();
     const service = createBatchSubmissionService({
       store: duplicate.store,
+      materializerStore: duplicate.materializerStore,
       materializer: { materialize: async () => [createEntityId('same'), createEntityId('same')] },
-      now: () => now,
+      clock: { now: () => now },
       createBatchId: () => createEntityId('batch-1'),
     });
     await expect(service.materialize(createEntityId('batch-1'))).rejects.toMatchObject({ code: 'validation' });
 
     duplicate.setCurrent(undefined);
     await expect(service.materialize(createEntityId('missing'))).rejects.toMatchObject({ code: 'not-found' });
+  });
+
+  it.each(['queued', 'completed', 'cancelled'] as const)(
+    'Given a %s request, When resumed, Then leaves its terminal or queued state unchanged',
+    async (status) => {
+      const harness = storeHarness(record(status));
+      const service = createBatchSubmissionService({
+        store: harness.store,
+        materializerStore: harness.materializerStore,
+        materializer: { materialize: async () => [] },
+        clock: { now: () => now },
+        createBatchId: () => createEntityId('batch-1'),
+      });
+
+      await expect(service.resume(createEntityId('batch-1'))).resolves.toMatchObject({
+        status,
+      });
+    },
+  );
+
+  it.each(['failed', 'interrupted'] as const)(
+    'Given a %s request, When resumed, Then queues it for another execution',
+    async (status) => {
+      const harness = storeHarness(record(status));
+      const service = createBatchSubmissionService({
+        store: harness.store,
+        materializerStore: harness.materializerStore,
+        materializer: { materialize: async () => [] },
+        clock: { now: () => now },
+        createBatchId: () => createEntityId('batch-1'),
+      });
+
+      await expect(service.resume(createEntityId('batch-1'))).resolves.toMatchObject({
+        status: 'queued',
+      });
+    },
+  );
+
+  it('Given a running request, When resumed, Then rejects the concurrent transition', async () => {
+    const harness = storeHarness(record('running'));
+    const service = createBatchSubmissionService({
+      store: harness.store,
+      materializerStore: harness.materializerStore,
+      materializer: { materialize: async () => [] },
+      clock: { now: () => now },
+      createBatchId: () => createEntityId('batch-1'),
+    });
+
+    await expect(service.resume(createEntityId('batch-1'))).rejects.toMatchObject({
+      code: 'conflict',
+    });
   });
 
   it.each([0, 401, NaN, Infinity, -Infinity])(
@@ -193,8 +312,9 @@ describe('createBatchSubmissionService', () => {
       expect(() =>
         createBatchSubmissionService({
           store: harness.store,
+          materializerStore: harness.materializerStore,
           materializer: { materialize: async () => [] },
-          now: () => now,
+          clock: { now: () => now },
           createBatchId: () => createEntityId('batch-1'),
           chunkSize,
         }),
@@ -209,10 +329,28 @@ describe('createBatchSubmissionService', () => {
       expect(() =>
         createBatchSubmissionService({
           store: harness.store,
+          materializerStore: harness.materializerStore,
           materializer: { materialize: async () => [] },
-          now: () => now,
+          clock: { now: () => now },
           createBatchId: () => createEntityId('batch-1'),
           maxTargets,
+        }),
+      ).toThrow(RangeError);
+    },
+  );
+
+  it.each([999, NaN, Infinity, -Infinity])(
+    'Given invalid max request bytes %s, When created, Then rejects configuration',
+    (maxRequestBytes) => {
+      const harness = storeHarness();
+      expect(() =>
+        createBatchSubmissionService({
+          store: harness.store,
+          materializerStore: harness.materializerStore,
+          materializer: { materialize: async () => [] },
+          clock: { now: () => now },
+          createBatchId: () => createEntityId('batch-1'),
+          maxRequestBytes,
         }),
       ).toThrow(RangeError);
     },

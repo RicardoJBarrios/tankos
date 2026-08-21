@@ -67,6 +67,16 @@ its own area, and each concrete implementation in an `adapters/<name>/` area.
 All files for a concrete adapter, including its paired tests, must remain
 inside that adapter directory. In particular, files prefixed `native-` belong
 under `adapters/native/` and must not be placed beside the port or application
+
+## Capability separation for asynchronous batches
+
+Asynchronous batch persistence must expose least-privilege capabilities rather
+than one omnibus store. Submission/control, materialization and worker
+execution are separate ports and separate adapter projections. Materializer and
+worker writes must require their own fencing lease at the type boundary; a
+public submission capability must never expose claim, chunk or result writes.
+Cleanup remains a separate explicit capability. New batch capabilities must
+preserve this separation in every provider adapter and in their tests.
 files.
 
 Angular library packaging must use `ng-packagr` through the Nx
@@ -140,8 +150,10 @@ Provider adapters must not perform a read-after-write merely to reconstruct a
 successful mutation response. Return a projected record from the write result,
 or make any required precondition read part of the same transaction. Mutations
 must expose a stable idempotency key when a retry can repeat them. Technical
-timestamps must come from an injectable boundary clock whose trust model is
-documented; do not hide an extra network read behind timestamp normalization.
+timestamps must come from the injectable `ClockPort` of `@tank-os/time` whose
+trust model is documented; normally the composition root supplies `TimeService`.
+Do not create a second clock abstraction or hide an extra network read behind
+timestamp normalization.
 Server-side authorization must use authoritative claims or IAM, never a role
 list supplied by the browser. Batch adapters must bound both logical chunk size
 and item concurrency.

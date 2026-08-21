@@ -19,7 +19,11 @@ describe('createFirebaseAdminBatchAuthorization', () => {
     });
 
     await expect(
-      authorization.authorize(createEntityId('batch-1'), access),
+      authorization.authorize(
+        createEntityId('batch-1'),
+        access.principalId,
+        access.principalId,
+      ),
     ).resolves.toBeUndefined();
   });
 
@@ -34,7 +38,11 @@ describe('createFirebaseAdminBatchAuthorization', () => {
     });
 
     await expect(
-      authorization.authorize(createEntityId('batch-1'), access),
+      authorization.authorize(
+        createEntityId('batch-1'),
+        access.principalId,
+        access.principalId,
+      ),
     ).rejects.toMatchObject({
       code: 'forbidden',
     });
@@ -51,7 +59,30 @@ describe('createFirebaseAdminBatchAuthorization', () => {
     });
 
     await expect(
-      authorization.authorize(createEntityId('batch-1'), access),
+      authorization.authorize(
+        createEntityId('batch-1'),
+        access.principalId,
+        access.principalId,
+      ),
+    ).rejects.toMatchObject({ code: 'forbidden' });
+  });
+
+  it('Given a caller different from the submitted principal, When authorized, Then rejects the batch', async () => {
+    const authorization = createFirebaseAdminBatchAuthorization({
+      auth: {
+        getUser: async () => ({
+          uid: 'another-user',
+          customClaims: { roles: ['worker'] },
+        }),
+      },
+    });
+
+    await expect(
+      authorization.authorize(
+        createEntityId('batch-1'),
+        createEntityId('another-user'),
+        access.principalId,
+      ),
     ).rejects.toMatchObject({ code: 'forbidden' });
   });
 
@@ -66,10 +97,11 @@ describe('createFirebaseAdminBatchAuthorization', () => {
     });
 
     await expect(
-      authorization.authorize(createEntityId('batch-1'), {
-        ...access,
-        roles: ['keeper'],
-      }),
+      authorization.authorize(
+        createEntityId('batch-1'),
+        access.principalId,
+        access.principalId,
+      ),
     ).resolves.toBeUndefined();
   });
 
@@ -84,7 +116,11 @@ describe('createFirebaseAdminBatchAuthorization', () => {
     });
 
     await expect(
-      authorization.authorize(createEntityId('batch-1'), access),
+      authorization.authorize(
+        createEntityId('batch-1'),
+        access.principalId,
+        access.principalId,
+      ),
     ).rejects.toMatchObject({ code: 'forbidden' });
   });
 
@@ -101,10 +137,11 @@ describe('createFirebaseAdminBatchAuthorization', () => {
     });
 
     await expect(
-      authorization.authorize(createEntityId('batch-1'), {
-        ...access,
-        roles: ['batch-worker'],
-      }),
+      authorization.authorize(
+        createEntityId('batch-1'),
+        access.principalId,
+        access.principalId,
+      ),
     ).resolves.toBeUndefined();
   });
 
@@ -118,7 +155,11 @@ describe('createFirebaseAdminBatchAuthorization', () => {
     });
 
     await expect(
-      authorization.authorize(createEntityId('batch-1'), access),
+      authorization.authorize(
+        createEntityId('batch-1'),
+        access.principalId,
+        access.principalId,
+      ),
     ).rejects.toMatchObject({
       code: 'forbidden',
     });
@@ -137,7 +178,11 @@ describe('createFirebaseAdminBatchAuthorization', () => {
     });
 
     await expect(
-      authorization.authorize(createEntityId('batch-1'), access),
+      authorization.authorize(
+        createEntityId('batch-1'),
+        access.principalId,
+        access.principalId,
+      ),
     ).rejects.toBe(error);
   });
 
@@ -151,7 +196,11 @@ describe('createFirebaseAdminBatchAuthorization', () => {
     });
 
     await expect(
-      authorization.authorize(createEntityId('batch-1'), access),
+      authorization.authorize(
+        createEntityId('batch-1'),
+        access.principalId,
+        access.principalId,
+      ),
     ).rejects.toMatchObject({ code: 'transient', retryable: true });
   });
 });

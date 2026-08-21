@@ -26,7 +26,7 @@ describe('createInMemoryBatchOperation', () => {
 
   it('Given a confirmed scope, When submitted and materialized, Then returns queued progress', async () => {
     const adapter = createInMemoryBatchOperation({
-      now: () => now,
+      clock: { now: () => now },
       materialize: (selection) =>
         selection.kind === 'ids' ? selection.ids : [],
       execute: async (id) => ({ id, outcome: 'succeeded' }),
@@ -46,7 +46,7 @@ describe('createInMemoryBatchOperation', () => {
   it('Given a frozen scope, When the worker runs it, Then processes bounded chunks and cleans the terminal operation', async () => {
     const processed: string[] = [];
     const adapter = createInMemoryBatchOperation({
-      now: () => now,
+      clock: { now: () => now },
       materialize: () => ids,
       execute: async (id) => {
         processed.push(id);
@@ -69,7 +69,7 @@ describe('createInMemoryBatchOperation', () => {
 
   it('Given item warnings and failures, When the worker runs, Then completes with warnings and continues', async () => {
     const adapter = createInMemoryBatchOperation({
-      now: () => now,
+      clock: { now: () => now },
       materialize: () => ids,
       execute: async (id) => {
         if (id === 'one') return { id, outcome: 'warning' };
@@ -90,7 +90,7 @@ describe('createInMemoryBatchOperation', () => {
 
   it('Given a non-Error item failure, When the worker runs, Then records a stable unknown failure', async () => {
     const adapter = createInMemoryBatchOperation({
-      now: () => now,
+      clock: { now: () => now },
       materialize: () => [ids[0]],
       execute: async () => {
         throw 'failure';
@@ -107,7 +107,7 @@ describe('createInMemoryBatchOperation', () => {
 
   it('Given a directly rejected item promise, When the worker runs, Then normalizes the Error failure', async () => {
     const adapter = createInMemoryBatchOperation({
-      now: () => now,
+      clock: { now: () => now },
       materialize: () => [ids[0]],
       execute: () => Promise.reject(new Error('direct-failure')),
     });
@@ -122,7 +122,7 @@ describe('createInMemoryBatchOperation', () => {
 
   it('Given a queued batch, When resumed or cancelled, Then updates its durable state', async () => {
     const adapter = createInMemoryBatchOperation({
-      now: () => now,
+      clock: { now: () => now },
       materialize: () => ids,
       execute: async (id) => ({ id, outcome: 'succeeded' }),
     });
@@ -142,14 +142,14 @@ describe('createInMemoryBatchOperation', () => {
   it('Given an unknown batch or invalid chunk size, When operated, Then returns a typed error', async () => {
     expect(() =>
       createInMemoryBatchOperation({
-        now: () => now,
+        clock: { now: () => now },
         materialize: () => ids,
         execute: async (id) => ({ id, outcome: 'succeeded' }),
         chunkSize: 401,
       }),
     ).toThrow(RangeError);
     const adapter = createInMemoryBatchOperation({
-      now: () => now,
+      clock: { now: () => now },
       materialize: () => ids,
       execute: async (id) => ({ id, outcome: 'succeeded' }),
     });
@@ -181,7 +181,7 @@ describe('createInMemoryBatchOperation', () => {
   it('Given an invalid concurrency, When the adapter is created, Then rejects the configuration', () => {
     expect(() =>
       createInMemoryBatchOperation({
-        now: () => now,
+        clock: { now: () => now },
         materialize: () => ids,
         execute: async (id) => ({ id, outcome: 'succeeded' }),
         concurrency: 33,
@@ -193,7 +193,7 @@ describe('createInMemoryBatchOperation', () => {
     let active = 0;
     let maximum = 0;
     const adapter = createInMemoryBatchOperation({
-      now: () => now,
+      clock: { now: () => now },
       materialize: () => ids,
       concurrency: 1,
       execute: async (id) => {
@@ -214,7 +214,7 @@ describe('createInMemoryBatchOperation', () => {
 
   it('Given a keeper caller, When it tries to execute a batch, Then rejects before execution', async () => {
     const adapter = createInMemoryBatchOperation({
-      now: () => now,
+      clock: { now: () => now },
       materialize: () => ids,
       execute: async (id) => ({ id, outcome: 'succeeded' as const }),
     });
@@ -231,7 +231,7 @@ describe('createInMemoryBatchOperation', () => {
   it('Given the same idempotency key, When submitted twice, Then materializes and stores one operation', async () => {
     let materializations = 0;
     const adapter = createInMemoryBatchOperation({
-      now: () => now,
+      clock: { now: () => now },
       materialize: () => {
         materializations += 1;
         return ids;
@@ -248,7 +248,7 @@ describe('createInMemoryBatchOperation', () => {
 
   it('Given a reused idempotency key with a different request, When submitted, Then rejects the conflict', async () => {
     const adapter = createInMemoryBatchOperation({
-      now: () => now,
+      clock: { now: () => now },
       materialize: () => ids,
       execute: async (id) => ({ id, outcome: 'succeeded' as const }),
     });
@@ -266,7 +266,7 @@ describe('createInMemoryBatchOperation', () => {
 
   it('Given a confirmed filter with no matches, When the worker runs it, Then completes without execution chunks', async () => {
     const adapter = createInMemoryBatchOperation({
-      now: () => now,
+      clock: { now: () => now },
       materialize: () => [],
       execute: async (id) => ({ id, outcome: 'succeeded' }),
     });

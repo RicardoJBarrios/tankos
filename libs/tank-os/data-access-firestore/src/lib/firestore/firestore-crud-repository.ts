@@ -21,6 +21,7 @@ import type {
   RecordCommand,
   TechnicalTimestamp,
 } from '@tank-os/data-access';
+import type { ClockPort } from '@tank-os/time';
 import {
   createAccessContext,
   createPageRequest,
@@ -56,8 +57,8 @@ export interface FirestoreCrudRepositoryOptions<
   readonly recordSchema: z.ZodType<FirestoreRecordDto<TData>>;
   /** Schema version written to newly created records. Defaults to 1. */
   readonly schemaVersion?: number;
-  /** Clock used for technical metadata; defaults to `Timestamp.now`. */
-  readonly timestamp?: () => Timestamp;
+  /** Clock used for technical metadata; normally supplied by `TimeService`. */
+  readonly clock?: ClockPort;
   readonly createId: (input: TCreate) => string;
   readonly createData: (input: TCreate) => TData;
   readonly updateData: (data: TData, input: TUpdate) => TData;
@@ -160,7 +161,10 @@ export function createFirestoreCrudRepository<
     options.collectionPath,
   );
   const schemaVersion = options.schemaVersion ?? 1;
-  const now = options.timestamp ?? (() => firestoreSdk.Timestamp.now());
+  const configuredClock = options.clock;
+  const timestampNow = configuredClock
+    ? () => firestoreSdk.Timestamp.fromMillis(configuredClock.now().epochMilliseconds)
+    : () => firestoreSdk.Timestamp.now();
   if (!Number.isInteger(schemaVersion) || schemaVersion < 1) {
     throw new RangeError('Firestore schema version must be a positive integer');
   }
@@ -242,21 +246,23 @@ export function createFirestoreCrudRepository<
           if (!current.exists())
             throw createDataAccessError('not-found', 'Record was not found');
           const record = mapRecord(current, options.recordSchema);
-          /* c8 ignore next -- V8 does not attribute the tested throwing branch of this provider boundary. */
           if (record.lifecycle.status === 'deleted') {
             throw createDataAccessError(
               'lifecycle',
               'Record is terminally deleted',
             );
           }
-          if (
-            request.expectedRevision !== undefined &&
-            request.expectedRevision !== record.revision
-          ) {
+          if (!Number.isInteger(request.expectedRevision)) {
+            throw createDataAccessError(
+              'validation',
+              'Record commands require an integer expectedRevision',
+            );
+          }
+          if (request.expectedRevision !== record.revision) {
             throw createDataAccessError('conflict', 'Record revision is stale');
           }
           const updated = change(record);
-          const updatedAt = now();
+          const updatedAt = timestampNow();
           transaction.update(target, {
             ...updated,
             revision: record.revision + 1,
@@ -339,7 +345,7 @@ export function createFirestoreCrudRepository<
       await authorize(access, 'create');
       const id = options.createId(request.input);
       const target = recordReference(id);
-      const createdAt = now();
+      const createdAt = timestampNow();
       const dto: FirestoreRecordDto<TData> = {
         data: options.createData(request.input),
         lifecycle: { status: 'active' },
@@ -426,10 +432,13 @@ export function createFirestoreCrudRepository<
                 'Record must be marked for deletion',
               );
             }
-            if (
-              request.expectedRevision !== undefined &&
-              request.expectedRevision !== record.revision
-            ) {
+            if (!Number.isInteger(request.expectedRevision)) {
+              throw createDataAccessError(
+                'validation',
+                'Record commands require an integer expectedRevision',
+              );
+            }
+            if (request.expectedRevision !== record.revision) {
               throw createDataAccessError(
                 'conflict',
                 'Record revision is stale',

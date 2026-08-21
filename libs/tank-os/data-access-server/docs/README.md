@@ -6,9 +6,9 @@ browser claims as authoritative. Its public API is only
 `@tank-os/data-access-server`.
 
 The browser `AccessContext.roles` value is only request metadata and is never
-used to grant a worker permission. Authorization succeeds only when the
-Firebase principal matches the request principal and the configured role is
-present in the authoritative custom claims.
+used to grant a worker permission. Authorization receives both the authenticated
+caller id and the persisted batch principal id. It succeeds only when they
+match and the configured role is present in authoritative custom claims.
 
 It deliberately does not execute Firestore batches. The durable Admin batch
 store and trusted chunk executor are published as
