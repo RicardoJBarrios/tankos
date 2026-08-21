@@ -7,12 +7,18 @@
   "tags": ["scope:shared", "scope:tank-os", "type:feature"],
   "targets": {
     "build": {
-      "executor": "nx:run-commands",
+      "executor": "@nx/angular:ng-packagr-lite",
       "outputs": ["{workspaceRoot}/dist/libs/tank-os/decimal"],
       "options": {
-        "command": "tsc --project libs/tank-os/decimal/tsconfig.build.json",
-        "cwd": "{workspaceRoot}"
-      }
+        "project": "libs/tank-os/decimal/ng-package.json",
+        "tsConfig": "libs/tank-os/decimal/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/tank-os/decimal/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
     },
     "test": {
       "outputs": [

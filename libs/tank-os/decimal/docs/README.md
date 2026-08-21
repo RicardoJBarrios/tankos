@@ -95,10 +95,9 @@ undefined
 ## Arithmetic adapter
 
 The reference implementation uses [`big.js`](https://github.com/MikeMcl/big.js/)
-7.x. It is an implementation detail and must not appear in the core public
-contract. Big.js is available through the separate `@tank-os/decimal/big-js`
-entry point so importing `@tank-os/decimal` does not pull the concrete engine
-into the core entry point.
+7.x. It is an implementation detail of the arithmetic port. Big.js is packaged
+through the separate `@tank-os/decimal/big-js` entry point; the primary package
+also exports the factory required by that secondary entry point.
 
 The adapter is replaceable through a port:
 
@@ -143,7 +142,8 @@ factory. This keeps
 grouping and precedence visible in TypeScript without an expression parser:
 
 ```ts
-const result = service.decimal('2.5').add('1.5').multiply('3').subtract('2').divide('3', service.context(2, 'half-up'));
+const result = service.decimal('2.5').add('1.5').multiply('3')
+  .subtract('2').divide('3', service.context(2, 'half-up'));
 
 // result.value === '3.33'
 ```
@@ -320,10 +320,11 @@ by zero, and forged contexts. Service tests cover fluent value creation,
 numeric inputs and context creation; arithmetic behavior is tested on the
 fluent `Decimal` value object and the adapter contract.
 
-The `build` target compiles the library and emits declarations under
-`dist/libs/tank-os/decimal`. It is a compilation/package-boundary check, not a
-database or HTTP client build. The public entry-point tests additionally pin
-that implementation factories remain internal to the main entry point.
+The `build` target uses `@nx/angular:ng-packagr-lite` and emits the primary
+package plus the `big-js` and `zod` secondary entry points under
+`dist/libs/tank-os/decimal`. It is a package-boundary check, not a database or
+HTTP client build. Public entry-point tests pin the supported import paths and
+the adapter composition contract.
 
 Run `pnpm nx run decimal:build` to compile the library or
 `pnpm nx run decimal:test` to execute the 100% V8 coverage gate.

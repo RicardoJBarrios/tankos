@@ -113,8 +113,9 @@ the active Time ports and zone database. It is a validation/mapping adapter,
 not a JSON client, Firestore adapter or replacement for the existing transport
 adapters. It never uses `z.coerce.date()` and never infers a time zone.
 
-It is imported separately as `@tank-os/time/zod`; the main `@tank-os/time`
-entry point does not export Zod, Firestore or JSON/HTTP-only integration code.
+It is imported separately as `@tank-os/time/zod`. The primary entry point also
+re-exports the adapter contracts needed for package composition; consumers that
+only need a transport boundary should use the dedicated secondary entry point.
 
 `Duration` is an elapsed, fixed-unit value normalized to an integer number of
 milliseconds. JSON/HTTP represents it as canonical ISO 8601 using days, hours,
@@ -436,9 +437,10 @@ the enforcement point for these boundaries.
 
 ## Build, test and coverage boundary
 
-The library exposes Nx `build`, `test` and `lint` targets. The build compiles
-the public TypeScript declarations and production sources into
-`dist/libs/tank-os/time`.
+The library exposes Nx `build`, `test` and `lint` targets. The build uses
+`@nx/angular:ng-packagr-lite` and packages the public TypeScript declarations
+and production sources into `dist/libs/tank-os/time`, including the `firestore`,
+`json-http` and `zod` secondary entry points.
 
 The library enforces 100% V8 lines, statements, functions and branches without
 a manual source exclusion list. Type-only declarations, barrels and files with

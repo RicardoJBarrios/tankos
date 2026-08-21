@@ -33,8 +33,8 @@ describe('Decimal public entry point', () => {
     expect(arithmetic.add('1' as DecimalValue, '2' as DecimalValue)).toBe('12');
   });
 
-  it('Given the public entry point, When imported, Then does not expose the concrete big.js adapter', () => {
-    expect('createBigJsDecimalAdapter' in publicApi).toBe(false);
+  it('Given the public entry point, When imported, Then exposes the concrete adapter needed by secondary entrypoints', () => {
+    expect('createBigJsDecimalAdapter' in publicApi).toBe(true);
   });
 
   it('Given the public entry point, When imported, Then does not expose the internal Decimal factory or runtime implementation', () => {

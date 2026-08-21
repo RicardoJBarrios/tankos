@@ -1,4 +1,4 @@
-import * as publicApi from './zod';
+import * as publicApi from './index';
 
 describe('Time Zod entry point', () => {
   it('Given the Zod entry point, When imported, Then exposes the temporal schemas factory', () => {

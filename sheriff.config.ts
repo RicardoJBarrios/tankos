@@ -181,6 +181,31 @@ modules['libs/tank-os/units/src/lib/units/core/errors'] = [
   'context:tank-os',
   'tank-os:layer:core',
 ];
+modules['libs/tank-os/units/src/lib/units/core/ports'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/units/src/lib/units/adapters'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/units/src/lib/units/adapters/standard'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/units/src/lib/units/application'] = [
+  'context:tank-os',
+  'tank-os:layer:application',
+];
+modules['libs/tank-os/time/firestore'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/time/json-http'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/time/zod'] = ['context:tank-os', 'tank-os:layer:adapter'];
 modules['libs/tank-os/decimal/src/lib/decimal'] = [
   'context:tank-os',
   'tank-os:layer:library-root',
@@ -188,6 +213,18 @@ modules['libs/tank-os/decimal/src/lib/decimal'] = [
 modules['libs/tank-os/decimal/src'] = [
   'context:tank-os',
   'tank-os:layer:library-root',
+];
+modules['libs/tank-os/decimal/core'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/decimal/big-js'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/decimal/zod'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
 ];
 modules['libs/tank-os/decimal/src/lib/decimal/core'] = [
   'context:tank-os',
@@ -226,6 +263,42 @@ modules['libs/tank-os/decimal/src/lib/decimal/composition'] = [
   'tank-os:layer:composition',
 ];
 modules['libs/tank-os/decimal/src/lib/decimal/composition/angular'] = [
+  'context:tank-os',
+  'tank-os:layer:composition',
+];
+modules['libs/tank-os/data-access/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/data-access/src/lib/core'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/data-access/src/lib/core/value-types'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/data-access/src/lib/core/errors'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/data-access/src/lib/core/ports'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/data-access/src/lib/application'] = [
+  'context:tank-os',
+  'tank-os:layer:application',
+];
+modules['libs/tank-os/data-access/src/lib/adapters'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/data-access/src/lib/composition'] = [
+  'context:tank-os',
+  'tank-os:layer:composition',
+];
+modules['libs/tank-os/data-access/src/lib/composition/angular'] = [
   'context:tank-os',
   'tank-os:layer:composition',
 ];

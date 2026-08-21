@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { resolve } from 'node:path';
 
 export default defineConfig(() => ({
   root: __dirname,
@@ -10,13 +11,20 @@ export default defineConfig(() => ({
     angular(),
     viteStaticCopy({ targets: [{ src: '*.md', dest: '.' }] }),
   ],
-  resolve: { tsconfigPaths: true },
+  resolve: {
+    tsconfigPaths: true,
+    alias: {
+      '@tank-os/decimal': resolve(__dirname, 'src/index.ts'),
+      '@tank-os/decimal/big-js': resolve(__dirname, 'big-js/index.ts'),
+      '@tank-os/decimal/zod': resolve(__dirname, 'zod/index.ts'),
+    },
+  },
   test: {
     name: 'decimal',
     watch: false,
     globals: true,
     environment: 'jsdom',
-    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    include: ['{src,tests,core,big-js,zod}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['src/test-setup.ts'],
     reporters: ['default'],
     coverage: {

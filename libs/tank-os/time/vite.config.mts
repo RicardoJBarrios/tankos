@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { resolve } from 'node:path';
 
 export default defineConfig(() => ({
   root: __dirname,
@@ -10,13 +11,21 @@ export default defineConfig(() => ({
     angular(),
     viteStaticCopy({ targets: [{ src: '*.md', dest: '.' }] }),
   ],
-  resolve: { tsconfigPaths: true },
+  resolve: {
+    tsconfigPaths: true,
+    alias: {
+      '@tank-os/time': resolve(__dirname, 'src/index.ts'),
+      '@tank-os/time/firestore': resolve(__dirname, 'firestore/index.ts'),
+      '@tank-os/time/json-http': resolve(__dirname, 'json-http/index.ts'),
+      '@tank-os/time/zod': resolve(__dirname, 'zod/index.ts'),
+    },
+  },
   test: {
     name: 'time',
     watch: false,
     globals: true,
     environment: 'jsdom',
-    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    include: ['{src,tests,firestore,json-http,zod}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['src/test-setup.ts'],
     reporters: ['default'],
     coverage: {

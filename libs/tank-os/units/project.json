@@ -6,6 +6,21 @@
   "projectType": "library",
   "tags": ["scope:shared", "scope:tank-os", "type:feature"],
   "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "dependsOn": ["decimal:build"],
+      "outputs": ["{workspaceRoot}/dist/libs/tank-os/units"],
+      "options": {
+        "project": "libs/tank-os/units/ng-package.json",
+        "tsConfig": "libs/tank-os/units/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/tank-os/units/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
     "test": {
       "outputs": [
         "{projectRoot}/{options.coverage.reportsDirectory}",

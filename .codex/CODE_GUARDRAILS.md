@@ -69,6 +69,13 @@ inside that adapter directory. In particular, files prefixed `native-` belong
 under `adapters/native/` and must not be placed beside the port or application
 files.
 
+Angular library packaging must use `ng-packagr` through the Nx
+`@nx/angular:ng-packagr-lite` executor. Do not replace this build boundary with
+`tsc` or a custom command for an Angular library. A non-Angular package may use
+another packager only when that choice is explicit in its local documentation.
+Public secondary entrypoints must be declared in the library's
+`ng-package.json` layout and must build through the same packaging contract.
+
 TankOS libraries must declare their internal modules and architectural layers
 in `sheriff.config.ts`. The default dependency direction is strict:
 

@@ -26,6 +26,10 @@ export default [
               sourceTag: 'scope:app',
               onlyDependOnLibsWithTags: ['scope:app', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:shared',
+              onlyDependOnLibsWithTags: ['scope:shared', 'scope:tank-os'],
+            },
           ],
         },
       ],
