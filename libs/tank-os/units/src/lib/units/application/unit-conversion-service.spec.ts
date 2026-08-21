@@ -1,4 +1,4 @@
-import { createBigJsDecimalAdapter } from '@tank-os/decimal/big-js';
+import { createBigJsDecimalAdapter } from '@tank-os/decimal-big-js';
 import {
   createDecimalContext,
   normalizeDecimalInput,

@@ -1,9 +1,54 @@
-import { createBigJsDecimalAdapter } from '../adapters/big-js';
-import { createDecimalContext, type Decimal } from '../core';
+import {
+  createDecimalContext,
+  normalizeDecimalInput,
+  type Decimal,
+  type DecimalArithmeticPort,
+} from '../core';
 import { createDecimal } from './decimal-value';
 
 describe('Decimal fluent value object', () => {
-  const arithmetic = createBigJsDecimalAdapter();
+  const arithmetic: DecimalArithmeticPort = {
+    add: (left, ...values) =>
+      normalizeDecimalInput(
+        String(
+          [left, ...values].reduce((sum, value) => sum + Number(value), 0),
+        ),
+      ),
+    subtract: (left, ...values) =>
+      normalizeDecimalInput(
+        String(
+          values.reduce(
+            (result, value) => result - Number(value),
+            Number(left),
+          ),
+        ),
+      ),
+    multiply: (left, ...values) =>
+      normalizeDecimalInput(
+        String(
+          values.reduce(
+            (result, value) => result * Number(value),
+            Number(left),
+          ),
+        ),
+      ),
+    divide: (left, right, context, ...values) =>
+      normalizeDecimalInput(
+        Number(
+          values.reduce(
+            (result, value) => result / Number(value),
+            Number(left) / Number(right),
+          ),
+        ).toFixed(context.decimalPlaces),
+      ),
+    remainder: (left, right) =>
+      normalizeDecimalInput(String(Number(left) % Number(right))),
+    power: (base, exponent) =>
+      normalizeDecimalInput(String(Number(base) ** Number(exponent))),
+    negate: (value) => normalizeDecimalInput(String(-Number(value))),
+    compare: (left, right) =>
+      Math.sign(Number(left) - Number(right)) as -1 | 0 | 1,
+  };
   const decimal = (value: string): Decimal => createDecimal(value, arithmetic);
 
   it('Given a decimal, When read, Then exposes its canonical value without mutating it', () => {

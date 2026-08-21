@@ -4,8 +4,6 @@
   "sideEffects": false,
   "peerDependencies": {
     "@angular/common": "^20.3.0",
-    "@angular/core": "^20.3.0",
-    "big.js": "^7.0.1",
-    "zod": "^4.4.3"
+    "@angular/core": "^20.3.0"
   }
 }

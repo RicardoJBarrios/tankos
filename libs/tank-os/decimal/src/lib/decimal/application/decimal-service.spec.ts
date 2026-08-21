@@ -1,12 +1,39 @@
 import { TestBed } from '@angular/core/testing';
 import { DecimalService } from './decimal-service';
 import { provideTankOsDecimal } from '../composition';
-import { createBigJsDecimalAdapter } from '../adapters/big-js';
+import type { DecimalArithmeticPort } from '../core';
+
+const arithmetic: DecimalArithmeticPort = {
+  add: (left, ...values) =>
+    String(
+      [left, ...values].reduce((sum, value) => sum + Number(value), 0),
+    ) as never,
+  subtract: (left, ...values) =>
+    String(
+      values.reduce((result, value) => result - Number(value), Number(left)),
+    ) as never,
+  multiply: (left, ...values) =>
+    String(
+      values.reduce((result, value) => result * Number(value), Number(left)),
+    ) as never,
+  divide: (left, right, context, ...values) =>
+    Number(
+      values.reduce(
+        (result, value) => result / Number(value),
+        Number(left) / Number(right),
+      ),
+    ).toFixed(context.decimalPlaces) as never,
+  remainder: (left, right) => String(Number(left) % Number(right)) as never,
+  power: (base, exponent) => String(Number(base) ** Number(exponent)) as never,
+  negate: (value) => String(-Number(value)) as never,
+  compare: (left, right) =>
+    Math.sign(Number(left) - Number(right)) as -1 | 0 | 1,
+};
 
 describe('DecimalService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [provideTankOsDecimal(createBigJsDecimalAdapter())],
+      providers: [provideTankOsDecimal(arithmetic)],
     });
   });
 

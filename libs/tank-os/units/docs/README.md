@@ -641,6 +641,7 @@ Expected areas are:
 
 - `core`: unit contracts, value types and pure compatibility rules;
 - `application`: catalogue and conversion use-case facades;
+- `composition/standard`: the configured standard conversion factory;
 - `adapters`: standard catalogues, persistence and external representations;
 - `presentation`: unit-only labels, symbols and selectors.
 
@@ -669,6 +670,10 @@ presentation -> application -> core
 adapters      -> core
 composition   -> application, adapters
 ```
+
+The standard catalogue and conversion definitions remain adapters. The
+standard conversion factory is composition because it wires those adapters
+into the application conversion service.
 
 Core contracts must not depend on Angular, Firebase, Firestore, HTTP, FIWARE
 or `Time`. A compound dimension may include the `time` base dimension, but
@@ -763,7 +768,7 @@ type DecimalValue = string;
 ```
 
 The first concrete arithmetic adapter is `big.js`, consumed through the
-packaged `@tank-os/decimal/big-js` secondary entry point. Only the adapter may
+packaged `@tank-os/decimal-big-js` adapter package. Only the adapter may
 import `big.js`; core contracts and application ports use
 `DecimalValue` and decimal contexts. A future adapter may replace it without
 changing the public Units API.

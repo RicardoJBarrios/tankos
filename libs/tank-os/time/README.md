@@ -1,12 +1,27 @@
 # TankOS Time
 
-The implementation and architectural decisions for this library are documented
-in [`docs/README.md`](docs/README.md).
+`@tank-os/time` contains provider-independent temporal contracts, native
+JavaScript implementations, Angular composition and presentation pipes.
 
-The library exposes the same Nx lifecycle as the other TankOS capability
-libraries:
+Optional boundaries are physically isolated packages:
 
-- `pnpm nx run time:build` packages the public entry point and transport
-  secondary entry points with `ng-packagr`;
-- `pnpm nx run time:test` runs the tests with the 100% V8 coverage gate;
-- `pnpm nx run time:lint` checks the architectural and code rules.
+```ts
+import { createFirestoreTimeAdapter } from '@tank-os/time-firestore';
+import { createJsonHttpTimeAdapter } from '@tank-os/time-json-http';
+import { createZodTimeSchemas } from '@tank-os/time-zod';
+```
+
+The primary package does not import Firebase, Zod or transport adapters. Each
+boundary has its own source tree, tests, documentation, peer dependencies and
+`ng-packagr-lite` build.
+
+Commands:
+
+- `pnpm nx run time:build`
+- `pnpm nx run time:test`
+- `pnpm nx run time:lint`
+- `pnpm nx run time-firestore:build`
+- `pnpm nx run time-json-http:test`
+- `pnpm nx run time-zod:test`
+
+See [`docs/README.md`](docs/README.md) for the complete temporal contract.

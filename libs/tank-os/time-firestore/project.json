@@ -1,0 +1,46 @@
+{
+  "name": "time-firestore",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/tank-os/time-firestore/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["scope:shared", "scope:tank-os", "type:adapter"],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "dependsOn": ["time:build"],
+      "outputs": [
+        "{workspaceRoot}/dist/{projectRoot}"
+      ],
+      "defaultConfiguration": "production",
+      "options": {
+        "project": "libs/tank-os/time-firestore/ng-package.json",
+        "tsConfig": "libs/tank-os/time-firestore/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/tank-os/time-firestore/tsconfig.lib.prod.json"
+        },
+        "development": {}
+      }
+    },
+    "nx-release-publish": {
+      "options": {
+        "packageRoot": "dist/{projectRoot}"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/libs/tank-os/time-firestore"
+      ],
+      "options": {
+        "coverage": true,
+        "coverage.reportsDirectory": "../../../coverage/libs/tank-os/time-firestore"
+      }
+    }
+  }
+}

@@ -49,7 +49,7 @@ describe('main entry point', () => {
     );
   });
 
-  it('Given the adapter barrel, When importing it, Then it exposes the adapter families', () => {
+  it('Given the adapter barrel, When importing it, Then it exposes the native and Angular adapter families', () => {
     expect(adapters.createNativeTimeAdapter).toEqual(expect.any(Function));
     expect(adapters.createAngularTimeDisplayAdapter).toEqual(
       expect.any(Function),

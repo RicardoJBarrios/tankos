@@ -15,9 +15,6 @@ export default defineConfig(() => ({
     tsconfigPaths: true,
     alias: {
       '@tank-os/time': resolve(__dirname, 'src/index.ts'),
-      '@tank-os/time/firestore': resolve(__dirname, 'firestore/index.ts'),
-      '@tank-os/time/json-http': resolve(__dirname, 'json-http/index.ts'),
-      '@tank-os/time/zod': resolve(__dirname, 'zod/index.ts'),
     },
   },
   test: {

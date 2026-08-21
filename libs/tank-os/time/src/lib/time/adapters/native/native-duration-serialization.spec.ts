@@ -6,6 +6,7 @@ describe('native-duration-serialization', () => {
     [86_400_000, 'P1D'],
     [90_061_001, 'P1DT1H1M1.001S'],
     [3_600_000, 'PT1H'],
+    [1_000, 'PT1S'],
     [-1500, '-PT1.5S'],
     ['PT1M', 'PT1M'],
     [{ kind: 'duration', milliseconds: 60_000 }, 'PT1M'],

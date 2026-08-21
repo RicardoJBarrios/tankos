@@ -107,15 +107,15 @@ millisecond precision and `LocalDate` as `YYYY-MM-DD`. Deserializers validate
 the transport value with Zod and then through the active capability ports; they
 raise `RangeError` for malformed or unsupported input.
 
-The reusable `@tank-os/time/zod` entry point exposes `createZodTimeSchemas()`. It
+The reusable `@tank-os/time-zod` adapter package exposes `createZodTimeSchemas()`. It
 creates schemas for instants, local dates, durations and IANA time zones using
 the active Time ports and zone database. It is a validation/mapping adapter,
 not a JSON client, Firestore adapter or replacement for the existing transport
 adapters. It never uses `z.coerce.date()` and never infers a time zone.
 
-It is imported separately as `@tank-os/time/zod`. The primary entry point also
-re-exports the adapter contracts needed for package composition; consumers that
-only need a transport boundary should use the dedicated secondary entry point.
+It is imported separately as `@tank-os/time-zod`. The primary package does not
+export this adapter; consumers that need the validation boundary use the
+dedicated package.
 
 `Duration` is an elapsed, fixed-unit value normalized to an integer number of
 milliseconds. JSON/HTTP represents it as canonical ISO 8601 using days, hours,
@@ -253,11 +253,11 @@ methods on an explicit adapter created with `createNativeTimeAdapter()` outside
 Angular. There are no parallel global helper functions.
 
 The main entry point contains the Angular-facing API and native adapter. The
-Firestore and JSON/HTTP conversion adapters use dedicated entry points:
+Firestore and JSON/HTTP conversion adapters use dedicated packages:
 
 ```ts
-import { createFirestoreTimeAdapter } from '@tank-os/time/firestore';
-import { createJsonHttpTimeAdapter } from '@tank-os/time/json-http';
+import { createFirestoreTimeAdapter } from '@tank-os/time-firestore';
+import { createJsonHttpTimeAdapter } from '@tank-os/time-json-http';
 ```
 
 This keeps transport-specific dependencies outside consumers that only need
@@ -405,9 +405,12 @@ time/
 ├── composition/angular/   # Angular provider composition
 ├── adapters/native/       # current JavaScript temporal implementation
 ├── adapters/angular/      # Angular DatePipe integration
-├── adapters/zod/          # Zod boundary schemas backed by Time ports
 └── presentation/         # Angular presentation entry point
 ```
+
+The Zod, Firestore and JSON/HTTP implementations are physically isolated in
+their own publishable packages. They are not secondary entrypoints of
+`@tank-os/time`.
 
 Every file whose name starts with `native-` belongs below
 `adapters/native/`. A future adapter must live in a sibling directory and
@@ -439,8 +442,9 @@ the enforcement point for these boundaries.
 
 The library exposes Nx `build`, `test` and `lint` targets. The build uses
 `@nx/angular:ng-packagr-lite` and packages the public TypeScript declarations
-and production sources into `dist/libs/tank-os/time`, including the `firestore`,
-`json-http` and `zod` secondary entry points.
+and production sources into `dist/libs/tank-os/time`. Firestore, JSON/HTTP and
+Zod are separate physical packages: `@tank-os/time-firestore`,
+`@tank-os/time-json-http` and `@tank-os/time-zod`.
 
 The library enforces 100% V8 lines, statements, functions and branches without
 a manual source exclusion list. Type-only declarations, barrels and files with

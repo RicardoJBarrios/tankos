@@ -1,10 +1,17 @@
 # TankOS Decimal
 
-The implementation and architectural decisions for this library are documented
-in [`docs/README.md`](docs/README.md).
+`@tank-os/decimal` contains the provider-independent Decimal value model,
+arithmetic port, application service and Angular composition.
 
-The library contains the core decimal contract and fluent API. The default
-`big.js` adapter and its Angular provider are available through the dedicated
-`@tank-os/decimal/big-js` secondary entry point. The primary package also
-exposes the adapter factory required to compose that entry point. Architectural
-details and implementation rules are documented in `docs/README.md`.
+Optional implementations are physical packages:
+
+```ts
+import { createBigJsDecimalAdapter } from '@tank-os/decimal-big-js';
+import { decimalValueSchema } from '@tank-os/decimal-zod';
+```
+
+The primary package does not import Big.js or Zod. Each adapter owns its source,
+tests, documentation, peer dependencies and independent `ng-packagr-lite`
+build.
+
+See [`docs/README.md`](docs/README.md) for the Decimal contract.

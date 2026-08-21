@@ -35,9 +35,9 @@ All public presentation adapters must implement the complete
 
 ## Zod boundary adapter
 
-Time provides an optional `adapters/zod` factory through
-`createZodTimeSchemas()`. It is a validation and mapping boundary, not a
-transport client.
+The separate `@tank-os/time-zod` package provides the optional
+`createZodTimeSchemas()` factory. It is a validation and mapping boundary, not
+a transport client.
 
 The factory receives the active `CalendarPort`, `DurationPort`, `InstantPort`
 and `TimeZoneDatabasePort`, and exposes schemas for:

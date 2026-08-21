@@ -14,9 +14,9 @@ export default defineConfig(() => ({
   resolve: {
     tsconfigPaths: true,
     alias: {
-      '@tank-os/decimal/big-js': resolve(
+      '@tank-os/decimal-big-js': resolve(
         __dirname,
-        '../decimal/big-js/index.ts',
+        '../decimal-big-js/src/index.ts',
       ),
       '@tank-os/decimal': resolve(__dirname, '../decimal/src/index.ts'),
     },

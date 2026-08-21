@@ -96,8 +96,8 @@ undefined
 
 The reference implementation uses [`big.js`](https://github.com/MikeMcl/big.js/)
 7.x. It is an implementation detail of the arithmetic port. Big.js is packaged
-through the separate `@tank-os/decimal/big-js` entry point; the primary package
-also exports the factory required by that secondary entry point.
+through the separate `@tank-os/decimal-big-js` adapter package. The primary
+package does not export the Big.js implementation.
 
 The adapter is replaceable through a port:
 
@@ -161,7 +161,7 @@ and their business rules.
 
 Only the Big.js adapter imports `big.js` and maps its exceptions to typed Decimal
 errors. Consumers using the reference implementation import
-`provideTankOsDecimalWithBigJs()` from `@tank-os/decimal/big-js`. Consumers with
+`provideTankOsDecimalWithBigJs()` from `@tank-os/decimal-big-js`. Consumers with
 another engine import `provideTankOsDecimal()` from the core entry point and
 provide their own `DecimalArithmeticPort`. A future implementation may use
 another decimal engine without changing Units or consuming domains.
@@ -186,7 +186,7 @@ rounding contract.
 
 ## Zod boundary adapter
 
-The optional `@tank-os/decimal/zod` entry point provides runtime schemas without
+The optional `@tank-os/decimal-zod` adapter package provides runtime schemas without
 adding Zod to the Decimal core. It exposes:
 
 - `decimalValueSchema`: accepts transport strings and returns a canonical
@@ -320,11 +320,9 @@ by zero, and forged contexts. Service tests cover fluent value creation,
 numeric inputs and context creation; arithmetic behavior is tested on the
 fluent `Decimal` value object and the adapter contract.
 
-The `build` target uses `@nx/angular:ng-packagr-lite` and emits the primary
-package plus the `big-js` and `zod` secondary entry points under
-`dist/libs/tank-os/decimal`. It is a package-boundary check, not a database or
-HTTP client build. Public entry-point tests pin the supported import paths and
-the adapter composition contract.
+The `build` target uses `@nx/angular:ng-packagr-lite`. The primary package and
+the `decimal-big-js` and `decimal-zod` adapter packages emit independent
+artifacts. Public entry-point tests pin each supported package contract.
 
 Run `pnpm nx run decimal:build` to compile the library or
 `pnpm nx run decimal:test` to execute the 100% V8 coverage gate.
