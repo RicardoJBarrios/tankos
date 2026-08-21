@@ -15,10 +15,8 @@ import { nativeParseDuration } from './native-duration-parsing';
 import { nativeToDurationIsoString } from './native-duration-serialization';
 import { nativeDurationBetween } from './native-duration-between';
 import { nativeAddDuration } from './native-add-duration';
-import {
-  nativeCompareDurations,
-  nativeCompareInstants,
-} from './native-temporal-comparison';
+import { nativeCompareDurations } from './native-duration-comparison';
+import { nativeCompareInstants } from './native-instant-comparison';
 import {
   nativeClamp,
   nativeContains,
