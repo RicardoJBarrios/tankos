@@ -59,7 +59,7 @@ describe('createUnitDefinitionCrudService', () => {
     expect(repository.list).toHaveBeenCalledWith(listRequest);
     expect(repository.get).toHaveBeenCalledWith(getRequest);
     expect(repository.create).toHaveBeenCalledWith(createRequest);
-    expect(repository.replace).toHaveBeenCalledWith(command, definition);
+    expect(repository.replace).not.toHaveBeenCalled();
     expect(repository.markForDeletion).toHaveBeenCalledWith(command);
     expect(repository.restore).toHaveBeenCalledWith(command);
     expect(repository.delete).toHaveBeenCalledWith(command);

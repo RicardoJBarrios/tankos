@@ -1,5 +1,6 @@
 import {
   createCrudService,
+  createVersionedCrudService,
   type CrudRepositoryPort,
   type CrudService,
 } from '@tank-os/data-access';
@@ -33,12 +34,18 @@ export function createUnitDefinitionCrudService(
   >,
 ): UnitDefinitionCrudService {
   const crud = createCrudService(repository);
-  return {
-    ...crud,
+  const custom: Omit<UnitDefinitionCrudService, 'replace'> = {
+    list: crud.list,
+    get: crud.get,
+    markForDeletion: crud.markForDeletion,
+    restore: crud.restore,
+    delete: crud.delete,
     create: async (request) =>
       crud.create({ ...request, input: requireCustom(request.input) }),
-    replace: async (request, input) => crud.replace(request, requireCustom(input)),
   };
+  return createVersionedCrudService(custom, {
+    toCreateInput: (input) => requireCustom(input),
+  });
 }
 
 function requireCustom(input: CustomUnitDefinitionInput): CustomUnitDefinitionInput {

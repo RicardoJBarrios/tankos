@@ -129,7 +129,9 @@ catalogue and conversion definitions. `createStandardUnitConversionService()`
 composes the standard catalogue with the injected decimal arithmetic adapter.
 `createUnitDefinitionCrudService()` composes the generic CRUD port for the
 global custom catalogue and rejects standard definitions at the application
-boundary. No Angular component or template contains conversion logic.
+boundary. Replacement uses the shared versioned workflow: it creates the new
+custom definition and then marks the previous record for deletion. No Angular
+component or template contains conversion logic.
 
 The library currently has no persistence adapter. Custom-unit persistence or
 transport integration must be published behind separate entry
