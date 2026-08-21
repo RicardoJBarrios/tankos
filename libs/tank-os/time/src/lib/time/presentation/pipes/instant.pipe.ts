@@ -3,7 +3,7 @@ import { TimeDisplayService } from '../../application';
 import { InstantInput, TimeDisplayOptions } from '../../core';
 
 /** Renders an instant using the configured temporal display adapter. */
-@Pipe({ name: 'tankInstant', standalone: true, pure: true })
+@Pipe({ name: 'tankInstant', standalone: true, pure: false })
 export class InstantPipe implements PipeTransform {
   readonly #display = inject(TimeDisplayService);
 

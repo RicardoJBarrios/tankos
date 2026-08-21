@@ -22,18 +22,6 @@ export default defineConfig(() => ({
     coverage: {
       reportsDirectory: '../../../coverage/libs/tank-os/time',
       provider: 'v8' as const,
-      exclude: [
-        '**/src/index.ts',
-        '**/src/firestore.ts',
-        '**/src/json-http.ts',
-        '**/index.ts',
-        '**/*-types.ts',
-        '**/*-context.ts',
-        '**/core/ports/*.ts',
-        '**/eslint.config.mjs',
-        '**/vite.config.mts',
-        '**/src/test-setup.ts',
-      ],
       thresholds: {
         lines: 100,
         statements: 100,

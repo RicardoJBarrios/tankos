@@ -71,5 +71,6 @@ function createConfiguredAngularTimeDisplayAdapter(
       'UTC',
     inject(TIME_ZONE_DATABASE, { optional: true }) ??
       createNativeTimeZoneDatabase(),
+    locale,
   );
 }

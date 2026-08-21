@@ -1,5 +1,11 @@
 import { inject, Injectable } from '@angular/core';
-import { InstantInput, LocalDateInput, TimeDisplayOptions } from '../core';
+import {
+  DurationDisplayOptions,
+  DurationInput,
+  InstantInput,
+  LocalDateInput,
+  TimeDisplayOptions,
+} from '../core';
 import { TIME_DISPLAY_ADAPTER } from './time-tokens';
 
 /** Angular facade for temporal presentation operations. */
@@ -15,5 +21,13 @@ export class TimeDisplayService {
   /** Formats a calendar date without time-zone conversion. */
   formatLocalDate(value: LocalDateInput, options?: TimeDisplayOptions): string {
     return this.#adapter.formatLocalDate(value, options);
+  }
+
+  /** Formats an elapsed duration for user-facing display. */
+  formatDuration(
+    value: DurationInput,
+    options?: DurationDisplayOptions,
+  ): string {
+    return this.#adapter.formatDuration(value, options);
   }
 }

@@ -45,4 +45,12 @@ describe('time-display-service', () => {
       }),
     ).toContain('Aug 20, 2026');
   });
+
+  it('Given a duration, When formatting it through Angular, Then it returns a localized display string', () => {
+    expect(
+      TestBed.inject(TimeDisplayService).formatDuration(5_400_000, {
+        locale: 'en-US',
+      }),
+    ).toBe('1 hr, 30 min');
+  });
 });

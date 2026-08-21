@@ -3,7 +3,7 @@ import { TimeDisplayService } from '../../application';
 import { LocalDate, TimeDisplayOptions } from '../../core';
 
 /** Renders a calendar date without applying a time-zone conversion. */
-@Pipe({ name: 'tankLocalDate', standalone: true, pure: true })
+@Pipe({ name: 'tankLocalDate', standalone: true, pure: false })
 export class LocalDatePipe implements PipeTransform {
   readonly #display = inject(TimeDisplayService);
 

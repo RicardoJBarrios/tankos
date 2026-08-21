@@ -1,9 +1,10 @@
 import { DatePipe } from '@angular/common';
 import {
-  CalendarPort,
-  InstantPort,
+  DurationDisplayOptions,
   TimeDisplayAdapter,
   TimeDisplayOptions,
+  TimeLocalePort,
+  TimePort,
   TimeZoneDatabasePort,
 } from '../../core';
 import { toDatePipeTimeZone } from './angular-time-zone-offset';
@@ -11,6 +12,11 @@ import { createNativeTimeZoneDatabase } from '../native';
 
 const DEFAULT_FORMAT = 'medium';
 const DEFAULT_TIME_ZONE = 'UTC';
+const DEFAULT_LOCALE = 'en-US';
+const MILLISECONDS_PER_SECOND = 1_000;
+const MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND;
+const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
+const MILLISECONDS_PER_DAY = 24 * MILLISECONDS_PER_HOUR;
 
 /**
  * Creates a display adapter that delegates localized output to Angular's
@@ -20,13 +26,16 @@ const DEFAULT_TIME_ZONE = 'UTC';
  * @param timePort - Temporal port used to normalize input values.
  * @param defaultTimeZone - Fallback display zone when no explicit zone exists.
  * @param timeZoneDatabase - IANA rules source used to resolve display offsets.
+ * @param localePort - Locale source for localized styles. A string is retained
+ * as a compatibility shorthand for a fixed locale.
  * @returns A TankOS display adapter backed by `DatePipe`.
  */
 export function createAngularTimeDisplayAdapter(
   datePipe: DatePipe,
-  timePort: CalendarPort & InstantPort,
+  timePort: TimePort,
   defaultTimeZone = DEFAULT_TIME_ZONE,
   timeZoneDatabase: TimeZoneDatabasePort = createNativeTimeZoneDatabase(),
+  localePort: TimeLocalePort | string = DEFAULT_LOCALE,
 ): TimeDisplayAdapter {
   return {
     formatInstant(value, options) {
@@ -37,6 +46,7 @@ export function createAngularTimeDisplayAdapter(
         options,
         defaultTimeZone,
         timeZoneDatabase,
+        getExplicitLocale(options, localePort),
       );
     },
     formatLocalDate(value, options) {
@@ -49,11 +59,101 @@ export function createAngularTimeDisplayAdapter(
           date.getTime(),
           options?.format ?? 'mediumDate',
           '+0000',
-          options?.locale,
+          getExplicitLocale(options, localePort),
         ) ?? ''
       );
     },
+    formatDuration(value, options) {
+      return formatDuration(timePort, value, options, getLocale(localePort));
+    },
   };
+}
+
+function getLocale(localePort: TimeLocalePort | string): string {
+  return typeof localePort === 'string' ? localePort : localePort.getLocale();
+}
+
+function getExplicitLocale(
+  options: TimeDisplayOptions | undefined,
+  localePort: TimeLocalePort | string,
+): string | undefined {
+  return (
+    options?.locale ??
+    (typeof localePort === 'string' ? undefined : localePort.getLocale())
+  );
+}
+
+function formatDuration(
+  timePort: TimePort,
+  value: Parameters<TimeDisplayAdapter['formatDuration']>[0],
+  options: DurationDisplayOptions | undefined,
+  defaultLocale: string,
+): string {
+  const style = options?.style ?? 'short';
+  if (style === 'iso') {
+    return timePort.toDurationIsoString(value);
+  }
+
+  const milliseconds = timePort.parseDuration(value).milliseconds;
+  const sign = milliseconds < 0 ? '-' : '';
+  const parts = durationParts(Math.abs(milliseconds));
+  if (style === 'digital') {
+    return `${sign}${formatDigital(parts)}`;
+  }
+
+  const unitDisplay = style === 'long' ? 'long' : 'short';
+  const locale = options?.locale ?? defaultLocale;
+  const units = [
+    ['day', parts.days],
+    ['hour', parts.hours],
+    ['minute', parts.minutes],
+    ['second', parts.seconds],
+    ['millisecond', parts.milliseconds],
+  ] as const;
+  const visibleUnits = units.filter(([, amount]) => amount > 0);
+  if (visibleUnits.length === 0) {
+    visibleUnits.push(['millisecond', 0]);
+  }
+
+  const formatted = visibleUnits.map(([unit, amount]) =>
+    new Intl.NumberFormat(locale, {
+      style: 'unit',
+      unit,
+      unitDisplay,
+    }).format(amount),
+  );
+  return `${sign}${formatted.join(', ')}`;
+}
+
+function durationParts(milliseconds: number): {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+  milliseconds: number;
+} {
+  let remainder = milliseconds;
+  const days = Math.floor(remainder / MILLISECONDS_PER_DAY);
+  remainder %= MILLISECONDS_PER_DAY;
+  const hours = Math.floor(remainder / MILLISECONDS_PER_HOUR);
+  remainder %= MILLISECONDS_PER_HOUR;
+  const minutes = Math.floor(remainder / MILLISECONDS_PER_MINUTE);
+  remainder %= MILLISECONDS_PER_MINUTE;
+  const seconds = Math.floor(remainder / MILLISECONDS_PER_SECOND);
+  return {
+    days,
+    hours,
+    minutes,
+    seconds,
+    milliseconds: remainder % MILLISECONDS_PER_SECOND,
+  };
+}
+
+function formatDigital(parts: ReturnType<typeof durationParts>): string {
+  const totalHours = parts.days * 24 + parts.hours;
+  return [totalHours, parts.minutes, parts.seconds]
+    .map((value) => value.toString().padStart(2, '0'))
+    .join(':');
 }
 
 function formatDate(
@@ -62,6 +162,7 @@ function formatDate(
   options: TimeDisplayOptions | undefined,
   defaultTimeZone: string,
   timeZoneDatabase: TimeZoneDatabasePort,
+  locale: string | undefined,
 ): string {
   const timeZone = options?.timeZone ?? defaultTimeZone;
   const datePipeTimeZone = toDatePipeTimeZone(
@@ -74,7 +175,7 @@ function formatDate(
       epochMilliseconds,
       options?.format ?? DEFAULT_FORMAT,
       datePipeTimeZone,
-      options?.locale,
+      locale,
     ) ?? ''
   );
 }

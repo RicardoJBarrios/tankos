@@ -48,13 +48,14 @@ describe('time-display-provider', () => {
         timeZone: 'UTC',
       }),
     ).toBe('January 1, 1970');
-    expect(locale.getLocale).toHaveBeenCalledOnce();
+    expect(locale.getLocale).toHaveBeenCalledTimes(2);
   });
 
   it('Given a replacement display adapter, When configuring Angular, Then the display service uses it', () => {
     const adapter = {
       formatInstant: () => 'custom instant',
       formatLocalDate: () => 'custom date',
+      formatDuration: () => 'custom duration',
     };
 
     TestBed.configureTestingModule({

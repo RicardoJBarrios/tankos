@@ -9,7 +9,7 @@ durations can be expressed using units such as hours or minutes.
 
 ## Boundary
 
-`@tank-os/time` will provide Angular-centric, typed helpers for:
+`@tank-os/time` provides Angular-centric, typed helpers for:
 
 - instants in time;
 - local calendar dates;
@@ -31,10 +31,10 @@ It must not own:
 The library must distinguish at least these values:
 
 ```text
-Instant       A unique point on the global timeline.
-LocalDate     A calendar date without a time or time zone.
-ZonedDateTime A local date-time interpreted in an explicit time zone.
-Duration      An elapsed amount of time between instants.
+Instant                  A unique point on the global timeline.
+LocalDate                A calendar date without a time or time zone.
+ZonedDateTimeResolution  A local date-time resolved to an Instant with origin metadata.
+Duration                 An elapsed amount of time between instants.
 ```
 
 These values must not be represented interchangeably as arbitrary strings.
@@ -85,7 +85,7 @@ model.
 
 ## Transport adapters
 
-The transport adapters are Angular-compatible infrastructure and depend only on
+The transport adapters are infrastructure adapters and depend only on
 the capability ports they need, rather than on native parsing. Firestore and
 JSON/HTTP use `InstantPort`, `DurationPort` and `CalendarPort`; the Angular
 display adapter uses `InstantPort` and `CalendarPort`:
@@ -141,14 +141,18 @@ The first public adapter slice exports:
   contracts, composed as `TimePort` when all capabilities are required;
 - the `TimeZoneDatabasePort` port;
 - the `TimeLocalePort` port for replaceable locale sources;
-- the `ClockPort` port and `TimeService.now()`;
-- `createNativeTimeAdapter()`;
+- the `ClockPort` port and `TimeService`;
+- `createNativeClock()`, `createNativeTimeAdapter()` and
+  `createNativeTimeZoneDatabase()`;
+- the native duration validation, parsing and serialization helpers;
 - `TIME_PORT`, `TIME_CLOCK`, `provideTimePort(...)`,
   `provideTimeClock(...)`, `provideTimeZoneDatabase(...)`,
   `provideTimeLocale(...)` and
   `provideTankOsTime()`;
-- `TimeDisplayAdapter`, `TimeDisplayService` and the `tankInstant` and
-  `tankLocalDate` presentation pipes.
+- `TimeDisplayAdapter`, `TimeDisplayService` and the `tankInstant`,
+  `tankLocalDate` and `tankDuration` presentation pipes. `tankDuration` uses
+  the `iso`, `short`, `long` and `digital` styles; ISO is a presentation style,
+  while ISO serialization remains a separate transport operation.
 - Firestore and JSON/HTTP conversion adapters through their dedicated entry
   points.
 - `TimeService.parseDuration()`, `TimeService.isValidDuration()` and
@@ -216,10 +220,16 @@ providers: [provideTankOsTime()];
 The application layer exposes tokens and services; concrete native and
 Angular providers are kept in the composition layer.
 
-Date presentation is provided by the Angular pipes `tankInstant` and
-`tankLocalDate`. They delegate to `TimeDisplayService`, whose
+Date and duration presentation is provided by the Angular pipes `tankInstant`,
+`tankLocalDate` and `tankDuration`. They delegate to `TimeDisplayService`, whose
 `TimeDisplayAdapter` port keeps locale and runtime formatting outside the
 presentation classes.
+
+`tankDuration` accepts `style` (`iso`, `short`, `long` or `digital`) and an
+optional locale. Its `iso` style is deterministic and does not use
+internationalization; the other styles are delegated to the active display
+adapter. The pipe remains a single presentation entry point for all duration
+styles.
 
 ## DatePipe-compatible presentation
 
@@ -236,11 +246,11 @@ The first four arguments have the same meaning as `DatePipe`:
    custom format string;
 2. `timeZone` is the explicit presentation zone;
 3. `locale` overrides the Angular locale for that rendering;
-4. `options` is reserved for additional TankOS display context; formatting is
-   always selected through the `format` argument.
+4. `options` supplies additional `TimeDisplayOptions`; when the same field is
+   provided positionally and inside `options`, the positional argument wins.
 
-The additional arguments are optional and must not alter the temporal value.
-They only affect presentation. The core `Instant` remains a UTC-normalized
+The additional `options` argument is optional and must not alter the temporal
+value. It only affects presentation. The core `Instant` remains a UTC-normalized
 point on the timeline and a `LocalDate` remains a calendar date without a
 zone. `timeZone` is intentionally ignored for `tankLocalDate`; a calendar date
 must not be shifted by a time-zone conversion.
@@ -268,7 +278,13 @@ formatting. They do not select the aquarium or user time zone. An aquarium zone 
 `provideTimeDisplayContext(...)` or an explicit pipe argument. It must never be
 inferred from the browser locale.
 
-Core time-zone resolution accepts IANA identifiers. Angular display additionally
+Display pipes are deliberately impure so that a localization adapter whose
+active locale changes at runtime can be observed without changing the temporal
+value. Custom locale sources must return the current locale from
+`TimeLocalePort.getLocale()`. A custom display adapter remains responsible for
+reactive translation details and must return a synchronous display string.
+
+Core named-zone resolution accepts IANA identifiers. Angular display additionally
 accepts `UTC`, `Z` and validated fixed numeric offsets because those are the
 values supported by the `DatePipe` boundary.
 
@@ -279,11 +295,11 @@ final localized formatting to `DatePipe`. It is an adapter, not a dependency
 of the native temporal implementation:
 
 ```text
-tankInstant / tankLocalDate
+tankInstant / tankLocalDate / tankDuration
           -> TimeDisplayService
           -> TimeDisplayAdapter
           -> AngularTimeDisplayAdapter
-          -> DatePipe
+          -> DatePipe and Intl.NumberFormat
 ```
 
 The native temporal adapter remains available for non-Angular consumers and
@@ -350,18 +366,19 @@ The library exposes Nx `build`, `test` and `lint` targets. The build compiles
 the public TypeScript declarations and production sources into
 `dist/libs/tank-os/time`.
 
-The library enforces 100% V8 lines, statements, functions and branches for
-executable production code. The coverage configuration excludes only type-only
-contracts, the public barrel and test/build tooling; public contracts are
-tested through the adapter, Angular DI and pipe tests. Component fixtures belong
-to the consuming Angular application when a component is present.
+The library enforces 100% V8 lines, statements, functions and branches without
+a manual source exclusion list. Type-only declarations, barrels and files with
+no executable counters do not lower the resulting percentage; their public
+contracts are exercised through adapter, Angular DI and pipe tests. Component
+fixtures belong to the consuming Angular application when a component is
+present.
 
 Runtime boundaries validate structured values before they enter the temporal
 model. JSON/HTTP strings use Zod followed by the active adapter; Firestore
 timestamps must be client SDK `Timestamp` instances; sub-millisecond
 nanoseconds are truncated at the boundary. Native structured values must
-contain their correct discriminant
-(`instant` or `local-date`) and all required numeric fields.
+contain their correct discriminant (`instant`, `local-date` or `duration`) and
+all required numeric fields.
 
 All temporal millisecond normalization uses the shared validation helpers in
 `core/validation`; adapters must not implement their own rounding or

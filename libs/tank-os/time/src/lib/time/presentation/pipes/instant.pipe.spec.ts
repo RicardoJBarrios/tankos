@@ -6,6 +6,7 @@ describe('instant.pipe', () => {
   const adapter = {
     formatInstant: () => '20 Aug 2026',
     formatLocalDate: () => '20 August 2026',
+    formatDuration: () => '1 hr',
   };
 
   beforeEach(() => {
@@ -41,6 +42,7 @@ describe('instant.pipe', () => {
         provideTimeDisplayAdapter({
           formatInstant,
           formatLocalDate: () => 'date',
+          formatDuration: () => '1 hr',
         }),
       ],
     });

@@ -138,4 +138,72 @@ describe('angular-time-display-adapter', () => {
     expect(() => adapter.formatInstant('invalid')).toThrow(RangeError);
     expect(transform).not.toHaveBeenCalled();
   });
+
+  it.each([
+    ['iso', 'PT1H30M'],
+    ['digital', '01:30:00'],
+    ['short', '1 hr, 30 min'],
+    ['long', '1 hour, 30 minutes'],
+  ] as const)(
+    'Given style %s, When formatting a duration, Then it uses the requested representation',
+    (style, expected) => {
+      const adapter = createAngularTimeDisplayAdapter(
+        new DatePipe('en-US'),
+        timeAdapter,
+      );
+
+      expect(adapter.formatDuration(5_400_000, { style })).toBe(expected);
+    },
+  );
+
+  it('Given a replacement locale, When formatting a duration, Then it uses that locale for localized styles', () => {
+    const adapter = createAngularTimeDisplayAdapter(
+      new DatePipe('en-US'),
+      timeAdapter,
+      'UTC',
+      undefined,
+      'es-ES',
+    );
+
+    expect(adapter.formatDuration(5_400_000, { style: 'long' })).toBe(
+      '1 hora, 30 minutos',
+    );
+    expect(
+      adapter.formatDuration(5_400_000, {
+        style: 'short',
+        locale: 'fr-FR',
+      }),
+    ).toBe('1 h, 30 min');
+  });
+
+  it('Given a negative or zero duration, When formatting it, Then it preserves the sign and zero value', () => {
+    const adapter = createAngularTimeDisplayAdapter(
+      new DatePipe('en-US'),
+      timeAdapter,
+    );
+
+    expect(adapter.formatDuration(-5_400_000, { style: 'digital' })).toBe(
+      '-01:30:00',
+    );
+    expect(adapter.formatDuration(0, { style: 'short' })).toBe('0 ms');
+  });
+
+  it('Given a locale source that changes, When formatting again, Then it uses the current locale', () => {
+    const locale = { getLocale: vi.fn(() => 'en-US') };
+    const adapter = createAngularTimeDisplayAdapter(
+      new DatePipe('en-US'),
+      timeAdapter,
+      'UTC',
+      undefined,
+      locale,
+    );
+
+    expect(adapter.formatDuration(5_400_000, { style: 'long' })).toBe(
+      '1 hour, 30 minutes',
+    );
+    locale.getLocale.mockReturnValue('es-ES');
+    expect(adapter.formatDuration(5_400_000, { style: 'long' })).toBe(
+      '1 hora, 30 minutos',
+    );
+  });
 });
