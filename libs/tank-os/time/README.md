@@ -1,7 +1,11 @@
-# time
+# TankOS Time
 
-This library was generated with [Nx](https://nx.dev).
+The implementation and architectural decisions for this library are documented
+in [`docs/README.md`](docs/README.md).
 
-## Running unit tests
+The library exposes the same Nx lifecycle as the other TankOS capability
+libraries:
 
-Run `nx test time` to execute the unit tests.
+- `pnpm nx run time:build` compiles the public declarations and sources;
+- `pnpm nx run time:test` runs the tests with the 100% V8 coverage gate;
+- `pnpm nx run time:lint` checks the architectural and code rules.
