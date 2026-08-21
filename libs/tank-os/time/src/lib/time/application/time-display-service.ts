@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import {
   DurationDisplayOptions,
   DurationInput,
+  HumanizeDurationOptions,
   InstantInput,
   LocalDateInput,
   TimeDisplayOptions,
@@ -29,5 +30,13 @@ export class TimeDisplayService {
     options?: DurationDisplayOptions,
   ): string {
     return this.#adapter.formatDuration(value, options);
+  }
+
+  /** Formats an elapsed duration as localized relative text. */
+  formatHumanizedDuration(
+    value: DurationInput,
+    options?: HumanizeDurationOptions,
+  ): string {
+    return this.#adapter.formatHumanizedDuration(value, options);
   }
 }

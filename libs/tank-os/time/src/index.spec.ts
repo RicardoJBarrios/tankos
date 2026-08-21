@@ -29,6 +29,7 @@ describe('main entry point', () => {
 
   it('Given the main entry point, When importing it, Then it exposes the Angular application and composition API', () => {
     expect(publicApi.TimeService).toEqual(expect.any(Function));
+    expect(publicApi.TemporalCalculationService).toEqual(expect.any(Function));
     expect(publicApi.TimeDisplayService).toEqual(expect.any(Function));
     expect(publicApi.provideTimePort).toEqual(expect.any(Function));
     expect(publicApi.provideTankOsTime).toEqual(expect.any(Function));

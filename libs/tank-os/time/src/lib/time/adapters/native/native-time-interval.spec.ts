@@ -29,6 +29,20 @@ describe('native-time-interval', () => {
   });
 
   it.each([
+    null,
+    {},
+    { start: 1_000, end: 0 },
+    { start: 'invalid', end: 1_000 },
+  ])(
+    'Given an invalid interval %s, When querying membership, Then it rejects the interval',
+    (interval) => {
+      expect(() => adapter.contains(interval as never, 500)).toThrow(
+        RangeError,
+      );
+    },
+  );
+
+  it.each([
     [-1, 0],
     [500, 500],
     [1_001, 1_000],
@@ -41,4 +55,19 @@ describe('native-time-interval', () => {
       });
     },
   );
+
+  it('Given an interval with non-normalized boundaries, When clamping a value, Then it normalizes the boundaries', () => {
+    expect(
+      adapter.clamp(2_000, {
+        start: '1970-01-01T00:00:00Z',
+        end: 1_000,
+      }),
+    ).toEqual({ kind: 'instant', epochMilliseconds: 1_000 });
+  });
+
+  it('Given an invalid interval, When clamping a value, Then it rejects the interval', () => {
+    expect(() => adapter.clamp(500, { start: 1_000, end: 0 } as never)).toThrow(
+      RangeError,
+    );
+  });
 });

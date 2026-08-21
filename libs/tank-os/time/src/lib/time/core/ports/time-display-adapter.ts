@@ -1,6 +1,7 @@
 import {
   DurationDisplayOptions,
   DurationInput,
+  HumanizeDurationOptions,
   InstantInput,
   LocalDateInput,
 } from '../value-types';
@@ -27,5 +28,10 @@ export interface TimeDisplayAdapter {
   formatDuration(
     value: DurationInput,
     options?: DurationDisplayOptions,
+  ): string;
+  /** Formats an elapsed duration as localized relative text. */
+  formatHumanizedDuration(
+    value: DurationInput,
+    options?: HumanizeDurationOptions,
   ): string;
 }

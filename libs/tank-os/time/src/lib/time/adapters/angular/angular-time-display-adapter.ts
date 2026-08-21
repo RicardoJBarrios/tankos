@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import {
   DurationDisplayOptions,
+  HumanizeDurationOptions,
   TimeDisplayAdapter,
   TimeDisplayOptions,
   TimeLocalePort,
@@ -8,7 +9,6 @@ import {
   TimeZoneDatabasePort,
 } from '../../core';
 import { toDatePipeTimeZone } from './angular-time-zone-offset';
-import { createNativeTimeZoneDatabase } from '../native';
 
 const DEFAULT_FORMAT = 'medium';
 const DEFAULT_TIME_ZONE = 'UTC';
@@ -34,7 +34,7 @@ export function createAngularTimeDisplayAdapter(
   datePipe: DatePipe,
   timePort: TimePort,
   defaultTimeZone = DEFAULT_TIME_ZONE,
-  timeZoneDatabase: TimeZoneDatabasePort = createNativeTimeZoneDatabase(),
+  timeZoneDatabase: TimeZoneDatabasePort,
   localePort: TimeLocalePort | string = DEFAULT_LOCALE,
 ): TimeDisplayAdapter {
   return {
@@ -65,6 +65,14 @@ export function createAngularTimeDisplayAdapter(
     },
     formatDuration(value, options) {
       return formatDuration(timePort, value, options, getLocale(localePort));
+    },
+    formatHumanizedDuration(value, options) {
+      return formatHumanizedDuration(
+        timePort,
+        value,
+        options,
+        getLocale(localePort),
+      );
     },
   };
 }
@@ -102,13 +110,6 @@ function formatDuration(
   }
 
   const locale = options?.locale ?? defaultLocale;
-  if (style === 'relative') {
-    return formatRelativeDuration(
-      milliseconds,
-      locale,
-      options?.calendarUnits ?? 'none',
-    );
-  }
 
   const unitDisplay = style === 'long' ? 'long' : 'short';
   const units = [
@@ -131,6 +132,20 @@ function formatDuration(
     }).format(amount),
   );
   return `${sign}${formatted.join(', ')}`;
+}
+
+function formatHumanizedDuration(
+  timePort: TimePort,
+  value: Parameters<TimeDisplayAdapter['formatHumanizedDuration']>[0],
+  options: HumanizeDurationOptions | undefined,
+  defaultLocale: string,
+): string {
+  const milliseconds = timePort.parseDuration(value).milliseconds;
+  return formatRelativeDuration(
+    milliseconds,
+    options?.locale ?? defaultLocale,
+    options?.calendarUnits ?? 'none',
+  );
 }
 
 function formatRelativeDuration(

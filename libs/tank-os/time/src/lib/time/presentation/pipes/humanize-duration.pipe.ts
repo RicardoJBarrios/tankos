@@ -14,9 +14,6 @@ export class HumanizeDurationPipe implements PipeTransform {
   ): string {
     return value == null
       ? ''
-      : this.#display.formatDuration(value, {
-          style: 'relative',
-          ...options,
-        });
+      : this.#display.formatHumanizedDuration(value, options);
   }
 }

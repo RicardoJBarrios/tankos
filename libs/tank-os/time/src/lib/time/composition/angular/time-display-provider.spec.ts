@@ -56,6 +56,7 @@ describe('time-display-provider', () => {
       formatInstant: () => 'custom instant',
       formatLocalDate: () => 'custom date',
       formatDuration: () => 'custom duration',
+      formatHumanizedDuration: () => 'custom relative duration',
     };
 
     TestBed.configureTestingModule({

@@ -7,6 +7,7 @@ describe('duration.pipe', () => {
     formatInstant: () => '20 Aug 2026',
     formatLocalDate: () => '20 August 2026',
     formatDuration: () => '1 hr, 30 min',
+    formatHumanizedDuration: () => 'in 2 hours',
   };
 
   beforeEach(() => {
@@ -43,6 +44,7 @@ describe('duration.pipe', () => {
           formatInstant: () => 'instant',
           formatLocalDate: () => 'date',
           formatDuration,
+          formatHumanizedDuration: () => 'relative',
         }),
       ],
     });

@@ -3,14 +3,11 @@ import { TIME_CLOCK, TIME_PORT } from './time-tokens';
 import {
   Duration,
   DurationInput,
-  CalendarPeriod,
-  ComparisonResult,
   Instant,
   InstantInput,
   LocalDate,
   LocalDateInput,
   ZonedDateTimeResolution,
-  TimeInterval,
 } from '../core';
 
 @Injectable({ providedIn: 'root' })
@@ -52,57 +49,6 @@ export class TimeService {
   /** Serializes an elapsed duration as canonical ISO 8601. */
   toDurationIsoString(value: DurationInput): string {
     return this.#time.toDurationIsoString(value);
-  }
-
-  /** Calculates elapsed time from one instant to another. */
-  durationBetween(start: InstantInput, end: InstantInput): Duration {
-    return this.#time.durationBetween(start, end);
-  }
-
-  /** Adds elapsed time to an instant. */
-  addDuration(start: InstantInput, duration: DurationInput): Instant {
-    return this.#time.addDuration(start, duration);
-  }
-
-  /** Compares two instants using three-way ordering. */
-  compareInstants(left: InstantInput, right: InstantInput): ComparisonResult {
-    return this.#time.compareInstants(left, right);
-  }
-
-  /** Compares two durations using three-way ordering. */
-  compareDurations(
-    left: DurationInput,
-    right: DurationInput,
-  ): ComparisonResult {
-    return this.#time.compareDurations(left, right);
-  }
-
-  /** Creates a closed interval on the UTC timeline. */
-  createInterval(start: InstantInput, end: InstantInput): TimeInterval {
-    return this.#time.createInterval(start, end);
-  }
-
-  /** Checks whether an instant is within a closed interval. */
-  contains(interval: TimeInterval, value: InstantInput): boolean {
-    return this.#time.contains(interval, value);
-  }
-
-  /** Clamps an instant to a closed interval. */
-  clamp(value: InstantInput, interval: TimeInterval): Instant {
-    return this.#time.clamp(value, interval);
-  }
-
-  /** Adds a calendar period to a time-zone-independent date. */
-  addLocalDate(value: LocalDateInput, period: CalendarPeriod): LocalDate {
-    return this.#time.addLocalDate(value, period);
-  }
-
-  /** Calculates whole calendar-day distance as a duration. */
-  durationBetweenLocalDates(
-    start: LocalDateInput,
-    end: LocalDateInput,
-  ): Duration {
-    return this.#time.durationBetweenLocalDates(start, end);
   }
 
   /** Parses a time-zone-independent calendar date. */

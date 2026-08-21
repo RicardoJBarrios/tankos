@@ -1,5 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { provideTimeDisplayAdapter } from '../../composition';
+import {
+  provideTankOsTime,
+  provideTimeDisplayAdapter,
+} from '../../composition';
 import { HumanizeDurationPipe } from './humanize-duration.pipe';
 
 describe('humanize-duration.pipe', () => {
@@ -10,13 +13,14 @@ describe('humanize-duration.pipe', () => {
   ] as const)(
     'Given duration value %s, When humanizing it, Then it delegates to relative display',
     (value) => {
-      const formatDuration = vi.fn().mockReturnValue('in 2 hours');
+      const formatHumanizedDuration = vi.fn().mockReturnValue('in 2 hours');
       TestBed.configureTestingModule({
         providers: [
           provideTimeDisplayAdapter({
             formatInstant: () => 'instant',
             formatLocalDate: () => 'date',
-            formatDuration,
+            formatDuration: () => 'duration',
+            formatHumanizedDuration,
           }),
         ],
       });
@@ -25,8 +29,7 @@ describe('humanize-duration.pipe', () => {
       );
 
       expect(pipe.transform(value, { locale: 'en-US' })).toBe('in 2 hours');
-      expect(formatDuration).toHaveBeenCalledWith(value, {
-        style: 'relative',
+      expect(formatHumanizedDuration).toHaveBeenCalledWith(value, {
         locale: 'en-US',
       });
     },
@@ -39,6 +42,7 @@ describe('humanize-duration.pipe', () => {
           formatInstant: () => 'instant',
           formatLocalDate: () => 'date',
           formatDuration: () => 'relative',
+          formatHumanizedDuration: () => 'relative',
         }),
       ],
     });
@@ -51,13 +55,14 @@ describe('humanize-duration.pipe', () => {
   });
 
   it('Given approximate calendar units, When humanizing a long duration, Then it forwards the option', () => {
-    const formatDuration = vi.fn().mockReturnValue('in 2 months');
+    const formatHumanizedDuration = vi.fn().mockReturnValue('in 2 months');
     TestBed.configureTestingModule({
       providers: [
         provideTimeDisplayAdapter({
           formatInstant: () => 'instant',
           formatLocalDate: () => 'date',
-          formatDuration,
+          formatDuration: () => 'duration',
+          formatHumanizedDuration,
         }),
       ],
     });
@@ -68,9 +73,19 @@ describe('humanize-duration.pipe', () => {
     expect(
       pipe.transform(60 * 86_400_000, { calendarUnits: 'approximate' }),
     ).toBe('in 2 months');
-    expect(formatDuration).toHaveBeenCalledWith(60 * 86_400_000, {
-      style: 'relative',
+    expect(formatHumanizedDuration).toHaveBeenCalledWith(60 * 86_400_000, {
       calendarUnits: 'approximate',
     });
+  });
+
+  it('Given the Angular composition, When humanizing with an explicit locale, Then it returns localized relative text', () => {
+    TestBed.configureTestingModule({ providers: [provideTankOsTime()] });
+    const pipe = TestBed.runInInjectionContext(
+      () => new HumanizeDurationPipe(),
+    );
+
+    expect(pipe.transform(7_200_000, { locale: 'es-ES' })).toBe(
+      'dentro de 2 horas',
+    );
   });
 });

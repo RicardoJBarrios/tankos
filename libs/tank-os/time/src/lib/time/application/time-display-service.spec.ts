@@ -53,4 +53,12 @@ describe('time-display-service', () => {
       }),
     ).toBe('1 hr, 30 min');
   });
+
+  it('Given a duration, When humanizing it through Angular, Then it returns localized relative text', () => {
+    expect(
+      TestBed.inject(TimeDisplayService).formatHumanizedDuration(7_200_000, {
+        locale: 'en-US',
+      }),
+    ).toBe('in 2 hours');
+  });
 });

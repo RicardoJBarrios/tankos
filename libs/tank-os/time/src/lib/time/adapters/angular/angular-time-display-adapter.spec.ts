@@ -1,9 +1,29 @@
 import { DatePipe } from '@angular/common';
-import { createNativeTimeAdapter } from '../native';
-import { createAngularTimeDisplayAdapter } from './angular-time-display-adapter';
+import {
+  createNativeTimeAdapter,
+  createNativeTimeZoneDatabase,
+} from '../native';
+import { createAngularTimeDisplayAdapter as createDisplayAdapter } from './angular-time-display-adapter';
 
 describe('angular-time-display-adapter', () => {
   const timeAdapter = createNativeTimeAdapter();
+  const timeZoneDatabase = createNativeTimeZoneDatabase();
+
+  function createAngularTimeDisplayAdapter(
+    datePipe: DatePipe,
+    adapter = timeAdapter,
+    defaultTimeZone = 'UTC',
+    _unused?: undefined,
+    locale?: string | { getLocale(): string },
+  ) {
+    return createDisplayAdapter(
+      datePipe,
+      adapter,
+      defaultTimeZone,
+      timeZoneDatabase,
+      locale,
+    );
+  }
 
   it('Given an instant, When formatting it, Then it delegates the epoch, format and UTC zone to DatePipe', () => {
     const datePipe = new DatePipe('en-GB');
@@ -213,31 +233,25 @@ describe('angular-time-display-adapter', () => {
     [172_800_000, 'in 2 days'],
     [0, 'now'],
   ] as const)(
-    'Given signed duration %s, When using relative style, Then it returns %s',
+    'Given signed duration %s, When humanizing it, Then it returns %s',
     (value, expected) => {
       const adapter = createAngularTimeDisplayAdapter(
         new DatePipe('en-US'),
         timeAdapter,
       );
 
-      expect(adapter.formatDuration(value, { style: 'relative' })).toBe(
-        expected,
-      );
+      expect(adapter.formatHumanizedDuration(value)).toBe(expected);
     },
   );
 
-  it('Given a duration below an hour, When using relative style, Then it selects minutes or seconds', () => {
+  it('Given a duration below an hour, When humanizing it, Then it selects minutes or seconds', () => {
     const adapter = createAngularTimeDisplayAdapter(
       new DatePipe('en-US'),
       timeAdapter,
     );
 
-    expect(adapter.formatDuration(30_000, { style: 'relative' })).toBe(
-      'in 30 seconds',
-    );
-    expect(adapter.formatDuration(-120_000, { style: 'relative' })).toBe(
-      '2 minutes ago',
-    );
+    expect(adapter.formatHumanizedDuration(30_000)).toBe('in 30 seconds');
+    expect(adapter.formatHumanizedDuration(-120_000)).toBe('2 minutes ago');
   });
 
   it('Given approximate calendar units, When formatting a long duration, Then it uses months and years with explicit approximations', () => {
@@ -247,14 +261,12 @@ describe('angular-time-display-adapter', () => {
     );
 
     expect(
-      adapter.formatDuration(60 * 86_400_000, {
-        style: 'relative',
+      adapter.formatHumanizedDuration(60 * 86_400_000, {
         calendarUnits: 'approximate',
       }),
     ).toBe('in 2 months');
     expect(
-      adapter.formatDuration(-730 * 86_400_000, {
-        style: 'relative',
+      adapter.formatHumanizedDuration(-730 * 86_400_000, {
         calendarUnits: 'approximate',
       }),
     ).toBe('2 years ago');
