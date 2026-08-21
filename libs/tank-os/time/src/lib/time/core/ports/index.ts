@@ -8,3 +8,4 @@ export * from './time-locale-port';
 export * from './time-port';
 export * from './time-zone-port';
 export * from './time-zone-database-port';
+export * from './temporal-calculation-port';
