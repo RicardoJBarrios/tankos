@@ -61,6 +61,7 @@ modules['apps/tank-os/src/app'] = [
 
 modules['libs/tank-os/time'] = ['context:tank-os'];
 modules['libs/tank-os/units'] = ['context:tank-os'];
+modules['libs/tank-os/decimal'] = ['context:tank-os'];
 
 for (const modulePath of [
   'libs/tank-os/time/src',
@@ -78,6 +79,7 @@ for (const modulePath of [
   'libs/tank-os/time/src/lib/time/presentation',
   'libs/tank-os/time/src/lib/time/presentation/pipes',
   'libs/tank-os/units/src',
+  'libs/tank-os/decimal/src',
 ]) {
   modules[modulePath] = ['context:tank-os'];
 }
@@ -143,6 +145,10 @@ const tankOsTimeLayers: Record<string, string[]> = {
     'context:tank-os',
     'tank-os:layer:adapter',
   ],
+  'libs/tank-os/time/src/lib/time/adapters/zod': [
+    'context:tank-os',
+    'tank-os:layer:adapter',
+  ],
   'libs/tank-os/time/src/lib/time/presentation': [
     'context:tank-os',
     'tank-os:layer:presentation',
@@ -162,6 +168,66 @@ modules['libs/tank-os/units/src/lib/units'] = [
 modules['libs/tank-os/units/src'] = [
   'context:tank-os',
   'tank-os:layer:library-root',
+];
+modules['libs/tank-os/units/src/lib/units/core'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/units/src/lib/units/core/value-types'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/units/src/lib/units/core/errors'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/decimal/src/lib/decimal'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/decimal/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/core'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/core/value-types'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/core/errors'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/core/ports'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/application'] = [
+  'context:tank-os',
+  'tank-os:layer:application',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/adapters'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/adapters/big-js'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/adapters/zod'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/composition'] = [
+  'context:tank-os',
+  'tank-os:layer:composition',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/composition/angular'] = [
+  'context:tank-os',
+  'tank-os:layer:composition',
 ];
 
 export const config: SheriffConfig = {

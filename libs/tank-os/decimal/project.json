@@ -1,0 +1,23 @@
+{
+  "name": "decimal",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/tank-os/decimal/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["scope:shared", "scope:tank-os", "type:feature"],
+  "targets": {
+    "test": {
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/libs/tank-os/decimal"
+      ],
+      "options": {
+        "coverage": true,
+        "coverage.reportsDirectory": "../../../coverage/libs/tank-os/decimal"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
