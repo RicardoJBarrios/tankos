@@ -206,4 +206,57 @@ describe('angular-time-display-adapter', () => {
       '1 hora, 30 minutos',
     );
   });
+
+  it.each([
+    [7_200_000, 'in 2 hours'],
+    [-10_800_000, '3 hours ago'],
+    [172_800_000, 'in 2 days'],
+    [0, 'now'],
+  ] as const)(
+    'Given signed duration %s, When using relative style, Then it returns %s',
+    (value, expected) => {
+      const adapter = createAngularTimeDisplayAdapter(
+        new DatePipe('en-US'),
+        timeAdapter,
+      );
+
+      expect(adapter.formatDuration(value, { style: 'relative' })).toBe(
+        expected,
+      );
+    },
+  );
+
+  it('Given a duration below an hour, When using relative style, Then it selects minutes or seconds', () => {
+    const adapter = createAngularTimeDisplayAdapter(
+      new DatePipe('en-US'),
+      timeAdapter,
+    );
+
+    expect(adapter.formatDuration(30_000, { style: 'relative' })).toBe(
+      'in 30 seconds',
+    );
+    expect(adapter.formatDuration(-120_000, { style: 'relative' })).toBe(
+      '2 minutes ago',
+    );
+  });
+
+  it('Given approximate calendar units, When formatting a long duration, Then it uses months and years with explicit approximations', () => {
+    const adapter = createAngularTimeDisplayAdapter(
+      new DatePipe('en-US'),
+      timeAdapter,
+    );
+
+    expect(
+      adapter.formatDuration(60 * 86_400_000, {
+        style: 'relative',
+        calendarUnits: 'approximate',
+      }),
+    ).toBe('in 2 months');
+    expect(
+      adapter.formatDuration(-730 * 86_400_000, {
+        style: 'relative',
+        calendarUnits: 'approximate',
+      }),
+    ).toBe('2 years ago');
+  });
 });

@@ -101,8 +101,16 @@ function formatDuration(
     return `${sign}${formatDigital(parts)}`;
   }
 
-  const unitDisplay = style === 'long' ? 'long' : 'short';
   const locale = options?.locale ?? defaultLocale;
+  if (style === 'relative') {
+    return formatRelativeDuration(
+      milliseconds,
+      locale,
+      options?.calendarUnits ?? 'none',
+    );
+  }
+
+  const unitDisplay = style === 'long' ? 'long' : 'short';
   const units = [
     ['day', parts.days],
     ['hour', parts.hours],
@@ -123,6 +131,35 @@ function formatDuration(
     }).format(amount),
   );
   return `${sign}${formatted.join(', ')}`;
+}
+
+function formatRelativeDuration(
+  milliseconds: number,
+  locale: string,
+  calendarUnits: 'none' | 'approximate',
+): string {
+  const absoluteMilliseconds = Math.abs(milliseconds);
+  const approximateCalendarUnit =
+    calendarUnits === 'approximate' &&
+    absoluteMilliseconds >= 30 * MILLISECONDS_PER_DAY
+      ? absoluteMilliseconds >= 365 * MILLISECONDS_PER_DAY
+        ? (['year', 365 * MILLISECONDS_PER_DAY] as const)
+        : (['month', 30 * MILLISECONDS_PER_DAY] as const)
+      : undefined;
+  const [unit, divisor] =
+    approximateCalendarUnit ??
+    (absoluteMilliseconds >= MILLISECONDS_PER_DAY
+      ? (['day', MILLISECONDS_PER_DAY] as const)
+      : absoluteMilliseconds >= MILLISECONDS_PER_HOUR
+        ? (['hour', MILLISECONDS_PER_HOUR] as const)
+        : absoluteMilliseconds >= MILLISECONDS_PER_MINUTE
+          ? (['minute', MILLISECONDS_PER_MINUTE] as const)
+          : (['second', MILLISECONDS_PER_SECOND] as const));
+  const amount = Math.round(milliseconds / divisor);
+  return new Intl.RelativeTimeFormat(locale, {
+    numeric: 'auto',
+    style: 'long',
+  }).format(amount, unit);
 }
 
 function durationParts(milliseconds: number): {

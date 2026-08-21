@@ -140,6 +140,7 @@ The first public adapter slice exports:
 - the `InstantPort`, `DurationPort`, `CalendarPort` and `TimeZonePort`
   contracts, composed as `TimePort` when all capabilities are required;
 - the `TimeZoneDatabasePort` port;
+- the `TemporalCalculationPort` port for deterministic temporal arithmetic;
 - the `TimeLocalePort` port for replaceable locale sources;
 - the `ClockPort` port and `TimeService`;
 - `createNativeClock()`, `createNativeTimeAdapter()` and
@@ -150,18 +151,46 @@ The first public adapter slice exports:
   `provideTimeLocale(...)` and
   `provideTankOsTime()`;
 - `TimeDisplayAdapter`, `TimeDisplayService` and the `tankInstant`,
-  `tankLocalDate` and `tankDuration` presentation pipes. `tankDuration` uses
-  the `iso`, `short`, `long` and `digital` styles; ISO is a presentation style,
-  while ISO serialization remains a separate transport operation.
+  `tankLocalDate`, `tankDuration` and `tankHumanizeDuration` presentation
+  pipes. `tankDuration` uses the `iso`, `short`, `long`, `digital` and
+  `relative` styles; ISO is a presentation style, while ISO serialization
+  remains a separate transport operation. `tankHumanizeDuration` is the
+  dedicated relative-text entry point.
 - Firestore and JSON/HTTP conversion adapters through their dedicated entry
   points.
 - `TimeService.parseDuration()`, `TimeService.isValidDuration()` and
   `TimeService.toDurationIsoString()`;
+- `TimeService.durationBetween()`, `addDuration()`, temporal comparisons,
+  closed intervals, `addLocalDate()` and calendar-date duration differences;
 - `TimeService.resolveZonedDateTime()` and
   `TimeService.resolveOffsetDateTime()`;
 
 The temporal operations are methods on the capability ports and `TimeService`, not
 global functions.
+
+## Temporal calculations
+
+The calculation port operates on normalized temporal values and keeps business
+meaning outside this library:
+
+- `durationBetween(start, end)` returns signed elapsed milliseconds between two
+  instants;
+- `addDuration(start, duration)` shifts an instant by an elapsed duration;
+- `compareInstants()` and `compareDurations()` return `-1`, `0` or `1`;
+- `TimeInterval` is a closed interval, so both boundaries belong to it;
+- `contains()` checks interval membership and `clamp()` limits a value to its
+  boundaries;
+- `addLocalDate()` applies whole calendar years, months and days without a
+  time-zone conversion;
+- `durationBetweenLocalDates()` returns the signed distance in whole calendar
+  days, represented as a duration in milliseconds.
+
+Calendar arithmetic constrains a day to the last valid day of the resulting
+month: adding one month to January 31 therefore produces February 28 or 29.
+Instant arithmetic and calendar arithmetic are deliberately separate; a local
+date does not become an instant unless a time zone is supplied explicitly.
+Recurrence rules, aquarium schedules and business concepts such as quarantine
+or maintenance periods remain outside `Time`.
 
 Tests for the library are intentionally split by public operation and use
 Given/When/Then descriptions so that the test suite acts as executable
@@ -225,11 +254,31 @@ Date and duration presentation is provided by the Angular pipes `tankInstant`,
 `TimeDisplayAdapter` port keeps locale and runtime formatting outside the
 presentation classes.
 
-`tankDuration` accepts `style` (`iso`, `short`, `long` or `digital`) and an
+`tankDuration` accepts `style` (`iso`, `short`, `long`, `digital` or
+`relative`) and an
 optional locale. Its `iso` style is deterministic and does not use
 internationalization; the other styles are delegated to the active display
 adapter. The pipe remains a single presentation entry point for all duration
 styles.
+
+`tankHumanizeDuration` interprets the duration sign relative to the current
+moment: negative values become past text such as “3 hours ago”, positive values
+become future text such as “in 2 hours”, and zero becomes the locale's “now”.
+It chooses seconds, minutes, hours or days according to the largest applicable
+unit and delegates wording to the active display adapter.
+
+It accepts `calendarUnits: 'none' | 'approximate'`. The default `none` keeps
+the exact elapsed-time units. `approximate` may select months using 30 days and
+years using 365 days; these are explicitly approximate and must not be used as
+calendar arithmetic.
+
+Locale responsibility is split between the pipe and the display adapter. Pipe
+tests verify that an explicitly supplied locale is forwarded unchanged to
+`TimeDisplayService`; they do not duplicate the formatting implementation.
+The Angular display-adapter tests verify the observable localized output,
+including explicit locales and locale sources that change at runtime. This
+keeps the pipes focused on input normalization and delegation while keeping
+locale-specific behavior in the adapter that owns it.
 
 ## DatePipe-compatible presentation
 
