@@ -69,6 +69,21 @@ inside that adapter directory. In particular, files prefixed `native-` belong
 under `adapters/native/` and must not be placed beside the port or application
 files.
 
+TankOS libraries must declare their internal modules and architectural layers
+in `sheriff.config.ts`. The default dependency direction is strict:
+
+```text
+library-root -> core, application, adapters, presentation
+application  -> core, adapters
+adapters     -> core
+presentation -> application, core
+core         -> core
+```
+
+New library layers or exceptions require an explicit Sheriff rule and a local
+documentation update. A library lint failure is an architectural failure, not
+an import-order issue to bypass.
+
 ## Directory barrels
 
 When a directory contains multiple reusable or public elements, add an

@@ -271,6 +271,26 @@ implement the `TimeAdapter` port without changing application consumers. The
 native temporal adapter is an infrastructure detail; the port is the stable
 dependency direction for the rest of TankOS.
 
+## Sheriff boundaries
+
+TankOS libraries are registered in the repository Sheriff configuration with
+isolated `tank-os:layer:*` tags. The standard dependency direction is:
+
+```text
+library-root -> core, application, adapters, presentation
+application  -> core, adapters
+adapters     -> core
+presentation -> application, core
+core         -> core
+```
+
+Each library registers its actual internal directories explicitly because
+Sheriff does not support repeating the same path placeholder to express a
+library directory and its homonymous source directory. A different layer or
+dependency requires an explicit Sheriff rule and an update to this document
+(or the corresponding library documentation). The library's lint target is
+the enforcement point for these boundaries.
+
 ## Build, test and coverage boundary
 
 The library exposes Nx `build`, `test` and `lint` targets. The build compiles

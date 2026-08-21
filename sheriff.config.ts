@@ -70,7 +70,6 @@ for (const modulePath of [
   'libs/tank-os/time/src/lib/time/adapters/json-http',
   'libs/tank-os/time/src/lib/time/adapters/native',
   'libs/tank-os/time/src/lib/time/application',
-  'libs/tank-os/time/src/lib/time/ports',
   'libs/tank-os/time/src/lib/time/presentation',
   'libs/tank-os/time/src/lib/time/presentation/pipes',
   'libs/tank-os/units/src',
@@ -84,6 +83,68 @@ for (const layer of layers) {
     `layer:${layer}`,
   ];
 }
+
+const tankOsTimeLayers: Record<string, string[]> = {
+  'libs/tank-os/time/src/lib/time': [
+    'context:tank-os',
+    'tank-os:layer:library-root',
+  ],
+  'libs/tank-os/time/src/lib/time/core': [
+    'context:tank-os',
+    'tank-os:layer:core',
+  ],
+  'libs/tank-os/time/src/lib/time/core/ports': [
+    'context:tank-os',
+    'tank-os:layer:core',
+  ],
+  'libs/tank-os/time/src/lib/time/core/value-types': [
+    'context:tank-os',
+    'tank-os:layer:core',
+  ],
+  'libs/tank-os/time/src/lib/time/core/validation': [
+    'context:tank-os',
+    'tank-os:layer:core',
+  ],
+  'libs/tank-os/time/src/lib/time/application': [
+    'context:tank-os',
+    'tank-os:layer:application',
+  ],
+  'libs/tank-os/time/src/lib/time/adapters': [
+    'context:tank-os',
+    'tank-os:layer:adapter',
+  ],
+  'libs/tank-os/time/src/lib/time/adapters/angular': [
+    'context:tank-os',
+    'tank-os:layer:adapter',
+  ],
+  'libs/tank-os/time/src/lib/time/adapters/firestore': [
+    'context:tank-os',
+    'tank-os:layer:adapter',
+  ],
+  'libs/tank-os/time/src/lib/time/adapters/json-http': [
+    'context:tank-os',
+    'tank-os:layer:adapter',
+  ],
+  'libs/tank-os/time/src/lib/time/adapters/native': [
+    'context:tank-os',
+    'tank-os:layer:adapter',
+  ],
+  'libs/tank-os/time/src/lib/time/presentation': [
+    'context:tank-os',
+    'tank-os:layer:presentation',
+  ],
+  'libs/tank-os/time/src/lib/time/presentation/pipes': [
+    'context:tank-os',
+    'tank-os:layer:presentation',
+  ],
+};
+
+Object.assign(modules, tankOsTimeLayers);
+
+modules['libs/tank-os/units/src/lib/units'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
 
 export const config: SheriffConfig = {
   entryPoints: {
@@ -117,6 +178,32 @@ export const config: SheriffConfig = {
     'context:shared-access': ['context:shared-access', 'context:shared'],
     'context:shared': ['context:shared'],
     'context:tank-os': ['context:tank-os'],
+    'tank-os:layer:library-root': [
+      'tank-os:layer:library-root',
+      'tank-os:layer:core',
+      'tank-os:layer:application',
+      'tank-os:layer:adapter',
+      'tank-os:layer:presentation',
+      'context:tank-os',
+    ],
+    'tank-os:layer:core': ['tank-os:layer:core', 'context:tank-os'],
+    'tank-os:layer:adapter': [
+      'tank-os:layer:adapter',
+      'tank-os:layer:core',
+      'context:tank-os',
+    ],
+    'tank-os:layer:application': [
+      'tank-os:layer:application',
+      'tank-os:layer:adapter',
+      'tank-os:layer:core',
+      'context:tank-os',
+    ],
+    'tank-os:layer:presentation': [
+      'tank-os:layer:presentation',
+      'tank-os:layer:application',
+      'tank-os:layer:core',
+      'context:tank-os',
+    ],
     'context:composition': [
       'context:composition',
       'context:aquarium-management',
