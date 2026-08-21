@@ -1,15 +1,15 @@
 import { InjectionToken } from '@angular/core';
 import {
   ClockPort,
-  TimeAdapter,
+  TimePort,
   TimeDisplayAdapter,
   TimeDisplayContext,
   TimeLocalePort,
   TimeZoneDatabasePort,
 } from '../core';
 
-/** Angular token for the active time implementation. */
-export const TIME_ADAPTER = new InjectionToken<TimeAdapter>('TIME_ADAPTER');
+/** Angular token for the complete temporal port. */
+export const TIME_PORT = new InjectionToken<TimePort>('TIME_PORT');
 
 /** Angular token for the active current-time source. */
 export const TIME_CLOCK = new InjectionToken<ClockPort>('TIME_CLOCK');

@@ -1,15 +1,15 @@
 import { Provider } from '@angular/core';
 import {
-  provideTimeAdapter,
+  provideTimePort,
   provideTimeClock,
   provideTimeZoneDatabase,
-} from './time-adapter-provider';
+} from './time-port-provider';
 import { provideAngularTimeDisplayAdapter } from './time-display-provider';
 
-/** Registers the default native clock, time adapter and Angular display. */
+/** Registers the default temporal ports, clock and Angular display. */
 export function provideTankOsTime(): Provider[] {
   return [
-    provideTimeAdapter(),
+    provideTimePort(),
     provideTimeZoneDatabase(),
     provideTimeClock(),
     provideAngularTimeDisplayAdapter(),

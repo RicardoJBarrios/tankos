@@ -1,26 +1,22 @@
 import { inject, Provider } from '@angular/core';
-import { ClockPort, TimeAdapter, TimeZoneDatabasePort } from '../../core';
+import { ClockPort, TimePort, TimeZoneDatabasePort } from '../../core';
 import {
   createNativeClock,
   createNativeTimeAdapter,
   createNativeTimeZoneDatabase,
 } from '../../adapters/native';
-import {
-  TIME_ADAPTER,
-  TIME_CLOCK,
-  TIME_ZONE_DATABASE,
-} from '../../application';
+import { TIME_PORT, TIME_CLOCK, TIME_ZONE_DATABASE } from '../../application';
 
 /**
- * Registers the selected time adapter for Angular consumers.
+ * Registers the complete temporal port for Angular consumers.
  *
- * @param adapter - Optional custom adapter; native implementation otherwise.
+ * @param timePort - Optional custom port; native implementation otherwise.
  */
-export function provideTimeAdapter(adapter?: TimeAdapter): Provider {
+export function provideTimePort(timePort?: TimePort): Provider {
   return {
-    provide: TIME_ADAPTER,
+    provide: TIME_PORT,
     useFactory: () =>
-      adapter ??
+      timePort ??
       createNativeTimeAdapter(
         inject(TIME_ZONE_DATABASE, { optional: true }) ??
           createNativeTimeZoneDatabase(),
@@ -35,7 +31,7 @@ export function provideTimeZoneDatabase(
   return { provide: TIME_ZONE_DATABASE, useValue: database };
 }
 
-/** Registers the selected clock for Angular consumers. */
+/** Registers the selected clock for temporal services. */
 export function provideTimeClock(
   clock: ClockPort = createNativeClock(),
 ): Provider {

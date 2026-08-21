@@ -85,12 +85,14 @@ model.
 
 ## Transport adapters
 
-The transport adapters are Angular-compatible infrastructure and depend on the
-`TimeAdapter` port rather than on native parsing:
+The transport adapters are Angular-compatible infrastructure and depend only on
+the capability ports they need, rather than on native parsing. Firestore and
+JSON/HTTP use `InstantPort`, `DurationPort` and `CalendarPort`; the Angular
+display adapter uses `InstantPort` and `CalendarPort`:
 
 ```ts
-const firestore = createFirestoreTimeAdapter(timeAdapter);
-const jsonHttp = createJsonHttpTimeAdapter(timeAdapter);
+const firestore = createFirestoreTimeAdapter(timePort);
+const jsonHttp = createJsonHttpTimeAdapter(timePort);
 ```
 
 The Firestore adapter uses the client SDK `Timestamp` and stores `Instant` at
@@ -102,7 +104,7 @@ structurally similar value.
 
 The JSON/HTTP adapter serializes `Instant` as canonical UTC ISO 8601 with
 millisecond precision and `LocalDate` as `YYYY-MM-DD`. Deserializers validate
-the transport value with Zod and then through the active `TimeAdapter`; they
+the transport value with Zod and then through the active capability ports; they
 raise `RangeError` for malformed or unsupported input.
 
 `Duration` is an elapsed, fixed-unit value normalized to an integer number of
@@ -135,12 +137,13 @@ The first public adapter slice exports:
 
 - `Instant`, `LocalDate` and `LocalDateInput` typed values;
 - `Duration` and `DurationInput` typed values;
-- the `TimeAdapter` port;
+- the `InstantPort`, `DurationPort`, `CalendarPort` and `TimeZonePort`
+  contracts, composed as `TimePort` when all capabilities are required;
 - the `TimeZoneDatabasePort` port;
 - the `TimeLocalePort` port for replaceable locale sources;
 - the `ClockPort` port and `TimeService.now()`;
 - `createNativeTimeAdapter()`;
-- `TIME_ADAPTER`, `TIME_CLOCK`, `provideTimeAdapter(...)`,
+- `TIME_PORT`, `TIME_CLOCK`, `provideTimePort(...)`,
   `provideTimeClock(...)`, `provideTimeZoneDatabase(...)`,
   `provideTimeLocale(...)` and
   `provideTankOsTime()`;
@@ -153,7 +156,7 @@ The first public adapter slice exports:
 - `TimeService.resolveZonedDateTime()` and
   `TimeService.resolveOffsetDateTime()`;
 
-The temporal operations are methods on `TimeAdapter` and `TimeService`, not
+The temporal operations are methods on the capability ports and `TimeService`, not
 global functions.
 
 Tests for the library are intentionally split by public operation and use
@@ -172,7 +175,7 @@ Those runtimes are confined to the native and Angular adapters.
 
 ## Runtime abstraction
 
-The library exposes a `TimeAdapter` port and an Angular `TimeService`. Angular
+The library exposes capability ports and an Angular `TimeService`. Angular
 consumers receive the `DatePipe`-backed display adapter by default:
 
 ```text
@@ -187,7 +190,7 @@ provideTimeDisplayAdapter(customDisplayAdapter);
 
 The adapter is the only place where a concrete date-time runtime, JavaScript
 standard, polyfill or third-party library may be selected. The Angular display
-adapter consumes the active `TimeAdapter` through its port; it does not import
+adapter consumes the active capability ports; it does not import
 the native implementation directly. Consumers should use `TimeService` inside
 Angular or call methods on an explicit adapter created with
 `createNativeTimeAdapter()` outside Angular. There are no parallel global
@@ -317,7 +320,7 @@ time/
 
 Every file whose name starts with `native-` belongs below
 `adapters/native/`. A future adapter must live in a sibling directory and
-implement the `TimeAdapter` port without changing application consumers. The
+implement the composed temporal ports without changing application consumers. The
 native temporal adapter is an infrastructure detail; the port is the stable
 dependency direction for the rest of TankOS.
 
@@ -387,4 +390,4 @@ provenance matters; the source metadata never changes the normalized instant.
 2. Which original zone metadata domain records require persistence.
 
 These future decisions do not invalidate the current `Instant`, `LocalDate`,
-`TimeAdapter`, Angular provider or presentation contracts.
+temporal ports, Angular provider or presentation contracts.

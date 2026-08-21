@@ -1,7 +1,7 @@
 import { createNativeTimeAdapter } from './native-time-adapter';
 
 describe('native-time-adapter', () => {
-  it('Given the native runtime, When creating an adapter, Then every TimeAdapter operation is available', () => {
+  it('Given the native runtime, When creating an adapter, Then every composed temporal port operation is available', () => {
     const adapter = createNativeTimeAdapter();
 
     expect(adapter).toEqual(

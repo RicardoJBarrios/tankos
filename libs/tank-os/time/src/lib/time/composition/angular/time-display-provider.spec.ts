@@ -6,7 +6,7 @@ import {
   provideTimeDisplayContext,
   provideTimeLocale,
 } from './time-display-provider';
-import { provideTimeAdapter, provideTimeClock } from './time-adapter-provider';
+import { provideTimePort, provideTimeClock } from './time-port-provider';
 import { TimeDisplayService } from '../../application';
 import { vi } from 'vitest';
 
@@ -14,7 +14,7 @@ describe('time-display-provider', () => {
   it('Given an Angular locale, When configuring the default display provider, Then DatePipe formats with that locale', () => {
     TestBed.configureTestingModule({
       providers: [
-        provideTimeAdapter(),
+        provideTimePort(),
         provideTimeClock(),
         provideAngularTimeDisplayAdapter('UTC'),
         { provide: LOCALE_ID, useValue: 'en-US' },
@@ -34,7 +34,7 @@ describe('time-display-provider', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideTimeAdapter(),
+        provideTimePort(),
         provideTimeClock(),
         provideTimeLocale(locale),
         provideAngularTimeDisplayAdapter('UTC'),
@@ -59,7 +59,7 @@ describe('time-display-provider', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        provideTimeAdapter(),
+        provideTimePort(),
         provideTimeClock(),
         provideTimeDisplayAdapter(adapter),
       ],
@@ -73,7 +73,7 @@ describe('time-display-provider', () => {
   it('Given the Angular display provider, When configuring Angular, Then the service uses DatePipe-backed formatting', () => {
     TestBed.configureTestingModule({
       providers: [
-        provideTimeAdapter(),
+        provideTimePort(),
         provideTimeClock(),
         provideAngularTimeDisplayAdapter('UTC'),
       ],
@@ -90,7 +90,7 @@ describe('time-display-provider', () => {
   it('Given an aquarium display zone, When no pipe zone is provided, Then the aquarium zone wins over the user zone', () => {
     TestBed.configureTestingModule({
       providers: [
-        provideTimeAdapter(),
+        provideTimePort(),
         provideTimeClock(),
         provideTimeDisplayContext({
           aquariumTimeZone: 'Europe/Madrid',
@@ -110,7 +110,7 @@ describe('time-display-provider', () => {
   it('Given only a user display zone, When no pipe zone is provided, Then the user zone is used', () => {
     TestBed.configureTestingModule({
       providers: [
-        provideTimeAdapter(),
+        provideTimePort(),
         provideTimeClock(),
         provideTimeDisplayContext({ userTimeZone: 'Pacific/Honolulu' }),
         provideAngularTimeDisplayAdapter(),

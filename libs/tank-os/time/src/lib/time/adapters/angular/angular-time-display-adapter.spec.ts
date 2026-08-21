@@ -27,7 +27,7 @@ describe('angular-time-display-adapter', () => {
     );
   });
 
-  it('Given a replacement time adapter, When formatting an instant, Then it uses that adapter instead of native parsing', () => {
+  it('Given a replacement temporal port, When formatting an instant, Then it uses that port instead of native parsing', () => {
     const datePipe = new DatePipe('en-GB');
     const replacementAdapter = createNativeTimeAdapter();
     vi.spyOn(datePipe, 'transform').mockReturnValue('formatted');

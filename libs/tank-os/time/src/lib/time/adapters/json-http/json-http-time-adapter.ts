@@ -3,7 +3,9 @@ import {
   InstantInput,
   LocalDate,
   LocalDateInput,
-  TimeAdapter,
+  CalendarPort,
+  DurationPort,
+  InstantPort,
   Duration,
   DurationInput,
 } from '../../core';
@@ -34,30 +36,30 @@ export interface JsonHttpTimeAdapter {
 /**
  * Creates a JSON/HTTP temporal adapter using canonical ISO representations.
  *
- * @param timeAdapter - Runtime implementation used to validate and normalize
+ * @param timePort - Runtime implementation used to validate and normalize
  * temporal values.
  * @returns A JSON/HTTP conversion adapter.
  */
 export function createJsonHttpTimeAdapter(
-  timeAdapter: TimeAdapter,
+  timePort: CalendarPort & DurationPort & InstantPort,
 ): JsonHttpTimeAdapter {
   return {
-    serializeInstant: (value) => timeAdapter.toUtcIsoString(value),
+    serializeInstant: (value) => timePort.toUtcIsoString(value),
     deserializeInstant: (value) => {
-      return timeAdapter.parseInstant(
+      return timePort.parseInstant(
         parseJsonDateString(value, 'Expected an ISO 8601 instant string'),
       );
     },
     serializeLocalDate: (value) =>
-      formatLocalDate(timeAdapter.parseLocalDate(value)),
+      formatLocalDate(timePort.parseLocalDate(value)),
     deserializeLocalDate: (value) => {
-      return timeAdapter.parseLocalDate(
+      return timePort.parseLocalDate(
         parseJsonDateString(value, 'Expected a YYYY-MM-DD local date string'),
       );
     },
-    serializeDuration: (value) => timeAdapter.toDurationIsoString(value),
+    serializeDuration: (value) => timePort.toDurationIsoString(value),
     deserializeDuration: (value) =>
-      timeAdapter.parseDuration(parseJsonDurationString(value)),
+      timePort.parseDuration(parseJsonDurationString(value)),
   };
 }
 

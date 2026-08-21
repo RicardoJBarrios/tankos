@@ -7,7 +7,7 @@ import {
   TimeLocalePort,
 } from '../../core';
 import {
-  TIME_ADAPTER,
+  TIME_PORT,
   TIME_DISPLAY_ADAPTER,
   TIME_DISPLAY_CONTEXT,
   TIME_LOCALE,
@@ -64,7 +64,7 @@ function createConfiguredAngularTimeDisplayAdapter(
       undefined,
       inject(DATE_PIPE_DEFAULT_OPTIONS, { optional: true }),
     ),
-    inject(TIME_ADAPTER),
+    inject(TIME_PORT),
     explicitDefaultTimeZone ??
       context.aquariumTimeZone ??
       context.userTimeZone ??

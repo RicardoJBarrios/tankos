@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import {
-  TimeAdapter,
+  CalendarPort,
+  InstantPort,
   TimeDisplayAdapter,
   TimeDisplayOptions,
   TimeZoneDatabasePort,
@@ -16,20 +17,20 @@ const DEFAULT_TIME_ZONE = 'UTC';
  * `DatePipe` while preserving TankOS temporal semantics.
  *
  * @param datePipe - Angular formatter configured with the application locale.
- * @param timeAdapter - Temporal port used to normalize input values.
+ * @param timePort - Temporal port used to normalize input values.
  * @param defaultTimeZone - Fallback display zone when no explicit zone exists.
  * @param timeZoneDatabase - IANA rules source used to resolve display offsets.
  * @returns A TankOS display adapter backed by `DatePipe`.
  */
 export function createAngularTimeDisplayAdapter(
   datePipe: DatePipe,
-  timeAdapter: TimeAdapter,
+  timePort: CalendarPort & InstantPort,
   defaultTimeZone = DEFAULT_TIME_ZONE,
   timeZoneDatabase: TimeZoneDatabasePort = createNativeTimeZoneDatabase(),
 ): TimeDisplayAdapter {
   return {
     formatInstant(value, options) {
-      const instant = timeAdapter.parseInstant(value);
+      const instant = timePort.parseInstant(value);
       return formatDate(
         datePipe,
         instant.epochMilliseconds,
@@ -39,7 +40,7 @@ export function createAngularTimeDisplayAdapter(
       );
     },
     formatLocalDate(value, options) {
-      const localDate = timeAdapter.parseLocalDate(value);
+      const localDate = timePort.parseLocalDate(value);
       const date = new Date(0);
       date.setUTCFullYear(localDate.year, localDate.month - 1, localDate.day);
       date.setUTCHours(0, 0, 0, 0);

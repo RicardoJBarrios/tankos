@@ -5,7 +5,9 @@ import {
   InstantInput,
   LocalDate,
   LocalDateInput,
-  TimeAdapter,
+  CalendarPort,
+  DurationPort,
+  InstantPort,
   Duration,
   DurationInput,
 } from '../../core';
@@ -33,17 +35,17 @@ export interface FirestoreTimeAdapter {
 /**
  * Creates a Firestore temporal adapter backed by the active time port.
  *
- * @param timeAdapter - Runtime implementation used to validate and normalize
+ * @param timePort - Runtime implementation used to validate and normalize
  * temporal values.
  * @returns A Firestore conversion adapter.
  */
 export function createFirestoreTimeAdapter(
-  timeAdapter: TimeAdapter,
+  timePort: CalendarPort & DurationPort & InstantPort,
 ): FirestoreTimeAdapter {
   return {
     toTimestamp(value) {
       return Timestamp.fromMillis(
-        timeAdapter.parseInstant(value).epochMilliseconds,
+        timePort.parseInstant(value).epochMilliseconds,
       );
     },
     fromTimestamp(value) {
@@ -55,19 +57,19 @@ export function createFirestoreTimeAdapter(
         timestamp.seconds,
         timestamp.nanoseconds,
       );
-      return timeAdapter.parseInstant(milliseconds);
+      return timePort.parseInstant(milliseconds);
     },
     toLocalDate(value) {
-      return toLocalDateString(timeAdapter.parseLocalDate(value));
+      return toLocalDateString(timePort.parseLocalDate(value));
     },
     fromLocalDate(value) {
       if (typeof value !== 'string') {
         throw new RangeError('Expected a Firestore local date string');
       }
-      return timeAdapter.parseLocalDate(value);
+      return timePort.parseLocalDate(value);
     },
     toDuration(value) {
-      return timeAdapter.parseDuration(value).milliseconds;
+      return timePort.parseDuration(value).milliseconds;
     },
     fromDuration(value) {
       if (
@@ -76,7 +78,7 @@ export function createFirestoreTimeAdapter(
       ) {
         throw new RangeError('Expected finite duration milliseconds');
       }
-      return timeAdapter.parseDuration(truncateMilliseconds(value));
+      return timePort.parseDuration(truncateMilliseconds(value));
     },
   };
 }

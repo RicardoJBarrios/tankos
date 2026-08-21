@@ -1,4 +1,4 @@
-import { TimeAdapter } from '../../core';
+import { TimePort } from '../../core';
 import { nativeIsValidInstant } from './native-instant-validation';
 import { nativeParseInstant } from './native-instant-parsing';
 import { nativeToUtcIsoString } from './native-instant-serialization';
@@ -18,11 +18,11 @@ import { nativeToDurationIsoString } from './native-duration-serialization';
  * Creates the adapter backed by the current JavaScript/Intl runtime.
  *
  * @param timeZoneDatabase - Optional IANA rules source; defaults to `Intl`.
- * @returns A complete native implementation of the `TimeAdapter` port.
+ * @returns A complete native implementation of the composed temporal ports.
  */
 export function createNativeTimeAdapter(
   timeZoneDatabase = createNativeTimeZoneDatabase(),
-): TimeAdapter {
+): TimePort {
   return {
     parseInstant: nativeParseInstant,
     isValidInstant: nativeIsValidInstant,
