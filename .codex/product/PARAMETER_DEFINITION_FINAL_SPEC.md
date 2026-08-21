@@ -31,8 +31,8 @@ definition repository or CRUD use cases.
 - An authenticated keeper may create a complete valid definition.
 - All users may list and view public definitions.
 - A keeper may select an active definition in each Aquarium they manage.
-- Only administrators may edit, mark for deletion, restore or physically
-  delete definitions.
+- Only administrators may publish, deprecate, retire, restore or physically
+  delete definitions. Published or used versions are not edited in place.
 - Catalogue visibility does not grant catalogue management authority.
 
 ## 3. Identity and versioning
@@ -125,10 +125,10 @@ AquariumParameterSelection
 The profile does not duplicate or transfer catalogue ownership. Existing
 profiles are not migrated automatically when a new version is published.
 
-When a referenced version is marked for deletion, the selection becomes
+When a referenced version is deprecated or retired, the selection becomes
 inactive but remains recoverable. The keeper or an administrator may remove
-the inactive selection. It cannot be re-enabled until an administrator
-restores the global version. New selections use the active version.
+the inactive selection. It cannot be re-enabled while the global version is
+unavailable for new selections. New selections use the active version.
 
 Readers tolerate missing or physically deleted catalogue documents.
 
@@ -136,13 +136,14 @@ Readers tolerate missing or physically deleted catalogue documents.
 
 Deletion follows Veril's general lifecycle:
 
-1. An administrator marks the version/definition for deletion.
-2. It becomes invisible to ordinary catalogue and selection flows.
+1. An administrator deprecates or retires the version/definition.
+2. It becomes unavailable to ordinary catalogue and selection flows.
 3. It cannot be used for new Measurements.
 4. Existing Aquarium selections become inactive.
 5. Historical Measurements remain interpretable through their snapshots.
-6. An administrator may restore it while it still exists physically.
-7. An administrator may later physically delete it manually with confirmation.
+6. An administrator may restore it when the domain policy permits restoration.
+7. Physical deletion is reserved for a version proven never to have been
+   published or used, with explicit confirmation.
 
 No foreign-key cascade or automatic cross-document cleanup is used.
 
@@ -166,8 +167,8 @@ methodSnapshot?
 ```
 
 The snapshot is sufficient to interpret the evidence after catalogue editing,
-marking for deletion, restoration or physical deletion. Historical evidence is
-never rewritten by a catalogue operation.
+deprecation, retirement, restoration or exceptional physical deletion.
+Historical evidence is never rewritten by a catalogue operation.
 
 ## 9. FIWARE and Unit interoperability
 

@@ -65,8 +65,8 @@ Firestore transaction:
 1. read the head;
 2. allocate the next version number;
 3. create the immutable version document;
-4. mark the previous active version as superseded/deletion-pending if that is
-   the accepted lifecycle;
+4. deprecate or retire the previous active version according to its usage and
+   the accepted version lifecycle;
 5. update the head to the new active version.
 
 The transaction should be short and retriable. Firestore transactions provide

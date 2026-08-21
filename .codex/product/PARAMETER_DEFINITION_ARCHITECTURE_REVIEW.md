@@ -79,17 +79,18 @@ marked or physically deleted catalogue record.
 ### 3.3 Versioned writes
 
 An edit is not an in-place mutation. The write creates a complete new valid
-version and marks the previous version for deletion. This is compatible with
-the global lifecycle and prevents historical interpretation from depending on
-mutable catalogue state.
+version and deprecates or retires the previous published/used version. This is
+compatible with the global versioning policy and prevents historical
+interpretation from depending on mutable catalogue state.
 
 ### 3.4 Deletion and stale profile references
 
-Because profile references are not cascaded, a physically deleted definition
-may leave an inactive historical selection in a profile. Profile reads must
-render that state safely and provide the allowed removal/recovery action. A
-definition must never be physically deleted before the Measurement snapshot
-contract is sufficient for historical rendering.
+Because profile references are not cascaded, a retired definition may leave an
+inactive historical selection in a profile. Profile reads must render that
+state safely and provide the allowed removal/recovery action. A published or
+used definition is not physically deleted; a draft may be deleted only after
+the domain proves that it was never published or used and the Measurement
+snapshot contract is unaffected.
 
 ### 3.5 Authorization
 

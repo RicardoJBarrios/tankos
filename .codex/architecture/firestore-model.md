@@ -4,6 +4,11 @@ Firestore is an infrastructure adapter. This document does not define
 collections, document nesting, indexes, Security Rules or a final schema. Those
 are consequences of accepted use cases, aggregate boundaries and query needs.
 
+The global access, security, consistency and FinOps rules are defined in
+[`firestore-data-access-and-finops.md`](firestore-data-access-and-finops.md).
+This document records persistence conventions and accepted use-case-specific
+contracts; it must not introduce a weaker or contradictory access pattern.
+
 ## Conventions to apply when a persistence contract exists
 
 - Use consistent lower camelCase field names and opaque, stable identifiers.
@@ -25,8 +30,11 @@ are consequences of accepted use cases, aggregate boundaries and query needs.
   authorization and recovery policy.
 - Keep ownership and collaboration data explicit enough for authorization
   Rules; do not infer authority from route visibility or a client-side guard.
-- Add a version or concurrency marker only when a validated operation needs it.
-  Choose conflict behavior from the use case rather than a global convention.
+- Version published or used business contracts immutably. An edit creates a new
+  version and preserves the previous version for historical interpretation;
+  technical `schemaVersion` and business version are separate concerns.
+- Add a concurrency marker when a validated operation needs it. Choose conflict
+  behavior from the use case rather than a global locking convention.
 
 ## Boundary rules
 

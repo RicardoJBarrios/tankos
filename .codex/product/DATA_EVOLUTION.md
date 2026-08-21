@@ -18,8 +18,20 @@ an accepted model change requires them.
 
 ## Contract evolution
 
-- Version a Zod schema, DTO or persisted document only when an accepted change
-  makes old and new representations meaningfully different.
+- Version every published or used business contract whose meaning, validation,
+  representation, conversion, authorization or lifecycle may change. This
+  includes Units, ParameterDefinitions, measurement methods, conversion
+  functions and future equivalent catalogues.
+- Keep technical `schemaVersion` separate from the immutable business
+  `versionId`/`version` of a published definition.
+- Never edit a published or used business version in place. Create a complete
+  replacement version with a new immutable identity and move the previous
+  version through `deprecated` or `retired` lifecycle states.
+- Existing records must preserve the exact version and enough bounded snapshot
+  data to remain interpretable without a live catalogue lookup.
+- Physical deletion is reserved for drafts or versions proven never to have
+  been published or used. Published historical definitions are normally
+  retained, even when they are unavailable for new selections.
 - Prefer additive, backward-compatible changes. Validate and map old external
   representations at the boundary; domain behavior must not depend on a
   provider's document shape.
@@ -31,5 +43,7 @@ an accepted model change requires them.
 - User-visible changes require an explanation when they alter historical
   interpretation, permissions, export, retention or recovery expectations.
 
-Do not introduce schema versions, migration infrastructure or backfills before
-an accepted persisted contract requires them.
+Do not introduce migration infrastructure or backfills merely because a
+technical schema version exists. Add them only when an accepted persisted
+contract requires a representation migration. Business versioning of published
+definitions is mandatory independently of migration tooling.

@@ -166,6 +166,80 @@ contract. It does not provide Veril's frozen ID set, per-record warnings,
 contextual authorization and custom resumable workflow. It may be used only as
 a separately reviewed infrastructure cleanup tool.
 
+### 5.1 Cost and scale constraints
+
+Firestore charges for document reads, writes and deletes, as well as stored
+data, indexes and network usage. The reusable batch engine must therefore make
+the number of Firestore operations proportional to the number of affected
+records and must not multiply operations merely to expose progress.
+
+The cost-aware representation is:
+
+```text
+batchOperations/{batchId}
+  status
+  affectedSchema
+  frozenScope
+  totalItems
+  completedItems
+  failedItems
+  currentChunk
+  metadata
+
+batchOperations/{batchId}/chunks/{chunkId}
+  entityIds[]
+  status
+  attempts
+  errorSummary
+```
+
+The logical target set remains complete, but its physical representation uses
+bounded chunk documents rather than one document per target by default. A
+per-item document is allowed only when the product explicitly needs durable
+per-item progress or inspection. Individual warnings and failures may be
+stored in a separate bounded structure; successful item progress is aggregated
+at chunk level.
+
+The engine must follow these rules:
+
+- materialize the frozen scope once at confirmation; do not repeat the same
+  broad query for every execution chunk;
+- derive the final count from that materialization whenever possible instead of
+  issuing repeated `count()` queries;
+- update the operation root at most once per completed chunk, not once per
+  entity;
+- process chunks below Firestore's hard write limit. The default target is 400
+  entity writes per execution unit, adjustable after emulator and production
+  load measurements;
+- use cursor pagination and `limit`; never use offset pagination for batch
+  selection or management views;
+- avoid real-time listeners over the complete chunks or item set. A listener on
+  the operation root or an explicit refresh is the default progress mechanism;
+- exclude large arrays, maps, manifests and diagnostic fields from indexes when
+  they are not queried;
+- delete temporary operation and chunk documents after terminal completion;
+- expose operation-size limits before confirmation so an accidental broad
+  filter cannot start an unbounded operation.
+
+The exact frozen-scope preview has a deliberate cost: identifying every ID
+requires reading the matching documents, and storing resumable chunks requires
+additional writes. The UI may use an inexpensive count or paginated preview
+before confirmation, but the authoritative materialization happens once when
+the operation is confirmed. The product must not promise a free snapshot of a
+changing Firestore query.
+
+Per-entity writes remain the source of truth. A batch document, chunk metadata
+and progress updates are operational overhead and must be kept bounded. The
+implementation must record usage metrics per operation (read, write, delete,
+chunk count, retry count and estimated bytes) and expose project budget and
+quota alerts outside the domain model.
+
+These rules do not replace Firestore quotas. Request size, index work,
+security-rule access-call limits, contention and regional pricing must be
+validated for every adapter. The server worker may use BulkWriter or
+parallelized writes for large workloads, but it must preserve bounded chunks,
+idempotency and partial-result reporting.
+
 ## 6. Concurrency and terminal deletion
 
 There is no application-level locking or special conflict-management subsystem.
@@ -201,6 +275,12 @@ Bulk modifications:
   the same execution unit;
 - do not add batch-specific fields to the original record;
 - report warnings and failures through the temporary `BatchOperation`.
+
+For versionable business contracts, a bulk edit must create replacement
+versions and deprecate or retire previous published/used versions. It must not
+mutate or physically delete a published historical definition. Physical batch
+deletion is limited to records explicitly eligible under the owning domain's
+version and retention policy, such as never-published drafts.
 
 ## 8. Deletion lifecycle
 

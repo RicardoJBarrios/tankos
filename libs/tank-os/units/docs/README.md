@@ -1,341 +1,787 @@
 # TankOS Units
 
-**Status:** domain documentation and recorded decisions. No runtime behavior
-has been implemented yet.
+**Status:** domain boundary and accepted architectural decisions. No runtime
+unit catalogue or conversion API has been implemented yet.
 
-This library owns the reusable Angular-centric capability for describing,
-validating, converting and presenting measurement units. It must remain
-self-contained and must not depend on the TankOS application, Firebase,
-Firestore or any aquarium-specific feature.
+`Units` is an Angular-centric library for the identity, representation,
+compatibility and conversion of units. It is intentionally independent from
+values observed in the world and from the domains that may later consume those
+units.
 
-## 1. Purpose
+## Scope
 
-TankOS must allow a measurement property to accept more than one input unit
-while maintaining one canonical unit in the digital twin. The Units library is
-responsible for the unit semantics and conversion boundary required to make
-that safe and consistent.
+`Units` owns:
 
-The library does not own:
+- stable unit identity and standard codes;
+- quantity dimensions and compatibility rules;
+- symbols, Unicode notation, names and aliases;
+- unit representation metadata;
+- conversion definitions and conversion execution;
+- conversion precision, rounding and failure semantics;
+- unit catalogue and conversion-registry ports;
+- Angular facades and presentation helpers for unit-only concerns;
+- Angular management components and application services for custom-unit CRUD;
+- adapters for unit catalogues or conversion sources when they are added.
 
-- `Measurement` records;
-- `ParameterDefinition` records;
-- Aquarium or AquariumSystem identity;
-- device, sensor or IoT transport;
-- Firestore persistence;
-- FIWARE synchronization;
-- keeper or administrator authorization.
+`Units` does not own:
 
-Those consumers may use this library through explicit public APIs.
+- `Measurement` or `Observation` records;
+- `ParameterDefinition` or aquarium configuration;
+- numeric values paired with units as domain observations;
+- measurement methods, instruments or IoT devices;
+- digital twins, historical evidence or derived observations;
+- salinity, dosing or other aquarium algorithms;
+- Firestore schemas, JSON resources or FIWARE transport clients.
 
-## 2. Standards-first direction
+Future domains may depend on the public unit contracts. They must not make
+`Units` depend on their records or workflows.
 
-The preferred vocabulary is the closest applicable standard, in this order:
+## Custom-unit management
 
-1. UN/CEFACT Common Codes for Units of Measurement (UNECE Recommendation 20
-   and related common-code semantics).
-2. FIWARE and NGSI-LD conventions, especially `unitCode` for an NGSI-LD
-   `Property` value.
-3. A TankOS extension only when the standards do not express a required
-   aquarium or scientific distinction.
+The library includes the Angular-facing management slice for custom units. It
+does not expose mutation controls for standard definitions, which remain
+read-only and versioned.
 
-The library must preserve the standard code as a stable machine identifier and
-keep user-facing labels separate. A local alias or translated label must never
-replace the standard identity.
+The management slice supports:
 
-The FIWARE integration boundary is an adapter concern. The Units library can
-provide the canonical code and conversion metadata needed by an adapter, but it
-must not become an NGSI-LD client or embed transport DTOs in its domain model.
+- listing units with filters and pagination;
+- viewing a unit and its conversion metadata;
+- creating a custom unit;
+- editing a custom unit by creating a new immutable version;
+- activating, deactivating and restoring a custom unit;
+- deleting a custom unit according to the catalogue lifecycle policy.
 
-## 3. Core concepts
+### Authorization and publication
+
+Standard units are imported from the pinned standards catalogue and cannot be
+created, edited or deleted through the application.
+
+Authenticated keepers may create private custom drafts or submit a custom-unit
+proposal. Only moderators or administrators may approve and publish a custom
+unit in the global catalogue. Public visibility does not grant catalogue
+management authority.
+
+The custom-unit lifecycle is:
+
+```text
+draft -> submitted -> published -> deprecated -> retired
+```
+
+Rejected or never-published drafts may be physically deleted by an authorized
+administrator. A published or used unit is retired rather than physically
+deleted, so historical records can continue to resolve its identity and
+version.
+
+The expected separation is:
+
+```text
+UnitListComponent / UnitDetailComponent / UnitFormComponent
+                         |
+                         v
+              CustomUnitApplicationService
+                         |
+                         v
+                 CustomUnitCatalogPort
+                         |
+                         v
+                 persistence adapter
+```
+
+Components own rendering, user interaction and validation feedback. Application
+services own use-case orchestration. Core validation owns unit identity,
+dimension, symbol, conversion and lifecycle invariants. Persistence adapters
+own DTO validation and mapping. No component may write Firestore, HTTP or
+custom catalogue documents directly.
+
+The management UI must make the distinction visible:
+
+- standard units are viewable but not editable or deletable;
+- custom units show namespace, version and lifecycle state;
+- editing creates a new version instead of mutating a published definition;
+- deactivation removes a unit from normal selection without destroying its
+  historical definition;
+- conversion definitions are edited through their own responsibility and are
+  not hidden inside an unrelated unit form.
+- publication state and moderation responsibility are visible separately from
+  whether the unit is active for new selections.
+
+The CRUD feature follows the repository testing guardrails. Application
+services use focused Vitest tests, rendered Angular components use Spectator,
+and persistence adapters use their appropriate emulator or transport tests.
+
+### Management use cases
+
+The management boundary is divided into read and mutation capabilities:
+
+```text
+ListUnits
+  filters: namespace, system, dimension, quantityKind, status, text
+  pagination: page size + opaque continuation
+
+GetUnit
+  input: UnitCode + optional version
+
+CreateCustomUnit
+  input: validated CustomUnitDraft
+  output: published or draft custom UnitDefinition
+
+EditCustomUnit
+  input: existing custom UnitCode + new definition
+  output: new immutable version
+
+ChangeCustomUnitStatus
+  input: custom UnitCode + lifecycle transition
+  output: updated version
+
+DeleteCustomUnit
+  input: custom UnitCode + explicit confirmation
+  output: lifecycle result according to the configured deletion policy
+```
+
+`ListUnits` and `GetUnit` may return standard and custom definitions. Mutation
+use cases must reject standard definitions with a typed read-only error. The
+application layer must not infer authorization from the unit document; an
+authorization port or the hosting application supplies that boundary.
+
+### Management contracts
+
+The initial application ports are intentionally separate:
+
+```ts
+interface UnitCatalogQueryPort {
+  list(request: ListUnitsRequest): Promise<Page<UnitDefinition>>;
+  get(request: GetUnitRequest): Promise<UnitDefinition | undefined>;
+}
+
+interface CustomUnitCommandPort {
+  create(request: CreateCustomUnitRequest): Promise<UnitDefinition>;
+  edit(request: EditCustomUnitRequest): Promise<UnitDefinition>;
+  changeStatus(request: ChangeCustomUnitStatusRequest): Promise<UnitDefinition>;
+  delete(request: DeleteCustomUnitRequest): Promise<DeleteUnitResult>;
+}
+```
+
+The concrete TypeScript names may be refined during implementation, but the
+separation is mandatory: queries must not expose mutation behavior and command
+ports must not leak persistence DTOs. Pagination uses an opaque continuation
+value and filters are applied to the complete query, not just the visible
+page.
+
+### Component responsibilities
+
+The Angular management surface is split by responsibility:
+
+- `UnitListComponent`: filters, sorting, pagination, loading, empty, error and
+  selection states;
+- `UnitDetailComponent`: read-only definition, standard metadata, conversion
+  functions, versions and lifecycle state;
+- `UnitFormComponent`: create/edit draft fields, dimension and conversion
+  validation feedback, symbol and code preview;
+- status/deletion confirmation components: explicit confirmation and result
+  feedback, without embedding command orchestration in the template.
+
+Each component receives typed view models and emits user intents. The
+application services perform commands and queries; components do not contain
+conversion formulas, persistence calls or authorization decisions.
+
+### Lifecycle and deletion boundary
+
+Custom-unit management inherits the repository-wide data lifecycle defined in
+[`PARAMETER_CONFIGURABILITY_PLAN.md`](../../../../.codex/product/PARAMETER_CONFIGURABILITY_PLAN.md)
+and the reusable batch execution rules in
+[`BATCH_OPERATIONS_FINAL_SPEC.md`](../../../../.codex/product/BATCH_OPERATIONS_FINAL_SPEC.md).
+The Units library must not create a local lifecycle variant.
+
+The inherited rules are:
+
+- the persistence model is strict NoSQL; there are no foreign keys or cascade
+  deletes;
+- a unit can be created or edited only when its complete schema and validation
+  contract is valid;
+- every persisted unit carries an immutable `schemaVersion`;
+- editing a published definition creates a new version/record; the previous
+  record is not mutated and is deprecated or retired according to its usage;
+- deprecated and retired records are unavailable for new selections but remain
+  resolvable for historical records; only administrators may inspect or restore
+  them when the domain policy permits restoration;
+- never-published or never-used drafts may be physically deleted after explicit
+  confirmation;
+- restoration clears only lifecycle state and records server lifecycle
+  metadata; it does not change business content;
+- physical deletion is irreversible through the application and is not the
+  normal operation for a published or used unit;
+- all lifecycle timestamps and actor metadata are server-generated.
+
+The custom-unit command surface therefore maps to the global lifecycle:
+
+```text
+submit      -> create or update a proposal without global publication
+publish     -> moderator/admin creates the active global version
+edit        -> create replacement version + deprecate previous published version
+deactivate  -> change lifecycle state without changing unit meaning
+restore     -> restore an eligible deprecated/retired version, administrator-only
+delete      -> definitive physical deletion only for never-published/unused data
+```
+
+### Batch inheritance
+
+Bulk unit operations use the shared `BatchOperations` domain and execution
+engine. The Units management screen owns the operation it creates; it does not
+wait synchronously for completion. The inherited batch behavior is:
+
+- filters apply to the complete result set, not only the current page;
+- confirmation freezes the complete matching scope;
+- execution is asynchronous, resumable and partial-failure tolerant;
+- one confirmation covers the complete batch;
+- the temporary batch schema stores the batch identity, affected schema,
+  frozen scope, logical IDs, processing state and mandatory metadata;
+- the temporary batch entity is deleted after completion;
+- warnings and execution details do not modify the original unit schema;
+- concurrent operations use natural server ordering and last-applied-wins;
+- deletion is terminal: a later modification does not recreate a physically
+  deleted unit and returns a warning;
+- published or used units are retired rather than physically deleted;
+- failed items remain retryable and retain the global lifecycle state required
+  for follow-up.
+
+Batch operations may mark, modify or physically delete units according to the
+same reusable policies as every other managed entity. Units must provide only
+the entity-specific validation, mapping and authorization hooks.
+
+### Firestore and cost boundary
+
+Units inherits the shared Firestore cost policy; it must not create a more
+expensive persistence strategy for unit CRUD. Standard unit definitions are
+code-owned and versioned, so they do not generate Firestore writes for ordinary
+catalogue reads. Only custom-unit lifecycle and management state are persisted.
+
+The Units adapter must:
+
+- use cursor-based pagination with a stable ordering and no offsets;
+- avoid real-time listeners over the complete custom-unit catalogue or batch
+  chunks;
+- use transactions for version replacement, where the current custom unit is
+  read before the new version is created and the previous version is marked;
+- use bounded write batches for independent lifecycle writes;
+- materialize a filtered batch scope once and store bounded chunk manifests,
+  not one progress document per unit by default;
+- update batch progress per chunk and store only warnings or failures that need
+  individual inspection;
+- exclude conversion definitions, aliases, diagnostic metadata and other
+  non-query fields from indexes where the Firestore adapter does not query
+  them;
+- remove temporary batch and chunk documents after terminal completion;
+- reject or require an explicit administrator decision for scopes above the
+  configured maximum before any writes begin.
+
+For example, editing one custom unit normally produces the replacement version
+and the lifecycle transition of the previous version in one transaction. A
+large status or deletion operation additionally incurs one read per candidate
+unit during scope freezing, one lifecycle write per successfully processed
+unit, bounded chunk/progress writes and, for definitive deletion, one delete
+per physically removed unit. The adapter must not add per-unit progress writes
+unless the Units product explicitly requires that level of inspection.
+
+The Units library owns the operation-specific cost estimate shown before
+confirmation; the reusable batch engine owns the execution counters and usage
+metrics. Neither layer embeds provider prices. A hosting application supplies
+regional pricing, quota and budget alert configuration.
+
+### Catalogue cache policy
+
+Unit definitions are reference data and normally change infrequently. The Units
+application should therefore use a long local-cache TTL for the standard and
+custom catalogue, subject to the global cache contract in
+[`firestore-data-access-and-finops.md`](../../../../.codex/architecture/firestore-data-access-and-finops.md).
+
+The cache key must include at least the catalogue identity, catalogue/schema
+version and authorization scope. A cached catalogue is valid for normal reads
+until its TTL expires, but it must be invalidated or refreshed immediately
+after a successful custom-unit create, edit, restore, activation or
+deactivation that can affect the visible catalogue. A failed mutation must not
+discard a valid catalogue entry without evidence that it is stale.
+
+The management UI must offer a manual one-shot “refresh” action. It maps to the
+provider-independent `refresh`/`network-only` cache directive; it must not turn
+off caching globally or alter the catalogue TTL. After a successful refresh,
+the response replaces the cached catalogue and resets its validation time.
+
+Long TTL does not permit stale data to bypass authorization. A change of user,
+permissions or active scope invalidates the previous entry before rendering.
+
+### CRUD test contract
+
+The management feature must include tests for:
+
+- standard-unit read-only behavior;
+- custom-unit creation and validation errors;
+- duplicate qualified codes;
+- dimension and conversion incompatibilities;
+- custom-unit editing as a new version;
+- status transitions and invalid transitions;
+- list filters across all pages;
+- opaque pagination and empty results;
+- detail loading, not-found and infrastructure failures;
+- deletion confirmation, cancellation, logical deletion and restoration;
+- concurrent or stale-version command conflicts when the adapter exposes them;
+- Angular loading, success, empty, validation, confirmation and recoverable
+  error states.
+
+Every executable source file will have its paired spec file. Pure unit rules
+use Vitest, Angular rendered components use Spectator, and persistence
+behavior uses the adapter's integration test boundary.
+
+## Standards-first direction
+
+The standard-facing identity will follow the closest applicable standard:
+
+1. UN/CEFACT Common Codes for Units of Measurement, including UNECE
+   Recommendation 20 and its applicable code-list release.
+2. FIWARE and NGSI-LD conventions at the integration boundary, especially the
+   `unitCode` representation used by NGSI-LD properties.
+3. A documented TankOS extension only when the standards cannot represent a
+   required unit or scientific distinction.
+
+The standard code is the mandatory public machine reference for a unit. A
+localized label, local alias, UI symbol or internal database identifier must
+never replace it in public APIs, persisted domain references or templates.
+FIWARE support belongs in an adapter or mapping boundary; this library must not
+become an NGSI-LD client.
+
+The initial catalogue must record the exact source release and provenance of
+each imported code. A future change of the external code list must not silently
+change the identity of an existing unit.
+
+The source catalogue and the operational catalogue are separate. TankOS may
+retain a complete versioned snapshot of the official code list for traceability,
+but the first operational catalogue will be an aquarium-first subset. Units
+must not become available in the product merely because they exist in
+Recommendation 20.
+
+## Supported unit systems
+
+TankOS must support the unit systems commonly encountered in aquarium
+documentation and equipment:
+
+- SI and metric units;
+- British Imperial units;
+- US customary units.
+
+British Imperial and US customary units are separate systems. They must never
+be represented by one ambiguous `imperial` flag or by an unqualified label such
+as `gallon`. A catalogue entry must identify the exact unit, system and
+standard-facing code. For example, an Imperial gallon and a US liquid gallon
+must be different units with different conversion factors to litres.
+
+SI should be the preferred canonical system for generic scientific and
+interoperability calculations, but the library must not reject Imperial or US
+customary input when a unit is defined and dimensionally compatible. The
+choice of a canonical unit belongs to a consuming domain; `Units` only provides
+the system identities and conversions.
+
+The same distinction applies to units such as fluid ounces, pints, pounds,
+ounces, inches and Fahrenheit. A display label may be localized, but it must
+not hide whether a value uses SI, British Imperial or US customary units.
+
+## Concepts
 
 ### Unit
 
-An identifiable unit of measurement with stable standard-facing identity,
-scientific meaning, dimensional information and presentation metadata.
+An immutable definition of a unit, identified publicly by its standard code and
+the applicable standard/code-list namespace. An internal identity may exist for
+storage, but it is never the functional reference exposed to consumers. A unit
+describes what it means and how it is represented; it does not contain a
+measured value.
 
-At minimum, a future implementation will need to distinguish:
+Expected concerns include:
 
-- stable code;
-- canonical name;
-- quantity or dimension compatibility;
-- symbol and textual representation;
-- conversion strategy;
-- accepted aliases and input forms;
-- lifecycle and schema version when the catalogue becomes configurable.
+- stable identifier;
+- standard system and code;
+- quantity dimension or compatible quantity kind;
+- canonical scientific symbol;
+- Unicode and ASCII-safe representations where needed;
+- singular, plural and localized labels;
+- accepted aliases for parsing or import;
+- conversion family and reference-unit relationship;
+- definition and catalogue version.
 
-### Quantity kind
+Public unit references must use the standard code. If two standards or code
+list releases could assign the same textual code different meanings, the
+reference must include its standard namespace and code-list version rather
+than falling back to a local identifier.
 
-The scientific magnitude being measured, such as temperature, pressure,
-conductivity, density, salinity or mass concentration. A quantity kind is not
-the same thing as a unit.
+The canonical public code shape is `namespace:code`, for example
+`UN/CEFACT:LTR` or `TANKOS:CUSTOM-SCOOP`. The namespace and code are
+case-sensitive after normalization. Catalogue version is metadata, not part of
+the functional code. Symbols, aliases, translated names and internal storage
+IDs are never accepted as public references.
 
-Examples:
+The planned unit presentation pipe therefore has this contract:
 
-```text
-temperature       -> degree Celsius, kelvin, degree Fahrenheit
-conductivity      -> siemens per metre, millisiemens per centimetre
-salinity          -> practical salinity, parts per thousand, absolute salinity
-specificGravity   -> dimensionless specific gravity
-density           -> kilogram per cubic metre, kilogram per litre
+```html
+{{ volume | tankUnit: sourceStandardUnitCode }} {{ volume | tankUnit: sourceStandardUnitCode : targetStandardUnitCode }}
 ```
 
-### Canonical unit
+The first code identifies the unit in which the numeric value is expressed.
+The optional second code identifies the unit in which the value should be
+displayed. When the second code is omitted, the pipe displays the source unit
+without conversion. When it is present, the pipe delegates to the conversion
+capability, resolves the target unit by standard code and renders the converted
+value using the target representation policy.
 
-The one unit selected by the owning `ParameterDefinition` for the digital twin
-and normalized calculations. Incoming values may use another accepted unit,
-but the normalized representation uses the canonical unit when a valid
-conversion exists.
+The pipe must reject symbols, aliases and internal identifiers as references.
+It must also reject incompatible units, unknown codes and conversions that
+require contextual metadata not supplied to the pipe. It must never silently
+apply an approximate conversion. Contextual transformations require an
+explicit conversion function and parameters. Errors produce the configured
+fallback representation (`—` by default) and are reported through a display
+error port.
 
-The canonical unit is a property of the parameter definition, not a global
-assumption that every measurement of a quantity must use the same display unit.
+The eventual API may add display options after the two codes, for example a
+locale or precision policy, but those options must not change the meaning of
+the source and target standard codes.
 
-### Accepted input unit
+### Quantity dimension
 
-A unit that a parameter explicitly permits at input time. The accepted-unit
-list is configured when the property/`ParameterDefinition` is created or
-versioned. A unit is not accepted merely because a generic converter knows how
-to transform it.
+A compatibility signature used to decide whether two units express the same
+kind of physical quantity. It is not a measurement and does not identify an
+aquarium parameter.
+
+Examples of unit families include:
+
+```text
+temperature        -> kelvin, degree Celsius, degree Fahrenheit
+pressure           -> pascal, bar, psi
+conductivity       -> siemens per metre, millisiemens per centimetre
+mass concentration -> kilogram per cubic metre, milligram per litre
+```
+
+The model must distinguish dimensional compatibility from domain similarity.
+Two representations commonly used for the same aquarium concept are not
+automatically units of the same dimension.
 
 ### Conversion
 
-A declared transformation from one compatible representation to another. A
-conversion may be:
+A conversion is a declared transformation between compatible units. The first
+conversion engine should support explicit, deterministic conversions such as:
 
-- a direct linear transformation;
-- a temperature-dependent or otherwise contextual transformation;
-- a method-specific transformation;
-- unavailable without required metadata.
+```text
+degree Celsius <-> kelvin
+bar             <-> pascal
+millisiemens per centimetre <-> siemens per metre
+```
 
-Conversions must be explicit, deterministic where possible, and independently
-testable.
+Conversion definitions must state:
+
+- source and target unit identities;
+- conversion family or reference unit;
+- factor and offset, when applicable;
+- precision and rounding policy;
+- supported input range, when bounded;
+- definition version and provenance;
+- structured errors for unsupported or invalid conversions.
+
+Contextual scientific transformations are not ordinary unit conversions. For
+example, conductivity plus temperature plus a method may produce a salinity
+value. That belongs to a future domain transformation capability, not to the
+base linear conversion formula, but it is still part of the generalized
+conversion-function capability described below.
+
+### Conversion functions
+
+All conversions are modeled as versioned functions with declared input and
+output schemas. A linear conversion is simply a function with one primary
+numeric input and no additional parameters.
+
+```text
+ConversionFunction
+  code
+  version
+  inputs
+  outputs
+  implementation
+```
+
+An invocation contains a primary value and, when required, additional typed
+parameters. Parameters may themselves carry a standard unit code:
+
+```text
+ConversionRequest
+  functionCode
+  functionVersion
+  primaryInput: value + sourceUnitCode
+  parameters: {
+    temperature: value + unitCode
+    pressure: value + unitCode
+    method: methodCode
+  }
+```
+
+The result is structured rather than being only a naked number:
+
+```text
+ConversionResult
+  primaryOutput: value + targetUnitCode
+  outputs: additional named outputs
+  appliedParameters
+  functionCode
+  functionVersion
+```
+
+The function schema declares required and optional inputs, accepted unit codes,
+value constraints and output types. Missing, invalid or incompatible
+parameters are structured conversion errors. Functions must not silently
+discard supplied parameters or invent missing context.
+
+For example, a practical-salinity function may accept conductivity, temperature
+and a method, and return practical salinity plus the normalized parameters used
+by the function. This is still a unit-library conversion capability; it is not
+a `Measurement` or `Observation` record.
 
 ### Representation
 
-The human-facing rendering of a value and unit. Representation is separate from
-the stored numeric value and standard code. It includes the symbol, Unicode
-form, spacing, decimal rules, significant precision and placement conventions.
+`Units` owns the canonical representation of a unit, while full numeric-value
+formatting may be owned by a later presentation layer. Representation metadata
+must define, where relevant:
 
-TankOS must use scientifically appropriate notation consistently rather than
-inventing a product-specific shorthand.
+- scientific symbol and Unicode form;
+- ASCII fallback;
+- spacing between a value and symbol;
+- symbol placement and ordering;
+- singular, plural and localized labels;
+- accessibility text;
+- decimal and significant-figure guidance;
+- scientific-notation guidance for extreme magnitudes;
+- representation of dimensionless units.
 
-## 4. Unit lifecycle and parameter relationship
+The machine code, scientific symbol and localized label are separate fields.
+Scientific notation must be used consistently; a product-specific shorthand
+must not replace the standard notation.
 
-The intended relationship is:
+## Conversion model
+
+The conversion engine must follow this boundary:
 
 ```text
-ParameterDefinition
-  quantity kind
-  canonical unit
-  accepted input units
-  conversion requirements
-  representation policy
-
-Measurement input
-  value + input unit + required context
-        |
-        v
-Units conversion and validation
-        |
-        v
-Measurement / Digital Twin canonical value + canonical unit
+source Unit + target Unit
+              |
+              v
+     compatibility validation
+              |
+              v
+       declared conversion
+              |
+              v
+      normalized numeric result
 ```
 
-The Units library provides the conversion and validation capability. The
-ParameterDefinition domain decides which units are allowed for a particular
-property and which canonical unit is used. The Measurement domain records the
-source value and the normalized value according to its own evidence policy.
+The engine must not infer conversion from similar names, symbols or aliases.
+It must reject:
+
+- unknown units;
+- units from incompatible dimensions;
+- missing conversion definitions;
+- invalid numeric input;
+- values outside a declared supported range;
+- conversions requiring context that has not been supplied.
+
+The base API should distinguish a pure unit conversion from a contextual
+transformation. Contextual metadata must not be added to every unit merely to
+support future salinity algorithms.
+
+## Persistence and integration boundary
+
+The first unit model should be storage-independent. The library may expose
+ports for:
+
+- reading a catalogue;
+- resolving a unit by stable identity or standard code;
+- listing compatible units;
+- resolving a conversion definition;
+- executing a conversion.
+
+Firestore, JSON/HTTP and FIWARE adapters may be added later. Their DTOs must
+remain outside the core unit contracts and be validated at the adapter
+boundary.
+
+Unit catalogue changes and conversion-definition changes require explicit
+versioning. A future consumer may preserve the unit and conversion versions it
+used, but `Units` itself does not own historical measurement records.
+
+Custom units are supported from the first implementation. Their definitions
+are persisted through a catalogue port and follow `draft`, `active` and
+`inactive` lifecycle states. Publishing a change creates a new immutable
+version; an existing custom code cannot be reused for a different meaning.
+
+## Angular-centric architecture
+
+The public integration surface is Angular-centric, while unit rules remain
+independently testable:
+
+```text
+Angular presentation/services -> application ports -> unit core rules
+                                                   <- catalogue/conversion adapters
+```
+
+Expected areas are:
+
+- `core`: unit contracts, value types and pure compatibility rules;
+- `application`: catalogue and conversion use-case facades;
+- `adapters`: standard catalogues, persistence and external representations;
+- `presentation`: unit-only labels, symbols and selectors.
+
+Conversion rules must not live in templates or Angular components.
+
+The package follows the same boundary discipline as `Time`:
+
+```text
+core
+  ports, value-types, validation
+application
+  catalogue, conversion and display services/tokens
+composition/angular
+  Angular providers and dependency wiring
+adapters
+  generated standard catalogue, custom catalogue, decimal engine and
+  transport integrations
+presentation
+  unit-only pipes and display helpers
+```
+
+The dependency direction is strict:
+
+```text
+presentation -> application -> core
+adapters      -> core
+composition   -> application, adapters
+```
+
+Core contracts must not depend on Angular, Firebase, Firestore, HTTP, FIWARE
+or `Time`. A compound dimension may include the `time` base dimension, but
+that is a dimensional exponent and does not create a runtime dependency on the
+`Time` library. The library must use Angular `inject()`, ports and adapters,
+one semantic responsibility per file, directory barrels for public surfaces
+and paired Given/When/Then tests according to the repository guardrails.
 
 ## Test and coverage boundary
 
-The library enforces 100% V8 lines, statements, functions and branches for
-executable production code. The coverage configuration excludes only the
-type-only public barrel and test/build tooling; the public Angular entry point
-is covered by its contract test.
+The library must maintain 100% V8 coverage for executable production code:
 
-Changing a unit definition or conversion must not silently rewrite historical
-observations. Historical measurements retain their original observation data
-and the applicable unit/conversion metadata so that later algorithms can be
-audited or recalculated.
+- lines: 100%;
+- statements: 100%;
+- functions: 100%;
+- branches: 100%.
 
-## 5. Salinity and other contextual quantities
+Tests must be paired with their implementation files and written as
+Given/When/Then behavior specifications. They must cover successful conversion,
+incompatible units, missing definitions, invalid values, precision boundaries,
+rounding and all public input variants. The repository-wide testing guardrails
+define the required `NaN`, infinities, nullability, string and structured-input
+matrix.
 
-Salinity is the required design example because apparently equivalent readings
-are not always interchangeable through a simple rule of three.
+Type-only contracts and empty public barrels do not need runtime test files,
+but their public import paths must be covered by contract tests once the API
+exists.
 
-| Representation     |  Example | Unit or scale | Meaning                                                            |
-| ------------------ | -------: | ------------- | ------------------------------------------------------------------ |
-| Practical salinity |     `35` | PSU / PSS-78  | Conductivity-derived practical salinity; technically dimensionless |
-| Parts per thousand |     `35` | ppt / `‰`     | Approximate parts per thousand representation                      |
-| Absolute salinity  |  `35.16` | `g/kg`        | Mass of dissolved salts per mass of water                          |
-| Specific gravity   | `1.0264` | `1`           | Density ratio, dependent on definition and reference conditions    |
-| Density            | `~1.023` | `kg/L`        | Mass per volume                                                    |
-| Conductivity       |    `~53` | `mS/cm`       | Electrical property that may be used to infer salinity             |
+## Explicit non-goals for the first implementation slice
 
-These are related concepts, not automatically interchangeable units of one
-quantity. The model must distinguish at least:
+The first implementation must not add:
 
-```text
-Salinity
-SpecificGravity
-Conductivity
-Density
+- `Measurement`, `Observation` or `ParameterDefinition` models;
+- aquarium-specific unit catalogues;
+- salinity algorithms or method-specific transformations;
+- device, sensor or IoT integrations;
+- Firestore persistence;
+- FIWARE synchronization clients;
+- marketplace, moderation or administration workflows;
+- automatic dosing, alerts or recommendations.
+
+## Accepted implementation decisions
+
+The following decisions are closed for the first implementation:
+
+1. **Standard and catalogue:** use UN/CEFACT Recommendation 20, pinned to the
+   official Rev17 source snapshot. Keep the complete source catalogue
+   versioned, but expose an aquarium-first operational subset covering length,
+   area, volume/capacity, mass, temperature, pressure, flow, conductivity and
+   concentration. SI, British Imperial and US customary units are supported.
+2. **Ownership:** standard definitions and conversion functions are
+   code-owned, versioned and immutable. The architecture supports persisted
+   catalogue configuration and custom units from the first implementation.
+3. **Identity and versioning:** public references use immutable qualified codes
+   such as `UN/CEFACT:LTR` or `TANKOS:CUSTOM-SCOOP`. Catalogue definitions and
+   conversion functions are versioned; changes create new versions.
+4. **Dimensions:** use seven SI base dimensions and compound dimension
+   signatures. Keep `QuantityKind` and `ConversionFamily` separate from the
+   dimensional signature.
+5. **Conversions:** model every conversion as a versioned function with
+   declared input and output schemas. Linear, affine, compound and contextual
+   conversions are supported. Salinity is a contextual family, not a special
+   hardcoded exception.
+6. **Precision:** use replaceable decimal arithmetic internally. Accept finite
+   numbers and canonical decimal strings, reject `NaN` and infinities, avoid
+   implicit rounding, and declare range and rounding policies per function.
+7. **Representation:** use canonical scientific Unicode symbols, explicit
+   ASCII fallbacks, localized names through a replaceable locale port and
+   standard spacing/composition rules.
+8. **Public API:** expose qualified unit codes, unit definitions, dimension
+   signatures, catalogue/conversion/presentation ports, Angular services and
+   the `tankUnit` pipe. Do not expose internal tables, transport DTOs or
+   measurement-domain models.
+
+The implementation must follow these decisions. Any future change to them
+requires an explicit library documentation update before code changes.
+
+## Implementation contract refinements
+
+The following details refine the accepted decisions and are implementation
+contracts rather than new product scope.
+
+### Decimal values
+
+The canonical internal value is a decimal string:
+
+```ts
+type DecimalValue = string;
 ```
 
-When a conversion requires a method, temperature or reference conditions, that
-metadata is part of the conversion input. It is not a generic property of the
-unit alone.
+Public boundaries may accept finite JavaScript numbers and canonical decimal
+strings, but normalize them immediately. `NaN`, positive and negative
+infinity, empty strings, whitespace and ambiguous numeric formats are rejected.
+Arithmetic is provided through a replaceable decimal adapter. Conversion does
+not round implicitly; rounding and precision are explicit function or display
+policies.
 
-Example observations:
+### Quantity kinds and dimensions
 
-```json
-{
-  "quantity": "salinity",
-  "value": 35,
-  "unit": "ppt"
-}
-```
+The initial controlled quantity-kind vocabulary includes `length`, `area`,
+`volume`, `mass`, `temperature`, `pressure`, `flow`, `conductivity`,
+`massConcentration`, `density`, `practicalSalinity`, `absoluteSalinity` and
+`specificGravity`. Compatibility is determined by the dimension signature and,
+where required, by quantity kind and conversion family.
 
-```json
-{
-  "quantity": "specificGravity",
-  "value": 1.0264,
-  "unit": "1",
-  "temperature": {
-    "value": 25,
-    "unit": "Cel"
-  }
-}
-```
+### Conversion functions
 
-```json
-{
-  "quantity": "conductivity",
-  "value": 53,
-  "unit": "mS/cm",
-  "temperature": {
-    "value": 25,
-    "unit": "Cel"
-  }
-}
-```
+Every conversion is a versioned function with declared inputs, outputs,
+constraints and required parameters. Linear, affine, compound and contextual
+conversions use the same function boundary. A result contains the primary
+output, additional named outputs, applied parameters and function provenance.
+Salinity functions may require conductivity, temperature, pressure and method
+parameters; they are not hardcoded as a special-case formula.
 
-For a conductivity-derived salinity value, TankOS should preserve the original
-conductivity observation and represent salinity as a derived result linked to
-the source observation. Replacing the original reading with the derived value
-would lose instrument evidence and prevent later recalculation with an updated
-method.
+### Initial operational catalogue
 
-## 6. Metadata required only when necessary
+The first operational subset is aquarium-first: length, area, volume/capacity,
+mass, temperature, pressure, flow, conductivity, concentration and the
+explicitly defined salinity-related scales. The complete Rec20 snapshot is
+retained for provenance, but irrelevant units such as joules are not exposed
+until a real use case requires them.
 
-The model must not force contextual conversion metadata onto every unit.
+### Catalogue import
 
-Simple transformations, such as degrees Celsius to kelvin, need only the value
-and the compatible units. Contextual transformations, such as conductivity or
-specific gravity to a salinity representation, may require:
-
-- conversion method or scale;
-- temperature and its unit;
-- reference temperature or density convention;
-- pressure or other environmental conditions where scientifically required;
-- device or procedure provenance when the conversion depends on the source.
-
-The conversion engine must report missing required metadata as a structured
-validation result. It must not silently approximate or apply a simple linear
-conversion when the quantity semantics do not justify it.
-
-## 7. Conversion registry
-
-The application requires a separate conversion capability containing the
-known relationships between compatible units and quantity kinds. This registry
-belongs to the Units library boundary, not to individual Measurement records.
-
-It must support:
-
-- standard unit identity and aliases;
-- dimensional compatibility checks;
-- direct conversion definitions;
-- contextual conversion definitions;
-- required metadata declarations;
-- conversion versioning or provenance;
-- explicit unsupported-conversion results;
-- deterministic test vectors.
-
-The registry must not infer compatibility from similar labels. For example,
-`PSU`, `ppt`, `g/kg`, `SG` and conductivity are not accepted as interchangeable
-just because aquarists often use them to describe approximately the same reef
-water.
-
-## 8. Scientific representation
-
-Unit presentation is managed, not hardcoded independently in each screen.
-
-The representation policy must define, per unit or quantity when necessary:
-
-- standard symbol and Unicode form;
-- whether a space separates value and symbol;
-- symbol placement and ordering;
-- decimal separator according to the locale;
-- decimal places or significant figures;
-- scientific notation rules for very large or small values;
-- how dimensionless values are displayed;
-- how uncertainty or qualifiers are shown;
-- accessible text for symbols that are not obvious when read aloud.
-
-The canonical machine code, scientific symbol and localized label are separate
-fields. User-facing UI may localize the label, but it must preserve the
-standard-facing code and scientifically correct symbol.
-
-## 9. Angular-centric boundary
-
-The library is Angular-centric in its public integration surface, but the unit
-rules must remain independently testable from rendering.
-
-Expected internal separation:
-
-```text
-Units domain rules
-  -> pure conversion and validation services
-
-Angular application layer
-  -> injectable facades/services and typed view models
-
-Angular UI layer
-  -> unit selectors, formatted values and validation messages
-```
-
-The first scaffold may contain a standalone Angular component, but future work
-must not put conversion rules in templates or component classes merely because
-the library is Angular-centric.
-
-## 10. Explicit non-goals for the first slice
-
-The first implementation should not yet decide or implement:
-
-- a Firestore schema;
-- a FIWARE transport client;
-- IoT device adapters;
-- aquarium-specific parameter catalogues;
-- salinity algorithms without authoritative method definitions;
-- automatic dosing or treatment recommendations;
-- global administration or marketplace workflows;
-- historical measurement migration.
-
-Those capabilities can consume Units through stable contracts after their own
-domains are defined.
-
-## 11. Open decisions
-
-These points remain open and must be decided before implementing the relevant
-slice:
-
-1. The exact initial standard-code catalogue and source release.
-2. Whether unit definitions are code-owned, persisted or both.
-3. The identity and version policy for unit definitions and conversions.
-4. Whether custom units are allowed, and under which moderation policy.
-5. The exact public TypeScript API exported from `@tank-os/units`.
-6. The first conversion slice and its authoritative test vectors.
-7. The exact representation policy for locales and accessibility.
-8. The format used to preserve conversion metadata with historical evidence.
-
-Until those decisions are closed, this document is the authoritative record of
-the current direction, not an implementation contract for unapproved behavior.
+The standard catalogue is generated reproducibly from the pinned Rec20 Rev17
+source snapshot. The import records the source file, revision, publication
+metadata and SHA-256 hash, then validates codes, symbols, dimensions and
+conversion vectors before generating the code-owned catalogue. Custom units
+are resolved through a separate catalogue port and cannot modify generated
+standard definitions.

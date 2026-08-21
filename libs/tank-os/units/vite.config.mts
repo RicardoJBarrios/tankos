@@ -17,17 +17,12 @@ export default defineConfig(() => ({
     globals: true,
     environment: 'jsdom',
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+    passWithNoTests: true,
     setupFiles: ['src/test-setup.ts'],
     reporters: ['default'],
     coverage: {
       reportsDirectory: '../../../coverage/libs/tank-os/units',
       provider: 'v8' as const,
-      exclude: [
-        '**/src/index.ts',
-        '**/eslint.config.mjs',
-        '**/vite.config.mts',
-        '**/src/test-setup.ts',
-      ],
       thresholds: {
         lines: 100,
         statements: 100,

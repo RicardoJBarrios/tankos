@@ -39,34 +39,35 @@ Aquariums. A keeper independently enables or disables a definition in each
 Aquarium they manage. The Aquarium profile does not duplicate, transfer or
 change the definition's catalogue authorship or management permissions.
 
-**Recorded custom-definition deletion direction:** deletion follows Veril's
-general lifecycle. An administrator first marks a definition for deletion;
-the definition then stops being available for new Measurements or Aquarium
-selections while historical Measurements remain interpretable through their
-embedded evidence snapshot. An administrator may later perform the physical
-deletion manually with confirmation. No automatic cascade or foreign-key
-cleanup is introduced.
+**Recorded custom-definition lifecycle direction:** a published or used
+definition is never edited or physically deleted as a normal operation. An
+administrator creates a new immutable version and deprecates or retires the
+previous one. The old version stops being available for new Measurements or
+Aquarium selections while historical Measurements remain interpretable through
+their embedded evidence snapshot. Physical deletion is reserved for drafts or
+versions proven never to have been published or used, with explicit
+confirmation. No automatic cascade or foreign-key cleanup is introduced.
 
-**Recorded Aquarium-profile behavior for deleted definitions:** when a global
-`ParameterDefinition` is marked for deletion, any existing Aquarium profile
-selection becomes inactive but remains recoverable. The keeper or an
+**Recorded Aquarium-profile behavior for retired definitions:** when a global
+`ParameterDefinition` version is deprecated or retired, any existing Aquarium
+profile selection becomes inactive but remains recoverable. The keeper or an
 administrator may remove that inactive selection from the profile. It cannot
-be re-enabled while the global definition is marked for deletion; an
-administrator must restore the definition globally first. After global
-restoration, the keeper may enable it again in the Aquarium.
+be re-enabled while the global version is unavailable for new selections; an
+administrator must restore it globally first when restoration is permitted.
+After global restoration, the keeper may enable it again in the Aquarium.
 
 **Recorded custom-definition edit direction:** an administrator edit creates a
-new `ParameterDefinition` version, marks the previous version for deletion
+new `ParameterDefinition` version, deprecates or retires the previous version
 and leaves existing Measurements attached to their original definition
 snapshot. The new version becomes the active global catalogue definition;
 editing never rewrites historical evidence.
 
 **Recorded profile-version direction:** Aquarium profiles are not migrated
 automatically when a new definition version is created. Existing profiles keep
-their reference to the previous version, which becomes locked and, when marked
-for deletion, inactive. A keeper or administrator may remove that local
-selection, but cannot edit it. A new Aquarium selection is created against the
-active definition version.
+their reference to the previous version, which becomes locked and, when
+deprecated or retired, inactive. A keeper or administrator may remove that
+local selection, but cannot edit it. A new Aquarium selection is created
+against the active definition version.
 
 **Recorded definition-identity direction:** every `ParameterDefinition` has a
 server-generated opaque technical identifier. The identifier is immutable and
@@ -253,9 +254,11 @@ the schema version needed to interpret its validity and historical shape. New
 versions may add or change validation rules without rewriting valid historical
 records; migration or compatibility behavior must be specified for each
 version transition. `schemaVersion` is immutable for the lifetime of a record;
-a contract change creates a new record with the new schema version. The previous
-record is not changed in content; it is marked for deletion. The migration,
-deletion marker and physical deletion are separate operations.
+a contract change creates a new record with the new schema version. For a
+published or used business contract, that new record is also a new immutable
+business version and the previous version is deprecated or retired rather than
+physically deleted. Technical schema migration and business-version lifecycle
+are separate operations.
 
 **Recorded deletion-visibility direction:** this lifecycle applies across the
 whole application. A record marked for deletion is invisible to all ordinary
@@ -282,6 +285,11 @@ administrator inspection and retry decisions. This is operational deletion
 state, separate from the record's business content and any historical
 snapshot. A successful retry physically deletes the complete record
 immediately, including its deletion state and latest deletion error.
+
+This mark-then-physical-delete lifecycle applies to non-versionable records and
+to drafts or versions proven never to have been published or used. For a
+published or used versionable contract, deprecation or retirement replaces
+physical deletion so that the version remains resolvable for history.
 
 Marking a record for deletion updates `updatedAt` and records the administrator
 identity that performed the action as lifecycle metadata.
@@ -645,11 +653,11 @@ the rows it touches.
 | Definition ownership          | Code-owned product catalogue; persisted Veril-managed catalogue; another explicitly defined model                                                                                                                                                           | Determines migrations, reads, Rules and release operation             |
 | Configuration scope           | No profile; Aquarium profile; owner profile; another explicit scope                                                                                                                                                                                         | Determines storage, ownership, sharing and defaults                   |
 | Marketplace publication       | **User decision recorded:** every created custom definition is public to all users automatically                                                                                                                                                            | Determines visibility, authorship, review and Rules                   |
-| Profile behavior              | **User decision recorded:** old-version selections are not migrated; they remain locked and, when marked for deletion, inactive but removable; new selections use the active version                                                                        | Changes recording, current state, target and history UX               |
+| Profile behavior              | **User decision recorded:** old-version selections are not migrated; they remain locked and, when deprecated or retired, inactive but removable; new selections use the active version                                                                    | Changes recording, current state, target and history UX               |
 | Legacy absence                | Original five enabled; all current system definitions enabled; explicit migration; another stated behavior                                                                                                                                                  | Determines what existing Aquariums see after release                  |
 | System catalogue              | Keep five; add selected IDs; broad catalogue; classification- or component-aware lists                                                                                                                                                                      | Determines semantic definitions, tests, Rules and UI                  |
 | Custom scope                  | **User decision recorded:** global Veril catalogue; every Aquarium may independently select whether to use it                                                                                                                                               | Determines identity, reuse and authorization                          |
-| Custom identity and lifecycle | **User decision recorded:** server-generated opaque immutable ID; keepers create; only administrators edit/delete; admin edits create a new version; deletion is mark-then-manual-physical-delete; public availability is independent of Aquarium selection | Protects historical reconstruction and portability                    |
+| Custom identity and lifecycle | **User decision recorded:** server-generated opaque immutable ID; keepers create; only administrators publish/edit/delete; admin edits create a new version; published/used versions are deprecated or retired, while never-published/unused drafts may be physically deleted; public availability is independent of Aquarium selection | Protects historical reconstruction and portability                    |
 | Units                         | Multiple compatible input Units; one canonical Digital Twin Unit; explicit equivalence/conversion; user-defined Units under a stated vocabulary                                                                                                             | Determines numeric contracts and import/calculator behavior           |
 | Numeric semantics             | Per-Parameter negative/zero/precision rules, plausibility, overrides                                                                                                                                                                                        | Avoids applying current non-negative rules to incompatible quantities |
 | Targets                       | Existing keeper-only model; other explicitly selected target sources                                                                                                                                                                                        | Changes status language, provenance and authority                     |
@@ -776,8 +784,8 @@ The accepted specification must close all of these before a write exists:
   authorship and management authorization remain separate concerns;
 - opaque stable identity and collision behavior;
 - required semantic fields, Units and numeric rules;
-- create, admin versioned edit, mark-for-deletion and manually confirmed
-  physical deletion, plus recovery behavior;
+- create, admin versioned edit, deprecation/retirement and manually confirmed
+  physical deletion only for eligible drafts, plus recovery behavior;
 - immutability after first Measurement and any explicit migration path;
 - target eligibility, profile inclusion and disabled/archive behavior;
 - visibility to owners, delegates, exports, imports and public views;
