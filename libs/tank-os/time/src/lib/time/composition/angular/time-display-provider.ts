@@ -1,6 +1,5 @@
 import {
   DATE_PIPE_DEFAULT_OPTIONS,
-  DATE_PIPE_DEFAULT_TIMEZONE,
   DatePipe,
 } from '@angular/common';
 import { inject, LOCALE_ID, Provider } from '@angular/core';
@@ -49,7 +48,7 @@ function createConfiguredAngularTimeDisplayAdapter(
   return createAngularTimeDisplayAdapter(
     new DatePipe(
       inject(LOCALE_ID),
-      inject(DATE_PIPE_DEFAULT_TIMEZONE, { optional: true }),
+      undefined,
       inject(DATE_PIPE_DEFAULT_OPTIONS, { optional: true }),
     ),
     inject(TIME_ADAPTER),
