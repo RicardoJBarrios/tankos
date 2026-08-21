@@ -34,6 +34,15 @@ and whitespace-only strings, zero, negative values and empty collections when
 the contract permits or rejects them. Assertions must describe the expected
 value, normalization or error rather than relying only on type coverage.
 
+For every edge-case audit, use an explicit completeness checklist: test both
+`Infinity` and `-Infinity` (not just one), `NaN`, `null`, `undefined`, leading
+and trailing whitespace, special characters, signed and boundary values, and
+malformed structured objects. For union arguments, cover every permitted input
+type and meaningful mixed representations between arguments. Keep exhaustive
+malformed-input matrices at the parser or validator that owns them and add
+only boundary contract tests at transparent facades and adapters, so
+completeness does not become redundant overtesting.
+
 Use `@ngneat/spectator/vitest` for Angular integration tests that create a
 component, directive, rendered pipe, fixture or Angular dependency-injection
 context. Prefer `createComponentFactory` and `createPipeFactory` over direct

@@ -42,6 +42,9 @@ describe('native-local-date-parsing', () => {
     { kind: 'local-date', year: '2026', month: 8, day: 20 },
     null,
     undefined,
+    { kind: 'local-date', year: Number.NaN, month: 8, day: 20 },
+    { kind: 'local-date', year: Number.POSITIVE_INFINITY, month: 8, day: 20 },
+    { kind: 'local-date', year: Number.NEGATIVE_INFINITY, month: 8, day: 20 },
   ])(
     'Given a structurally invalid local date object %s, When parsing it, Then it raises a range error',
     (value) => {

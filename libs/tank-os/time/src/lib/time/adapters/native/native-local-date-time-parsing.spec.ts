@@ -35,6 +35,8 @@ describe('native-local-date-time-parsing', () => {
     '2026-08-20T24:00:00',
     '2026-08-20T15:60:00',
     '2026-08-20T15:30:60',
+    null,
+    undefined,
   ])(
     'Given malformed value %s, When parsing it, Then it raises a range error',
     (value) => {

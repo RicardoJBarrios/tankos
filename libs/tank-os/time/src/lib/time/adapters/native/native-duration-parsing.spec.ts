@@ -23,6 +23,7 @@ describe('native-duration-parsing', () => {
   it.each([
     NaN,
     Infinity,
+    -Infinity,
     '',
     'P',
     'PT',

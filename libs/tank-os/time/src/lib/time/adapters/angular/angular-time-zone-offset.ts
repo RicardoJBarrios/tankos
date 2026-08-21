@@ -1,5 +1,4 @@
 import { Instant, TimeZoneDatabasePort } from '../../core';
-import { createNativeTimeZoneDatabase } from '../native';
 
 /**
  * Converts a time zone identifier into the numeric offset accepted by
@@ -13,7 +12,7 @@ import { createNativeTimeZoneDatabase } from '../native';
 export function toDatePipeTimeZone(
   timeZone: string,
   epochMilliseconds: number,
-  timeZoneDatabase: TimeZoneDatabasePort = createNativeTimeZoneDatabase(),
+  timeZoneDatabase: TimeZoneDatabasePort,
 ): string {
   if (timeZone === 'UTC' || timeZone === 'Z') {
     return '+0000';

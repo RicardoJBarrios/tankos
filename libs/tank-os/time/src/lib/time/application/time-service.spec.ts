@@ -33,6 +33,7 @@ describe('time-service', () => {
     undefined,
     Number.NaN,
     Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
   ])(
     'Given invalid instant value %s, When validating it through Angular, Then it returns false',
     (value) => {
@@ -160,7 +161,17 @@ describe('time-service', () => {
     },
   );
 
-  it.each(['P1Y', 'P1M', 'PT', '', null, undefined, Number.NaN])(
+  it.each([
+    'P1Y',
+    'P1M',
+    'PT',
+    '',
+    null,
+    undefined,
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+  ])(
     'Given invalid duration value %s, When validating it through Angular, Then it returns false',
     (value) => {
       expect(TestBed.inject(TimeService).isValidDuration(value)).toBe(false);

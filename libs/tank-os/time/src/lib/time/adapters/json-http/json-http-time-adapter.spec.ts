@@ -83,21 +83,50 @@ describe('json-http-time-adapter', () => {
     });
   });
 
-  it.each([null, undefined, 0, {}, '2026-08-20'])(
+  it.each([
+    null,
+    undefined,
+    0,
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+    {},
+    '2026-08-20',
+  ])(
     'Given an invalid JSON instant %s, When deserializing it, Then it raises a range error',
     (value) => {
       expect(() => adapter.deserializeInstant(value)).toThrow(RangeError);
     },
   );
 
-  it.each([null, undefined, 20260820, '2026-08-20 ', '2026-02-29'])(
+  it.each([
+    null,
+    undefined,
+    20260820,
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+    '2026-08-20 ',
+    '2026-02-29',
+  ])(
     'Given an invalid JSON local date %s, When deserializing it, Then it raises a range error',
     (value) => {
       expect(() => adapter.deserializeLocalDate(value)).toThrow(RangeError);
     },
   );
 
-  it.each([null, undefined, 0, {}, 'PT', 'P1M', 'PT1Y'])(
+  it.each([
+    null,
+    undefined,
+    0,
+    Number.NaN,
+    Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+    {},
+    'PT',
+    'P1M',
+    'PT1Y',
+  ])(
     'Given an invalid JSON duration %s, When deserializing it, Then it raises a range error',
     (value) => {
       expect(() => adapter.deserializeDuration(value)).toThrow(RangeError);

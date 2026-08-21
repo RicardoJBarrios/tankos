@@ -21,6 +21,7 @@ describe('native-instant-serialization', () => {
     '',
     Number.NaN,
     Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
     null,
     undefined,
   ])(

@@ -183,6 +183,33 @@ derive the tested contract and expected failure behavior without opening the
 implementation. Use one scenario per expected behavior; parameterized tests
 are acceptable only when every row expresses the same behavior.
 
+### Extreme-value completeness checklist
+
+Before closing a test review for a public operation, explicitly check the
+following matrix against its runtime contract:
+
+- numeric inputs: `NaN`, `Infinity` and `-Infinity`;
+- nullable inputs: `null` and `undefined`;
+- strings: empty, whitespace-only, leading/trailing whitespace and unexpected
+  special characters;
+- signed and boundary values: zero, negative values, minimum/maximum supported
+  values and truncation or rounding boundaries;
+- structured inputs: missing fields, wrong field types, wrong discriminators,
+  invalid nested values and valid normalized objects;
+- union arguments: every permitted input type, including meaningful mixed-type
+  combinations when more than one argument accepts the union.
+
+Do not treat testing only `Infinity` as coverage of both infinities, and do not
+treat aggregate V8 coverage as evidence that this matrix is complete. Shared
+parsers and validators may own the exhaustive malformed-input matrix; facade,
+adapter and Angular integration tests should add only the boundary cases that
+prove they preserve that contract.
+
+Avoid overtesting by keeping each invalid-value matrix next to the layer that
+owns the behavior. Do not repeat every parser case in every service when the
+service is a transparent delegation boundary; do test a representative
+success, failure and normalization case at that public boundary.
+
 ## Breaking and compatibility tests
 
 Each library with a public API must include breaking/contract tests. These

@@ -21,6 +21,7 @@ describe('native-duration-validation', () => {
     undefined,
     NaN,
     Infinity,
+    -Infinity,
     '',
     'PT',
     'P1DT',

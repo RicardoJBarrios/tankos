@@ -108,7 +108,7 @@ describe('firestore-time-adapter', () => {
     });
   });
 
-  it.each([null, undefined, NaN, '3600000', Infinity])(
+  it.each([null, undefined, NaN, '3600000', Infinity, -Infinity])(
     'Given invalid Firestore duration %s, When converting it, Then it raises a range error',
     (value) => {
       expect(() => adapter.fromDuration(value)).toThrow(RangeError);

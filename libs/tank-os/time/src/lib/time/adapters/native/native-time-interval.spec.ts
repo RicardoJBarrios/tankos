@@ -29,6 +29,21 @@ describe('native-time-interval', () => {
   });
 
   it.each([
+    ['1970-01-01T00:00:00Z', 500],
+    [0, '1970-01-01T00:00:00.500Z'],
+    [
+      { kind: 'instant', epochMilliseconds: 0 },
+      { kind: 'instant', epochMilliseconds: 500 },
+    ],
+  ] as const)(
+    'Given an interval query in supported representations %s and %s, When checking membership, Then it normalizes both values',
+    (start, value) => {
+      const interval = adapter.createInterval(start, 1_000);
+      expect(adapter.contains(interval, value)).toBe(true);
+    },
+  );
+
+  it.each([
     null,
     {},
     { start: 1_000, end: 0 },

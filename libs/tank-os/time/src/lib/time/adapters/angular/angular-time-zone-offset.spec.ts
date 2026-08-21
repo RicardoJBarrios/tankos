@@ -1,6 +1,9 @@
 import { toDatePipeTimeZone } from './angular-time-zone-offset';
+import { createNativeTimeZoneDatabase } from '../native';
 
 describe('angular-time-zone-offset', () => {
+  const timeZoneDatabase = createNativeTimeZoneDatabase();
+
   it.each([
     ['UTC', '+0000'],
     ['Z', '+0000'],
@@ -9,7 +12,7 @@ describe('angular-time-zone-offset', () => {
   ])(
     'Given a direct timezone value %s, When converting it for DatePipe, Then it returns %s',
     (timeZone, expected) => {
-      expect(toDatePipeTimeZone(timeZone, 0)).toBe(expected);
+      expect(toDatePipeTimeZone(timeZone, 0, timeZoneDatabase)).toBe(expected);
     },
   );
 
@@ -18,6 +21,7 @@ describe('angular-time-zone-offset', () => {
       toDatePipeTimeZone(
         'Europe/Madrid',
         Date.parse('2026-08-20T12:00:00.000Z'),
+        timeZoneDatabase,
       ),
     ).toBe('+0200');
   });
@@ -27,6 +31,7 @@ describe('angular-time-zone-offset', () => {
       toDatePipeTimeZone(
         'Europe/Madrid',
         Date.parse('2026-01-20T12:00:00.000Z'),
+        timeZoneDatabase,
       ),
     ).toBe('+0100');
   });
@@ -36,12 +41,15 @@ describe('angular-time-zone-offset', () => {
       toDatePipeTimeZone(
         'America/New_York',
         Date.parse('2026-01-20T12:00:00.000Z'),
+        timeZoneDatabase,
       ),
     ).toBe('-0500');
   });
 
   it('Given an unknown timezone, When converting it for DatePipe, Then it raises a range error', () => {
-    expect(() => toDatePipeTimeZone('Not/A_Time_Zone', 0)).toThrow(RangeError);
+    expect(() =>
+      toDatePipeTimeZone('Not/A_Time_Zone', 0, timeZoneDatabase),
+    ).toThrow(RangeError);
   });
 
   it('Given a replacement timezone database, When converting an IANA zone, Then it uses that database offset', () => {
@@ -61,7 +69,9 @@ describe('angular-time-zone-offset', () => {
   it.each(['+24:00', '-01:60'])(
     'Given an invalid fixed offset %s, When converting it, Then it raises a range error',
     (timeZone) => {
-      expect(() => toDatePipeTimeZone(timeZone, 0)).toThrow(RangeError);
+      expect(() => toDatePipeTimeZone(timeZone, 0, timeZoneDatabase)).toThrow(
+        RangeError,
+      );
     },
   );
 });
