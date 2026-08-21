@@ -74,15 +74,36 @@ Storage and presentation are separate concerns:
 ## Boundary adapters
 
 The implementation exposes typed APIs behind Angular services and replaceable
-ports. Framework and transport adapters may later translate to:
+ports. Framework and transport adapters translate to:
 
 - Firestore `Timestamp` or a documented wire representation;
 - JSON/HTTP ISO 8601 strings;
-- FIWARE/NGSI-LD temporal properties;
+- FIWARE/NGSI-LD temporal properties in a future adapter;
 - Angular form and view-model values.
 
 Those adapters must not leak persistence or transport DTOs into the core time
 model.
+
+## Transport adapters
+
+The transport adapters are Angular-compatible infrastructure and depend on the
+`TimeAdapter` port rather than on native parsing:
+
+```ts
+const firestore = createFirestoreTimeAdapter(timeAdapter);
+const jsonHttp = createJsonHttpTimeAdapter(timeAdapter);
+```
+
+The Firestore adapter uses the client SDK `Timestamp` and stores `Instant` at
+the library's current millisecond precision. `LocalDate` is stored as the
+canonical `YYYY-MM-DD` string because it is a calendar value, not a timestamp.
+The adapter rejects Admin SDK or unrelated timestamp objects instead of
+silently accepting a structurally similar value.
+
+The JSON/HTTP adapter serializes `Instant` as canonical UTC ISO 8601 with
+millisecond precision and `LocalDate` as `YYYY-MM-DD`. Deserializers validate
+the transport value through the active `TimeAdapter` and raise `RangeError`
+for malformed or unsupported input.
 
 ## Current non-goals
 

@@ -66,6 +66,8 @@ for (const modulePath of [
   'libs/tank-os/time/src/lib/time/core/validation',
   'libs/tank-os/time/src/lib/time/adapters',
   'libs/tank-os/time/src/lib/time/adapters/angular',
+  'libs/tank-os/time/src/lib/time/adapters/firestore',
+  'libs/tank-os/time/src/lib/time/adapters/json-http',
   'libs/tank-os/time/src/lib/time/adapters/native',
   'libs/tank-os/time/src/lib/time/application',
   'libs/tank-os/time/src/lib/time/ports',
