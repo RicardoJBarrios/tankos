@@ -1,15 +1,18 @@
-import {
-  DATE_PIPE_DEFAULT_OPTIONS,
-  DatePipe,
-} from '@angular/common';
+import { DATE_PIPE_DEFAULT_OPTIONS, DatePipe } from '@angular/common';
 import { inject, LOCALE_ID, Provider } from '@angular/core';
 import { createAngularTimeDisplayAdapter } from '../../adapters/angular';
-import { TimeDisplayAdapter, TimeDisplayContext } from '../../core';
+import {
+  TimeDisplayAdapter,
+  TimeDisplayContext,
+  TimeLocalePort,
+} from '../../core';
 import {
   TIME_ADAPTER,
   TIME_DISPLAY_ADAPTER,
   TIME_DISPLAY_CONTEXT,
+  TIME_LOCALE,
 } from '../../application';
+import { createAngularTimeLocaleAdapter } from '../../adapters/angular';
 
 /** Registers a custom temporal display adapter for Angular consumers. */
 export function provideTimeDisplayAdapter(
@@ -41,13 +44,21 @@ export function provideTimeDisplayContext(
   return { provide: TIME_DISPLAY_CONTEXT, useValue: context };
 }
 
+/** Registers a replaceable locale source for temporal presentation. */
+export function provideTimeLocale(locale: TimeLocalePort): Provider {
+  return { provide: TIME_LOCALE, useValue: locale };
+}
+
 function createConfiguredAngularTimeDisplayAdapter(
   explicitDefaultTimeZone?: string,
 ): TimeDisplayAdapter {
   const context = inject(TIME_DISPLAY_CONTEXT, { optional: true }) ?? {};
+  const locale =
+    inject(TIME_LOCALE, { optional: true }) ??
+    createAngularTimeLocaleAdapter(inject(LOCALE_ID));
   return createAngularTimeDisplayAdapter(
     new DatePipe(
-      inject(LOCALE_ID),
+      locale.getLocale(),
       undefined,
       inject(DATE_PIPE_DEFAULT_OPTIONS, { optional: true }),
     ),

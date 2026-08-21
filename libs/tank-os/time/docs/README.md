@@ -128,10 +128,12 @@ The first public adapter slice exports:
 
 - `Instant`, `LocalDate` and `LocalDateInput` typed values;
 - the `TimeAdapter` port;
+- the `TimeLocalePort` port for replaceable locale sources;
 - the `ClockPort` port and `TimeService.now()`;
 - `createNativeTimeAdapter()`;
 - `TIME_ADAPTER`, `TIME_CLOCK`, `provideTimeAdapter(...)`,
-  `provideTimeClock(...)` and `provideTankOsTime()`;
+  `provideTimeClock(...)`, `provideTimeLocale(...)` and
+  `provideTankOsTime()`;
 - `TimeDisplayAdapter`, `TimeDisplayService` and the `tankInstant` and
   `tankLocalDate` presentation pipes.
 - Firestore and JSON/HTTP conversion adapters through their dedicated entry
@@ -235,8 +237,14 @@ explicit pipe timezone
         -> UTC
 ```
 
-`LOCALE_ID` and `locale` control language and regional formatting. They do not
-select the aquarium or user time zone. An aquarium zone is supplied through
+The default Angular composition obtains its locale from `LOCALE_ID`, but the
+display contract depends on `TimeLocalePort`, not on Angular. A future
+Transloco or other localization integration can register its own source with
+`provideTimeLocale(...)` without changing the time services, pipes or core
+types.
+
+`LOCALE_ID` and the pipe `locale` argument control language and regional
+formatting. They do not select the aquarium or user time zone. An aquarium zone is supplied through
 `provideTimeDisplayContext(...)` or an explicit pipe argument. It must never be
 inferred from the browser locale.
 

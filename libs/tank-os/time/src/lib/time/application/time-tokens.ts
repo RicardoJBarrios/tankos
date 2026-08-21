@@ -4,6 +4,7 @@ import {
   TimeAdapter,
   TimeDisplayAdapter,
   TimeDisplayContext,
+  TimeLocalePort,
 } from '../core';
 
 /** Angular token for the active time implementation. */
@@ -21,3 +22,6 @@ export const TIME_DISPLAY_CONTEXT = new InjectionToken<TimeDisplayContext>(
 export const TIME_DISPLAY_ADAPTER = new InjectionToken<TimeDisplayAdapter>(
   'TIME_DISPLAY_ADAPTER',
 );
+
+/** Angular token for the active locale source used by temporal presentation. */
+export const TIME_LOCALE = new InjectionToken<TimeLocalePort>('TIME_LOCALE');

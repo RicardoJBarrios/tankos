@@ -4,9 +4,11 @@ import {
   provideAngularTimeDisplayAdapter,
   provideTimeDisplayAdapter,
   provideTimeDisplayContext,
+  provideTimeLocale,
 } from './time-display-provider';
 import { provideTimeAdapter, provideTimeClock } from './time-adapter-provider';
 import { TimeDisplayService } from '../../application';
+import { vi } from 'vitest';
 
 describe('time-display-provider', () => {
   it('Given an Angular locale, When configuring the default display provider, Then DatePipe formats with that locale', () => {
@@ -25,6 +27,28 @@ describe('time-display-provider', () => {
         timeZone: 'UTC',
       }),
     ).toBe('1/1/70');
+  });
+
+  it('Given a replacement locale source, When configuring the display provider, Then DatePipe uses that locale instead of Angular LOCALE_ID', () => {
+    const locale = { getLocale: vi.fn(() => 'en-US') };
+
+    TestBed.configureTestingModule({
+      providers: [
+        provideTimeAdapter(),
+        provideTimeClock(),
+        provideTimeLocale(locale),
+        provideAngularTimeDisplayAdapter('UTC'),
+        { provide: LOCALE_ID, useValue: 'fr-FR' },
+      ],
+    });
+
+    expect(
+      TestBed.inject(TimeDisplayService).formatInstant(0, {
+        format: 'longDate',
+        timeZone: 'UTC',
+      }),
+    ).toBe('January 1, 1970');
+    expect(locale.getLocale).toHaveBeenCalledOnce();
   });
 
   it('Given a replacement display adapter, When configuring Angular, Then the display service uses it', () => {
