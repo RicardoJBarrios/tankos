@@ -31,3 +31,12 @@ export class DimensionSignatureError extends UnitError {
     this.name = 'DimensionSignatureError';
   }
 }
+
+/** Indicates that a requested unit conversion cannot be executed. */
+export class UnitConversionError extends UnitError {
+  /** Creates a structured conversion failure. */
+  constructor(code: string, message: string) {
+    super(code, message);
+    this.name = 'UnitConversionError';
+  }
+}

@@ -1,7 +1,8 @@
 # TankOS Units
 
-**Status:** core value types and dimensional compatibility are implemented.
-Catalogue, conversion and Angular management slices remain pending.
+**Status:** core value types, dimensional compatibility, the immutable
+aquarium-first standard catalogue and the first deterministic conversion slice
+are implemented. Management and transport slices remain pending.
 
 `Units` is an Angular-centric library for the identity, representation,
 compatibility and conversion of units. It is intentionally independent from
@@ -26,6 +27,13 @@ port. `Units` must not import `big.js` or own decimal normalization.
 - Angular facades and presentation helpers for unit-only concerns;
 - Angular management components and application services for custom-unit CRUD;
 - adapters for unit catalogues or conversion sources when they are added.
+
+The current conversion slice provides immutable standard definitions and a
+conversion port for litre/millilitre, metre/centimetre, kilogram/gram,
+Celsius/Kelvin, Celsius/Fahrenheit and bar/pascal. Factors and affine offsets
+are represented exactly as decimal values or rational pairs; repeating results
+require an explicit decimal context. This does not yet include compound,
+contextual or salinity transformations.
 
 `Units` does not own:
 
@@ -353,8 +361,10 @@ FIWARE support belongs in an adapter or mapping boundary; this library must not
 become an NGSI-LD client.
 
 The initial catalogue must record the exact source release and provenance of
-each imported code. A future change of the external code list must not silently
-change the identity of an existing unit.
+each imported code. The first operational subset includes separate UK and US
+gallon definitions (`GLI` and `GLL`) so the system never collapses those
+systems into one ambiguous gallon. A future change of the external code list
+must not silently change the identity of an existing unit.
 
 The source catalogue and the operational catalogue are separate. TankOS may
 retain a complete versioned snapshot of the official code list for traceability,
@@ -752,9 +762,9 @@ The canonical internal value is a decimal string:
 type DecimalValue = string;
 ```
 
-The first concrete arithmetic adapter is `big.js`, installed at workspace level
-because the library is currently not a separately published package. Only the
-adapter may import `big.js`; core contracts and application ports use
+The first concrete arithmetic adapter is `big.js`, consumed through the
+packaged `@tank-os/decimal/big-js` secondary entry point. Only the adapter may
+import `big.js`; core contracts and application ports use
 `DecimalValue` and decimal contexts. A future adapter may replace it without
 changing the public Units API.
 
@@ -845,9 +855,9 @@ restore or remove eligible drafts. Published or used versions are never
 edited or physically deleted in normal application flows; editing creates a
 complete replacement version.
 
-### Initial conversions and test vectors
+### Planned initial conversions and test vectors
 
-The first conversion set is:
+The complete first conversion set is planned as:
 
 ```text
 L <-> mL
@@ -861,10 +871,12 @@ mS/cm <-> S/m
 ```
 
 Each conversion has deterministic reference vectors, declared range and
-rounding behavior. Contextual salinity functions are deferred until the
-function input/output contract is implemented; they will accept parameters
-such as conductivity, temperature and method rather than becoming special
-hardcoded unit formulas.
+rounding behavior. The current deterministic slice implements L/mL, m/cm, kg/g,
+°C/K, °C/°F and bar/Pa. L/min/m³/h and mS/cm/S/m require their compound unit
+definitions before they can be added to the operational catalogue. Contextual
+salinity functions are deferred until the function input/output contract is
+implemented; they will accept parameters such as conductivity, temperature and
+method rather than becoming special hardcoded unit formulas.
 
 ### Cache defaults
 

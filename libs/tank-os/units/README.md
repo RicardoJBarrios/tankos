@@ -1,7 +1,12 @@
-# units
+# TankOS Units
 
-This library was generated with [Nx](https://nx.dev).
+The implementation and architectural decisions for this library are documented
+in [`docs/README.md`](docs/README.md).
 
-## Running unit tests
+The library exposes the same Nx lifecycle as the other TankOS capability
+libraries:
 
-Run `nx test units` to execute the unit tests.
+- `pnpm nx run units:build` packages the public declarations and sources with
+  `ng-packagr`;
+- `pnpm nx run units:test` runs the tests with the 100% V8 coverage gate;
+- `pnpm nx run units:lint` checks the architectural and code rules.

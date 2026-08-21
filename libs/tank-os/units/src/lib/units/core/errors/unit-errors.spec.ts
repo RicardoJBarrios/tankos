@@ -1,5 +1,6 @@
 import {
   DimensionSignatureError,
+  UnitConversionError,
   UnitCodeError,
   UnitError,
 } from './unit-errors';
@@ -30,6 +31,16 @@ describe('unit errors', () => {
     expect(error).toMatchObject({
       name: 'DimensionSignatureError',
       code: 'DIMENSION_SIGNATURE_INVALID',
+    });
+  });
+
+  it('Given a conversion failure, When represented, Then preserves its conversion code and name', () => {
+    const error = new UnitConversionError('CONVERSION_FAILED', 'message');
+
+    expect(error).toMatchObject({
+      name: 'UnitConversionError',
+      code: 'CONVERSION_FAILED',
+      message: 'message',
     });
   });
 });
