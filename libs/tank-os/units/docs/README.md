@@ -8,6 +8,11 @@ part of this library's current public API.
 `@tank-os/units` is an Angular-centric capability library for unit identity,
 dimensional compatibility, scientific representation and declared conversion.
 It models units only; it does not model measurements or observations.
+Unit definitions are global technical catalogue entries and have no relationship
+to an Aquarium, keeper or Aquarium configuration. A Measurement or another
+domain record may reference a unit code, but the reference belongs to that
+record and never creates an ownership or configuration relationship from the
+unit back to an Aquarium.
 
 ## Boundaries
 

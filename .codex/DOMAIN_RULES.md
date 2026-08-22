@@ -295,6 +295,9 @@ Rules are classified to avoid turning assumptions into code prematurely.
   original.
 - The original Parameter and canonical Unit remain unchanged. The correction
   may replace only the value and `measuredAt` in this increment.
+- Units are independent global catalogue entries. A Unit has no relationship
+  to an Aquarium, keeper or Aquarium profile; a Measurement may embed or
+  reference its unit code as part of its own evidence.
 - An original Measurement may be corrected at most once. A correction cannot
   itself be corrected in this increment.
 - The replacement and its technical uniqueness marker are created atomically.
