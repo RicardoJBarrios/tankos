@@ -26,5 +26,34 @@ export interface UnitDefinition {
 export function createUnitDefinition(
   definition: UnitDefinition,
 ): UnitDefinition {
-  return Object.freeze({ ...definition });
+  if (!definition || typeof definition !== 'object') {
+    throw new TypeError('Unit definition must be an object');
+  }
+  if (!['si', 'metric', 'british-imperial', 'us-customary', 'custom'].includes(definition.system)) {
+    throw new TypeError('Unit definition system is invalid');
+  }
+  if (!isNonEmptyTrimmedString(definition.conversionFamily)) {
+    throw new TypeError('Unit conversion family must be non-empty');
+  }
+  if (!isNonEmptyTrimmedString(definition.catalogueVersion)) {
+    throw new TypeError('Unit catalogue version must be non-empty');
+  }
+  if (!['active', 'deprecated', 'retired'].includes(definition.status)) {
+    throw new TypeError('Unit definition status is invalid');
+  }
+
+  return Object.freeze({
+    code: definition.code,
+    system: definition.system,
+    dimension: Object.freeze({ ...definition.dimension }),
+    quantityKind: definition.quantityKind,
+    representation: Object.freeze({ ...definition.representation }),
+    conversionFamily: definition.conversionFamily,
+    catalogueVersion: definition.catalogueVersion,
+    status: definition.status,
+  });
+}
+
+function isNonEmptyTrimmedString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0 && value === value.trim();
 }
