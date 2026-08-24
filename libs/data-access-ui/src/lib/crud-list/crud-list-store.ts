@@ -6,6 +6,7 @@ import {
   withMethods,
   withState,
 } from '@ngrx/signals';
+import type { StateSignals, WritableStateSource } from '@ngrx/signals';
 import type {
   AccessContext,
   CrudRecord,
@@ -55,6 +56,123 @@ export interface CrudListLifecycleRequest {
   readonly expectedRevision: number;
 }
 
+type CrudListStoreSource<TData, TFilter> = StateSignals<
+  CrudListState<TData, TFilter>
+> &
+  WritableStateSource<CrudListState<TData, TFilter>>;
+
+function createCrudListLoadMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
+  store: CrudListStoreSource<TData, TFilter>,
+  options: CrudListStoreOptions<TData, TCreate, TUpdate, TFilter, TPayload>,
+) {
+  const pageRequest = (after?: PageCursor) => ({
+    ...options.page,
+    ...(after ? { after } : {}),
+  });
+  const load = async (
+    access: AccessContext,
+    filter?: TFilter,
+    append = false,
+  ): Promise<void> => {
+    patchState(store, { status: 'loading', error: undefined });
+    try {
+      const page = await options.service.list({
+        access,
+        filter,
+        page: pageRequest(append ? store.nextCursor() : undefined),
+      });
+      patchState(store, {
+        status: 'ready',
+        items: append ? [...store.items(), ...page.items] : page.items,
+        filter,
+        nextCursor: page.nextCursor,
+        hasMore: page.hasMore,
+      });
+    } catch (error) {
+      patchState(store, { status: 'error', error });
+    }
+  };
+  return {
+    load: (access: AccessContext, filter?: TFilter) => load(access, filter),
+    loadMore: async (access: AccessContext): Promise<void> => {
+      if (
+        !store.hasMore() ||
+        !store.nextCursor() ||
+        store.status() === 'loading'
+      )
+        return;
+      await load(access, store.filter(), true);
+    },
+  };
+}
+
+function createCrudListSelectionMethods<TData, TFilter>(
+  store: CrudListStoreSource<TData, TFilter>,
+) {
+  return {
+    toggleSelection: (id: EntityId) => {
+      const selected = store.selectedIds();
+      patchState(store, {
+        selectedIds: selected.includes(id)
+          ? selected.filter((selectedId) => selectedId !== id)
+          : [...selected, id],
+      });
+    },
+    clearSelection: () => patchState(store, { selectedIds: [] }),
+  };
+}
+
+function createCrudListLifecycleMethods<
+  TData,
+  TCreate,
+  TUpdate,
+  TFilter,
+  TPayload,
+>(
+  store: CrudListStoreSource<TData, TFilter>,
+  options: CrudListStoreOptions<TData, TCreate, TUpdate, TFilter, TPayload>,
+) {
+  const reload = async (access: AccessContext) =>
+    createCrudListLoadMethods(store, options).load(access, store.filter());
+  return {
+    markForDeletion: async (request: CrudListLifecycleRequest) => {
+      await options.service.markForDeletion(request);
+      await reload(request.access);
+    },
+    restore: async (request: CrudListLifecycleRequest) => {
+      await options.service.restore(request);
+      await reload(request.access);
+    },
+  };
+}
+
+function createCrudListBatchMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
+  store: CrudListStoreSource<TData, TFilter>,
+  options: CrudListStoreOptions<TData, TCreate, TUpdate, TFilter, TPayload>,
+) {
+  return {
+    submitBatch: async (
+      request: CrudListBatchRequest<TFilter, TPayload>,
+    ): Promise<BatchProgress> => {
+      if (!options.batch)
+        throw new Error('This CRUD list has no batch capability');
+      const progress = await options.batch.submit({
+        access: request.access,
+        schema: options.schema,
+        operation: request.operation,
+        confirmationToken: request.confirmationToken,
+        idempotencyKey: request.idempotencyKey,
+        selection: request.selection,
+        payload: request.payload,
+      });
+      patchState(store, { batch: progress, selectedIds: [] });
+      return progress;
+    },
+    updateBatch: (progress: BatchProgress) =>
+      patchState(store, { batch: progress }),
+  };
+}
+
 const createInitialState = (): CrudListState<unknown, unknown> => ({
   status: 'idle',
   items: [],
@@ -100,87 +218,13 @@ export function createCrudListStore<
         );
       }),
     })),
-    withMethods((store) => {
-      const pageRequest = (after?: PageCursor) => ({
-        ...options.page,
-        ...(after ? { after } : {}),
-      });
-
-      const load = async (
-        access: AccessContext,
-        filter?: TFilter,
-        append = false,
-      ): Promise<void> => {
-        patchState(store, { status: 'loading', error: undefined });
-        try {
-          const page = await options.service.list({
-            access,
-            filter,
-            page: pageRequest(append ? store.nextCursor() : undefined),
-          });
-          patchState(store, {
-            status: 'ready',
-            items: append ? [...store.items(), ...page.items] : page.items,
-            filter,
-            nextCursor: page.nextCursor,
-            hasMore: page.hasMore,
-          });
-        } catch (error) {
-          patchState(store, { status: 'error', error });
-        }
-      };
-
-      return {
-        load: (access: AccessContext, filter?: TFilter) => load(access, filter),
-        loadMore: async (access: AccessContext): Promise<void> => {
-          if (
-            !store.hasMore() ||
-            !store.nextCursor() ||
-            store.status() === 'loading'
-          )
-            return;
-          await load(access, store.filter(), true);
-        },
-        setFilter: (filter: TFilter | undefined) =>
-          patchState(store, { filter }),
-        toggleSelection: (id: EntityId) => {
-          const selected = store.selectedIds();
-          patchState(store, {
-            selectedIds: selected.includes(id)
-              ? selected.filter((selectedId) => selectedId !== id)
-              : [...selected, id],
-          });
-        },
-        clearSelection: () => patchState(store, { selectedIds: [] }),
-        markForDeletion: async (request: CrudListLifecycleRequest) => {
-          await options.service.markForDeletion(request);
-          await load(request.access, store.filter());
-        },
-        restore: async (request: CrudListLifecycleRequest) => {
-          await options.service.restore(request);
-          await load(request.access, store.filter());
-        },
-        submitBatch: async (
-          request: CrudListBatchRequest<TFilter, TPayload>,
-        ): Promise<BatchProgress> => {
-          if (!options.batch)
-            throw new Error('This CRUD list has no batch capability');
-          const progress = await options.batch.submit({
-            access: request.access,
-            schema: options.schema,
-            operation: request.operation,
-            confirmationToken: request.confirmationToken,
-            idempotencyKey: request.idempotencyKey,
-            selection: request.selection,
-            payload: request.payload,
-          });
-          patchState(store, { batch: progress, selectedIds: [] });
-          return progress;
-        },
-        updateBatch: (progress: BatchProgress) =>
-          patchState(store, { batch: progress }),
-      };
-    }),
+    withMethods((store) => ({
+      ...createCrudListLoadMethods(store, options),
+      setFilter: (filter: TFilter | undefined) => patchState(store, { filter }),
+      ...createCrudListSelectionMethods(store),
+      ...createCrudListLifecycleMethods(store, options),
+      ...createCrudListBatchMethods(store, options),
+    })),
   );
 }
 

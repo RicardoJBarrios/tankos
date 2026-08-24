@@ -7,6 +7,12 @@ import {
   type BatchWorkerStorePort,
   type EntityId,
 } from '@tankos/data-access';
+import {
+  boundedMap,
+  createItemFailure,
+  summarizeResults,
+  terminalStatus,
+} from './firestore-admin-batch-execution-support';
 import type { ClockPort } from '@tankos/time';
 
 /** Dependencies for executing durable chunks with bounded item concurrency. */
@@ -35,25 +41,6 @@ export interface FirestoreAdminBatchExecutorOptions<TPayload> {
   readonly cleanupTerminal?: boolean;
   /** Separate control capability used for destructive terminal cleanup. */
   readonly cleanup?: Pick<BatchSubmissionStorePort<TPayload>, 'remove'>;
-}
-
-async function boundedMap<TItem, TResult>(
-  items: readonly TItem[],
-  concurrency: number,
-  callback: (item: TItem) => Promise<TResult>,
-): Promise<TResult[]> {
-  const results = new Array<TResult>(items.length);
-  let cursor = 0;
-  const worker = async (): Promise<void> => {
-    while (cursor < items.length) {
-      const index = cursor++;
-      results[index] = await callback(items[index]);
-    }
-  };
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, () => worker()),
-  );
-  return results;
 }
 
 function validateExecutorOptions<TPayload>(
@@ -191,13 +178,34 @@ async function processChunk<TPayload>(
     },
     lease,
   );
-  const results = await boundedMap(chunk.ids, concurrency, async (id) => {
-    try {
-      return await options.execute(id, current);
-    } catch (error) {
-      return createItemFailure(id, error);
-    }
-  });
+  const results = await executeChunkItems(
+    options,
+    current,
+    chunk.ids,
+    concurrency,
+  );
+  return completeChunk(
+    options,
+    batchId,
+    chunk,
+    current,
+    results,
+    lease,
+    leaseDurationMilliseconds,
+  );
+}
+
+async function completeChunk<TPayload>(
+  options: FirestoreAdminBatchExecutorOptions<TPayload>,
+  batchId: EntityId,
+  chunk: Awaited<
+    ReturnType<BatchWorkerStorePort<TPayload>['listRunnableChunks']>
+  >[number],
+  current: BatchOperationRecord<TPayload>,
+  results: readonly BatchItemResult[],
+  lease: BatchLease,
+  leaseDurationMilliseconds: number,
+): Promise<BatchOperationRecord<TPayload>> {
   const attempt = summarizeResults(results);
   const previous = {
     succeeded: chunk.succeeded ?? 0,
@@ -241,35 +249,19 @@ async function processChunk<TPayload>(
   );
 }
 
-function createItemFailure(id: EntityId, error: unknown): BatchItemResult {
-  return {
-    id,
-    outcome: 'failed',
-    code: error instanceof Error ? error.name : 'unknown',
-    message: error instanceof Error ? error.message : 'Unknown failure',
-  };
-}
-
-function summarizeResults(results: readonly BatchItemResult[]): {
-  readonly succeeded: number;
-  readonly warnings: number;
-  readonly failures: number;
-} {
-  return {
-    succeeded: results.filter((result) => result.outcome === 'succeeded')
-      .length,
-    warnings: results.filter((result) => result.outcome === 'warning').length,
-    failures: results.filter((result) => result.outcome === 'failed').length,
-  };
-}
-
-function terminalStatus(
-  failures: number,
-  warnings: number,
-): BatchOperationRecord<unknown>['status'] {
-  if (failures > 0) return 'failed';
-  if (warnings > 0) return 'completed-with-warnings';
-  return 'completed';
+async function executeChunkItems<TPayload>(
+  options: FirestoreAdminBatchExecutorOptions<TPayload>,
+  current: BatchOperationRecord<TPayload>,
+  ids: readonly EntityId[],
+  concurrency: number,
+): Promise<readonly BatchItemResult[]> {
+  return boundedMap(ids, concurrency, async (id) => {
+    try {
+      return await options.execute(id, current);
+    } catch (error) {
+      return createItemFailure(id, error);
+    }
+  });
 }
 
 /** Creates the trusted worker that executes persisted Firestore batch chunks. */

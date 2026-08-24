@@ -78,6 +78,9 @@ interface BatchDto extends DocumentData {
   readonly materializationLeaseUntil?: Timestamp;
 }
 
+type BatchPatch =
+  BatchSubmissionPatch | BatchMaterializerPatch | BatchWorkerPatch;
+
 type FirestoreAdminBatchImplementation<TPayload> = Pick<
   BatchSubmissionStorePort<TPayload>,
   | 'create'
@@ -92,7 +95,7 @@ type FirestoreAdminBatchImplementation<TPayload> = Pick<
   ): Promise<BatchClaim<TPayload>>;
   update(
     batchId: EntityId,
-    patch: BatchSubmissionPatch | BatchMaterializerPatch | BatchWorkerPatch,
+    patch: BatchPatch,
     lease?: BatchLease,
     leaseKind?: LeaseKind,
   ): Promise<BatchOperationRecord<TPayload>>;
@@ -193,18 +196,37 @@ const mapError = (error: unknown, message: string): never => {
     typeof error === 'object' && error !== null && 'code' in error
       ? String((error as { readonly code: unknown }).code)
       : undefined;
-  const mapped =
-    code === 'permission-denied'
-      ? 'forbidden'
-      : code === 'not-found'
-        ? 'not-found'
-        : code === 'already-exists'
-          ? 'conflict'
-          : code === 'invalid-argument'
-            ? 'validation'
-            : 'transient';
+  const mapped = mapFirestoreErrorCode(code);
   throw createDataAccessError(mapped, message, error);
 };
+
+function mapFirestoreErrorCode(code: string | undefined) {
+  if (code === 'permission-denied') return 'forbidden' as const;
+  if (code === 'not-found') return 'not-found' as const;
+  if (code === 'already-exists') return 'conflict' as const;
+  if (code === 'invalid-argument') return 'validation' as const;
+  return 'transient' as const;
+}
+
+function updatedLeaseFields(current: BatchDto, patch: BatchPatch) {
+  const leaseUntil = 'leaseUntil' in patch ? patch.leaseUntil : undefined;
+  const materializationLeaseUntil =
+    'materializationLeaseUntil' in patch
+      ? patch.materializationLeaseUntil
+      : undefined;
+  let normalizedLeaseUntil = current.leaseUntil;
+  if (leaseUntil === null) normalizedLeaseUntil = undefined;
+  if (leaseUntil !== undefined && leaseUntil !== null)
+    normalizedLeaseUntil = toTimestamp(leaseUntil);
+  return {
+    leaseUntil: normalizedLeaseUntil,
+    leaseToken: leaseUntil === null ? undefined : current.leaseToken,
+    materializationLeaseToken:
+      materializationLeaseUntil === null
+        ? undefined
+        : current.materializationLeaseToken,
+  };
+}
 
 const validateClaimRequest = (
   request: BatchClaimRequest,
@@ -525,22 +547,7 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
             return fromDto<TPayload>({
               ...current,
               ...encoded,
-              leaseUntil: !('leaseUntil' in patch)
-                ? current.leaseUntil
-                : patch.leaseUntil === null
-                  ? undefined
-                  : patch.leaseUntil
-                    ? toTimestamp(patch.leaseUntil)
-                    : current.leaseUntil,
-              leaseToken:
-                !('leaseUntil' in patch) || patch.leaseUntil !== null
-                  ? current.leaseToken
-                  : undefined,
-              materializationLeaseToken:
-                !('materializationLeaseUntil' in patch) ||
-                patch.materializationLeaseUntil !== null
-                  ? current.materializationLeaseToken
-                  : undefined,
+              ...updatedLeaseFields(current, patch),
             });
           });
         }
