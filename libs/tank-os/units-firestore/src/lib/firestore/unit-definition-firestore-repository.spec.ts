@@ -15,7 +15,10 @@ const firestoreAdapter = vi.hoisted(() => ({
   createFirestoreCrudRepository: vi.fn(),
 }));
 
-vi.mock('@tank-os/data-access-firestore', () => firestoreAdapter);
+vi.mock('@tank-os/data-access-firestore', async (importOriginal) => ({
+  ...(await importOriginal()),
+  createFirestoreCrudRepository: firestoreAdapter.createFirestoreCrudRepository,
+}));
 
 describe('createUnitDefinitionFirestoreRepository', () => {
   const definition = createStandardUnitCatalogue().find(

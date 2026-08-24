@@ -7,6 +7,10 @@ mapping, Zod DTO validation, pagination query construction and emulator tests.
 The package must not leak Firestore types into the provider-independent core.
 Its public API is only `@tank-os/data-access-firestore`.
 
+Entity-specific Firestore adapters must compose
+`createFirestoreRecordSchema(dataSchema)` instead of copying the common
+`data`, `lifecycle`, `revision` and `metadata` envelope schema.
+
 ## Writes, timestamps and retries
 
 Mutating operations do not perform a read after the write. Technical metadata

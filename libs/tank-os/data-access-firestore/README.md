@@ -5,6 +5,10 @@ Firestore SDK and Zod peer dependencies and validates and maps Firestore DTOs
 at the provider boundary. The provider-independent contracts remain in
 `@tank-os/data-access`.
 
+Entity adapters should use `createFirestoreRecordSchema()` for the common
+strict persistence envelope and provide only their entity-specific data
+schema.
+
 ```ts
 import { createFirestoreCrudRepository } from '@tank-os/data-access-firestore';
 ```

@@ -2,3 +2,4 @@
 export * from './firestore-crud-repository';
 export * from './firestore-errors';
 export * from './firestore-local-cache';
+export * from './firestore-record-schema';

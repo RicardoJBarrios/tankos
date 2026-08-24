@@ -12,7 +12,10 @@ const firestoreAdapter = vi.hoisted(() => ({
   createFirestoreCrudRepository: vi.fn(),
 }));
 
-vi.mock('@tank-os/data-access-firestore', () => firestoreAdapter);
+vi.mock('@tank-os/data-access-firestore', async (importOriginal) => ({
+  ...(await importOriginal()),
+  createFirestoreCrudRepository: firestoreAdapter.createFirestoreCrudRepository,
+}));
 
 describe('createConversionDefinitionFirestoreRepository', () => {
   const definition = createConversionDefinition({

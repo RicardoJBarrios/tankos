@@ -1,7 +1,7 @@
 import {
   createFirestoreCrudRepository,
+  createFirestoreRecordSchema,
   type FirestoreCrudRepositoryOptions,
-  type FirestoreRecordDto,
 } from '@tank-os/data-access-firestore';
 import type {
   ConversionDefinition,
@@ -14,8 +14,6 @@ import {
   conversionDefinitionToDto,
   type ConversionDefinitionDto,
 } from '@tank-os/units-zod';
-import { Timestamp } from 'firebase/firestore';
-import { z } from 'zod';
 
 /** Firestore repository options for the global conversion catalogue. */
 export type ConversionDefinitionFirestoreRepositoryOptions = Omit<
@@ -63,7 +61,7 @@ export function createConversionDefinitionFirestoreRepository(
 }
 
 /** Strict Firestore envelope schema for conversion-definition records. */
-export const conversionDefinitionRecordSchema = createRecordSchema(
+export const conversionDefinitionRecordSchema = createFirestoreRecordSchema(
   conversionDefinitionDtoSchema,
 );
 
@@ -85,25 +83,4 @@ function mapPage(
   page: Page<CrudRecord<ConversionDefinitionDto>>,
 ): Page<CrudRecord<ConversionDefinition>> {
   return { ...page, items: page.items.map(mapRequiredRecord) };
-}
-
-function createRecordSchema<T>(
-  dataSchema: z.ZodType<T>,
-): z.ZodType<FirestoreRecordDto<T>> {
-  return z.strictObject({
-    data: dataSchema,
-    lifecycle: z.strictObject({
-      status: z.enum(['active', 'inactive', 'marked-for-deletion', 'deleted']),
-    }),
-    revision: z.number().int().min(1),
-    metadata: z.strictObject({
-      schemaVersion: z.number().int().min(1),
-      createdAt: z.instanceof(Timestamp),
-      updatedAt: z.instanceof(Timestamp),
-      createdBy: z.string().optional(),
-      updatedBy: z.string().optional(),
-      lifecycleChangedAt: z.instanceof(Timestamp).optional(),
-      lifecycleChangedBy: z.string().optional(),
-    }),
-  }) as z.ZodType<FirestoreRecordDto<T>>;
 }
