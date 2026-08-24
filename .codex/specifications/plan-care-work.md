@@ -19,7 +19,7 @@ completed Care Work fact.
 
 1. The keeper opens `Planificar cuidado` from the Aquarium Dashboard.
 2. The keeper enters a description and planned date/time.
-3. Veril persists a new `PlannedCareWork` in `plannedCareWorks`.
+3. TankOS persists a new `PlannedCareWork` in `plannedCareWorks`.
 4. The keeper can open the planned-care list and see the intention.
 
 ## Domain model

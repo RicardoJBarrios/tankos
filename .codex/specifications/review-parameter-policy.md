@@ -29,7 +29,7 @@ lifecycle.
 
 All five are currently measurable and historically reviewable. “Target
 candidate” means that a keeper may eventually define a personal operating
-window; it does not mean that Veril currently accepts a target or knows a
+window; it does not mean that TankOS currently accepts a target or knows a
 biological safe range.
 
 The catalogue does not define mandatory measurement cadence. The domain corpus
@@ -81,7 +81,7 @@ profile.
 
 The target is an optional interval for one Aquarium and one Parameter. It is
 not a biological guarantee, a safety limit or a Measurement validity rule.
-Veril must not ship hidden product defaults as if they were authoritative.
+TankOS must not ship hidden product defaults as if they were authoritative.
 
 The target configuration is specified in
 [`configure-parameter-targets.md`](configure-parameter-targets.md). It uses an

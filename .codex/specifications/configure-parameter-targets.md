@@ -6,7 +6,7 @@
 
 The keeper can record the operating interval they want to use for each
 Parameter in one Aquarium. This makes a later comparison with current
-Measurements explicit and personal without presenting Veril's biological
+Measurements explicit and personal without presenting TankOS's biological
 recommendation as fact.
 
 This capability configures targets only. It does not implement `Parameter

@@ -13,7 +13,7 @@ and resulting constraints.
 
 ## 1. Scope
 
-`ParameterDefinition` is a global Veril catalogue domain. It defines the
+`ParameterDefinition` is a global TankOS catalogue domain. It defines the
 meaning and measurement contract of a quantitative property. It is not owned
 by an Aquarium, is not a free-form Measurement field and must not be persisted
 as a generic record in `shared`.
@@ -140,7 +140,7 @@ FIWARE/UN/CEFACT identifiers are used where available. For quantities such as
 dKH or salinity representations whose relationship depends on scale,
 temperature, density, conductivity or procedure, the definition carries
 documented mapping metadata and required context rather than pretending that
-every conversion is a linear Unit conversion. Veril does not invent
+every conversion is a linear Unit conversion. TankOS does not invent
 UN/CEFACT codes.
 
 ## 5. Data-shape observations

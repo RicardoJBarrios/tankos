@@ -23,5 +23,5 @@ control rather than a keeper's long-term domain journal.
 ## Strategic implication
 
 “Open source” splits into two opportunities: transparent data/logging and local
-control. Veril should not promise both until one concrete user problem justifies
+control. TankOS should not promise both until one concrete user problem justifies
 the operational cost.

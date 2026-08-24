@@ -2,7 +2,7 @@
 
 ## Philosophy
 
-Veril should remain clear, useful and sustainable. Its evolution favors
+TankOS should remain clear, useful and sustainable. Its evolution favors
 understanding over short-term speed, and every change should improve reliability
 or maintainability.
 

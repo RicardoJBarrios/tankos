@@ -64,7 +64,7 @@ Keep layouts responsive from narrow screens outward, use Material components
 only where they improve the current interaction, and keep product-specific
 layout in feature CSS. Do not create a shared component library, Storybook or
 visual-regression baseline until repeated semantics and visual stability justify
-them. Tests must assert Veril behavior and accessibility, never Material's
+them. Tests must assert TankOS behavior and accessibility, never Material's
 internal DOM or CSS classes.
 
 ## Current Aquarium navigation

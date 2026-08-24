@@ -1,12 +1,12 @@
 # Codex Project Entry Point
 
-Read this file first. It is the only mandatory starting point for work on Veril.
+Read this file first. It is the only mandatory starting point for work on TankOS.
 
 ## Project
 
-Veril is the product application managed with Nx for aquarium management across
+TankOS is the product application managed with Nx for aquarium management across
 freshwater, saltwater, brackish, planted, reef, shrimp, snail and mixed systems.
-`Aquarium` is the central domain aggregate root; Veril is never an Aquarium.
+`Aquarium` is the central domain aggregate root; TankOS is never an Aquarium.
 Technical identifiers and documentation are written in English; Spanish is
 reserved for user-facing application content.
 

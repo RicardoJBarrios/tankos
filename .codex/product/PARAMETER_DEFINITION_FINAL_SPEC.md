@@ -13,7 +13,7 @@ prevails and the deviation must be recorded.
 
 ## 1. Purpose and boundary
 
-`ParameterDefinition` is Veril's global catalogue definition for a measurable
+`ParameterDefinition` is TankOS's global catalogue definition for a measurable
 quantity. It defines semantic meaning, compatible Units, conversion context,
 measurement methods, numeric rules and scientific presentation.
 
@@ -134,7 +134,7 @@ Readers tolerate missing or physically deleted catalogue documents.
 
 ## 7. Lifecycle
 
-Deletion follows Veril's general lifecycle:
+Deletion follows TankOS's general lifecycle:
 
 1. An administrator deprecates or retires the version/definition.
 2. It becomes unavailable to ordinary catalogue and selection flows.
@@ -176,7 +176,7 @@ The model uses the closest applicable FIWARE Smart Data Model, NGSI-LD,
 SOSA/SSN and UN/CEFACT semantics. `quantityKind`, `unitCode`, observed value,
 observation time, method, source and Feature of Interest remain distinct.
 
-`ParameterDefinition` is a Veril catalogue extension because there is no
+`ParameterDefinition` is a TankOS catalogue extension because there is no
 directly equivalent Smart Data Model for its global lifecycle. This does not
 extend to the evidence model: Measurements and Digital Twin projections reuse
 the closest established FIWARE structures from the first implementation slice,
@@ -185,7 +185,7 @@ including `WaterQualityObserved` where applicable, NGSI-LD `Property` and
 and Aquaculture structures such as `FishContainment` or `Sump` where their
 semantics fit.
 
-Standard `unitCode` values are used whenever available. Veril does not invent
+Standard `unitCode` values are used whenever available. TankOS does not invent
 UN/CEFACT codes. For quantities without a direct standard code or with
 method-dependent relationships, the version carries:
 

@@ -1,7 +1,7 @@
 # Batch Operations Policy Review
 
 **Purpose:** review the decisions recorded for batch operations and check their
-coherence across Veril. This document is an audit of the current direction; it
+coherence across TankOS. This document is an audit of the current direction; it
 does not silently resolve an identified ambiguity.
 
 **Final specification:** [`BATCH_OPERATIONS_FINAL_SPEC.md`](BATCH_OPERATIONS_FINAL_SPEC.md)
@@ -169,7 +169,7 @@ provides a global order across all writes.
 
 Firestore's managed bulk-delete operation is not the natural executor for this
 product batch contract. It is useful for administrative collection/collection
-group cleanup, but Veril needs a frozen set of IDs, entity-specific warnings,
+group cleanup, but TankOS needs a frozen set of IDs, entity-specific warnings,
 contextual authorization, resumable per-item progress and a logical operation
 schema. A custom server worker is the closer fit. The managed service also
 requires billing and has its own long-running-operation lifecycle.

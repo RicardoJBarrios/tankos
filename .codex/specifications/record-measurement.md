@@ -83,7 +83,7 @@ conversion without changing the meaning of existing records.
 - `measuredAt` represents when the reading was taken.
 - The keeper supplies `measuredAt`; the form defaults it to the current time and
   permits retrospective entry.
-- `recordedAt` represents when Veril accepts the durable record.
+- `recordedAt` represents when TankOS accepts the durable record.
 - The application/infrastructure boundary generates `recordedAt` during the
   successful write.
 - Both instants are persisted using the canonical UTC representation.

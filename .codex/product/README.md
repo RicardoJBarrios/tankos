@@ -17,7 +17,7 @@ hypotheses, domain model and events. Architecture and persistence follow that
 sequence.
 
 [`MENTAL_MODEL.md`](MENTAL_MODEL.md) defines the accepted conceptual distinction
-between the Veril product, the Aquarium aggregate root and application context.
+between the TankOS product, the Aquarium aggregate root and application context.
 It records open behavior questions but does not replace a one-use-case
 specification.
 

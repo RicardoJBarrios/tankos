@@ -2,7 +2,7 @@
 
 **Status:** final product and technical direction.
 
-**Scope:** all batch or equivalent bulk operations in Veril, including bulk
+**Scope:** all batch or equivalent bulk operations in TankOS, including bulk
 modification, marking records for deletion, definitive deletion and future
 operations of the same nature.
 
@@ -20,7 +20,7 @@ BulkWriter or parallel server writes is the initial execution adapter.
 
 ## 1. Core model
 
-`BatchOperation` is Veril's logical asynchronous workflow. It is not the same
+`BatchOperation` is TankOS's logical asynchronous workflow. It is not the same
 thing as a Firestore `WriteBatch`.
 
 The logical operation has:
@@ -42,7 +42,7 @@ fields such as `lastDeletionError`.
 
 ## 2. NoSQL persistence
 
-Veril uses strict NoSQL persistence:
+TankOS uses strict NoSQL persistence:
 
 - no foreign keys;
 - no referential cascades;
@@ -149,7 +149,7 @@ The worker must:
 - delete the temporary operation only after terminal completion.
 
 Firestore `WriteBatch` is atomic: all writes succeed or none are applied. It
-therefore cannot represent the whole logical batch because Veril requires
+therefore cannot represent the whole logical batch because TankOS requires
 partial failures. It may be used only for bounded atomic execution units.
 
 For larger work, use a server client with BulkWriter or parallelized individual
@@ -162,7 +162,7 @@ must enforce administrator authorization and IAM; Rules continue protecting
 ordinary client access to the data model.
 
 Firestore's managed bulk-delete service is not the executor for this product
-contract. It does not provide Veril's frozen ID set, per-record warnings,
+contract. It does not provide TankOS's frozen ID set, per-record warnings,
 contextual authorization and custom resumable workflow. It may be used only as
 a separately reviewed infrastructure cleanup tool.
 
@@ -256,7 +256,7 @@ The global policy is natural server application order:
   Firestore application/commit order determines the result, with deletion
   remaining terminal once applied.
 
-This is the natural Firestore behavior adapted to Veril's terminal-deletion
+This is the natural Firestore behavior adapted to TankOS's terminal-deletion
 rule. No global ordering guarantee is assumed for parallel BulkWriter writes.
 
 When a batch resumes, it does not perform a separate application-level

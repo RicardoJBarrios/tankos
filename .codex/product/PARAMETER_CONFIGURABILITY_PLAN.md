@@ -4,7 +4,7 @@
 implementation or choose any unresolved product option.
 
 **Decision authority:** the user/product owner. This plan consolidates the
-known work around configurable measurable properties. In Veril's language, a
+known work around configurable measurable properties. In TankOS's language, a
 measurable property is a **Parameter**. A risk, dependency or candidate phase
 in this document is not an acceptance, rejection, prioritization or scope
 decision.
@@ -34,7 +34,7 @@ the definitions, while each Aquarium has an independent profile selecting the
 definitions it uses.
 
 **Recorded custom-definition scope direction:** custom `ParameterDefinition`
-records belong to the global Veril catalogue and are available to all
+records belong to the global TankOS catalogue and are available to all
 Aquariums. A keeper independently enables or disables a definition in each
 Aquarium they manage. The Aquarium profile does not duplicate, transfer or
 change the definition's catalogue authorship or management permissions.
@@ -85,7 +85,7 @@ mapping uses standard codes where available without inventing codes for
 unsupported quantities. The complete contract is authoritative in
 [`PARAMETER_DEFINITION_FINAL_SPEC.md`](PARAMETER_DEFINITION_FINAL_SPEC.md).
 
-**Recorded greenfield implementation direction:** Veril has no users or
+**Recorded greenfield implementation direction:** TankOS has no users or
 production Measurements that require a compatibility migration. The new
 ParameterDefinition model will therefore replace the hard-coded five-Parameter
 implementation from the first implementation slice. Existing tests and
@@ -95,10 +95,10 @@ fixtures must be updated, but no production data migration is required.
 will not be postponed to a later adapter phase. The implementation will use
 existing, established Smart Data Models and their schemas/fixtures from the
 first slice, selecting the closest applicable models for the Aquarium Digital
-Twin and water-quality measurements. Any Veril-specific extension must be
+Twin and water-quality measurements. Any TankOS-specific extension must be
 explicit and tested at the point where it is introduced.
 
-**Recorded FIWARE structure direction:** `ParameterDefinition` is a Veril
+**Recorded FIWARE structure direction:** `ParameterDefinition` is a TankOS
 semantic catalogue extension because no directly equivalent Smart Data Model
 is required for its lifecycle. Measurements and Digital Twin projections will
 reuse the closest established FIWARE structures from the beginning:
@@ -119,13 +119,13 @@ use UN/CEFACT Common Codes for Units of Measurement. This applies to
 `ParameterDefinition`, Measurement records and future manual, imported or
 sensor-backed sources.
 
-**Recorded standards-first principle:** Veril will stay as close as possible to
-available FIWARE, NGSI-LD, SOSA/SSN and UN/CEFACT semantics. A Veril-specific
+**Recorded standards-first principle:** TankOS will stay as close as possible to
+available FIWARE, NGSI-LD, SOSA/SSN and UN/CEFACT semantics. A TankOS-specific
 extension is only introduced when the standards do not cover an aquarium
 requirement, and that extension must document its relationship to the closest
 standard concept.
 
-**Recorded Digital Twin direction:** Veril will model each Aquarium as a
+**Recorded Digital Twin direction:** TankOS will model each Aquarium as a
 Digital Twin. Measurements/observations are first-class immutable historical
 evidence, while current values may be projected as FIWARE/NGSI-LD-compatible
 Properties of the Digital Twin. This does not by itself accept 3D modelling,
@@ -138,7 +138,7 @@ within that system, not separate Aquariums. Measurements affect the complete
 system by default and may target a component or zone explicitly. The detailed
 model is documented in [`AQUARIUM_SYSTEM_MODEL.md`](AQUARIUM_SYSTEM_MODEL.md).
 
-**Recorded canonical concept:** `Measurement` is Veril's internal canonical
+**Recorded canonical concept:** `Measurement` is TankOS's internal canonical
 concept for one quantitative historical reading. It will carry the semantic
 information needed for SOSA/SSN and NGSI-LD mappings. `Observation` and
 `Property` are representations/projections, not a second persisted source of
@@ -158,7 +158,7 @@ definition must also identify the canonical Unit used by the Digital Twin;
 accepted input Units and the canonical Unit therefore belong to the same
 property contract and must be compatible with its quantity kind.
 
-**Recorded Unit conversion module direction:** Veril will have a dedicated
+**Recorded Unit conversion module direction:** TankOS will have a dedicated
 Unit-conversion capability that centralizes equivalences between Units. It will
 be reusable by Measurement capture, canonical Digital Twin projections,
 imports/exports, calculations and future IoT sources. It must distinguish
@@ -213,12 +213,12 @@ Unit code.
 Units. This prevents the Digital Twin from exposing a Unit that cannot be used
 to record a compatible Measurement through the same property contract.
 
-**Recorded Unit presentation direction:** each standard Unit used by Veril must
+**Recorded Unit presentation direction:** each standard Unit used by TankOS must
 also define its appropriate textual representation. This includes the standard
 symbol or scientific name, Unicode form, spacing and placement before or after
 the value. Presentation metadata
 must remain separate from the stable Unit identity and `unitCode`. The Unit
-representation itself will not vary by interface language: Veril will always
+representation itself will not vary by interface language: TankOS will always
 use the scientifically appropriate standard notation and symbol.
 
 **Recorded measurement-method direction:** measurement methods will be managed
@@ -233,22 +233,22 @@ and distinguish standard methods from keeper-created methods. A keeper-created
 method is immediately usable; the absence of a standard reference does not
 block its use. Moderators and administrators may review or enrich that
 reference later. Retiring a method must not remove it from historical
-Measurements. Veril will use a strict NoSQL model: Measurements will not have
+Measurements. TankOS will use a strict NoSQL model: Measurements will not have
 foreign keys or mandatory referential lookups. The method context required for
 historical interpretation will be embedded as a snapshot in the Measurement.
 A stable method identifier may be copied for provenance, but it is not a
 dependency required to read the evidence. Changes to or retirement of the
 catalogue method therefore cannot alter existing historical Measurements.
 
-**Recorded global NoSQL data-lifecycle rule:** across Veril, a record may be
+**Recorded global NoSQL data-lifecycle rule:** across TankOS, a record may be
 created or edited only when it satisfies the complete validity contract for its
 type. An incomplete record cannot be created or edited, but it may be deleted.
-This applies to methods, ParameterDefinitions, Measurements and other Veril
+This applies to methods, ParameterDefinitions, Measurements and other TankOS
 data. Historical immutable evidence remains self-contained; valid historical
 Measurements are not made deletable by this rule, while an invalid legacy
 record can be removed without a referential cascade.
 
-**Recorded validation-version direction:** every Veril data type will have a
+**Recorded validation-version direction:** every TankOS data type will have a
 versioned completeness and validation schema. Each persisted record will carry
 the schema version needed to interpret its validity and historical shape. New
 versions may add or change validation rules without rewriting valid historical
@@ -386,7 +386,7 @@ originating management screen does not wait for completion. No locking or
 special conflict-management path is required. Concurrent operations use
 last-applied-wins semantics: if a modification and deletion compete, deletion
 wins when it is applied; if multiple modifications compete, the last applied
-modification wins. This is a global Veril concurrency rule and applies to
+modification wins. This is a global TankOS concurrency rule and applies to
 individual operations as well as batch operations.
 
 Deletion is terminal: if a later modification reaches a record already deleted,
@@ -542,7 +542,7 @@ using a public definition.
 
 ## 6. FIWARE/UN/CEFACT measurement boundary
 
-The recorded direction is broader than exporting Veril's current Firestore
+The recorded direction is broader than exporting TankOS's current Firestore
 documents. The definition and Measurement model must be able to represent the
 semantics needed for FIWARE interoperability from the beginning.
 
@@ -561,25 +561,25 @@ cage, pond or other enclosed water structure that monitors fish populations and
 water-quality parameters; `Sump` describes a water-treatment and recirculation
 unit monitoring water-quality parameters. Related models cover species, fish
 populations, feed, feeders and feeding operations. These are the closest
-discovered FIWARE structural references for Veril's Digital Twin, but they are
+discovered FIWARE structural references for TankOS's Digital Twin, but they are
 aquaculture-oriented, not a complete reef-aquarium model, and their current
 versions are early. They should therefore be studied as composable reference
 models alongside `WaterQualityObserved`, SOSA/SSN and the FIWARE generic Device
 models.
 
-This does not by itself decide that Veril must run a Context Broker, persist
+This does not by itself decide that TankOS must run a Context Broker, persist
 NGSI-LD JSON-LD internally or expose every FIWARE attribute. The following are
 separate decisions:
 
-1. provider-neutral Veril domain mapped to FIWARE at an adapter boundary;
+1. provider-neutral TankOS domain mapped to FIWARE at an adapter boundary;
 2. FIWARE/NGSI-LD-native internal domain and persistence;
-3. a hybrid in which Veril's domain uses FIWARE semantic identifiers while
+3. a hybrid in which TankOS's domain uses FIWARE semantic identifiers while
    Firestore remains an internal representation.
 
 The accepted reference composition does not yet close the implementation
 details: the exact attributes to adopt, the boundaries between
 `WaterQualityObserved`, `FishContainment` and `Sump`, the use of a
-Veril-specific extension, the internal persistence representation and the
+TankOS-specific extension, the internal persistence representation and the
 NGSI-LD serialization remain to be specified. Aquarium-specific quantities and
 Units such as dKH require an explicit mapping decision rather than an invented
 code.
@@ -596,7 +596,7 @@ Aquarium Digital Twin
         └── result + ParameterDefinition + provenance + source/time context
 ```
 
-The historical evidence is the source of truth for what Veril recorded. The
+The historical evidence is the source of truth for what TankOS recorded. The
 current Property view is a derived read model and must not overwrite or replace
 the evidence. A Property projection may be rebuilt when definitions, source
 data or projection rules change.
@@ -652,13 +652,13 @@ the rows it touches.
 
 | Decision                      | Options preserved for user decision                                                                                                                                                                                                                                                                                                     | Why it changes implementation                                         |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| Definition ownership          | Code-owned product catalogue; persisted Veril-managed catalogue; another explicitly defined model                                                                                                                                                                                                                                       | Determines migrations, reads, Rules and release operation             |
+| Definition ownership          | Code-owned product catalogue; persisted TankOS-managed catalogue; another explicitly defined model                                                                                                                                                                                                                                       | Determines migrations, reads, Rules and release operation             |
 | Configuration scope           | No profile; Aquarium profile; owner profile; another explicit scope                                                                                                                                                                                                                                                                     | Determines storage, ownership, sharing and defaults                   |
 | Marketplace publication       | **User decision recorded:** every created custom definition is public to all users automatically                                                                                                                                                                                                                                        | Determines visibility, authorship, review and Rules                   |
 | Profile behavior              | **User decision recorded:** old-version selections are not migrated; they remain locked and, when deprecated or retired, inactive but removable; new selections use the active version                                                                                                                                                  | Changes recording, current state, target and history UX               |
 | Legacy absence                | Original five enabled; all current system definitions enabled; explicit migration; another stated behavior                                                                                                                                                                                                                              | Determines what existing Aquariums see after release                  |
 | System catalogue              | Keep five; add selected IDs; broad catalogue; classification- or component-aware lists                                                                                                                                                                                                                                                  | Determines semantic definitions, tests, Rules and UI                  |
-| Custom scope                  | **User decision recorded:** global Veril catalogue; every Aquarium may independently select whether to use it                                                                                                                                                                                                                           | Determines identity, reuse and authorization                          |
+| Custom scope                  | **User decision recorded:** global TankOS catalogue; every Aquarium may independently select whether to use it                                                                                                                                                                                                                           | Determines identity, reuse and authorization                          |
 | Custom identity and lifecycle | **User decision recorded:** server-generated opaque immutable ID; keepers create; only administrators publish/edit/delete; admin edits create a new version; published/used versions are deprecated or retired, while never-published/unused drafts may be physically deleted; public availability is independent of Aquarium selection | Protects historical reconstruction and portability                    |
 | Units                         | Multiple compatible input Units; one canonical Digital Twin Unit; explicit equivalence/conversion; user-defined Units under a stated vocabulary                                                                                                                                                                                         | Determines numeric contracts and import/calculator behavior           |
 | Numeric semantics             | Per-Parameter negative/zero/precision rules, plausibility, overrides                                                                                                                                                                                                                                                                    | Avoids applying current non-negative rules to incompatible quantities |
@@ -835,17 +835,17 @@ not a required edit list for every selected phase.
 
 | Boundary                    | Current fixed-Parameter dependency                                                                                             |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Measurement domain          | `apps/veril/src/app/measurements/domain/measurement.ts` defines IDs, Units, compatibility and numeric/provenance validation    |
-| Shared domain               | `apps/veril/src/app/shared/domain/parameter-reference.ts` and `aquarium-reference.ts` define the shared IDs and targets        |
-| Aquarium domain/application | `apps/veril/src/app/aquarium-management/domain/aquarium.ts` plus target save/remove/read ports and adapters                    |
-| Presentation                | `apps/veril/src/app/shared/ui/parameter-presentation.ts` holds Spanish labels/display Units                                    |
-| Capture UI                  | `apps/veril/src/app/measurements/ui/pages/record-measurement-page.*` assumes all definitions are selectable                    |
-| Current state               | `apps/veril/src/app/composition/aquarium-dashboard/aquarium-dashboard-store.ts` maps all fixed IDs into status cards           |
-| Target UI                   | `apps/veril/src/app/aquarium-management/ui/pages/configure-parameter-targets-page.*` maps all fixed IDs into editable rows     |
-| Owner history               | `apps/veril/src/app/measurements/ui/pages/parameter-history-page.*` filters by one fixed ID                                    |
-| Guest history               | `apps/veril/src/app/shared-access/ui/shared-parameter-history-page.*` has a second local five-ID list                          |
+| Measurement domain          | `apps/tankos/src/app/measurements/domain/measurement.ts` defines IDs, Units, compatibility and numeric/provenance validation    |
+| Shared domain               | `apps/tankos/src/app/shared/domain/parameter-reference.ts` and `aquarium-reference.ts` define the shared IDs and targets        |
+| Aquarium domain/application | `apps/tankos/src/app/aquarium-management/domain/aquarium.ts` plus target save/remove/read ports and adapters                    |
+| Presentation                | `apps/tankos/src/app/shared/ui/parameter-presentation.ts` holds Spanish labels/display Units                                    |
+| Capture UI                  | `apps/tankos/src/app/measurements/ui/pages/record-measurement-page.*` assumes all definitions are selectable                    |
+| Current state               | `apps/tankos/src/app/composition/aquarium-dashboard/aquarium-dashboard-store.ts` maps all fixed IDs into status cards           |
+| Target UI                   | `apps/tankos/src/app/aquarium-management/ui/pages/configure-parameter-targets-page.*` maps all fixed IDs into editable rows     |
+| Owner history               | `apps/tankos/src/app/measurements/ui/pages/parameter-history-page.*` filters by one fixed ID                                    |
+| Guest history               | `apps/tankos/src/app/shared-access/ui/shared-parameter-history-page.*` has a second local five-ID list                          |
 | Other consumers             | Measurement list, corrections, Timeline previews, routes, fixture builders and focused unit/component tests                    |
-| Adapter validation          | `apps/veril/src/app/measurements/infrastructure/firestore-measurement-repository.ts` validates fixed IDs/Units with Zod        |
+| Adapter validation          | `apps/tankos/src/app/measurements/infrastructure/firestore-measurement-repository.ts` validates fixed IDs/Units with Zod        |
 | Firestore Rules             | `firestore.rules` whitelists five `parameterId` values and their Units; Aquarium target validation is bounded to the same keys |
 | Firestore indexes           | `firestore.indexes.json` has Parameter-history query indexes; a changed query shape requires explicit index review             |
 
@@ -887,7 +887,7 @@ Every selected phase should use the layers it changes.
 | Architecture         | `sheriff` boundaries remain valid; domain does not acquire Angular/Firebase/Zod dependencies                                                     |
 | Regression           | Existing five-Parameter record, target, status, correction, owner-history and guest-history journeys still pass                                  |
 
-The current workspace exposes `veril` targets for `test`, `lint`, `architecture`,
+The current workspace exposes `tankos` targets for `test`, `lint`, `architecture`,
 `build`, `e2e` and `e2e-ci`. The selected specification should name the focused
 tests first, then expand to the full affected target set before completion.
 

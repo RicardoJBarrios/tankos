@@ -35,6 +35,6 @@ spreadsheets after a tank stabilizes.
 
 ## Strategic implication
 
-Veril should not assume frequent measurement is the universal job. It should
+TankOS should not assume frequent measurement is the universal job. It should
 support episodic logging and make the reason for a record clear: baseline,
 change, problem investigation or routine care.

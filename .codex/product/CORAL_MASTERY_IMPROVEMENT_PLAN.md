@@ -1,4 +1,4 @@
-# Coral Mastery Gap and Veril Improvement Plan
+# Coral Mastery Gap and TankOS Improvement Plan
 
 **Status:** candidate product plan; implementation is not authorized by this
 document.
@@ -15,9 +15,9 @@ an authenticated free account without purchases, reservations, subscriptions or
 commercial contact.
 
 This document records a comparative product audit and turns the useful findings
-into small, ordered improvement candidates for Veril. It is written so that an
+into small, ordered improvement candidates for TankOS. It is written so that an
 implementation agent with limited context can execute one accepted slice at a
-time without copying Coral Mastery's domain assumptions or weakening Veril's
+time without copying Coral Mastery's domain assumptions or weakening TankOS's
 history, authorization and evidence rules.
 
 Broader external proposals around an Aquarium Digital Model, evidence graphs,
@@ -81,11 +81,11 @@ true:
 
 ## 2. Audit method and evidence limits
 
-The audit used one fictitious Aquarium named `Veril` with 105 litres, invented
+The audit used one fictitious Aquarium named `TankOS` with 105 litres, invented
 equipment and inhabitants, three historical Measurement sets, one Water Change
 log entry, one weekly routine and one CoralBot conversation. The account's
 existing personal identity and contact data were not part of the analysis and
-must not be copied into Veril documentation or fixtures.
+must not be copied into TankOS documentation or fixtures.
 
 The following flows were exercised or inspected:
 
@@ -258,14 +258,14 @@ advanced recurrence model. Basic's care-related differentiation is therefore
 mainly increased AI/photo usage and advanced interpretation. Pro's additional
 value is predominantly commercial.
 
-For Veril, the relevant product hypotheses are the underlying user outcomes —
+For TankOS, the relevant product hypotheses are the underlying user outcomes —
 photo evidence, bounded analysis and useful history — not the quota or loyalty
 mechanics. Unlimited probabilistic output is not itself a quality improvement,
 and commercial priority must not become part of care advice through this plan.
 
 ## 4. Defects and product risks observed
 
-| Finding                                                              | Evidence                                                                                                              | Risk if copied into Veril                           |
+| Finding                                                              | Evidence                                                                                                              | Risk if copied into TankOS                           |
 | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
 | Onboarding remains at 4/5 after a stored CoralBot conversation       | The conversation persisted and consumed one free use, but the checklist still showed `Hablar con CoralBot` incomplete | A progress indicator can become false product state |
 | Historical values and complete records can be overwritten or deleted | Edit and permanent-delete actions are present in history                                                              | Loss of evidence and correction provenance          |
@@ -279,9 +279,9 @@ and commercial priority must not become part of care advice through this plan.
 | Measurement validity is not clear at entry                           | Most numeric controls lacked native bounds                                                                            | Impossible data may reach interpretation surfaces   |
 | Care and commerce are coupled                                        | AI, notifications, loyalty and opportunities can lead to products                                                     | Advice may be biased by conversion goals            |
 
-## 5. Current Veril baseline
+## 5. Current TankOS baseline
 
-Veril's current baseline already provides:
+TankOS's current baseline already provides:
 
 - a selected, visible Aquarium context and the `Hoy`, `Agenda`, `Historial` and
   `Acuario` information architecture;
@@ -307,14 +307,14 @@ pending user decision in the Product Idea Register.
 
 ## 6. Comparative gap
 
-| Capability             | Coral Mastery                                       | Veril                                                        | Prior agent assessment; not a decision                                      |
+| Capability             | Coral Mastery                                       | TankOS                                                        | Prior agent assessment; not a decision                                      |
 | ---------------------- | --------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------- |
 | Parameter selection    | Broad form with primary and advanced sections       | The same five compile-time Parameters for every Aquarium     | Centralize definitions and let each Aquarium enable and order its subset    |
 | Custom Parameters      | No user-defined semantic definition was observed    | Closed product-defined catalogue                             | Discover separately; a free name and Unit are not sufficient                |
 | Parameter breadth      | Broad primary and laboratory catalogue              | Five closed Parameters                                       | Adopt incrementally, starting with calcium, magnesium and pH                |
-| Entry validation       | Broad form, unclear value bounds                    | Finite, non-negative domain validation and canonical units   | Preserve Veril validation; add plausibility only after evidence             |
-| Parameter targets      | Product-defined ranges                              | Keeper-owned optional intervals                              | Keep Veril's model; do not copy defaults                                    |
-| Historical correction  | Replace and delete                                  | Append-only correction Fact                                  | Keep Veril's model                                                          |
+| Entry validation       | Broad form, unclear value bounds                    | Finite, non-negative domain validation and canonical units   | Preserve TankOS validation; add plausibility only after evidence             |
+| Parameter targets      | Product-defined ranges                              | Keeper-owned optional intervals                              | Keep TankOS's model; do not copy defaults                                    |
+| Historical correction  | Replace and delete                                  | Append-only correction Fact                                  | Keep TankOS's model                                                          |
 | Charts                 | Rich time-series and comparison charts              | Filtered tabular history                                     | Add descriptive charts without causal or health claims                      |
 | Biological observation | Checklists for algae, pests, water and corals       | Free-text Observation                                        | Add optional structured facets without losing narrative text                |
 | Photos                 | Log photos and AI photo intents                     | No attachments                                               | Add evidence attachments before AI analysis                                 |
@@ -323,7 +323,7 @@ pending user decision in the Product Idea Register.
 | Reminders              | Advance notice and push                             | In-app due/upcoming awareness only                           | Add only after consent and delivery semantics are specified                 |
 | Equipment maintenance  | Category and routine text                           | Equipment has identity/lifecycle but no service relationship | Relate accepted Care to Equipment without merging aggregates                |
 | AI                     | Contextual chat, photo analysis and products        | Future optional capability                                   | Defer until evidence, privacy, evaluation and commercial independence exist |
-| Sharing                | Shares app URL                                      | Scoped Aquarium read grants                                  | Keep Veril's stronger capability                                            |
+| Sharing                | Shares app URL                                      | Scoped Aquarium read grants                                  | Keep TankOS's stronger capability                                            |
 | Loyalty and shop       | Integrated                                          | Absent                                                       | Do not add through this plan                                                |
 
 ## 7. Agent-drafted priority order pending user decision
@@ -337,7 +337,7 @@ Aquarium display the same entry choices.
 
 “Configurable Parameters” must be split into three different capabilities:
 
-1. **System Parameter definition catalogue.** Veril owns stable semantic
+1. **System Parameter definition catalogue.** TankOS owns stable semantic
    definitions such as temperature or alkalinity, their canonical Units and
    compatible input Units. The catalogue may remain code-owned initially, but
    it needs one authoritative boundary rather than duplicated arrays.
@@ -346,7 +346,7 @@ Aquarium display the same entry choices.
    recording and current-state surfaces; disabling a Parameter must never
    delete its Measurements or silently remove historical access.
 3. **Custom Parameter definitions.** A keeper may eventually define a new
-   numeric quantity not yet in Veril. This is a separate, higher-risk
+   numeric quantity not yet in TankOS. This is a separate, higher-risk
    capability because identity, Unit meaning, rename/archive behavior,
    targets, sharing, export and historical reconstruction must remain stable.
 
@@ -435,7 +435,7 @@ delivery or probabilistic systems.
 ### Proposals previously excluded by the agent, restored pending user decision
 
 Every item below remains available for user selection. The list shows where a
-choice conflicts with current accepted Veril documentation and would require
+choice conflicts with current accepted TankOS documentation and would require
 that documentation to be reconsidered:
 
 - health or Aquarium-quality scores;
@@ -490,7 +490,7 @@ useful. Re-slice the outcome before implementation.
 
 **Status:** candidate; requires Phase 0 specification.
 
-**Outcome:** Veril has one authoritative system Parameter definition boundary,
+**Outcome:** TankOS has one authoritative system Parameter definition boundary,
 and a keeper can choose and order the built-in Parameters used by one Aquarium
 without altering historical evidence.
 
@@ -513,9 +513,9 @@ Aquarium-specific configuration.
 
 **Starting files:**
 
-- `apps/veril/src/app/measurements/domain/measurement.ts`;
-- `apps/veril/src/app/shared/domain/parameter-reference.ts`;
-- `apps/veril/src/app/shared/ui/parameter-presentation.ts`;
+- `apps/tankos/src/app/measurements/domain/measurement.ts`;
+- `apps/tankos/src/app/shared/domain/parameter-reference.ts`;
+- `apps/tankos/src/app/shared/ui/parameter-presentation.ts`;
 - Aquarium domain/application configuration and Dashboard context;
 - Measurement application ports, repository schemas and UI pages;
 - Parameter Target and shared-history readers;
@@ -608,8 +608,8 @@ display, timezone and accessibility fallback.
 **Starting files:**
 
 - `.codex/specifications/parameter-history.md` or a new focused specification;
-- `apps/veril/src/app/measurements/application/list-parameter-history.ts`;
-- `apps/veril/src/app/measurements/ui/pages/parameter-history-page.*`;
+- `apps/tankos/src/app/measurements/application/list-parameter-history.ts`;
+- `apps/tankos/src/app/measurements/ui/pages/parameter-history-page.*`;
 - shared guest history only after the owner chart is accepted;
 - `package.json` only if an external chart dependency is proven necessary.
 
@@ -653,9 +653,9 @@ copied wholesale.
 **Starting files:**
 
 - `.codex/specifications/record-observation.md`;
-- `apps/veril/src/app/observations/domain/observation.ts`;
+- `apps/tankos/src/app/observations/domain/observation.ts`;
 - Observation application ports and use cases;
-- `apps/veril/src/app/observations/infrastructure/firestore-observation-repository.ts`;
+- `apps/tankos/src/app/observations/infrastructure/firestore-observation-repository.ts`;
 - Observation record/list UI and Timeline mapping;
 - Firestore Rules and malformed-document tests.
 
@@ -736,9 +736,9 @@ must not save immediately on tap.
 
 **Starting files:**
 
-- `apps/veril/src/app/shells/private-shell/record-entry-sheet.*`;
+- `apps/tankos/src/app/shells/private-shell/record-entry-sheet.*`;
 - focused recording pages and their route-state handling;
-- `apps/veril/src/app/composition/aquarium-dashboard/`;
+- `apps/tankos/src/app/composition/aquarium-dashboard/`;
 - keeper-journey Playwright tests.
 
 **Ordered work:**
@@ -775,7 +775,7 @@ becoming a generic scheduler.
 
 **Starting files:**
 
-- `apps/veril/src/app/care/domain/recurring-care-plan.ts`;
+- `apps/tankos/src/app/care/domain/recurring-care-plan.ts`;
 - recurrence calculation and application use cases;
 - Firestore planned-care repository and Rules;
 - recurring creation and Agenda UI;
@@ -904,7 +904,7 @@ must not diagnose, prescribe treatment or invent biological targets.
 6. The assistant must not suggest products when the user prohibits purchases.
 
 **Acceptance:** the candidate passes the evaluation set and remains fully
-optional. Failure or quota exhaustion leaves all ordinary Veril workflows
+optional. Failure or quota exhaustion leaves all ordinary TankOS workflows
 usable.
 
 **Stop if:** the implementation begins before an accepted privacy and evaluation
@@ -1080,7 +1080,7 @@ protocol persistence, Agenda/Registrar entry points and accessibility tests.
 4. Avoid conditions, branching, scripts or generic workflow execution.
 5. Add templates only as editable suggestions with clear provenance.
 
-**Acceptance:** the keeper can follow and reuse a procedure without Veril
+**Acceptance:** the keeper can follow and reuse a procedure without TankOS
 claiming that unchecked or background work occurred.
 
 **Stop if:** the design introduces a generic workflow engine.
@@ -1095,7 +1095,7 @@ claiming that unchecked or background work occurred.
 photos, Care Work, Water Changes, Livestock and Equipment while investigating
 one declared problem.
 
-**Boundary:** an Incident is opened and closed by the keeper. Veril does not
+**Boundary:** an Incident is opened and closed by the keeper. TankOS does not
 detect disease, assign severity or create Incidents from scores.
 
 **Starting areas:** a new accepted Incident specification and domain only after
@@ -1149,7 +1149,7 @@ the export contract.
 4. Test formula injection and encoding in CSV.
 5. Add import only with dry-run validation and recoverable failure semantics.
 
-**Acceptance:** exported data is understandable outside Veril and preserves the
+**Acceptance:** exported data is understandable outside TankOS and preserves the
 meaning needed to reconstruct history.
 
 **Stop if:** import is treated as arbitrary Firestore document upload.
@@ -1270,9 +1270,9 @@ Every accepted implementation phase must choose tests proportionally:
 Repository-wide checks after a code phase normally include:
 
 ```bash
-pnpm exec nx lint veril
-pnpm exec nx test veril --skipNxCache
-pnpm exec nx build veril --configuration=production
+pnpm exec nx lint tankos
+pnpm exec nx test tankos --skipNxCache
+pnpm exec nx build tankos --configuration=production
 pnpm exec nx format:check --base=<actual-base>
 git diff --check
 ```
@@ -1281,7 +1281,7 @@ Use the resolved Nx project configuration to discover the current E2E and
 emulator targets rather than copying a stale command from this plan:
 
 ```bash
-pnpm exec nx show project veril --json
+pnpm exec nx show project tankos --json
 ```
 
 Do not claim a phase complete when a required manual or provider-backed check
@@ -1404,5 +1404,5 @@ This improvement programme succeeds when:
 - absence preparation distinguishes planned, reported and evidenced work;
 - any future AI reports uncertainty, cites sources, follows user constraints and
   never silently changes Aquarium truth;
-- Veril remains useful without commerce, engagement rewards, AI or background
+- TankOS remains useful without commerce, engagement rewards, AI or background
   delivery.

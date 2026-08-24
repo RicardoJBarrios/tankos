@@ -2,7 +2,7 @@
 
 ## Identity and identifiers
 
-Aggregate identities generated internally by Veril are opaque, stable UUID v4
+Aggregate identities generated internally by TankOS are opaque, stable UUID v4
 strings. The application generates them locally with the platform
 `crypto.randomUUID()` capability before constructing the aggregate; the domain
 receives its explicit branded identity type and never a Firebase identifier

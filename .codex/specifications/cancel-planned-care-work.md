@@ -29,9 +29,9 @@ There is no `cancelled` status, `CancelledPlannedCareWork`, `cancelledAt`,
 
 1. The keeper opens `Cuidados planificados`.
 2. The keeper chooses `Cancelar` for one planned intention.
-3. Veril asks for confirmation because the intention will disappear.
+3. TankOS asks for confirmation because the intention will disappear.
 4. The keeper confirms.
-5. Veril removes the owned planned intention.
+5. TankOS removes the owned planned intention.
 6. The item disappears only after persistence succeeds.
 
 ## Failure and concurrency behaviour

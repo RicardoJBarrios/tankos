@@ -1,4 +1,4 @@
-# Veril Mental Model
+# TankOS Mental Model
 
 **Status:** canonical conceptual model. The definitions marked **accepted** are
 part of the shared domain language. All cardinalities, invariants and behavior
@@ -6,7 +6,7 @@ not explicitly accepted remain hypotheses.
 
 ## Product and domain
 
-**Veril is the product:** the application used to present and operate managed
+**TankOS is the product:** the application used to present and operate managed
 aquarium care. It is never an `Aquarium`, `AquariumComponent` or a
 particular ecosystem.
 
@@ -14,7 +14,7 @@ particular ecosystem.
 manageable care system. It does not imply a user, a SaaS tenancy, one Aquarium,
 multiple Aquariums or a particular storage model.
 
-The first Aquarium created in this project will be named **Veril**. That is the
+The first Aquarium created in this project will be named **TankOS**. That is the
 name of one domain instance, not a redefinition of the product or domain. The
 first experience may begin with that real Aquarium, while the domain supports
 independent Aquariums without a product-level maximum.
@@ -174,7 +174,7 @@ configuration changes, observation, equipment supervision and gradual care.
 
 It must never be copied as a generic data model, Firestore design, entity list,
 architecture, equipment catalogue, species catalogue, parameter target or
-technical decision. Its concrete Veril scenario is one future Aquarium instance
+technical decision. Its concrete TankOS scenario is one future Aquarium instance
 and a rich source of examples, not the product specification.
 
 Incorporate a corpus insight only through the affected specification, glossary

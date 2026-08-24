@@ -35,7 +35,7 @@ mutate the `Observation` aggregate and does not create a Domain Event or Fact.
 
 ## Time and ordering
 
-The current Observation model has only `recordedAt`, meaning when Veril
+The current Observation model has only `recordedAt`, meaning when TankOS
 accepted the durable record. Observations are ordered by:
 
 1. `recordedAt` descending;

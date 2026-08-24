@@ -54,7 +54,7 @@ parameter and operating phase, but does not justify one product-wide threshold.
 ## Parameter targets
 
 This increment defines no target ranges. The external Aquarium corpus contains
-contextual recommendations and scenario-specific values, not a universal Veril
+contextual recommendations and scenario-specific values, not a universal TankOS
 policy. Subsequent accepted capabilities define keeper-owned targets and
 Parameter Status; neither changes this increment's no-freshness policy.
 

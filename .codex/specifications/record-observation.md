@@ -5,7 +5,7 @@
 ## User value
 
 The keeper can preserve a concise, contextual account of something noticed in
-an Aquarium and return to that evidence later. This validates Veril's core
+an Aquarium and return to that evidence later. This validates TankOS's core
 promise of understanding care through recorded context rather than isolated
 data.
 

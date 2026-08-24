@@ -84,7 +84,7 @@ aggregate or Firestore document.
 ## Time and ordering
 
 - Observation `effectiveAt` is `recordedAt`, because that is the only accepted
-  Observation time and means when Veril accepted the evidence.
+  Observation time and means when TankOS accepted the evidence.
 - Measurement `effectiveAt` is `measuredAt`, because it represents when the
   quantitative condition was measured.
 - Care Work `effectiveAt` is `performedAt`, because it represents when the

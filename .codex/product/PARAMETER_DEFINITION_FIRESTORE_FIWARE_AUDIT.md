@@ -236,7 +236,7 @@ An opaque Firestore `definitionId` must not be presented as if it were already
 a globally meaningful NGSI-LD URI.
 
 **Recommendation:** keep the internal IDs and expose a stable standard-facing
-mapping, for example a documented `urn:veril:parameter-definition:{definitionId}`
+mapping, for example a documented `urn:tankos:parameter-definition:{definitionId}`
 URI or an equivalent HTTPS URI. Keep the JSON-LD `@context`, entity `type`,
 Property/Relationship shape and `datasetId`/method distinction in the contract
 from the first slice. Do not make Firestore documents NGSI-LD by adding a few
@@ -246,12 +246,12 @@ field names, and do not postpone this mapping to a later integration phase.
 
 FIWARE's `WaterQualityObserved` is designed to represent water-quality
 observations and measurands. `FishContainment` and `Sump` are useful structural
-references for aquaculture, but they do not define Veril's catalogue or every
+references for aquaculture, but they do not define TankOS's catalogue or every
 reef-aquarium concept.
 
 **Recommendation:** map the Aquarium Digital Twin to the closest structural
 entity and map current projected quantitative values as NGSI-LD Properties.
-Keep immutable Veril Measurements as evidence records. Use separate
+Keep immutable TankOS Measurements as evidence records. Use separate
 observation/derivation mappings for source readings and calculated salinity;
 do not flatten every ParameterDefinition into an attribute of
 `WaterQualityObserved`.
@@ -268,19 +268,19 @@ version, whether each Measurement exports as a separate observation entity, or
 whether only the Digital Twin projection uses dataset instances. Preserve the
 original source and method in all cases.
 
-### Medium — FIWARE schemas do not remove the need for Veril validation
+### Medium — FIWARE schemas do not remove the need for TankOS validation
 
 Smart Data Models provide interoperable shapes, but a generic water-quality
-model does not automatically define Veril's keeper permissions, Aquarium
+model does not automatically define TankOS's keeper permissions, Aquarium
 profiles, historical snapshots, correction rules or custom-property lifecycle.
 
 **Recommendation:** use the established Smart Data Models and their schemas or
 fixtures from the first implementation slice. `ParameterDefinition` remains a
-Veril catalogue extension, while Measurements and Digital Twin projections
-reuse the closest applicable standard structures. Keep Veril's domain
+TankOS catalogue extension, while Measurements and Digital Twin projections
+reuse the closest applicable standard structures. Keep TankOS's domain
 validation explicit, and validate each persisted/exported contract against the
 selected standard model. There is no separate later adapter phase; any
-Veril-specific extension is versioned and tested where it is introduced.
+TankOS-specific extension is versioned and tested where it is introduced.
 
 ## 2. Firestore implementation recommendations
 
@@ -367,11 +367,11 @@ The contract must specify:
 
 The following strategy is now the consolidated direction:
 
-1. Define the canonical Veril contracts for definitions, versions, profiles,
+1. Define the canonical TankOS contracts for definitions, versions, profiles,
    snapshots, Units and Methods.
 2. Select the closest established FIWARE Smart Data Models and schemas for
    Measurements and Digital Twin projections.
-3. Keep `ParameterDefinition` as an explicit Veril catalogue extension, with
+3. Keep `ParameterDefinition` as an explicit TankOS catalogue extension, with
    documented standard-facing identifiers where it is exported.
 4. Implement the trusted server boundary and authorization model.
 5. Implement Firestore heads, immutable versions, profiles, indexes and Rules.

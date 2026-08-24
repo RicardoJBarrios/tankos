@@ -276,7 +276,7 @@ system-definition collisions and restoration/export semantics.
 ### PAR-002/PAR-003 — User catalogue, marketplace and Aquarium selection
 
 **Decision:** the product will have a marketplace/catalogue of
-`ParameterDefinition` items. Custom definitions belong to the global Veril
+`ParameterDefinition` items. Custom definitions belong to the global TankOS
 catalogue and each Aquarium has its own profile from which the keeper chooses
 which definitions that Aquarium uses.
 
@@ -289,13 +289,13 @@ separate concepts. A definition can exist without being enabled in every
 Aquarium. The profile must not delete or make historical Measurements
 unreadable when a definition is deselected.
 
-**Scope decision:** a custom definition belongs to the global Veril catalogue
+**Scope decision:** a custom definition belongs to the global TankOS catalogue
 and is available to all Aquariums. Each keeper independently selects whether
 to use it in each Aquarium they manage. The Aquarium profile only selects
 local use; it does not duplicate, transfer or change catalogue authorship or
 management permissions.
 
-**Deletion decision:** deletion uses Veril's general mark-then-physical-delete
+**Deletion decision:** deletion uses TankOS's general mark-then-physical-delete
 lifecycle. An administrator marks the definition for deletion, which removes
 it from new Measurement and Aquarium-selection flows while historical
 Measurements retain an embedded interpretation snapshot. A later physical
@@ -335,26 +335,26 @@ including presentation-only changes, creates a new complete version.
 
 Creator and administrative provenance are persisted. FIWARE/UN/CEFACT mapping
 uses standard codes when available and documented mapping metadata otherwise;
-Veril does not invent standard codes. The final specification is
+TankOS does not invent standard codes. The final specification is
 [`PARAMETER_DEFINITION_FINAL_SPEC.md`](PARAMETER_DEFINITION_FINAL_SPEC.md).
 
-**Implementation direction:** because Veril has no users or production data,
+**Implementation direction:** because TankOS has no users or production data,
 the hard-coded five-Parameter implementation will be replaced directly. No
 compatibility migration of production Measurements is required; only source
 tests and fixtures need to be updated.
 
 FIWARE interoperability will be modelled from the beginning with established
 Smart Data Models and their tested schemas/fixtures. It will not be deferred to
-a later adapter phase. Veril-specific extensions remain explicit and must be
+a later adapter phase. TankOS-specific extensions remain explicit and must be
 tested when introduced.
 
-**Clarification:** `ParameterDefinition` itself is a Veril semantic catalogue
+**Clarification:** `ParameterDefinition` itself is a TankOS semantic catalogue
 extension because there is no directly equivalent Smart Data Model. Measurements
 and Digital Twin projections will reuse the closest established FIWARE
 structures from the first slice, including `WaterQualityObserved`, NGSI-LD
 `Property`/`Relationship`, `unitCode`, `observedAt`, Feature of Interest and
 the applicable Aquaculture structures. No parallel non-standard Measurement
-model will be introduced merely because the catalogue has a Veril extension.
+model will be introduced merely because the catalogue has a TankOS extension.
 
 ### AquariumSystem — Aquarium as one managed system
 
@@ -393,14 +393,14 @@ reference for aquarium measurements; FIWARE `Device`/`DeviceModel` concepts
 remain relevant when a sensor or device is the source. FIWARE guidance uses
 `unitCode` for non-default Units and points to three-character UN/CEFACT codes.
 
-**Still open:** whether Veril's internal domain is natively NGSI-LD or has a
+**Still open:** whether TankOS's internal domain is natively NGSI-LD or has a
 provider-neutral domain mapped to FIWARE; the exact entity/model composition;
 the JSON-LD context; the mapping of aquarium-specific quantities such as dKH;
-and whether Veril contributes an aquarium-specific Smart Data Model.
+and whether TankOS contributes an aquarium-specific Smart Data Model.
 
 ### SYS-001/PAR-025 — Digital Twin with observations and projected properties
 
-**Decision:** Veril will represent the Aquarium as a Digital Twin. Quantitative
+**Decision:** TankOS will represent the Aquarium as a Digital Twin. Quantitative
 measurements/observations remain first-class immutable historical evidence with
 time and provenance. The current state of the Digital Twin may additionally be
 projected as current Properties compatible with the selected FIWARE/NGSI-LD
@@ -483,7 +483,7 @@ Each Unit will also define its appropriate textual presentation: standard
 symbol or scientific name, Unicode form, spacing and placement before or after
 the value. This presentation metadata
 is separate from the stable Unit identity and `unitCode`. The Unit
-representation will not vary by interface language; Veril will always use the
+representation will not vary by interface language; TankOS will always use the
 scientifically appropriate standard notation and symbol.
 
 ### Measurement method catalogue
@@ -502,7 +502,7 @@ Measurements. The catalogue retains authorship and distinguishes standard
 methods from keeper-created methods. Keeper-created methods are usable
 immediately, even when they do not yet have a standard reference; moderators
 and administrators may review or enrich that reference later. Retiring a
-method must not remove it from historical Measurements. Veril will use a
+method must not remove it from historical Measurements. TankOS will use a
 strict NoSQL model: Measurements will not have foreign keys or mandatory
 referential lookups. The method context required for historical interpretation
 will be embedded as a snapshot in the Measurement. A stable method identifier
@@ -512,17 +512,17 @@ existing historical Measurements.
 
 ### Global complete-data lifecycle rule
 
-**Decision:** across Veril, a record may be created or edited only when it
+**Decision:** across TankOS, a record may be created or edited only when it
 satisfies the complete validity contract for its type. An incomplete record
 cannot be created or edited, but it may be deleted. This applies to methods,
-`ParameterDefinition`, Measurements and other Veril data. Historical immutable
+`ParameterDefinition`, Measurements and other TankOS data. Historical immutable
 evidence remains self-contained; valid historical Measurements are not made
 deletable by this rule, while an invalid legacy record can be removed without a
 referential cascade.
 
 ### Versioned completeness and validation schemas
 
-**Decision:** every Veril data type will have a versioned completeness and
+**Decision:** every TankOS data type will have a versioned completeness and
 validation schema. Each persisted record will carry the schema version needed
 to interpret its validity and historical shape. New schema versions may add or
 change validation rules without rewriting valid historical records; every
@@ -649,7 +649,7 @@ originating management screen does not wait for completion. No locking or
 special conflict-management path is required. Concurrent operations use
 last-applied-wins semantics: if a modification and deletion compete, deletion
 wins when it is applied; if multiple modifications compete, the last applied
-modification wins. This is a global Veril concurrency rule and applies to
+modification wins. This is a global TankOS concurrency rule and applies to
 individual operations as well as batch operations.
 
 Deletion is terminal: if a later modification reaches a record already deleted,
@@ -679,7 +679,7 @@ the restoration as lifecycle metadata, without changing business content.
 
 ### PAR-025 — Canonical internal Measurement
 
-**Decision:** `Measurement` is the canonical internal Veril concept for one
+**Decision:** `Measurement` is the canonical internal TankOS concept for one
 quantitative historical reading. It is enriched with the semantic information
 needed to map it to SOSA/SSN and NGSI-LD representations. `Observation` and
 `Property` are interoperability/projection representations of that evidence,
@@ -714,8 +714,8 @@ is supplied, the `FeatureOfInterest` is the complete Aquarium system.
 
 ### Standards-first modelling principle
 
-**Decision:** Veril will approach FIWARE Smart Data Models, NGSI-LD, SOSA/SSN
-and UN/CEFACT semantics as closely as possible. Veril-specific concepts are
+**Decision:** TankOS will approach FIWARE Smart Data Models, NGSI-LD, SOSA/SSN
+and UN/CEFACT semantics as closely as possible. TankOS-specific concepts are
 allowed only where those standards do not cover an aquarium requirement, and
 each extension must document its relationship to the closest standard concept.
 
@@ -741,9 +741,9 @@ and `Sump` for a water-treatment and recirculation unit with water-quality
 properties. Related models include `Specie`, `FishPopulation`, `Feed`, `Feeder`
 and `FeedingOperation`.
 
-**Interpretation for Veril:** these are the closest discovered FIWARE domain
+**Interpretation for TankOS:** these are the closest discovered FIWARE domain
 references for the Aquarium Digital Twin. They are aquaculture-oriented rather
 than reef-aquarium-specific and currently use early model versions, so they are
 reference/composition candidates rather than an unconditional copy of the
-Veril domain. `WaterQualityObserved` and SOSA/SSN remain relevant for the
+TankOS domain. `WaterQualityObserved` and SOSA/SSN remain relevant for the
 measurement/observation semantics.

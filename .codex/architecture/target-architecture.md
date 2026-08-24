@@ -5,7 +5,7 @@ Last external verification: 2026-08-07.
 
 ## 1. Scope and current baseline
 
-Veril is the product application for aquarium management and presentation
+TankOS is the product application for aquarium management and presentation
 across freshwater, saltwater, brackish, planted, reef, shrimp, snail and mixed
 systems. This document defines technical direction; it does not define the
 Firestore schema or product requirements.
@@ -43,7 +43,7 @@ Observed workspace baseline:
 - Node 24, pnpm 11.17.0, Nx 23.1.1, Angular 20.3.27 and TypeScript 5.8.3.
 - Angular Material/CDK 20.2.14, Service Worker and SSR 20.3.27.
 - AngularFire 20.0.1, Firebase JS SDK 12.17.1 and NgRx Signals 20.1.0.
-- One application, `veril`, with standalone routing and public/private shells.
+- One application, `tankos`, with standalone routing and public/private shells.
 - Static output with public prerendering and private CSR.
 - Build, serve, lint, test, serve-static and inferred Playwright `e2e` targets.
 - The application is tagged `scope:app` and `type:app`; no domain libraries
@@ -78,7 +78,7 @@ Firebase Hosting + CDN
                           Firebase / AngularFire / Zod
 ```
 
-`apps/veril` is the composition root for bootstrap, root routes, shells and
+`apps/tankos` is the composition root for bootstrap, root routes, shells and
 cross-cutting configuration. The domain layer must not depend on Angular,
 Firebase, AngularFire, Zod or NgRx.
 
@@ -92,7 +92,7 @@ generic widget engine or a global store.
 The preferred local feature shape is:
 
 ```text
-apps/veril/src/app/<domain>/
+apps/tankos/src/app/<domain>/
   domain/
   application/
   infrastructure/
@@ -102,10 +102,10 @@ apps/veril/src/app/<domain>/
     previews/    # compact context-owned summaries
     utils/       # UI-only formatting and presentation helpers
 
-apps/veril/src/app/composition/<experience>/
+apps/tankos/src/app/composition/<experience>/
   # cross-context pages and presentation orchestration
 
-apps/veril/src/app/shells/<shell>/
+apps/tankos/src/app/shells/<shell>/
   # layout, route outlet, restoration and composition-root providers only
 ```
 
@@ -390,8 +390,8 @@ a global dumping ground.
 Until contexts become separate Nx projects, [Sheriff](../../sheriff.config.ts)
 enforces the equivalent intra-application boundary. It assigns context and
 layer tags to the current screaming-architecture directories, checks the
-explicit context dependency map, and runs as the `veril:architecture` target.
-The `veril:lint` target depends on that target, so a normal lint run cannot
+explicit context dependency map, and runs as the `tankos:architecture` target.
+The `tankos:lint` target depends on that target, so a normal lint run cannot
 silently bypass the architectural check. No bounded context is allowed to
 import another bounded context directly. Cross-context pages live under
 `composition`; adapters are bound to consumer-owned ports in shell composition

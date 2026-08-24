@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-`veril` needs a modern web platform, consistent workspace tooling and an
+`tankos` needs a modern web platform, consistent workspace tooling and an
 accessible component system that can grow without creating parallel conventions.
 See the [target architecture](../architecture/target-architecture.md).
 

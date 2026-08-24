@@ -44,7 +44,7 @@ core logging/history loop.
 They require stronger evidence, external data quality, safety, privacy or
 operational commitments.
 
-## Do not implement as part of Veril's core
+## Do not implement as part of TankOS's core
 
 - A universal life-support controller.
 - A generic social network or marketplace.
@@ -52,11 +52,11 @@ operational commitments.
 - A large reference database without a sustainable editorial model.
 
 These are either served by existing ecosystems or create liability and scope
-without evidence of a Veril-specific advantage.
+without evidence of a TankOS-specific advantage.
 
 ## Critical caveat
 
 “MVP” here is a research hypothesis, not a product decision. The next validation
 should observe new, stable, multi-tank and controller-led keepers completing a
-real record-and-review task and compare Veril with their current notebook,
+real record-and-review task and compare TankOS with their current notebook,
 spreadsheet or app.

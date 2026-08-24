@@ -39,7 +39,7 @@ The first aggregate contains:
 - `AquariumId`;
 - `volumeLitres`, a finite positive number;
 - `performedAt`, when the replacement happened;
-- `recordedAt`, when Veril accepted the evidence;
+- `recordedAt`, when TankOS accepted the evidence;
 - optional trimmed notes;
 - provenance `manual`.
 

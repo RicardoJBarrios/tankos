@@ -65,7 +65,7 @@ through the SDK; Rules tests verify authorization separately.
 The unit-test target excludes `*.integration.spec.ts` because the Angular/jsdom
 runner does not provide a reliable Firebase SDK environment. Run the adapter
 and Rules tests through `firebase emulators:exec` with
-`apps/veril/vitest.integration.config.ts`, which uses Vitest's Node environment.
+`apps/tankos/vitest.integration.config.ts`, which uses Vitest's Node environment.
 
 `List My Aquariums` and `Select Aquarium` add application and Spectator coverage
 for owner-scoped retrieval, selection, Active Context replacement and failure
@@ -255,7 +255,7 @@ responses, provider errors and transport timeout errors without live HTTP.
 
 ## Browser journeys
 
-`pnpm nx e2e veril` runs the canonical Chromium journeys through visible UI
+`pnpm nx e2e tankos` runs the canonical Chromium journeys through visible UI
 against the local Auth and Firestore emulators. Playwright starts the same local
 development environment as `pnpm dev` when needed; it never targets a deployed
 Firebase project. Each test receives a fresh browser context and establishes its

@@ -3,18 +3,18 @@
 The canonical product intent is [VISION.md](VISION.md). This document adds
 working context and must not turn unvalidated domain hypotheses into rules.
 
-## What Veril is
+## What TankOS is
 
-Veril is the product application for managing and presenting Aquariums of
+TankOS is the product application for managing and presenting Aquariums of
 freshwater, saltwater, brackish, planted, reef, shrimp, snail and mixed kinds,
 including their Livestock, Measurements, Maintenance and Equipment. It is not
-itself an Aquarium. The first Aquarium instance is named Veril; that name does
+itself an Aquarium. The first Aquarium instance is named TankOS; that name does
 not make the product a single-Aquarium domain model.
 
 ## Why it exists
 
 Aquarium care combines recurring work, observations, measurements and historical
-context. Veril should make that information easier to understand and act on
+context. TankOS should make that information easier to understand and act on
 without hiding important uncertainty or history.
 
 ## Long-term goals

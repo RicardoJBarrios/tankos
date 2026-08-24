@@ -34,7 +34,7 @@ Feeding, Maintenance or other subtype with separate semantics.
 - a non-empty trimmed description;
 - `performedAt`, supplied by the keeper and defaulted to the current time by the
   application when appropriate;
-- `recordedAt`, generated when Veril accepts the record;
+- `recordedAt`, generated when TankOS accepts the record;
 - provenance `manual`.
 
 `performedAt` and `recordedAt` are distinct because care may be recorded after

@@ -1,6 +1,6 @@
 # Ideas Not Supported as Differentiators
 
-These ideas are not necessarily bad products. They are rejected as Veril
+These ideas are not necessarily bad products. They are rejected as TankOS
 differentiators for now because the evidence shows they are already common,
 high-risk or unsupported by a specific unmet need.
 

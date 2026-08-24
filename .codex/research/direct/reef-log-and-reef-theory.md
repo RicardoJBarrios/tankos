@@ -25,5 +25,5 @@ lists automation integrations, advanced analytics and community as future work.
 ## Strategic implication
 
 The market is moving toward “focused and quick” while still adding breadth.
-Veril needs a sharper promise than a generic all-in-one tracker and should treat
+TankOS needs a sharper promise than a generic all-in-one tracker and should treat
 local-first/export and contextual history as hypotheses worth testing.

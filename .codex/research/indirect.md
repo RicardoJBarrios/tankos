@@ -1,7 +1,7 @@
 # Indirect Competition and Transferable Patterns
 
 These products solve adjacent problems. They are useful for interaction and
-retention patterns, not evidence that Veril should copy their domains.
+retention patterns, not evidence that TankOS should copy their domains.
 
 ## Gardening and plant care
 

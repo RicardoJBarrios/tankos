@@ -116,7 +116,7 @@ Weather provider, but Aquarium name, keeper identity, Firebase UID and domain
 history are never sent.
 
 The UI explains that the approximate location is used for environmental context
-and that Veril does not track the keeper or device.
+and that TankOS does not track the keeper or device.
 
 ## Spark and architecture
 

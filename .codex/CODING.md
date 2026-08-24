@@ -23,7 +23,7 @@ enabled.
 
 ## Structure
 
-Keep the application composition root in `apps/veril`. New domain code follows:
+Keep the application composition root in `apps/tankos`. New domain code follows:
 
 ```text
 <domain>/{domain,application,infrastructure,ui}
@@ -51,14 +51,14 @@ follow semantic responsibility, not visual symmetry: keep tightly coupled
 concepts together when separation would add ceremony, and do not merge distinct
 concepts merely because their representations look alike.
 
-Aggregate identities generated internally by Veril follow a common validation
+Aggregate identities generated internally by TankOS follow a common validation
 policy. A different identity format requires an explicit business requirement;
 imports, migrations and external integrations may define one only when those
 capabilities actually exist.
 
 ## Nx libraries and boundaries
 
-Keep code in `apps/veril` while it has one clear owner and no independently
+Keep code in `apps/tankos` while it has one clear owner and no independently
 enforceable boundary. Create a library only when a validated feature needs one
 of: independent ownership, reuse by more than one project, a protected
 dependency boundary, isolated tests/build target, or a stable public contract.

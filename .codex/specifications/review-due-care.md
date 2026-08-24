@@ -4,7 +4,7 @@
 
 ## Product value
 
-When the keeper opens Veril, they can immediately distinguish planned Care that
+When the keeper opens TankOS, they can immediately distinguish planned Care that
 has already passed from Care that is still upcoming. This improves awareness
 without requiring background delivery or changing the Care domain.
 
@@ -83,8 +83,8 @@ empty, failure and recovery states remain explicit and local.
 
 ## Notifications boundary
 
-Awareness while Veril is open is separate from in-app reminders and from
-notifications delivered while Veril is closed. This slice selects awareness
+Awareness while TankOS is open is separate from in-app reminders and from
+notifications delivered while TankOS is closed. This slice selects awareness
 only. Notifications remain deferred until trusted background delivery is
 accepted.
 

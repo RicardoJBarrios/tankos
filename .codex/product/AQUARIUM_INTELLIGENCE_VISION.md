@@ -18,7 +18,7 @@ product path so that a limited-context agent can investigate one bounded
 outcome after the user selects it.
 
 Normative-looking constraints in this document describe the current accepted
-Veril baseline or a risk-control option. They do not decide the final product
+TankOS baseline or a risk-control option. They do not decide the final product
 scope. If the user chooses a conflicting proposal, stop and document which
 existing Vision, domain rule or specification must be reconsidered rather than
 silently discarding the user's choice.
@@ -35,7 +35,7 @@ It complements:
 
 ## 1. Product thesis
 
-Veril can differentiate itself by helping a keeper build an explainable digital
+TankOS can differentiate itself by helping a keeper build an explainable digital
 model of one Aquarium—freshwater, saltwater, brackish, planted, reef, shrimp,
 snail or mixed—and relate trustworthy evidence to its structure,
 Livestock, Equipment and Care.
@@ -79,7 +79,7 @@ The agent previously replaced several external terms. Both the original and the
 alternative are preserved here so the user can choose the product language and
 required fidelity:
 
-| External term       | Veril term                             | Reason                                                                                  |
+| External term       | TankOS term                             | Reason                                                                                  |
 | ------------------- | -------------------------------------- | --------------------------------------------------------------------------------------- |
 | Digital Twin        | Aquarium Digital Model                 | `Digital Twin` overstates fidelity until sensor-backed calibration and validation exist |
 | Causal graph        | Evidence Relationship Graph            | Relationships and temporal order do not prove causality                                 |
@@ -87,7 +87,7 @@ required fidelity:
 | Simulator           | Scenario Analysis                      | Outputs depend on explicit assumptions and uncertainty                                  |
 | Predictive alert    | Forecast or deviation candidate        | Prediction quality and delivery are separate concerns                                   |
 | Automatic diagnosis | Guided evidence review                 | Animal-health claims require strong evaluation and cautious output                      |
-| Smart dosing        | Keeper-confirmed dosing calculation    | Veril must not silently prescribe or actuate dosing                                     |
+| Smart dosing        | Keeper-confirmed dosing calculation    | TankOS must not silently prescribe or actuate dosing                                     |
 | Aquarium health     | Multidimensional evidence summary      | Avoid opaque combined scores                                                            |
 | AI recommendation   | Attributable hypothesis or explanation | Source, uncertainty and user purpose must remain visible                                |
 
@@ -422,7 +422,7 @@ universal phase detector.
 
 The keeper selects or authors a protocol with attributable Knowledge, records
 what was actually added/measured and sees expected checkpoints separately from
-evidence. Veril may say that a checkpoint is unconfirmed. It must not declare a
+evidence. TankOS may say that a checkpoint is unconfirmed. It must not declare a
 cycle complete or pause Livestock introduction solely from one hidden formula.
 
 An introduction plan may combine accepted Species Profile Knowledge,
@@ -458,7 +458,7 @@ Knowledge claims should distinguish:
 - professional source;
 - community report;
 - observed Aquarium evidence;
-- deterministic Veril derivation;
+- deterministic TankOS derivation;
 - statistical/model inference;
 - AI-generated hypothesis.
 
@@ -703,7 +703,7 @@ Minimum relevant tests include:
 
 ## 20. Candidate definition of strategic success
 
-This vision succeeds when Veril can answer a keeper's question with structured,
+This vision succeeds when TankOS can answer a keeper's question with structured,
 traceable Aquarium context while clearly distinguishing:
 
 - source evidence;

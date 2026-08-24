@@ -77,4 +77,4 @@ pretend to diagnose or automate safety actions.
 
 Species encyclopedias, marketplaces, social feeds, generic AI chat, universal
 controller control and a broad calculator suite all have market precedent, but
-the evidence does not show a Veril-specific advantage. They are scope risks.
+the evidence does not show a TankOS-specific advantage. They are scope risks.

@@ -4,7 +4,7 @@ All Firestore collection queries exposed as navigable lists use cursor-based
 pagination. Offset pagination is not part of the application contract.
 
 The shared application contract is defined in
-`apps/veril/src/app/shared/application/pagination.ts`:
+`apps/tankos/src/app/shared/application/pagination.ts`:
 
 - default page size: 20;
 - maximum page size exposed by the UI: 50;

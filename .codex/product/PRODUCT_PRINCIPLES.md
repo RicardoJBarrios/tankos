@@ -6,7 +6,7 @@ architecture or implementation patterns.
 
 ## Purpose
 
-Veril helps a keeper operate and present an Aquarium through trustworthy,
+TankOS helps a keeper operate and present an Aquarium through trustworthy,
 understandable care information. Public presentation and private operation are
 different capabilities over the same Aquarium.
 
@@ -39,6 +39,6 @@ different capabilities over the same Aquarium.
 
 ## Non-negotiable boundaries
 
-Veril must not fabricate care information, silently mutate important history,
+TankOS must not fabricate care information, silently mutate important history,
 turn a transient interpretation into a Fact, or make life-support decisions
 without an accepted safety model and explicit human control.

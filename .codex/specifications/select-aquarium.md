@@ -138,7 +138,7 @@ routing; it does not need a restoration cycle.
 Each browser tab has independent session-scoped authentication and Active
 Context. Selecting an Aquarium in one tab never synchronizes a change to
 another. Browser opener/duplicate-tab behavior may copy the initial session
-storage value; Veril treats that as a new untrusted hint and validates ownership
+storage value; TankOS treats that as a new untrusted hint and validates ownership
 before use. Cross-tab synchronization is deferred until a concrete multi-tab
 workflow requires it.
 

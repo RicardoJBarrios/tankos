@@ -64,7 +64,7 @@ occurrence or CareWork identity.
 
 - Each active recurring plan has at most one concrete outstanding occurrence.
 - An outstanding occurrence remains actionable indefinitely when overdue; no
-  missed backlog is created while Veril is closed.
+  missed backlog is created while TankOS is closed.
 - Completion or cancellation consumes the occurrence. The next one is the
   first scheduled weekly instant strictly after the later of its `plannedFor`
   instant and the action time. This avoids recreating old missed weeks and

@@ -190,7 +190,7 @@ Rules are classified to avoid turning assumptions into code prematurely.
 - A Care Work record requires a non-empty description, `performedAt`,
   `recordedAt` and provenance `manual`.
 - `performedAt` describes when the action happened; `recordedAt` describes when
-  Veril accepted the evidence.
+  TankOS accepted the evidence.
 - Only the owning authenticated keeper may record Care Work. Active Context is
   not authorization.
 - The first slice is append-only and online-required. Planning, recurrence,
@@ -204,7 +204,7 @@ Rules are classified to avoid turning assumptions into code prematurely.
 - The replacement volume is required, finite and strictly positive, expressed
   in litres. A Water Change cannot be inferred from a Measurement or Care Work.
 - `performedAt` describes when the replacement happened; `recordedAt` describes
-  when Veril accepted the evidence. Both are retained and must be valid.
+  when TankOS accepted the evidence. Both are retained and must be valid.
 - Notes are optional free text and are trimmed at the domain boundary; they do
   not replace the required volume or timestamps.
 - Only the owning authenticated keeper may create or privately read Water
@@ -229,7 +229,7 @@ Rules are classified to avoid turning assumptions into code prematurely.
   Task nor a scheduler.
 - The Aquarium time zone is the single authoritative IANA time zone for its
   calendar Care. A keeper confirms it explicitly when recurrence first needs
-  it; Veril never silently derives it from the active browser.
+  it; TankOS never silently derives it from the active browser.
 - The first recurring occurrence is chosen explicitly. Its local weekday and
   `HH:mm` time define the weekly rule; the schedule remains at that local clock
   time across daylight-saving changes.
@@ -311,7 +311,7 @@ Rules are classified to avoid turning assumptions into code prematurely.
   list and view the global catalogue and select definitions for their
   Aquariums. Only administrators may edit or delete definitions. A custom
   definition is public to all users according to the accepted catalogue rules.
-- A custom `ParameterDefinition` belongs to the global Veril catalogue and is
+- A custom `ParameterDefinition` belongs to the global TankOS catalogue and is
   available to all Aquariums. Each keeper independently selects whether to
   use it in each Aquarium they manage. The profile does not duplicate,
   transfer or change the definition's catalogue authorship or management

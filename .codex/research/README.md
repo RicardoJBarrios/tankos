@@ -1,7 +1,7 @@
 # Market Research
 
 Research snapshot: 2026-08-07. This folder contains external market evidence
-for product discovery only. It does not change Veril's architecture or authorize
+for product discovery only. It does not change TankOS's architecture or authorize
 features.
 
 ## Reading order

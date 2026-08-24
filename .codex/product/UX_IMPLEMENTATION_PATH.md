@@ -2,7 +2,7 @@
 
 **Status:** accepted implementation path.
 
-This document turns Veril's product principles into a sequence of small,
+This document turns TankOS's product principles into a sequence of small,
 verifiable UX increments. It is intentionally explicit so that an agent with
 limited repository context or weaker planning ability can implement one step at
 a time without redefining the product, domain model or persistence.
@@ -20,7 +20,7 @@ It complements, and does not replace:
 
 ## 1. Outcome
 
-Veril must feel like one coherent mobile-first aquarium-care product, not a
+TankOS must feel like one coherent mobile-first aquarium-care product, not a
 collection of independently testable capabilities.
 
 The target experience helps a keeper answer four recurring questions:
@@ -43,7 +43,7 @@ relevant product specification before implementing it.
 
 Every implementation phase must preserve these boundaries:
 
-- Veril is the product; an `Aquarium` is the active care context.
+- TankOS is the product; an `Aquarium` is the active care context.
 - The active Aquarium must be visible whenever a keeper can read or write
   Aquarium-owned information.
 - Firestore Rules remain the authorization boundary. Navigation state and
@@ -98,13 +98,13 @@ During implementation:
 - Keep compact layouts usable at 320 CSS pixels without horizontal scrolling.
 - Keep touch targets, focus order, labels, status announcements and errors
   accessible.
-- Update tests for Veril behavior, not Material's internal DOM.
+- Update tests for TankOS behavior, not Material's internal DOM.
 
 Before finishing:
 
 1. Run the focused tests named by the phase.
-2. Run `pnpm exec nx lint veril`.
-3. Run `pnpm exec nx test veril --skipNxCache`.
+2. Run `pnpm exec nx lint tankos`.
+3. Run `pnpm exec nx test tankos --skipNxCache`.
 4. Run a production build when routes, shell composition, lazy loading or
    budgets changed.
 5. Run the relevant Playwright journey when navigation or a cross-route flow
@@ -361,10 +361,10 @@ rendering new navigation.
 
 **Likely files:**
 
-- `apps/veril/src/app/app.routes.ts`;
+- `apps/tankos/src/app/app.routes.ts`;
 - a small route-presentation model under `shells/private-shell/`;
-- `apps/veril/src/app/app.routes.spec.ts`;
-- `apps/veril/src/app/shells/private-shell/private-shell.spec.ts`.
+- `apps/tankos/src/app/app.routes.spec.ts`;
+- `apps/tankos/src/app/shells/private-shell/private-shell.spec.ts`.
 
 **Changes:**
 
@@ -963,7 +963,7 @@ Material-compatible CSS custom properties for form, readable-list and wide
 content widths, plus section and heading spacing. Existing feature-specific
 styles, semantic colors, responsive breakpoints and light-only behavior remain
 local and unchanged.
-Files: `apps/veril/src/styles.css` and the affected shell, Aquarium, care,
+Files: `apps/tankos/src/styles.css` and the affected shell, Aquarium, care,
 equipment, livestock, maintenance, measurements, observations, timeline,
 species and shared-access page styles.
 Automated validation: 75 unit-test files and 311 tests passed; architecture,
@@ -983,7 +983,7 @@ need local review when a page has different reading density or composition.
 Next phase: — UX implementation path complete.
 
 Validation addendum (2026-08-20): the automated acceptance suite now includes
-`apps/veril/e2e/accessibility-responsive.spec.ts`, with Axe checks at 320, 390,
+`apps/tankos/e2e/accessibility-responsive.spec.ts`, with Axe checks at 320, 390,
 768 and 1280 px, landmark and heading assertions, keyboard focus, reduced
 motion, horizontal-overflow and 44 px interactive-target checks. The private
 shell now exposes its title as the page heading and its application bar as a

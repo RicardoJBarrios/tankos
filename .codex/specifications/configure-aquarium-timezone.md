@@ -5,7 +5,7 @@
 ## Actor and product value
 
 An authenticated keeper configures the canonical IANA timezone of an Aquarium
-that does not have one yet. This lets Veril present the Aquarium's history and
+that does not have one yet. This lets TankOS present the Aquarium's history and
 future Care schedule consistently without depending on the browser or on the
 keeper's travel location.
 
@@ -38,11 +38,11 @@ update.
 
 ## Main flow
 
-1. Veril detects that the selected Aquarium has no configured timezone.
+1. TankOS detects that the selected Aquarium has no configured timezone.
 2. The UI proposes the browser's resolved IANA timezone when available.
 3. The keeper reviews and explicitly confirms the proposed timezone, or selects
    another supported IANA identifier.
-4. Veril validates the identifier with the existing domain timezone validation.
+4. TankOS validates the identifier with the existing domain timezone validation.
 5. The application updates only `Aquarium.timeZone`.
 6. The Aquarium is reloaded or the current route is re-entered.
 7. Subsequent user-visible timestamps use the Aquarium timezone instead of the

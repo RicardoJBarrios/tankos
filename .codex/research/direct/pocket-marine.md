@@ -29,6 +29,6 @@ cross-platform reach.
 
 ## Strategic implication
 
-Contextual defaults are valuable, but must be editable. Veril could differentiate
+Contextual defaults are valuable, but must be editable. TankOS could differentiate
 by making the “why this value matters” and “what changed around it” easier to
 understand without reproducing a large species encyclopedia.

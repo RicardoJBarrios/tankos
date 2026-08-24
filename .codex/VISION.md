@@ -1,8 +1,8 @@
-# Veril Vision
+# TankOS Vision
 
 ## Purpose
 
-Veril is the product that helps aquarium keepers understand, present, plan and
+TankOS is the product that helps aquarium keepers understand, present, plan and
 carry out care for freshwater, saltwater, brackish, planted, reef, shrimp,
 snail and mixed systems with trustworthy, low-friction records. It exposes
 public and private capabilities over the same Aquarium, making the relevant

@@ -101,7 +101,7 @@ Recommended aquarium ranges are guidance, not measurement validity rules.
 Every persisted Measurement has two distinct instants:
 
 - `measuredAt`: when the keeper or source took the measurement;
-- `recordedAt`: when Veril accepted it.
+- `recordedAt`: when TankOS accepted it.
 
 Both are required because a keeper may record a value after taking the reading.
 They must not be overloaded into one timestamp. The user-facing flow may

@@ -2,7 +2,7 @@
 
 **Status:** global technical policy.
 
-**Scope:** every Veril domain and every Firebase/Firestore adapter, including
+**Scope:** every TankOS domain and every Firebase/Firestore adapter, including
 Angular client access, trusted server commands, persistence, batch execution,
 security rules, indexes, retention and operational cost control.
 
@@ -174,7 +174,7 @@ controlled by the command contract and provider transaction semantics.
 
 ## 5. NoSQL and denormalization
 
-Veril uses strict NoSQL persistence:
+TankOS uses strict NoSQL persistence:
 
 - no foreign keys;
 - no database cascades;
