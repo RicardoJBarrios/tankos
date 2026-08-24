@@ -1,7 +1,5 @@
 {
   "projects": {
-    "default": "demo-veril",
-    "production": "veril-dd4e1",
-    "staging": "veril-staging"
+    "default": "tankos"
   }
 }

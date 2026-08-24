@@ -4,12 +4,7 @@ const isLocalBrowser =
   typeof globalThis.location !== 'undefined' &&
   (globalThis.location.hostname === 'localhost' ||
     globalThis.location.hostname === '127.0.0.1');
-const isStagingBrowser =
-  typeof globalThis.location !== 'undefined' &&
-  (globalThis.location.hostname === 'veril-staging.web.app' ||
-    globalThis.location.hostname === 'veril-staging.firebaseapp.com');
 const useEmulatorConfiguration = isDevMode() || isLocalBrowser;
-const useStagingConfiguration = !useEmulatorConfiguration && isStagingBrowser;
 
 export const firebaseConfig = useEmulatorConfiguration
   ? {
@@ -18,19 +13,12 @@ export const firebaseConfig = useEmulatorConfiguration
       projectId: 'demo-veril',
       appId: 'demo-veril-app',
     }
-  : useStagingConfiguration
-    ? {
-        apiKey: 'AIzaSyB8XRtrn9Rp7F8ndLxPhKATyrdFW1etqU0',
-        authDomain: 'veril-staging.firebaseapp.com',
-        projectId: 'veril-staging',
-        appId: '1:602184432432:web:a2c79c862c33d6deb4e6f5',
-      }
-    : {
-        apiKey: 'AIzaSyBDhwznoPbQ9FEwDaMZshW5fZ0Z3OPIYTM',
-        authDomain: 'veril-dd4e1.firebaseapp.com',
-        projectId: 'veril-dd4e1',
-        appId: '1:147729567472:web:d67b81c8864b93a3543c35',
-      };
+  : {
+      apiKey: 'AIzaSyDQMJYn-vI9T7aFA6fcMWNCQQo3BpdBI1g',
+      authDomain: 'tankos.firebaseapp.com',
+      projectId: 'tankos',
+      appId: '1:769994254528:web:b5d309091934dcffca2525',
+    };
 
 export const appCheckSiteKey = useEmulatorConfiguration
   ? undefined
