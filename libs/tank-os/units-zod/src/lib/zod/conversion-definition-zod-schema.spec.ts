@@ -4,6 +4,7 @@ describe('conversionDefinitionSchema', () => {
   const validDefinition = {
     code: 'volume-ltr-mlt',
     version: '1',
+    origin: 'custom' as const,
     sourceUnit: 'UN/CEFACT:LTR',
     targetUnit: 'UN/CEFACT:MLT',
     family: 'volume',

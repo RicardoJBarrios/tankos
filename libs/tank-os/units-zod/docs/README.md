@@ -13,8 +13,8 @@ shapes do not enter the core package.
   constructors.
 - `conversionDefinitionSchema` accepts decimal strings and numbers at input,
   canonicalizes them through `@tank-os/decimal`, validates rational factors,
-  affine offsets and optional division contexts, then returns the immutable
-  core value.
+  affine offsets, origin and optional division contexts, then returns the
+  immutable core value.
 - Parsing is the only mapping direction currently exposed. Domain values are
   already JSON-shaped and must be serialized by the hosting transport adapter.
 

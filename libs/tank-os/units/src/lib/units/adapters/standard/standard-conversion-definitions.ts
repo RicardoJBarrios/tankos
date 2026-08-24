@@ -122,6 +122,7 @@ function conversion(
   return createConversionDefinition({
     code,
     version: '1',
+    origin: 'standard',
     sourceUnit: createUnitCode(sourceUnit),
     targetUnit: createUnitCode(targetUnit),
     family: code.split('-')[0],
@@ -145,6 +146,7 @@ function affineConversion(
   return createConversionDefinition({
     code,
     version: '1',
+    origin: 'standard',
     sourceUnit: createUnitCode(sourceUnit),
     targetUnit: createUnitCode(targetUnit),
     family: code.split('-')[0],

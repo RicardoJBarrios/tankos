@@ -9,6 +9,9 @@ import type { UnitCode } from './unit-code';
 /** Conversion function family supported by the first deterministic engine. */
 export type ConversionKind = 'linear' | 'affine';
 
+/** Declares whether a conversion is fixed by TankOS or user-managed. */
+export type ConversionOrigin = 'standard' | 'custom';
+
 /** Exact rational factor used by a conversion function. */
 export interface ConversionFactor {
   readonly numerator: DecimalValue;
@@ -25,6 +28,7 @@ export interface ConversionFactorInput {
 export interface ConversionDefinition {
   readonly code: string;
   readonly version: string;
+  readonly origin: ConversionOrigin;
   readonly sourceUnit: UnitCode;
   readonly targetUnit: UnitCode;
   readonly family: string;
@@ -52,6 +56,10 @@ export function createConversionDefinition(
     throw new TypeError(
       'Conversion code and version must be non-empty strings',
     );
+  }
+
+  if (!['standard', 'custom'].includes(definition.origin)) {
+    throw new TypeError('Conversion origin is invalid');
   }
 
   if (!definition.family.trim() || !definition.provenance.trim()) {

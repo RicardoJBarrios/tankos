@@ -7,6 +7,7 @@ describe('createConversionDefinition', () => {
     targetUnit: createUnitCode('UN/CEFACT:MLT'),
     code: 'volume-litre-to-millilitre',
     version: '1',
+    origin: 'standard' as const,
     family: 'volume',
     kind: 'linear' as const,
     factor: { numerator: '1000', denominator: '1' },
@@ -59,6 +60,12 @@ describe('createConversionDefinition', () => {
         ...base,
         factor: { numerator: 1, denominator: '0' },
       }),
+    ).toThrow(TypeError);
+  });
+
+  it('Given an invalid origin, When created, Then rejects the definition', () => {
+    expect(() =>
+      createConversionDefinition({ ...base, origin: 'unknown' as never }),
     ).toThrow(TypeError);
   });
 });

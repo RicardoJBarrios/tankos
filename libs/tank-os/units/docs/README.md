@@ -91,6 +91,7 @@ dimensionally compatible codes. A `ConversionDefinition` declares:
 
 - source and target codes;
 - a stable code and version;
+- an origin (`standard` or `custom`);
 - a conversion family and kind (`linear` or `affine`);
 - an exact decimal factor, represented as a rational pair;
 - an optional affine offset, also represented exactly;
@@ -144,6 +145,11 @@ points, validate DTOs at their boundary and keep provider types out of the
 core contracts. Authorization, Firestore configuration, indexes, cache policy
 and batch execution belong to the hosting application and shared data-access
 capabilities.
+
+Custom conversion definitions follow the same boundary: standard conversions
+are immutable catalogue entries, while custom conversions are managed through
+`createConversionDefinitionCrudService()` and the shared versioned CRUD
+workflow.
 
 ## Testing and publication
 

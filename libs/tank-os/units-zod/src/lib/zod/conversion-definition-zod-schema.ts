@@ -38,6 +38,7 @@ const divisionContextSchema = z.strictObject({
 export const conversionDefinitionDtoSchema = z.strictObject({
   code: z.string(),
   version: z.string(),
+  origin: z.enum(['standard', 'custom']),
   sourceUnit: z.string(),
   targetUnit: z.string(),
   family: z.string(),
