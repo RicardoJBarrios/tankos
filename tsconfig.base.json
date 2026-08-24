@@ -37,7 +37,8 @@
       ],
       "@tank-os/units-zod": ["./libs/tank-os/units-zod/src/index.ts"],
       "@tank-os/units-firestore": ["./libs/tank-os/units-firestore/src/index.ts"],
-      "@tank-os/units-json-http": ["./libs/tank-os/units-json-http/src/index.ts"]
+      "@tank-os/units-json-http": ["./libs/tank-os/units-json-http/src/index.ts"],
+      "@tank-os/data-access-ui": ["./libs/tank-os/data-access-ui/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

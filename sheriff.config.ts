@@ -263,6 +263,18 @@ modules['libs/tank-os/data-access/src'] = [
   'context:tank-os',
   'tank-os:layer:library-root',
 ];
+modules['libs/tank-os/data-access-ui/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/data-access-ui/src/lib'] = [
+  'context:tank-os',
+  'tank-os:layer:presentation',
+];
+modules['libs/tank-os/data-access-ui/src/lib/crud-list'] = [
+  'context:tank-os',
+  'tank-os:layer:presentation',
+];
 modules['libs/tank-os/data-access/src/lib/core'] = [
   'context:tank-os',
   'tank-os:layer:core',
