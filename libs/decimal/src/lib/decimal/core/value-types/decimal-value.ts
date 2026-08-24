@@ -66,7 +66,7 @@ export function normalizeDecimalInput(value: DecimalInput): DecimalValue {
     if (sign === '-') return `-${unsigned}` as DecimalValue;
     return unsigned as DecimalValue;
   }
-  return '0';
+  return '0' as DecimalValue;
 }
 
 function normalizeNumber(value: number): string {

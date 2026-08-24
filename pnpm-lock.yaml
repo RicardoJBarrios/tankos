@@ -72,6 +72,9 @@ importers:
       '@analogjs/vitest-angular':
         specifier: 2.5.0
         version: 2.5.0(@analogjs/vite-plugin-angular@2.5.0(@angular-devkit/build-angular@20.3.27(d1213b88694c12ce8e6f8a772ebaed99))(@angular/build@20.3.27(1de88d4c9a5a697a677a0cf131520f68))(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(vite@8.0.9(@types/node@24.13.3)(esbuild@0.27.7)(jiti@2.4.2)(less@4.6.4)(sass-embedded@1.100.0)(sass@1.90.0)(terser@5.49.2)(yaml@2.9.0)))(@angular-devkit/architect@0.2003.27(chokidar@4.0.3))(@angular-devkit/schematics@20.3.27(chokidar@4.0.3))(vitest@3.2.4)(zone.js@0.15.0)
+      '@angular-devkit/architect':
+        specifier: 0.2003.27
+        version: 0.2003.27(chokidar@4.0.3)
       '@angular-devkit/core':
         specifier: 20.3.27
         version: 20.3.27(chokidar@4.0.3)
@@ -11522,7 +11525,7 @@ snapshots:
   '@angular-eslint/builder@20.7.0(chokidar@4.0.3)(eslint@9.39.5(jiti@2.4.2)(supports-color@7.2.0))(typescript@5.8.3)':
     dependencies:
       '@angular-devkit/architect': 0.2003.27(chokidar@4.0.3)
-      '@angular-devkit/core': 20.3.33(chokidar@4.0.3)
+      '@angular-devkit/core': 20.3.27(chokidar@4.0.3)
       eslint: 9.39.5(jiti@2.4.2)(supports-color@7.2.0)
       typescript: 5.8.3
     transitivePeerDependencies:
@@ -11553,7 +11556,7 @@ snapshots:
 
   '@angular-eslint/schematics@20.7.0(@angular-eslint/template-parser@20.7.0(eslint@9.39.5(jiti@2.4.2)(supports-color@7.2.0))(typescript@5.8.3))(@typescript-eslint/types@8.66.0)(@typescript-eslint/utils@8.66.0(eslint@9.39.5(jiti@2.4.2)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.8.3))(chokidar@4.0.3)(eslint@9.39.5(jiti@2.4.2)(supports-color@7.2.0))(typescript@5.8.3)':
     dependencies:
-      '@angular-devkit/core': 20.3.33(chokidar@4.0.3)
+      '@angular-devkit/core': 20.3.27(chokidar@4.0.3)
       '@angular-devkit/schematics': 20.3.33(chokidar@4.0.3)
       '@angular-eslint/eslint-plugin': 20.7.0(@typescript-eslint/utils@8.66.0(eslint@9.39.5(jiti@2.4.2)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.8.3))(eslint@9.39.5(jiti@2.4.2)(supports-color@7.2.0))(typescript@5.8.3)
       '@angular-eslint/eslint-plugin-template': 20.7.0(@angular-eslint/template-parser@20.7.0(eslint@9.39.5(jiti@2.4.2)(supports-color@7.2.0))(typescript@5.8.3))(@typescript-eslint/types@8.66.0)(@typescript-eslint/utils@8.66.0(eslint@9.39.5(jiti@2.4.2)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.8.3))(eslint@9.39.5(jiti@2.4.2)(supports-color@7.2.0))(typescript@5.8.3)

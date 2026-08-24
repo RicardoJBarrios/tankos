@@ -37,6 +37,7 @@
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "2.5.0",
     "@analogjs/vitest-angular": "2.5.0",
+    "@angular-devkit/architect": "0.2003.27",
     "@angular-devkit/core": "20.3.27",
     "@angular-devkit/schematics": "20.3.27",
     "@angular/build": "20.3.27",
