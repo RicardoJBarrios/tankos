@@ -2,8 +2,8 @@
 
 **Status:** the provider-independent unit model, standard catalogue,
 deterministic conversion slice and custom-unit CRUD application contract are
-implemented. Persistence, transport adapters and the standard CRUD UI are not
-part of this library's current public API.
+implemented. Persistence and transport adapters are separate packages; the
+standard CRUD UI is not part of this library's current public API.
 
 `@tank-os/units` is an Angular-centric capability library for unit identity,
 dimensional compatibility, scientific representation and declared conversion.
@@ -144,12 +144,11 @@ boundary. Replacement uses the shared versioned workflow: it creates the new
 custom definition and then marks the previous record for deletion. No Angular
 component or template contains conversion logic.
 
-The library currently has no persistence adapter. Custom-unit persistence or
-transport integration must be published behind separate entry
-points, validate DTOs at their boundary and keep provider types out of the
-core contracts. Authorization, Firestore configuration, indexes, cache policy
-and batch execution belong to the hosting application and shared data-access
-capabilities.
+Custom-unit persistence and transport are published behind separate adapter
+packages (`units-firestore` and `units-json-http`). They validate DTOs at their
+boundary and keep provider types out of the core contracts. Authorization,
+Firestore configuration, indexes, cache policy and batch execution belong to
+the hosting application and shared data-access capabilities.
 
 Custom conversion definitions follow the same boundary: standard conversions
 are immutable catalogue entries, while custom conversions are managed through

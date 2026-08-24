@@ -216,6 +216,7 @@ for (const adapterPackage of [
   'decimal-zod',
   'units-zod',
   'units-firestore',
+  'units-json-http',
 ]) {
   modules[`libs/tank-os/${adapterPackage}/src`] = [
     'context:tank-os',
@@ -251,6 +252,10 @@ modules['libs/tank-os/units-zod/src/lib/zod'] = [
   'tank-os:layer:adapter',
 ];
 modules['libs/tank-os/units-firestore/src/lib/firestore'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/units-json-http/src/lib/json-http'] = [
   'context:tank-os',
   'tank-os:layer:adapter',
 ];
