@@ -98,8 +98,7 @@ function definition(
     quantityKind: createQuantityKind(quantityKind),
     representation: createUnitRepresentation({
       symbol,
-      asciiFallback:
-        symbol === '°C' ? 'degC' : symbol === '°F' ? 'degF' : symbol,
+      asciiFallback: asciiFallbackFor(symbol),
       position: 'suffix',
       spacing: 'narrow',
     }),
@@ -107,4 +106,10 @@ function definition(
     catalogueVersion: CATALOGUE_VERSION,
     status: 'active',
   });
+}
+
+function asciiFallbackFor(symbol: string): string {
+  if (symbol === '°C') return 'degC';
+  if (symbol === '°F') return 'degF';
+  return symbol;
 }

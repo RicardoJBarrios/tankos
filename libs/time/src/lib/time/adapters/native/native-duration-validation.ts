@@ -1,4 +1,5 @@
 import { Duration, DurationInput } from '../../core';
+import { nativeParseDuration } from './native-duration-parsing';
 
 /** Returns whether a duration input is a normalized safe millisecond value. */
 export function nativeIsValidDuration(value: unknown): value is DurationInput {
@@ -7,12 +8,12 @@ export function nativeIsValidDuration(value: unknown): value is DurationInput {
   }
 
   if (typeof value === 'string') {
-    return (
-      /^[-+]?P(?=\d|.*T\d)(?:(?:\d+)D)?(?:T(?:(?:\d+)H)?(?:(?:\d+)M)?(?:(?:\d+)(?:\.\d+)?S)?)?$/.test(
-        value,
-      ) &&
-      (!value.includes('T') || /[HMS]/.test(value))
-    );
+    try {
+      nativeParseDuration(value);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   if (

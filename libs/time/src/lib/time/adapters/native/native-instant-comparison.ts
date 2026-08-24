@@ -8,9 +8,7 @@ export function nativeCompareInstants(
 ): ComparisonResult {
   const leftMilliseconds = nativeParseInstant(left).epochMilliseconds;
   const rightMilliseconds = nativeParseInstant(right).epochMilliseconds;
-  return leftMilliseconds < rightMilliseconds
-    ? -1
-    : leftMilliseconds > rightMilliseconds
-      ? 1
-      : 0;
+  if (leftMilliseconds < rightMilliseconds) return -1;
+  if (leftMilliseconds > rightMilliseconds) return 1;
+  return 0;
 }

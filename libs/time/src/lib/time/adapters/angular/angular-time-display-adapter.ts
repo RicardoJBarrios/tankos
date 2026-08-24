@@ -155,27 +155,41 @@ function formatRelativeDuration(
   calendarUnits: 'none' | 'approximate',
 ): string {
   const absoluteMilliseconds = Math.abs(milliseconds);
-  const approximateCalendarUnit =
-    calendarUnits === 'approximate' &&
-    absoluteMilliseconds >= 30 * MILLISECONDS_PER_DAY
-      ? absoluteMilliseconds >= 365 * MILLISECONDS_PER_DAY
-        ? (['year', 365 * MILLISECONDS_PER_DAY] as const)
-        : (['month', 30 * MILLISECONDS_PER_DAY] as const)
-      : undefined;
+  const approximateCalendarUnit = calendarUnitFor(
+    absoluteMilliseconds,
+    calendarUnits,
+  );
   const [unit, divisor] =
-    approximateCalendarUnit ??
-    (absoluteMilliseconds >= MILLISECONDS_PER_DAY
-      ? (['day', MILLISECONDS_PER_DAY] as const)
-      : absoluteMilliseconds >= MILLISECONDS_PER_HOUR
-        ? (['hour', MILLISECONDS_PER_HOUR] as const)
-        : absoluteMilliseconds >= MILLISECONDS_PER_MINUTE
-          ? (['minute', MILLISECONDS_PER_MINUTE] as const)
-          : (['second', MILLISECONDS_PER_SECOND] as const));
+    approximateCalendarUnit ?? relativeUnitFor(absoluteMilliseconds);
   const amount = Math.round(milliseconds / divisor);
   return new Intl.RelativeTimeFormat(locale, {
     numeric: 'auto',
     style: 'long',
   }).format(amount, unit);
+}
+
+function calendarUnitFor(
+  milliseconds: number,
+  calendarUnits: 'none' | 'approximate',
+) {
+  if (
+    calendarUnits !== 'approximate' ||
+    milliseconds < 30 * MILLISECONDS_PER_DAY
+  )
+    return undefined;
+  if (milliseconds >= 365 * MILLISECONDS_PER_DAY)
+    return ['year', 365 * MILLISECONDS_PER_DAY] as const;
+  return ['month', 30 * MILLISECONDS_PER_DAY] as const;
+}
+
+function relativeUnitFor(milliseconds: number) {
+  if (milliseconds >= MILLISECONDS_PER_DAY)
+    return ['day', MILLISECONDS_PER_DAY] as const;
+  if (milliseconds >= MILLISECONDS_PER_HOUR)
+    return ['hour', MILLISECONDS_PER_HOUR] as const;
+  if (milliseconds >= MILLISECONDS_PER_MINUTE)
+    return ['minute', MILLISECONDS_PER_MINUTE] as const;
+  return ['second', MILLISECONDS_PER_SECOND] as const;
 }
 
 function durationParts(milliseconds: number): {

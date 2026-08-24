@@ -44,7 +44,8 @@ export default [
     },
   },
   {
-    files: ['apps/tankos/src/**/*.ts', 'libs/**/src/**/*.ts'],
+    files: ['**/*.ts'],
+    ignores: ['apps/veril/**', '**/*.spec.ts', '**/*.test.ts'],
     plugins: { sonarjs },
     rules: {
       ...sonarjs.configs.recommended.rules,
@@ -53,6 +54,29 @@ export default [
       // AccessRole is a deliberate ubiquitous-language alias for a role string.
       // The rule cannot distinguish that semantic contract from a redundant alias.
       'sonarjs/redundant-type-aliases': 'off',
+    },
+  },
+  {
+    files: ['**/*.ts'],
+    ignores: [
+      'apps/veril/**',
+      '**/*.spec.ts',
+      '**/*.test.ts',
+      '**/*.config.ts',
+    ],
+    rules: {
+      'max-lines': [
+        'error',
+        {
+          max: 300,
+          skipBlankLines: true,
+          skipComments: true,
+        },
+      ],
+      'max-lines-per-function': [
+        'error',
+        { max: 60, skipBlankLines: true, skipComments: true },
+      ],
     },
   },
   {

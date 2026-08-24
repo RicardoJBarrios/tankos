@@ -1,9 +1,9 @@
 import { Duration, DurationInput } from '../../core';
 import { truncateMilliseconds } from '../../core/validation';
-import { nativeIsValidDuration } from './native-duration-validation';
 
-const DURATION_PATTERN =
-  /^([-+])?P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:\.(\d+))?S)?)?$/;
+const DURATION_PATTERN = /^([-+]?)P(?<date>\d+D)?(?<time>T.*)?$/;
+const DATE_PATTERN = /^(\d+)D$/;
+const TIME_PATTERN = /^T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:\.(\d+))?S)?$/;
 const MILLISECONDS_PER_SECOND = 1_000;
 const MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND;
 const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
@@ -12,34 +12,28 @@ const MILLISECONDS_PER_DAY = 24 * MILLISECONDS_PER_HOUR;
 /** Parses a duration into a new normalized millisecond value. */
 export function nativeParseDuration(value: DurationInput): Duration {
   if (typeof value === 'number') {
-    if (!nativeIsValidDuration(value)) {
-      throw new RangeError('Invalid duration');
-    }
-    return { kind: 'duration', milliseconds: truncateMilliseconds(value) };
+    return parseNumericDuration(value);
   }
 
   if (typeof value === 'object') {
-    if (!nativeIsValidDuration(value)) {
-      throw new RangeError('Invalid duration');
-    }
-    return {
-      kind: 'duration',
-      milliseconds: truncateMilliseconds(value.milliseconds),
-    };
+    return parseObjectDuration(value);
   }
 
   const match = DURATION_PATTERN.exec(value);
-  if (!match || !hasDurationComponent(match) || hasEmptyTimeComponent(value)) {
+  const parts = match
+    ? durationParts(match.groups?.['date'], match.groups?.['time'])
+    : undefined;
+  if (!parts) {
     throw new RangeError('Invalid ISO 8601 duration');
   }
 
   const milliseconds =
-    toInteger(match[2]) * MILLISECONDS_PER_DAY +
-    toInteger(match[3]) * MILLISECONDS_PER_HOUR +
-    toInteger(match[4]) * MILLISECONDS_PER_MINUTE +
-    toInteger(match[5]) * MILLISECONDS_PER_SECOND +
-    fractionToMilliseconds(match[6]);
-  const signedMilliseconds = match[1] === '-' ? -milliseconds : milliseconds;
+    parts.days * MILLISECONDS_PER_DAY +
+    parts.hours * MILLISECONDS_PER_HOUR +
+    parts.minutes * MILLISECONDS_PER_MINUTE +
+    parts.seconds * MILLISECONDS_PER_SECOND +
+    fractionToMilliseconds(parts.fraction);
+  const signedMilliseconds = match?.[1] === '-' ? -milliseconds : milliseconds;
 
   return {
     kind: 'duration',
@@ -47,12 +41,70 @@ export function nativeParseDuration(value: DurationInput): Duration {
   };
 }
 
-function hasDurationComponent(match: RegExpExecArray): boolean {
-  return match.slice(2).some((component) => component !== undefined);
+function durationParts(date: string | undefined, time: string | undefined) {
+  if (!hasDateOrTime(date, time)) return undefined;
+  const dateMatch = matchDate(date);
+  const timeMatch = matchTime(time);
+  if (!validDate(date, dateMatch)) return undefined;
+  if (!validTime(time, timeMatch)) return undefined;
+  return {
+    days: toInteger(dateMatch?.[1]),
+    hours: toInteger(timeMatch?.[1]),
+    minutes: toInteger(timeMatch?.[2]),
+    seconds: toInteger(timeMatch?.[3]),
+    fraction: timeMatch?.[4],
+  };
 }
 
-function hasEmptyTimeComponent(value: string): boolean {
-  return value.includes('T') && !/[HMS]/.test(value);
+function matchDate(date: string | undefined): RegExpExecArray | undefined {
+  if (date === undefined) return undefined;
+  return DATE_PATTERN.exec(date) ?? undefined;
+}
+
+function matchTime(time: string | undefined): RegExpExecArray | undefined {
+  if (time === undefined) return undefined;
+  return TIME_PATTERN.exec(time) ?? undefined;
+}
+
+function parseNumericDuration(value: number): Duration {
+  if (!Number.isSafeInteger(Math.trunc(value)))
+    throw new RangeError('Invalid duration');
+  return { kind: 'duration', milliseconds: truncateMilliseconds(value) };
+}
+
+function parseObjectDuration(value: DurationInput & object): Duration {
+  const candidate = value as Partial<Duration>;
+  if (
+    candidate.kind !== 'duration' ||
+    typeof candidate.milliseconds !== 'number' ||
+    !Number.isSafeInteger(Math.trunc(candidate.milliseconds))
+  )
+    throw new RangeError('Invalid duration');
+  return {
+    kind: 'duration',
+    milliseconds: truncateMilliseconds(candidate.milliseconds),
+  };
+}
+
+function hasDateOrTime(
+  date: string | undefined,
+  time: string | undefined,
+): boolean {
+  return date !== undefined || time !== undefined;
+}
+
+function validDate(
+  date: string | undefined,
+  match: RegExpExecArray | undefined,
+): boolean {
+  return date === undefined || match !== undefined;
+}
+
+function validTime(
+  time: string | undefined,
+  match: RegExpExecArray | undefined,
+): boolean {
+  return time === undefined || (match !== undefined && /[HMS]/.test(time));
 }
 
 function toInteger(value: string | undefined): number {

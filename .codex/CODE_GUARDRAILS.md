@@ -188,6 +188,12 @@ cohesive private functions with paired tests; do not suppress the rule or
 raise the threshold. The public contract and observable error behavior must
 remain unchanged during this refactoring.
 
+Production files must also stay below 300 non-comment, non-blank lines and
+production functions below 60 non-comment, non-blank lines. These limits are
+enforced by ESLint and apply only to executable application/library source;
+tests, type-only declarations and barrels are not size targets. When a limit
+is reached, split the implementation and its paired tests by responsibility.
+
 Use focused tests for pure logic and Angular tests for Angular behavior. Tests
 must cover successful behavior, invalid input, boundary values and relevant
 failure paths. In addition, every documented use case and public contract must

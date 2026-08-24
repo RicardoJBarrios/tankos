@@ -8,9 +8,7 @@ export function nativeCompareDurations(
 ): ComparisonResult {
   const leftMilliseconds = nativeParseDuration(left).milliseconds;
   const rightMilliseconds = nativeParseDuration(right).milliseconds;
-  return leftMilliseconds < rightMilliseconds
-    ? -1
-    : leftMilliseconds > rightMilliseconds
-      ? 1
-      : 0;
+  if (leftMilliseconds < rightMilliseconds) return -1;
+  if (leftMilliseconds > rightMilliseconds) return 1;
+  return 0;
 }
