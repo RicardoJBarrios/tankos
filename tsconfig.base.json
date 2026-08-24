@@ -35,7 +35,8 @@
       "@tank-os/data-access-firestore-admin": [
         "./libs/tank-os/data-access-firestore-admin/src/index.ts"
       ],
-      "@tank-os/units-zod": ["./libs/tank-os/units-zod/src/index.ts"]
+      "@tank-os/units-zod": ["./libs/tank-os/units-zod/src/index.ts"],
+      "@tank-os/units-firestore": ["./libs/tank-os/units-firestore/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

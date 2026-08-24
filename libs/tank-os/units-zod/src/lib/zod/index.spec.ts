@@ -5,8 +5,10 @@ describe('Units Zod adapter barrel', () => {
     expect(Object.keys(publicApi).sort()).toEqual([
       'conversionDefinitionDtoSchema',
       'conversionDefinitionSchema',
+      'conversionDefinitionToDto',
       'unitDefinitionDtoSchema',
       'unitDefinitionSchema',
+      'unitDefinitionToDto',
     ]);
   });
 });

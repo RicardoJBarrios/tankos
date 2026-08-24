@@ -15,8 +15,8 @@ shapes do not enter the core package.
   canonicalizes them through `@tank-os/decimal`, validates rational factors,
   affine offsets, origin and optional division contexts, then returns the
   immutable core value.
-- Parsing is the only mapping direction currently exposed. Domain values are
-  already JSON-shaped and must be serialized by the hosting transport adapter.
+- The `unitDefinitionToDto` and `conversionDefinitionToDto` mappers provide the
+  reverse direction for persistence and transport adapters.
 
 The package contains no Firestore, HTTP, Angular component or Aquarium
 dependency. It does not create a relationship between units and aquariums.
