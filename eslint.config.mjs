@@ -1,5 +1,6 @@
 import nx from '@nx/eslint-plugin';
 import sheriff from '@softarc/eslint-plugin-sheriff';
+import sonarjs from 'eslint-plugin-sonarjs';
 
 export default [
   ...nx.configs['flat/base'],
@@ -40,6 +41,14 @@ export default [
           ],
         },
       ],
+    },
+  },
+  {
+    files: ['libs/**/src/**/*.ts'],
+    plugins: { sonarjs },
+    rules: {
+      complexity: ['error', 10],
+      'sonarjs/cognitive-complexity': ['error', 15],
     },
   },
   {

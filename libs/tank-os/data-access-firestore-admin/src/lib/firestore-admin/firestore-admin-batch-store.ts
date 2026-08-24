@@ -260,6 +260,18 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
     }
   };
 
+  const encodeLeaseField = (
+    encoded: Record<string, unknown>,
+    patch: Record<string, unknown>,
+    key: 'leaseUntil' | 'materializationLeaseUntil',
+    tokenKey: 'leaseToken' | 'materializationLeaseToken',
+  ): void => {
+    if (!(key in patch) || patch[key] === undefined) return;
+    const value = patch[key] as TechnicalTimestamp | null;
+    encoded[key] = value ? toTimestamp(value) : null;
+    if (value === null) encoded[tokenKey] = null;
+  };
+
   const encodePatch = (
     patch: BatchSubmissionPatch | BatchMaterializerPatch | BatchWorkerPatch,
   ): Record<string, unknown> => {
@@ -269,23 +281,14 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
     Object.entries(patch).forEach(([key, value]) => {
       if (key !== 'updatedAt' && value !== undefined) encoded[key] = value;
     });
-    if ('leaseUntil' in patch && patch.leaseUntil !== undefined) {
-      encoded['leaseUntil'] = patch.leaseUntil
-        ? toTimestamp(patch.leaseUntil)
-        : null;
-      if (patch.leaseUntil === null) encoded['leaseToken'] = null;
-    }
-    if ('materializationLeaseUntil' in patch && patch.materializationLeaseUntil !== undefined) {
-      encoded['materializationLeaseUntil'] = patch.materializationLeaseUntil
-        ? toTimestamp(patch.materializationLeaseUntil)
-        : null;
-      if (patch.materializationLeaseUntil === null) {
-        encoded['materializationLeaseToken'] = null;
-      }
-    }
-    if ('materializationLeaseOwner' in patch && patch.materializationLeaseOwner !== undefined) {
-      encoded['materializationLeaseOwner'] = patch.materializationLeaseOwner;
-    }
+    const patchRecord = patch as unknown as Record<string, unknown>;
+    encodeLeaseField(encoded, patchRecord, 'leaseUntil', 'leaseToken');
+    encodeLeaseField(
+      encoded,
+      patchRecord,
+      'materializationLeaseUntil',
+      'materializationLeaseToken',
+    );
     return encoded;
   };
 

@@ -338,6 +338,30 @@ describe('createBatchSubmissionService', () => {
     },
   );
 
+  it('Given an empty materializer owner, When created, Then rejects configuration', () => {
+    const harness = storeHarness();
+    expect(() => createBatchSubmissionService({
+      store: harness.store,
+      materializerStore: harness.materializerStore,
+      materializer: { materialize: async () => [] },
+      clock: { now: () => now },
+      createBatchId: () => createEntityId('batch-1'),
+      materializerOwnerId: '   ',
+    })).toThrow(RangeError);
+  });
+
+  it('Given an invalid materialization lease, When created, Then rejects configuration', () => {
+    const harness = storeHarness();
+    expect(() => createBatchSubmissionService({
+      store: harness.store,
+      materializerStore: harness.materializerStore,
+      materializer: { materialize: async () => [] },
+      clock: { now: () => now },
+      createBatchId: () => createEntityId('batch-1'),
+      materializationLeaseDurationMilliseconds: 0,
+    })).toThrow(RangeError);
+  });
+
   it.each([999, NaN, Infinity, -Infinity])(
     'Given invalid max request bytes %s, When created, Then rejects configuration',
     (maxRequestBytes) => {

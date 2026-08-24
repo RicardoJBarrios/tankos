@@ -31,43 +31,35 @@ export interface BatchRequest<TPayload = unknown, TFilter = unknown> {
   readonly payload?: TPayload;
 }
 
+function assertBatchText(value: unknown, message: string): void {
+  if (typeof value !== 'string' || !value.trim()) throw new TypeError(message);
+}
+
+function validateBatchSelection<TFilter>(selection: BatchSelection<TFilter>): void {
+  if (!selection || typeof selection !== 'object') {
+    throw new TypeError('Batch selection must be an object');
+  }
+  if (selection.kind === 'filter') return;
+  if (selection.kind !== 'ids') {
+    throw new TypeError('Batch selection kind is invalid');
+  }
+  if (!Array.isArray(selection.ids) || selection.ids.length === 0) {
+    throw new RangeError('An id batch must contain at least one target');
+  }
+  if (new Set(selection.ids).size !== selection.ids.length) {
+    throw new RangeError('A batch cannot contain duplicate target ids');
+  }
+}
+
 /** Validates the confirmation and logical selection before submission. */
 export function createBatchRequest<TPayload = unknown, TFilter = unknown>(
   request: BatchRequest<TPayload, TFilter>,
 ): BatchRequest<TPayload, TFilter> {
-  if (typeof request.schema !== 'string' || !request.schema.trim()) {
-    throw new TypeError('Batch schema must be a non-empty string');
-  }
+  assertBatchText(request.schema, 'Batch schema must be a non-empty string');
   const access = createAccessContext(request.access);
-  if (
-    typeof request.confirmationToken !== 'string' ||
-    !request.confirmationToken.trim()
-  ) {
-    throw new TypeError('Batch confirmation token must be a non-empty string');
-  }
-  if (
-    typeof request.idempotencyKey !== 'string' ||
-    !request.idempotencyKey.trim()
-  ) {
-    throw new TypeError('Batch idempotency key must be a non-empty string');
-  }
-  if (!request.selection || typeof request.selection !== 'object') {
-    throw new TypeError('Batch selection must be an object');
-  }
-  if (request.selection.kind !== 'ids' && request.selection.kind !== 'filter') {
-    throw new TypeError('Batch selection kind is invalid');
-  }
-  if (request.selection.kind === 'ids') {
-    if (
-      !Array.isArray(request.selection.ids) ||
-      request.selection.ids.length === 0
-    ) {
-      throw new RangeError('An id batch must contain at least one target');
-    }
-    if (new Set(request.selection.ids).size !== request.selection.ids.length) {
-      throw new RangeError('A batch cannot contain duplicate target ids');
-    }
-  }
+  assertBatchText(request.confirmationToken, 'Batch confirmation token must be a non-empty string');
+  assertBatchText(request.idempotencyKey, 'Batch idempotency key must be a non-empty string');
+  validateBatchSelection(request.selection);
   return { ...request, access };
 }
 

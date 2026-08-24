@@ -11,6 +11,54 @@ export interface FirestoreAdminAtomicBatchOptions {
   readonly maxOperations?: number;
 }
 
+function assertAtomicBatchSize(
+  operations: readonly unknown[],
+  maxOperations: number,
+): void {
+  if (operations.length === 0)
+    throw createDataAccessError(
+      'validation',
+      'An atomic batch needs at least one operation',
+    );
+  if (operations.length > maxOperations)
+    throw createDataAccessError(
+      'validation',
+      'The atomic batch exceeds its configured operation limit',
+    );
+}
+
+function applyAtomicOperation<TDocument extends DocumentData>(
+  batch: ReturnType<Firestore['batch']>,
+  firestore: Firestore,
+  operation: Parameters<AtomicBatchPort<TDocument>['commit']>[0][number],
+): void {
+  if (!operation.path.trim())
+    throw createDataAccessError(
+      'validation',
+      'Atomic batch paths must be non-empty',
+    );
+  const reference = firestore.doc(operation.path);
+  switch (operation.kind) {
+    case 'set':
+      batch.set(reference, operation.document as DocumentData);
+      return;
+    case 'update':
+      batch.update(reference, operation.patch as DocumentData);
+      return;
+    case 'delete':
+      batch.delete(reference);
+  }
+}
+
+function mapAtomicBatchError(error: unknown): never {
+  if (error instanceof Error && error.name === 'DataAccessError') throw error;
+  throw createDataAccessError(
+    'transient',
+    'Firestore Admin atomic batch failed',
+    error,
+  );
+}
+
 /** Creates a Firestore Admin adapter for one finite atomic write batch. */
 export function createFirestoreAdminAtomicBatch<
   TDocument extends DocumentData = DocumentData,
@@ -27,41 +75,15 @@ export function createFirestoreAdminAtomicBatch<
   }
   return {
     async commit(operations) {
-      if (operations.length === 0)
-        throw createDataAccessError(
-          'validation',
-          'An atomic batch needs at least one operation',
-        );
-      if (operations.length > maxOperations) {
-        throw createDataAccessError(
-          'validation',
-          'The atomic batch exceeds its configured operation limit',
-        );
-      }
+      assertAtomicBatchSize(operations, maxOperations);
       try {
         const batch = options.firestore.batch();
-        for (const operation of operations) {
-          if (!operation.path.trim())
-            throw createDataAccessError(
-              'validation',
-              'Atomic batch paths must be non-empty',
-            );
-          const reference = options.firestore.doc(operation.path);
-          if (operation.kind === 'set')
-            batch.set(reference, operation.document as DocumentData);
-          if (operation.kind === 'update')
-            batch.update(reference, operation.patch as DocumentData);
-          if (operation.kind === 'delete') batch.delete(reference);
-        }
+        operations.forEach((operation) =>
+          applyAtomicOperation(batch, options.firestore, operation),
+        );
         await batch.commit();
       } catch (error) {
-        if (error instanceof Error && error.name === 'DataAccessError')
-          throw error;
-        throw createDataAccessError(
-          'transient',
-          'Firestore Admin atomic batch failed',
-          error,
-        );
+        mapAtomicBatchError(error);
       }
     },
   };

@@ -7,31 +7,38 @@ import { Instant, InstantInput } from '../../core';
 const INSTANT_PATTERN =
   /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})$/;
 
-function parseInstantString(value: string): number {
+function parseInstantParts(value: string): RegExpExecArray {
   const match = INSTANT_PATTERN.exec(value);
-  if (!match) {
+  if (!match)
     throw new RangeError(
       'An instant must use ISO 8601 date-time syntax with Z or an explicit offset',
     );
-  }
+  return match;
+}
 
-  const [, year, month, day, hour, minute, second, fraction, offset] = match;
+function assertInstantParts(
+  value: string,
+  parts: RegExpExecArray,
+): void {
+  const [, year, month, day, hour, minute, second, , offset] = parts;
   const numericOffset = offset === 'Z' ? 0 : Number(offset.slice(1, 3));
   const offsetMinutes = offset === 'Z' ? 0 : Number(offset.slice(4, 6));
-  const parsedYear = Number(year);
-  const parsedMonth = Number(month);
-  const parsedDay = Number(day);
-
   if (
-    !isValidCalendarDate(parsedYear, parsedMonth, parsedDay) ||
+    !isValidCalendarDate(Number(year), Number(month), Number(day)) ||
     Number(hour) > 23 ||
     Number(minute) > 59 ||
     Number(second) > 59 ||
     numericOffset > 23 ||
     offsetMinutes > 59
-  ) {
+  )
     throw new RangeError(`Invalid instant: ${value}`);
-  }
+}
+
+function parseInstantString(value: string): number {
+  const parts = parseInstantParts(value);
+  assertInstantParts(value, parts);
+
+  const [, year, month, day, hour, minute, second, fraction, offset] = parts;
 
   const milliseconds = (fraction ?? '').slice(0, 3).padEnd(3, '0');
   const normalizedValue = `${year}-${month}-${day}T${hour}:${minute}:${second}.${milliseconds}${offset}`;

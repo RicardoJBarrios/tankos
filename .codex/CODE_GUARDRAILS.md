@@ -178,6 +178,16 @@ be excluded explicitly and locally; their public contract must still be
 covered through import-path tests. Generated scaffolding is not an exemption:
 remove it, document it or cover it.
 
+## Complexity guardrail
+
+Production TypeScript in `libs/**/src/**/*.ts` must keep cyclomatic
+complexity at or below 10 and cognitive complexity at or below 15. These
+limits are enforced by ESLint on every library lint target. When a function
+exceeds a limit, split validation, parsing, mapping or orchestration into
+cohesive private functions with paired tests; do not suppress the rule or
+raise the threshold. The public contract and observable error behavior must
+remain unchanged during this refactoring.
+
 Use focused tests for pure logic and Angular tests for Angular behavior. Tests
 must cover successful behavior, invalid input, boundary values and relevant
 failure paths. In addition, every documented use case and public contract must
