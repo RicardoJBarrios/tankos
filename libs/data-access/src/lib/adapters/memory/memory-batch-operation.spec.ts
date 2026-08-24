@@ -90,6 +90,22 @@ describe('createInMemoryBatchOperation', () => {
     });
   });
 
+  it('Given only item warnings, When the worker runs, Then completes with warnings', async () => {
+    const adapter = createInMemoryBatchOperation({
+      clock: { now: () => now },
+      materialize: () => [ids[0]],
+      execute: async (id) => ({ id, outcome: 'warning' }),
+    });
+    const queued = await adapter.submit(request);
+    await adapter.materialize(queued.batchId);
+
+    await expect(adapter.run(queued.batchId, worker)).resolves.toMatchObject({
+      status: 'completed-with-warnings',
+      warnings: 1,
+      failures: 0,
+    });
+  });
+
   it('Given a non-Error item failure, When the worker runs, Then records a stable unknown failure', async () => {
     const adapter = createInMemoryBatchOperation({
       clock: { now: () => now },
@@ -248,6 +264,19 @@ describe('createInMemoryBatchOperation', () => {
     const second = await adapter.submit(request);
     expect(second.batchId).toBe(first.batchId);
     expect(materializations).toBe(1);
+  });
+
+  it('Given an idempotency key, When submitted twice before materialization, Then returns the existing operation', async () => {
+    const adapter = createInMemoryBatchOperation({
+      clock: { now: () => now },
+      materialize: () => ids,
+      execute: async (id) => ({ id, outcome: 'succeeded' as const }),
+    });
+
+    const first = await adapter.submit(request);
+    const second = await adapter.submit(request);
+
+    expect(second.batchId).toBe(first.batchId);
   });
 
   it('Given a reused idempotency key with a different request, When submitted, Then rejects the conflict', async () => {

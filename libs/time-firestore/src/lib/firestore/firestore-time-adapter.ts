@@ -1,3 +1,4 @@
+import { padLeft } from '@tankos/formatting';
 import { Timestamp } from 'firebase/firestore';
 import { firestoreTimestampSchema } from './firestore-schemas';
 import {
@@ -84,7 +85,8 @@ export function createFirestoreTimeAdapter(
 }
 
 function toLocalDateString(value: LocalDate): string {
-  return `${value.year.toString().padStart(4, '0')}-${value.month
-    .toString()
-    .padStart(2, '0')}-${value.day.toString().padStart(2, '0')}`;
+  return `${padLeft(value.year.toString(), 4)}-${padLeft(
+    value.month.toString(),
+    2,
+  )}-${padLeft(value.day.toString(), 2)}`;
 }

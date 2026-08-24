@@ -12,5 +12,7 @@ paths = [
   '''(^|/)reports/''',
   '''(^|/)test-results/''',
   '''(^|/)\.quality-venv/''',
+  '''^\.env$''',
+  '''^firebase-debug\.log$''',
   '''^apps/veril/src/app/shared/infrastructure/firebase-runtime-config\.ts$'''
 ]

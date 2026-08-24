@@ -15,6 +15,7 @@ export default defineConfig(() => ({
   resolve: {
     tsconfigPaths: true,
     alias: {
+      '@tankos/formatting': resolve(__dirname, '../formatting/src/index.ts'),
       '@tankos/decimal-big-js': resolve(
         __dirname,
         '../decimal-big-js/src/index.ts',

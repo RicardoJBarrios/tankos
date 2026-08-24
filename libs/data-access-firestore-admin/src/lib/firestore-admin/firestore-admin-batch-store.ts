@@ -206,6 +206,23 @@ const mapError = (error: unknown, message: string): never => {
   throw createDataAccessError(mapped, message, error);
 };
 
+const validateClaimRequest = (
+  request: BatchClaimRequest,
+  subject: 'worker' | 'materializer',
+): void => {
+  if (
+    typeof request.ownerId !== 'string' ||
+    !request.ownerId.trim() ||
+    !Number.isInteger(request.leaseDurationMilliseconds) ||
+    request.leaseDurationMilliseconds < 1
+  ) {
+    throw createDataAccessError(
+      'validation',
+      `${subject === 'worker' ? 'Batch worker' : 'Materializer'} identity and lease duration are invalid`,
+    );
+  }
+};
+
 /** Creates durable batch summaries, chunks, results and idempotency records. */
 export function createFirestoreAdminBatchStore<TPayload = unknown>(
   options: FirestoreAdminBatchStoreOptions,
@@ -392,17 +409,7 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
     },
     async claimMaterialization(batchId, request) {
       try {
-        if (
-          typeof request.ownerId !== 'string' ||
-          !request.ownerId.trim() ||
-          !Number.isInteger(request.leaseDurationMilliseconds) ||
-          request.leaseDurationMilliseconds < 1
-        ) {
-          throw createDataAccessError(
-            'validation',
-            'Materializer identity and lease duration are invalid',
-          );
-        }
+        validateClaimRequest(request, 'materializer');
         return await options.firestore.runTransaction(async (transaction) => {
           const reference = batchReference(batchId);
           const snapshot = await transaction.get(reference);
@@ -450,17 +457,7 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
       request: BatchClaimRequest,
     ): Promise<BatchClaim<TPayload>> {
       try {
-        if (
-          typeof request.ownerId !== 'string' ||
-          !request.ownerId.trim() ||
-          !Number.isInteger(request.leaseDurationMilliseconds) ||
-          request.leaseDurationMilliseconds < 1
-        ) {
-          throw createDataAccessError(
-            'validation',
-            'Batch worker identity and lease duration are invalid',
-          );
-        }
+        validateClaimRequest(request, 'worker');
         return await options.firestore.runTransaction(async (transaction) => {
           const reference = batchReference(batchId);
           const snapshot = await transaction.get(reference);

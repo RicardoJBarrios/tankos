@@ -1,7 +1,4 @@
-import {
-  DataAccessError,
-  type DataAccessErrorCode,
-} from '@tankos/data-access';
+import { DataAccessError, type DataAccessErrorCode } from '@tankos/data-access';
 
 /** Converts provider failures to stable data-access categories. */
 export function createDataAccessError(

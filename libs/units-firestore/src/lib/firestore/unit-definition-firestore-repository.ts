@@ -3,11 +3,7 @@ import {
   createFirestoreRecordSchema,
   type FirestoreCrudRepositoryOptions,
 } from '@tankos/data-access-firestore';
-import type {
-  CrudRecord,
-  CrudRepositoryPort,
-  Page,
-} from '@tankos/data-access';
+import type { CrudRepositoryPort } from '@tankos/data-access';
 import { type UnitDefinition, type UnitDefinitionFilter } from '@tankos/units';
 import {
   unitDefinitionDtoSchema,
@@ -15,6 +11,7 @@ import {
   unitDefinitionToDto,
   type UnitDefinitionDto,
 } from '@tankos/units-zod';
+import { createMappedFirestoreCrudRepository } from './mapped-firestore-crud-repository';
 
 /** Firestore repository options for the global unit-definition catalogue. */
 export type UnitDefinitionFirestoreRepositoryOptions = Omit<
@@ -48,42 +45,12 @@ export function createUnitDefinitionFirestoreRepository(
     updateData: (_data, input) => unitDefinitionToDto(input),
   });
 
-  return {
-    list: async (request) => mapPage(await repository.list(request)),
-    get: async (request) => mapRecord(await repository.get(request)),
-    create: async (request) =>
-      mapRequiredRecord(await repository.create(request)),
-    replace: async (request, input) =>
-      mapRequiredRecord(await repository.replace(request, input)),
-    markForDeletion: async (request) =>
-      mapRequiredRecord(await repository.markForDeletion(request)),
-    restore: async (request) =>
-      mapRequiredRecord(await repository.restore(request)),
-    delete: (request) => repository.delete(request),
-  };
+  return createMappedFirestoreCrudRepository(repository, (value) =>
+    unitDefinitionSchema.parse(value),
+  );
 }
 
 /** Strict Firestore envelope schema for unit-definition records. */
 export const unitDefinitionRecordSchema = createFirestoreRecordSchema(
   unitDefinitionDtoSchema,
 );
-
-function mapRecord(
-  record: CrudRecord<UnitDefinitionDto> | undefined,
-): CrudRecord<UnitDefinition> | undefined {
-  return record
-    ? { ...record, data: unitDefinitionSchema.parse(record.data) }
-    : undefined;
-}
-
-function mapRequiredRecord(
-  record: CrudRecord<UnitDefinitionDto>,
-): CrudRecord<UnitDefinition> {
-  return mapRecord(record) as CrudRecord<UnitDefinition>;
-}
-
-function mapPage(
-  page: Page<CrudRecord<UnitDefinitionDto>>,
-): Page<CrudRecord<UnitDefinition>> {
-  return { ...page, items: page.items.map(mapRequiredRecord) };
-}

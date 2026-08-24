@@ -54,10 +54,7 @@ modules['apps/veril/src/app/composition/shared-access'] = [
   'layer:composition',
 ];
 modules['apps/tankos/src'] = ['context:tankos', 'tankos:layer:composition'];
-modules['apps/tankos/src/app'] = [
-  'context:tankos',
-  'tankos:layer:composition',
-];
+modules['apps/tankos/src/app'] = ['context:tankos', 'tankos:layer:composition'];
 
 for (const layer of layers) {
   modules[`apps/veril/src/app/shared-access/${layer}`] = [
@@ -68,18 +65,9 @@ for (const layer of layers) {
 
 const tankOsTimeLayers: Record<string, string[]> = {
   'libs/time/src': ['context:tankos', 'tankos:layer:library-root'],
-  'libs/time/src/lib/time': [
-    'context:tankos',
-    'tankos:layer:library-root',
-  ],
-  'libs/time/src/lib/time/core': [
-    'context:tankos',
-    'tankos:layer:core',
-  ],
-  'libs/time/src/lib/time/core/ports': [
-    'context:tankos',
-    'tankos:layer:core',
-  ],
+  'libs/time/src/lib/time': ['context:tankos', 'tankos:layer:library-root'],
+  'libs/time/src/lib/time/core': ['context:tankos', 'tankos:layer:core'],
+  'libs/time/src/lib/time/core/ports': ['context:tankos', 'tankos:layer:core'],
   'libs/time/src/lib/time/core/value-types': [
     'context:tankos',
     'tankos:layer:core',
@@ -100,10 +88,7 @@ const tankOsTimeLayers: Record<string, string[]> = {
     'context:tankos',
     'tankos:layer:composition',
   ],
-  'libs/time/src/lib/time/adapters': [
-    'context:tankos',
-    'tankos:layer:adapter',
-  ],
+  'libs/time/src/lib/time/adapters': ['context:tankos', 'tankos:layer:adapter'],
   'libs/time/src/lib/time/adapters/angular': [
     'context:tankos',
     'tankos:layer:adapter',
@@ -128,10 +113,7 @@ modules['libs/units/src/lib/units'] = [
   'context:tankos',
   'tankos:layer:library-root',
 ];
-modules['libs/units/src'] = [
-  'context:tankos',
-  'tankos:layer:library-root',
-];
+modules['libs/units/src'] = ['context:tankos', 'tankos:layer:library-root'];
 modules['libs/units/src/lib/units/core'] = [
   'context:tankos',
   'tankos:layer:core',
@@ -172,10 +154,7 @@ modules['libs/decimal/src/lib/decimal'] = [
   'context:tankos',
   'tankos:layer:library-root',
 ];
-modules['libs/decimal/src'] = [
-  'context:tankos',
-  'tankos:layer:library-root',
-];
+modules['libs/decimal/src'] = ['context:tankos', 'tankos:layer:library-root'];
 modules['libs/decimal/src/lib/decimal/core'] = [
   'context:tankos',
   'tankos:layer:core',
@@ -208,6 +187,11 @@ modules['libs/decimal/src/lib/decimal/composition/angular'] = [
   'context:tankos',
   'tankos:layer:composition',
 ];
+modules['libs/formatting/src'] = [
+  'context:tankos',
+  'tankos:layer:library-root',
+];
+modules['libs/formatting/src/lib'] = ['context:tankos', 'tankos:layer:core'];
 for (const adapterPackage of [
   'time-firestore',
   'time-json-http',

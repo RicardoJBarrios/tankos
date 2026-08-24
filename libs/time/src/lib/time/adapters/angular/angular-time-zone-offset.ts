@@ -1,3 +1,4 @@
+import { padLeft } from '@tankos/formatting';
 import { Instant, TimeZoneDatabasePort } from '../../core';
 
 /**
@@ -32,9 +33,7 @@ export function toDatePipeTimeZone(
   const offsetMinutes = timeZoneDatabase.getOffsetMinutes(instant, timeZone);
   const sign = offsetMinutes < 0 ? '-' : '+';
   const absoluteMinutes = Math.abs(offsetMinutes);
-  const hours = Math.floor(absoluteMinutes / 60)
-    .toString()
-    .padStart(2, '0');
-  const minutes = (absoluteMinutes % 60).toString().padStart(2, '0');
+  const hours = padLeft(Math.floor(absoluteMinutes / 60).toString(), 2);
+  const minutes = padLeft((absoluteMinutes % 60).toString(), 2);
   return `${sign}${hours}${minutes}`;
 }

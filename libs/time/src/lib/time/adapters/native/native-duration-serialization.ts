@@ -1,3 +1,4 @@
+import { padLeft, trimTrailingZeros } from '@tankos/formatting';
 import { DurationInput } from '../../core';
 import { nativeParseDuration } from './native-duration-parsing';
 
@@ -48,7 +49,7 @@ function formatTimePart(
   if (seconds > 0 || milliseconds > 0) {
     const fractionalSeconds =
       milliseconds > 0
-        ? `.${milliseconds.toString().padStart(3, '0').replace(/0+$/, '')}`
+        ? `.${trimTrailingZeros(padLeft(milliseconds.toString(), 3))}`
         : '';
     timeParts.push(`${seconds}${fractionalSeconds}S`);
   }

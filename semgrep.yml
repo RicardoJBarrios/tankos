@@ -1,5 +1,5 @@
 rules:
-  - id: veril-no-firebase-admin-in-browser
+  - id: tankos-no-firebase-admin-in-browser
     languages:
       - typescript
       - javascript
@@ -15,7 +15,7 @@ rules:
         - /libs/data-access-server/**
     pattern-regex: 'from ["'']firebase-admin(?:/[^"'']*)?["'']'
 
-  - id: veril-no-private-key-literal
+  - id: tankos-no-private-key-literal
     languages:
       - typescript
       - javascript

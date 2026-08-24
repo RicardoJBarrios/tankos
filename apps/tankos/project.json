@@ -71,6 +71,7 @@
         "{workspaceRoot}/coverage/apps/tankos"
       ],
       "options": {
+        "coverage": true,
         "coverage.reportsDirectory": "../../coverage/apps/tankos"
       }
     },

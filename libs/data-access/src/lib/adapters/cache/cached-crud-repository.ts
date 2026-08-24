@@ -11,6 +11,19 @@ import type {
 } from '../../core';
 import { createCacheNamespace } from '../../core';
 
+function stableJson(value: unknown): string {
+  return JSON.stringify(value, (_key, child: unknown) => {
+    if (!child || typeof child !== 'object' || Array.isArray(child)) {
+      return child;
+    }
+    return Object.fromEntries(
+      Object.entries(child as Record<string, unknown>).sort(([a], [b]) =>
+        a.localeCompare(b),
+      ),
+    );
+  });
+}
+
 /** CRUD repository with read-through TTL caching and mutation invalidation. */
 export interface CachedCrudRepository<
   TData,
@@ -50,25 +63,18 @@ export function createCachedCrudRepository<
   ) {
     throw new RangeError('Cache TTL must be a positive finite number');
   }
-  const stableJson = (value: unknown): string =>
-    JSON.stringify(value, (_key, child: unknown) => {
-      if (!child || typeof child !== 'object' || Array.isArray(child))
-        return child;
-      return Object.fromEntries(
-        Object.entries(child as Record<string, unknown>).sort(([a], [b]) =>
-          a.localeCompare(b),
-        ),
-      );
-    });
   const namespace = createCacheNamespace(options.scope);
   const inFlight = new Map<string, Promise<unknown>>();
   let invalidationGeneration = 0;
+  const handleCacheError = (error: unknown): void => {
+    options.onCacheError?.(error);
+  };
   const invalidate = async (): Promise<void> => {
     invalidationGeneration += 1;
     try {
       await cache.clearNamespace(namespace);
     } catch (error) {
-      options.onCacheError?.(error);
+      handleCacheError(error);
     }
   };
   const listKey = (request: ListRequest<TFilter>) =>
@@ -91,7 +97,7 @@ export function createCachedCrudRepository<
         cached = (await cache.get(key, readOptions)) as
           Page<CrudRecord<TData>> | undefined;
       } catch (error) {
-        options.onCacheError?.(error);
+        handleCacheError(error);
       }
       if (cached !== undefined && isCacheFirst(readOptions)) return cached;
       const existing = inFlight.get(key) as
@@ -105,7 +111,7 @@ export function createCachedCrudRepository<
             try {
               await cache.set(key, result, options.ttlMilliseconds);
             } catch (error) {
-              options.onCacheError?.(error);
+              handleCacheError(error);
             }
           }
           return result;
@@ -124,7 +130,7 @@ export function createCachedCrudRepository<
           cached = (await cache.get(key, readOptions)) as
             CrudRecord<TData> | undefined;
         } catch (error) {
-          options.onCacheError?.(error);
+          handleCacheError(error);
         }
         if (cached !== undefined && isCacheFirst(readOptions)) return cached;
         const existing = inFlight.get(key) as
@@ -139,7 +145,7 @@ export function createCachedCrudRepository<
           ) {
             await cache
               .set(key, result, options.ttlMilliseconds)
-              .catch((error) => options.onCacheError?.(error));
+              .catch(handleCacheError);
           }
           /* c8 ignore next -- V8 reports the async return boundary as a synthetic branch. */
           return result;

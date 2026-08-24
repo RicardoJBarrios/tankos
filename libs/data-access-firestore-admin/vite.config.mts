@@ -5,8 +5,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig(() => ({
   root: __dirname,
-  cacheDir:
-    '../../node_modules/.vite/libs/data-access-firestore-admin',
+  cacheDir: '../../node_modules/.vite/libs/data-access-firestore-admin',
   plugins: [tsconfigPaths()],
   // Uncomment this if you are using workers.
   test: {
@@ -21,8 +20,7 @@ export default defineConfig(() => ({
     coverage: {
       ...createVitestReporting('data-access-firestore-admin', '../../')
         .coverage,
-      reportsDirectory:
-        '../../coverage/libs/data-access-firestore-admin',
+      reportsDirectory: '../../coverage/libs/data-access-firestore-admin',
       provider: 'v8' as const,
       thresholds: {
         lines: 100,

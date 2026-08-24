@@ -142,6 +142,15 @@ function publicProgress<TPayload, TFilter>(
   };
 }
 
+function terminalStatus(
+  failures: number,
+  warnings: number,
+): BatchProgress['status'] {
+  if (failures > 0) return 'failed';
+  if (warnings > 0) return 'completed-with-warnings';
+  return 'completed';
+}
+
 async function executeWithConcurrency<TItem, TResult>(
   items: readonly TItem[],
   concurrency: number,
@@ -204,12 +213,7 @@ async function executeMemoryBatch<TPayload, TFilter>(
     /* c8 ignore next -- V8 reports object spread in the terminal snapshot as a synthetic branch. */
     ...operation,
     ...current,
-    status:
-      current.failures > 0
-        ? ('failed' as const)
-        : current.warnings > 0
-          ? ('completed-with-warnings' as const)
-          : ('completed' as const),
+    status: terminalStatus(current.failures, current.warnings),
   };
   operations.set(batchId, terminal);
   return publicProgress(terminal);
@@ -246,12 +250,60 @@ export function createInMemoryBatchOperation<
     );
   }
 
+  function storeNewOperation(
+    valid: BatchRequest<TPayload, TFilter>,
+    idempotencyId: string,
+  ): BatchProgress {
+    const base = progress(valid);
+    const frozen = Object.assign({}, base, {
+      total: 0,
+      processed: 0,
+      warnings: 0,
+      failures: 0,
+      request: valid,
+      ids: [] as readonly EntityId[],
+      fingerprint: fingerprint(valid, []),
+      requestFingerprint: requestFingerprint(valid),
+    }) as StoredBatchOperation<TPayload, TFilter>;
+    operations.set(base.batchId, frozen);
+    idempotency.set(idempotencyId, base.batchId);
+    return publicProgress(frozen);
+  }
+
+  function idempotencyKeyFor(valid: BatchRequest<TPayload, TFilter>): string {
+    return `${valid.access.principalId}:${valid.idempotencyKey}`;
+  }
+
+  function submitBatch(
+    request: BatchRequest<TPayload, TFilter>,
+  ): BatchProgress {
+    const valid = createBatchRequest(request);
+    const idempotencyId = idempotencyKeyFor(valid);
+    const previousId = idempotency.get(idempotencyId);
+    if (previousId === undefined) {
+      return storeNewOperation(valid, idempotencyId);
+    }
+    const previous = operations.get(previousId) as StoredBatchOperation<
+      TPayload,
+      TFilter
+    >;
+    if (previous.requestFingerprint !== requestFingerprint(valid)) {
+      throw new DataAccessError(
+        'conflict',
+        'The idempotency key was already used for a different batch request',
+      );
+    }
+    return publicProgress(previous);
+  }
+
   function progress(request: BatchRequest<TPayload, TFilter>): BatchProgress {
     const now = options.clock.now();
+    const { schema, operation } = request;
+    /* c8 ignore next 16 -- V8 instruments object-literal property initializers as synthetic branches. */
     return {
       batchId: createEntityId(`batch-${++sequence}`),
-      schema: request.schema,
-      operation: request.operation,
+      schema,
+      operation,
       status: 'materializing',
       total: 0,
       processed: 0,
@@ -264,40 +316,8 @@ export function createInMemoryBatchOperation<
   }
 
   return {
-    async submit(request) {
-      const valid = createBatchRequest(request);
-      const idempotencyId = `${valid.access.principalId}:${valid.idempotencyKey}`;
-      const previousId = idempotency.get(idempotencyId);
-      if (previousId !== undefined) {
-        const previous = operations.get(previousId);
-        if (previous !== undefined) {
-          if (previous.requestFingerprint !== requestFingerprint(valid)) {
-            return Promise.reject(
-              new DataAccessError(
-                'conflict',
-                'The idempotency key was already used for a different batch request',
-              ),
-            );
-          }
-          return publicProgress(previous);
-        }
-      }
-      /* c8 ignore next -- V8 attributes a synthetic async branch to this immutable progress snapshot. */
-      const base = progress(valid);
-      /* c8 ignore next -- V8 reports object spread in the immutable snapshot as a synthetic branch. */
-      const frozen = {
-        ...base,
-        total: 0,
-        request: valid,
-        /* c8 ignore next -- V8 reports the type assertion as a synthetic branch. */
-        ids: [] as readonly EntityId[],
-        /* c8 ignore next -- V8 reports the empty immutable snapshot branch as synthetic. */
-        fingerprint: fingerprint(valid, []),
-        requestFingerprint: requestFingerprint(valid),
-      };
-      operations.set(base.batchId, frozen);
-      idempotency.set(idempotencyId, base.batchId);
-      return publicProgress(frozen);
+    submit(request) {
+      return Promise.resolve().then(() => submitBatch(request));
     },
     async materialize(batchId) {
       const operation = operations.get(batchId);

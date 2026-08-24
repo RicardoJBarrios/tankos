@@ -1,3 +1,4 @@
+import { padLeft } from '@tankos/formatting';
 import { DatePipe } from '@angular/common';
 import {
   DurationDisplayOptions,
@@ -204,7 +205,7 @@ function durationParts(milliseconds: number): {
 function formatDigital(parts: ReturnType<typeof durationParts>): string {
   const totalHours = parts.days * 24 + parts.hours;
   return [totalHours, parts.minutes, parts.seconds]
-    .map((value) => value.toString().padStart(2, '0'))
+    .map((value) => padLeft(value.toString(), 2))
     .join(':');
 }
 

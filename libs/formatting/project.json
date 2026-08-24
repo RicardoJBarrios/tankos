@@ -1,0 +1,38 @@
+{
+  "name": "formatting",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/formatting/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["scope:shared", "scope:tankos", "type:library"],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "project": "libs/formatting/ng-package.json",
+        "tsConfig": "libs/formatting/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/formatting/tsconfig.lib.prod.json"
+        },
+        "development": {}
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/libs/formatting"
+      ],
+      "options": {
+        "coverage": true,
+        "coverage.reportsDirectory": "../../coverage/libs/formatting"
+      }
+    }
+  }
+}

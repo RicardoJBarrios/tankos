@@ -22,6 +22,7 @@
     "tools/**/*.ts"
   ],
   "ignore": [
+    "apps/veril/**",
     "**/dist/**",
     "**/coverage/**",
     "**/test-results/**",
@@ -42,10 +43,9 @@
     "angular-eslint",
     "eslint-plugin-playwright",
     "jsonc-eslint-parser",
-    "prettier",
     "ts-node",
     "typescript-eslint"
   ],
   "ignoreUnresolved": ["src/test-setup.ts"],
-  "ignoreBinaries": ["peers", "semgrep"]
+  "ignoreBinaries": ["gitleaks"]
 }

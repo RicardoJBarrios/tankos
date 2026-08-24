@@ -1,3 +1,4 @@
+import { trimTrailingZeros } from '@tankos/formatting';
 import { InvalidDecimalError } from '../errors';
 
 /** A canonical, finite decimal represented without locale formatting. */
@@ -92,7 +93,7 @@ function formatDigits(digits: string, decimalPosition: number): string {
 
   const [integerPart, fractionalPart] = formatted.split('.');
   const normalizedInteger = integerPart.replace(/^0+(?=\d)/, '');
-  const normalizedFractional = (fractionalPart ?? '').replace(/0+$/, '');
+  const normalizedFractional = trimTrailingZeros(fractionalPart ?? '');
 
   return normalizedFractional
     ? `${normalizedInteger}.${normalizedFractional}`

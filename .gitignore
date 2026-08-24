@@ -28,6 +28,7 @@ node_modules
 /.sass-cache
 /connect.lock
 /coverage
+**/coverage/
 /reports
 /.quality-venv
 /libpeerconnection.log
@@ -35,6 +36,7 @@ npm-debug.log
 yarn-error.log
 testem.log
 /typings
+.env
 
 # System Files
 .DS_Store
@@ -42,6 +44,8 @@ Thumbs.db
 
 .nx/cache
 .nx/workspace-data
+/.scannerwork
+/.sonar-lcov.*
 
 .angular
 .playwright-mcp

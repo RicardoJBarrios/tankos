@@ -44,11 +44,15 @@ export default [
     },
   },
   {
-    files: ['libs/**/src/**/*.ts'],
+    files: ['apps/tankos/src/**/*.ts', 'libs/**/src/**/*.ts'],
     plugins: { sonarjs },
     rules: {
+      ...sonarjs.configs.recommended.rules,
       complexity: ['error', 10],
       'sonarjs/cognitive-complexity': ['error', 15],
+      // AccessRole is a deliberate ubiquitous-language alias for a role string.
+      // The rule cannot distinguish that semantic contract from a redundant alias.
+      'sonarjs/redundant-type-aliases': 'off',
     },
   },
   {

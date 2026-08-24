@@ -7,10 +7,16 @@
     "dev": "bash ./tools/dev.sh",
     "firebase:set-keeper-claim": "node tools/firebase/set-keeper-claim.mjs",
     "firebase:set-editorial-claim": "node tools/firebase/set-editorial-claim.mjs",
-    "quality:knip": "knip --no-progress --include files,dependencies,unlisted,unresolved,binaries --no-exit-code",
-    "quality:semgrep": "semgrep scan --config semgrep.yml --error",
+    "quality:format": "prettier --check 'apps/tankos/**/*.{ts,html,css,mts}' 'libs/**/*.{ts,html,css,mts}' 'tools/**/*.{ts,mts,js,mjs}' '*.{mjs,ts,json,yml}'",
+    "quality:knip": "knip --no-progress --include files,dependencies,unlisted,unresolved,binaries",
+    "quality:semgrep": "bash ./tools/quality/run-semgrep.sh",
+    "quality:gitleaks": "gitleaks dir . --config .gitleaks.toml --no-banner --redact && gitleaks git . --config .gitleaks.toml --no-banner --redact",
     "quality:audit": "pnpm audit --prod --audit-level high",
-    "quality:affected": "pnpm exec nx affected -t lint test"
+    "quality:nx": "pnpm exec nx run-many -t lint test build --exclude=veril --parallel=3 --skipNxCache",
+    "quality:affected": "pnpm exec nx affected -t lint test build --exclude=veril --parallel=3 --skipNxCache",
+    "quality:local": "pnpm quality:format && pnpm quality:nx && pnpm quality:knip && pnpm quality:semgrep && pnpm quality:gitleaks && pnpm quality:audit",
+    "quality:sonar": "bash ./tools/quality/sonar-scan.sh",
+    "quality:all": "pnpm quality:local && pnpm quality:sonar"
   },
   "private": true,
   "dependencies": {
@@ -18,7 +24,6 @@
     "@angular/common": "20.3.27",
     "@angular/compiler": "20.3.27",
     "@angular/core": "20.3.27",
-    "@angular/fire": "20.0.1",
     "@angular/forms": "20.3.27",
     "@angular/material": "20.2.14",
     "@angular/platform-browser": "20.3.27",

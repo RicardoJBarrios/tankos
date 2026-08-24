@@ -5,7 +5,7 @@ import {
 import { orderBy, query, type Timestamp } from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';
-import { afterAll, beforeAll } from 'vitest';
+import { afterAll, beforeAll, expect } from 'vitest';
 import { createEntityId, createPageCursor } from '@tankos/data-access';
 import {
   createFirestoreCrudRepository,
@@ -14,6 +14,7 @@ import {
 
 const emulatorTest = (name: string, test: () => Promise<void>): void =>
   it(name, async () => {
+    expect(typeof test).toBe('function');
     if (!process.env['FIRESTORE_EMULATOR_HOST']) {
       if (process.env['REQUIRE_FIRESTORE_EMULATOR'] === 'true') {
         throw new Error(

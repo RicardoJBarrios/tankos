@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-  createEntityId,
-  type BatchOperationRecord,
-} from '@tankos/data-access';
+import { createEntityId, type BatchOperationRecord } from '@tankos/data-access';
 import { createFirestoreAdminBatchStore } from './firestore-admin-batch-store';
 
 interface FakeReference {

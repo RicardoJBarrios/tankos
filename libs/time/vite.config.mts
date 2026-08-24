@@ -15,6 +15,7 @@ export default defineConfig(() => ({
   resolve: {
     tsconfigPaths: true,
     alias: {
+      '@tankos/formatting': resolve(__dirname, '../formatting/src/index.ts'),
       '@tankos/time': resolve(__dirname, 'src/index.ts'),
     },
   },
