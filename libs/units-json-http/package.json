@@ -1,0 +1,14 @@
+{
+  "name": "@tankos/units-json-http",
+  "version": "0.0.0",
+  "peerDependencies": {
+    "@tankos/data-access": "^0.0.0",
+    "@tankos/data-access-json-http": "^0.0.0",
+    "@tankos/time": "^0.0.0",
+    "@tankos/time-json-http": "^0.0.0",
+    "@tankos/units": "^0.0.0",
+    "@tankos/units-zod": "^0.0.0",
+    "zod": "^4.4.3"
+  },
+  "sideEffects": false
+}

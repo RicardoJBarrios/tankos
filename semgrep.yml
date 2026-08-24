@@ -11,8 +11,8 @@ rules:
         - /libs/**/src/**
       exclude:
         - /apps/veril/src/app/**/infrastructure/fixtures/**
-        - /libs/tank-os/data-access-firestore-admin/**
-        - /libs/tank-os/data-access-server/**
+        - /libs/data-access-firestore-admin/**
+        - /libs/data-access-server/**
     pattern-regex: 'from ["'']firebase-admin(?:/[^"'']*)?["'']'
 
   - id: veril-no-private-key-literal

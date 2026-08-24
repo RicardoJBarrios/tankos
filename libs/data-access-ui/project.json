@@ -1,0 +1,41 @@
+{
+  "name": "data-access-ui",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/data-access-ui/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["npm:public", "scope:shared", "scope:tankos", "type:ui"],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "dependsOn": ["data-access:build"],
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "project": "libs/data-access-ui/ng-package.json",
+        "tsConfig": "libs/data-access-ui/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/data-access-ui/tsconfig.lib.prod.json"
+        },
+        "development": {}
+      }
+    },
+    "nx-release-publish": {
+      "options": {
+        "packageRoot": "dist/{projectRoot}"
+      }
+    },
+    "test": {
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/libs/data-access-ui"
+      ],
+      "options": {
+        "coverage": true,
+        "coverage.reportsDirectory": "../../coverage/libs/data-access-ui"
+      }
+    }
+  }
+}

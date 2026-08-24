@@ -32,11 +32,11 @@ export default [
             },
             {
               sourceTag: 'scope:shared',
-              onlyDependOnLibsWithTags: ['scope:shared', 'scope:tank-os'],
+              onlyDependOnLibsWithTags: ['scope:shared', 'scope:tankos'],
             },
             {
-              sourceTag: 'scope:tank-os',
-              onlyDependOnLibsWithTags: ['scope:tank-os'],
+              sourceTag: 'scope:tankos',
+              onlyDependOnLibsWithTags: ['scope:tankos'],
             },
           ],
         },

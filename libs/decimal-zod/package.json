@@ -1,0 +1,9 @@
+{
+  "name": "@tankos/decimal-zod",
+  "version": "0.0.0",
+  "peerDependencies": {
+    "@tankos/decimal": "^0.0.0",
+    "zod": "^4.4.3"
+  },
+  "sideEffects": false
+}

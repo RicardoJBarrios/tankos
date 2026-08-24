@@ -1,0 +1,11 @@
+{
+  "name": "@tankos/data-access-firestore",
+  "version": "0.0.0",
+  "peerDependencies": {
+    "@tankos/data-access": "^0.0.0",
+    "@tankos/time": "^0.0.0",
+    "firebase": "^12.17.1",
+    "zod": "^4.4.3"
+  },
+  "sideEffects": false
+}

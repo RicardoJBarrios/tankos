@@ -1,0 +1,10 @@
+{
+  "name": "@tankos/decimal-big-js",
+  "version": "0.0.0",
+  "peerDependencies": {
+    "@angular/core": "^20.3.0",
+    "@tankos/decimal": "^0.0.0",
+    "big.js": "^7.0.1"
+  },
+  "sideEffects": false
+}

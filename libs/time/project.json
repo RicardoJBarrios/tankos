@@ -1,0 +1,34 @@
+{
+  "name": "time",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/time/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["scope:shared", "scope:tankos", "type:feature"],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "outputs": ["{workspaceRoot}/dist/libs/time"],
+      "options": {
+        "project": "libs/time/ng-package.json",
+        "tsConfig": "libs/time/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/time/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/libs/time"
+      ],
+      "options": {
+        "coverage": true,
+        "coverage.reportsDirectory": "../../coverage/libs/time"
+      }
+    }
+  }
+}

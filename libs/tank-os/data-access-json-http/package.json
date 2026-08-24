@@ -1,9 +1,0 @@
-{
-  "name": "@tank-os/data-access-json-http",
-  "version": "0.0.0",
-  "peerDependencies": {
-    "@tank-os/data-access": "^0.0.0",
-    "zod": "^4.4.3"
-  },
-  "sideEffects": false
-}

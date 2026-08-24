@@ -1,0 +1,35 @@
+{
+  "name": "data-access",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/data-access/src",
+  "prefix": "tankos",
+  "tags": ["scope:shared", "scope:tankos", "type:feature"],
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "dependsOn": ["time:build"],
+      "outputs": ["{workspaceRoot}/dist/libs/data-access"],
+      "options": {
+        "project": "libs/data-access/ng-package.json",
+        "tsConfig": "libs/data-access/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/data-access/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/libs/data-access"
+      ],
+      "options": {
+        "coverage": true,
+        "coverage.reportsDirectory": "../../coverage/libs/data-access"
+      }
+    }
+  }
+}

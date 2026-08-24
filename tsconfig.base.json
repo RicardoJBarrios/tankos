@@ -14,35 +14,35 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "paths": {
-      "@tank-os/units": ["./libs/tank-os/units/src/index.ts"],
-      "@tank-os/time": ["./libs/tank-os/time/src/index.ts"],
-      "@tank-os/decimal": ["./libs/tank-os/decimal/src/index.ts"],
-      "@tank-os/data-access": ["./libs/tank-os/data-access/src/index.ts"],
-      "@tank-os/data-access-firestore": [
-        "./libs/tank-os/data-access-firestore/src/index.ts"
+      "@tankos/units": ["./libs/units/src/index.ts"],
+      "@tankos/time": ["./libs/time/src/index.ts"],
+      "@tankos/decimal": ["./libs/decimal/src/index.ts"],
+      "@tankos/data-access": ["./libs/data-access/src/index.ts"],
+      "@tankos/data-access-firestore": [
+        "./libs/data-access-firestore/src/index.ts"
       ],
-      "@tank-os/data-access-json-http": [
-        "./libs/tank-os/data-access-json-http/src/index.ts"
+      "@tankos/data-access-json-http": [
+        "./libs/data-access-json-http/src/index.ts"
       ],
-      "@tank-os/data-access-server": [
-        "./libs/tank-os/data-access-server/src/index.ts"
+      "@tankos/data-access-server": [
+        "./libs/data-access-server/src/index.ts"
       ],
-      "@tank-os/time-firestore": ["./libs/tank-os/time-firestore/src/index.ts"],
-      "@tank-os/time-json-http": ["./libs/tank-os/time-json-http/src/index.ts"],
-      "@tank-os/time-zod": ["./libs/tank-os/time-zod/src/index.ts"],
-      "@tank-os/decimal-big-js": ["./libs/tank-os/decimal-big-js/src/index.ts"],
-      "@tank-os/decimal-zod": ["./libs/tank-os/decimal-zod/src/index.ts"],
-      "@tank-os/data-access-firestore-admin": [
-        "./libs/tank-os/data-access-firestore-admin/src/index.ts"
+      "@tankos/time-firestore": ["./libs/time-firestore/src/index.ts"],
+      "@tankos/time-json-http": ["./libs/time-json-http/src/index.ts"],
+      "@tankos/time-zod": ["./libs/time-zod/src/index.ts"],
+      "@tankos/decimal-big-js": ["./libs/decimal-big-js/src/index.ts"],
+      "@tankos/decimal-zod": ["./libs/decimal-zod/src/index.ts"],
+      "@tankos/data-access-firestore-admin": [
+        "./libs/data-access-firestore-admin/src/index.ts"
       ],
-      "@tank-os/units-zod": ["./libs/tank-os/units-zod/src/index.ts"],
-      "@tank-os/units-firestore": [
-        "./libs/tank-os/units-firestore/src/index.ts"
+      "@tankos/units-zod": ["./libs/units-zod/src/index.ts"],
+      "@tankos/units-firestore": [
+        "./libs/units-firestore/src/index.ts"
       ],
-      "@tank-os/units-json-http": [
-        "./libs/tank-os/units-json-http/src/index.ts"
+      "@tankos/units-json-http": [
+        "./libs/units-json-http/src/index.ts"
       ],
-      "@tank-os/data-access-ui": ["./libs/tank-os/data-access-ui/src/index.ts"]
+      "@tankos/data-access-ui": ["./libs/data-access-ui/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

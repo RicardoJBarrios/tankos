@@ -1,0 +1,46 @@
+{
+  "name": "units-json-http",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/units-json-http/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["npm:public", "scope:shared", "scope:tankos", "type:adapter"],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "dependsOn": [
+        "data-access-json-http:build",
+        "time-json-http:build",
+        "units-zod:build",
+        "units:build"
+      ],
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "project": "libs/units-json-http/ng-package.json",
+        "tsConfig": "libs/units-json-http/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/units-json-http/tsconfig.lib.prod.json"
+        },
+        "development": {}
+      }
+    },
+    "nx-release-publish": {
+      "options": {
+        "packageRoot": "dist/{projectRoot}"
+      }
+    },
+    "test": {
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/libs/units-json-http"
+      ],
+      "options": {
+        "coverage": true,
+        "coverage.reportsDirectory": "../../coverage/libs/units-json-http"
+      }
+    }
+  }
+}

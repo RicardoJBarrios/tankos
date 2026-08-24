@@ -29,7 +29,7 @@
     "**/*.integration.spec.ts"
   ],
   "ignoreDependencies": [
-    "@tank-os/*",
+    "@tankos/*",
     "@angular/cli",
     "@angular/language-service",
     "@angular/platform-browser-dynamic",

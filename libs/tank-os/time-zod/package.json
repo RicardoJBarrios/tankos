@@ -1,9 +1,0 @@
-{
-  "name": "@tank-os/time-zod",
-  "version": "0.0.0",
-  "peerDependencies": {
-    "@tank-os/time": "^0.0.0",
-    "zod": "^4.4.3"
-  },
-  "sideEffects": false
-}

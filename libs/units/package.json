@@ -1,0 +1,9 @@
+{
+  "name": "@tankos/units",
+  "version": "0.0.0",
+  "sideEffects": false,
+  "peerDependencies": {
+    "@tankos/data-access": "^0.0.0",
+    "@tankos/decimal": "^0.0.0"
+  }
+}

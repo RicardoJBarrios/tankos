@@ -1,0 +1,35 @@
+{
+  "name": "units",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/units/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["scope:shared", "scope:tankos", "type:feature"],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "dependsOn": ["decimal:build", "data-access:build"],
+      "outputs": ["{workspaceRoot}/dist/libs/units"],
+      "options": {
+        "project": "libs/units/ng-package.json",
+        "tsConfig": "libs/units/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/units/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/libs/units"
+      ],
+      "options": {
+        "coverage": true,
+        "coverage.reportsDirectory": "../../coverage/libs/units"
+      }
+    }
+  }
+}
