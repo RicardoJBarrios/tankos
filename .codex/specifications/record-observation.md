@@ -1,6 +1,6 @@
 # Record an Observation
 
-**Status:** Accepted
+**Status:** Accepted and implemented.
 
 ## User value
 

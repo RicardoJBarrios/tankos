@@ -48,7 +48,7 @@ single composite index for owner, Aquarium, Parameter and canonical ordering.
 
 Current production runs on Firebase Spark. It requires Cloud Firestore and
 Authentication only, not Blaze, Cloud Functions or a materialized projection.
-The trade-off is up to five bounded reads for the closed Parameter catalogue
+The trade-off is bounded reads for the active Parameter catalogue
 instead of one projection read. A trusted `measurementCurrentStates` projection
 via Cloud Functions remains a future optimization only if measured usage proves
 that direct reads are insufficient.

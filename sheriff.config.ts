@@ -10,6 +10,7 @@ const contexts = [
   'equipment',
   'maintenance',
   'species-knowledge',
+  'shared-access',
 ] as const;
 
 const layers = ['domain', 'application', 'infrastructure', 'ui'] as const;
@@ -46,7 +47,305 @@ modules['apps/veril/src/app/composition/editorial'] = [
 ];
 modules['apps/veril/src/app/composition/<feature>'] = [
   'context:composition',
-  'layer:ui',
+  'layer:composition',
+];
+modules['apps/veril/src/app/composition/shared-access'] = [
+  'context:composition',
+  'layer:composition',
+];
+modules['apps/tank-os/src'] = ['context:tank-os', 'tank-os:layer:composition'];
+modules['apps/tank-os/src/app'] = [
+  'context:tank-os',
+  'tank-os:layer:composition',
+];
+
+for (const layer of layers) {
+  modules[`apps/veril/src/app/shared-access/${layer}`] = [
+    'context:shared-access',
+    `layer:${layer}`,
+  ];
+}
+
+const tankOsTimeLayers: Record<string, string[]> = {
+  'libs/tank-os/time/src': ['context:tank-os', 'tank-os:layer:library-root'],
+  'libs/tank-os/time/src/lib/time': [
+    'context:tank-os',
+    'tank-os:layer:library-root',
+  ],
+  'libs/tank-os/time/src/lib/time/core': [
+    'context:tank-os',
+    'tank-os:layer:core',
+  ],
+  'libs/tank-os/time/src/lib/time/core/ports': [
+    'context:tank-os',
+    'tank-os:layer:core',
+  ],
+  'libs/tank-os/time/src/lib/time/core/value-types': [
+    'context:tank-os',
+    'tank-os:layer:core',
+  ],
+  'libs/tank-os/time/src/lib/time/core/validation': [
+    'context:tank-os',
+    'tank-os:layer:core',
+  ],
+  'libs/tank-os/time/src/lib/time/application': [
+    'context:tank-os',
+    'tank-os:layer:application',
+  ],
+  'libs/tank-os/time/src/lib/time/composition': [
+    'context:tank-os',
+    'tank-os:layer:composition',
+  ],
+  'libs/tank-os/time/src/lib/time/composition/angular': [
+    'context:tank-os',
+    'tank-os:layer:composition',
+  ],
+  'libs/tank-os/time/src/lib/time/adapters': [
+    'context:tank-os',
+    'tank-os:layer:adapter',
+  ],
+  'libs/tank-os/time/src/lib/time/adapters/angular': [
+    'context:tank-os',
+    'tank-os:layer:adapter',
+  ],
+  'libs/tank-os/time/src/lib/time/adapters/native': [
+    'context:tank-os',
+    'tank-os:layer:adapter',
+  ],
+  'libs/tank-os/time/src/lib/time/presentation': [
+    'context:tank-os',
+    'tank-os:layer:presentation',
+  ],
+  'libs/tank-os/time/src/lib/time/presentation/pipes': [
+    'context:tank-os',
+    'tank-os:layer:presentation',
+  ],
+};
+
+Object.assign(modules, tankOsTimeLayers);
+
+modules['libs/tank-os/units/src/lib/units'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/units/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/units/src/lib/units/core'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/units/src/lib/units/core/value-types'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/units/src/lib/units/core/errors'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/units/src/lib/units/core/ports'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/units/src/lib/units/adapters'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/units/src/lib/units/adapters/standard'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/units/src/lib/units/application'] = [
+  'context:tank-os',
+  'tank-os:layer:application',
+];
+modules['libs/tank-os/units/src/lib/units/composition'] = [
+  'context:tank-os',
+  'tank-os:layer:composition',
+];
+modules['libs/tank-os/units/src/lib/units/composition/standard'] = [
+  'context:tank-os',
+  'tank-os:layer:composition',
+];
+modules['libs/tank-os/decimal/src/lib/decimal'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/decimal/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/core'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/core/value-types'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/core/errors'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/core/ports'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/application'] = [
+  'context:tank-os',
+  'tank-os:layer:application',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/adapters'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/composition'] = [
+  'context:tank-os',
+  'tank-os:layer:composition',
+];
+modules['libs/tank-os/decimal/src/lib/decimal/composition/angular'] = [
+  'context:tank-os',
+  'tank-os:layer:composition',
+];
+for (const adapterPackage of [
+  'time-firestore',
+  'time-json-http',
+  'time-zod',
+  'decimal-big-js',
+  'decimal-zod',
+  'units-zod',
+  'units-firestore',
+  'units-json-http',
+]) {
+  modules[`libs/tank-os/${adapterPackage}/src`] = [
+    'context:tank-os',
+    'tank-os:layer:library-root',
+  ];
+  modules[`libs/tank-os/${adapterPackage}/src/lib`] = [
+    'context:tank-os',
+    'tank-os:layer:adapter',
+  ];
+}
+modules['libs/tank-os/time-firestore/src/lib/firestore'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/time-json-http/src/lib/json-http'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/time-zod/src/lib/zod'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/decimal-big-js/src/lib/big-js'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/decimal-zod/src/lib/zod'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/units-zod/src/lib/zod'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/units-firestore/src/lib/firestore'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/units-json-http/src/lib/json-http'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/data-access/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/data-access-ui/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/data-access-ui/src/lib'] = [
+  'context:tank-os',
+  'tank-os:layer:presentation',
+];
+modules['libs/tank-os/data-access-ui/src/lib/crud-list'] = [
+  'context:tank-os',
+  'tank-os:layer:presentation',
+];
+modules['libs/tank-os/data-access/src/lib/core'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/data-access/src/lib/core/value-types'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/data-access/src/lib/core/errors'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/data-access/src/lib/core/ports'] = [
+  'context:tank-os',
+  'tank-os:layer:core',
+];
+modules['libs/tank-os/data-access/src/lib/application'] = [
+  'context:tank-os',
+  'tank-os:layer:application',
+];
+modules['libs/tank-os/data-access/src/lib/adapters'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/data-access/src/lib/adapters/cache'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/data-access/src/lib/adapters/memory'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/data-access/src/lib/composition'] = [
+  'context:tank-os',
+  'tank-os:layer:composition',
+];
+modules['libs/tank-os/data-access/src/lib/composition/angular'] = [
+  'context:tank-os',
+  'tank-os:layer:composition',
+];
+modules['libs/tank-os/data-access-firestore/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/data-access-firestore/src/lib/firestore'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/data-access-json-http/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/data-access-json-http/src/lib/json-http'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/data-access-server/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/data-access-server/src/lib/server'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/data-access-firestore-admin/src'] = [
+  'context:tank-os',
+  'tank-os:layer:library-root',
+];
+modules['libs/tank-os/data-access-firestore-admin/src/lib/firestore-admin'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
 ];
 
 export const config: SheriffConfig = {
@@ -78,7 +377,42 @@ export const config: SheriffConfig = {
       'context:species-knowledge',
       'context:shared',
     ],
+    'context:shared-access': ['context:shared-access', 'context:shared'],
     'context:shared': ['context:shared'],
+    'context:tank-os': ['context:tank-os'],
+    'tank-os:layer:library-root': [
+      'tank-os:layer:library-root',
+      'tank-os:layer:core',
+      'tank-os:layer:application',
+      'tank-os:layer:adapter',
+      'tank-os:layer:presentation',
+      'context:tank-os',
+    ],
+    'tank-os:layer:core': ['tank-os:layer:core', 'context:tank-os'],
+    'tank-os:layer:adapter': [
+      'tank-os:layer:adapter',
+      'tank-os:layer:core',
+      'tank-os:layer:library-root',
+      'context:tank-os',
+    ],
+    'tank-os:layer:application': [
+      'tank-os:layer:application',
+      'tank-os:layer:core',
+      'context:tank-os',
+    ],
+    'tank-os:layer:presentation': [
+      'tank-os:layer:presentation',
+      'tank-os:layer:application',
+      'tank-os:layer:core',
+      'context:tank-os',
+    ],
+    'tank-os:layer:composition': [
+      'tank-os:layer:composition',
+      'tank-os:layer:application',
+      'tank-os:layer:adapter',
+      'tank-os:layer:core',
+      'context:tank-os',
+    ],
     'context:composition': [
       'context:composition',
       'context:aquarium-management',
@@ -90,6 +424,7 @@ export const config: SheriffConfig = {
       'context:equipment',
       'context:maintenance',
       'context:species-knowledge',
+      'context:shared-access',
       'context:shared',
     ],
     'context:shells': [

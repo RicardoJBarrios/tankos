@@ -1,6 +1,6 @@
 # Accepted: Add Livestock
 
-**Status:** Accepted for implementation.
+**Status:** Accepted and implemented.
 
 ## Actor
 

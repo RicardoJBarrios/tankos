@@ -61,6 +61,13 @@ are not.
 - Strict consistency requires online validation or a transaction.
 - Merge is not a generic policy; each entity must define its own semantics.
 
+Local caching is preferred for reads whenever freshness and privacy permit it.
+Every cache entry has an explicit TTL, schema/version and invalidation policy;
+cache is never the source of truth. User, permission or Aquarium-context changes
+invalidate incompatible entries before rendering the new context. The complete
+Firestore access, cache and FinOps policy is maintained in
+[`firestore-data-access-and-finops.md`](firestore-data-access-and-finops.md).
+
 ## Performance goals pending validation
 
 No numeric budget is accepted because no representative user journey has been

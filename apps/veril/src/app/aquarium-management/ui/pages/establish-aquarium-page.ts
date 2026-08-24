@@ -10,7 +10,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,6 +18,7 @@ import { MatInputModule } from '@angular/material/input';
 import { EstablishAquarium } from '../../application/establish-aquarium';
 import { AQUARIUM_REPOSITORY, KEEPER_SESSION } from '../providers';
 import { FormPageState } from '../../../shared/ui/page-state';
+import { ActiveAquariumContext } from '../../../shared/application/active-aquarium-context';
 
 type PageState = FormPageState;
 
@@ -47,6 +48,8 @@ type PageState = FormPageState;
 })
 export class EstablishAquariumPage {
   private readonly establishAquarium = inject(EstablishAquarium);
+  private readonly activeAquariumContext = inject(ActiveAquariumContext);
+  private readonly router = inject(Router);
 
   readonly state = signal<PageState>('ready');
   readonly errorMessage = signal('');
@@ -71,8 +74,10 @@ export class EstablishAquariumPage {
       const aquarium = await this.establishAquarium.execute(
         this.form.controls.name.value,
       );
+      this.activeAquariumContext.select(aquarium.id);
       this.aquariumName.set(aquarium.name.value);
       this.state.set('success');
+      await this.router.navigateByUrl('/app/aquariums/current');
     } catch {
       this.errorMessage.set(
         'No se ha podido crear el acuario. Inténtalo de nuevo.',

@@ -1,5 +1,6 @@
 import nx from '@nx/eslint-plugin';
 import sheriff from '@softarc/eslint-plugin-sheriff';
+import sonarjs from 'eslint-plugin-sonarjs';
 
 export default [
   ...nx.configs['flat/base'],
@@ -20,15 +21,34 @@ export default [
         'error',
         {
           enforceBuildableLibDependency: true,
-          allow: ['^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$'],
+          allow: [
+            '^.*/eslint(\\.base)?\\.config\\.[cm]?[jt]s$',
+            '^.*\\.spec\\.[cm]?[jt]s$',
+          ],
           depConstraints: [
             {
               sourceTag: 'scope:app',
               onlyDependOnLibsWithTags: ['scope:app', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:shared',
+              onlyDependOnLibsWithTags: ['scope:shared', 'scope:tank-os'],
+            },
+            {
+              sourceTag: 'scope:tank-os',
+              onlyDependOnLibsWithTags: ['scope:tank-os'],
+            },
           ],
         },
       ],
+    },
+  },
+  {
+    files: ['libs/**/src/**/*.ts'],
+    plugins: { sonarjs },
+    rules: {
+      complexity: ['error', 10],
+      'sonarjs/cognitive-complexity': ['error', 15],
     },
   },
   {

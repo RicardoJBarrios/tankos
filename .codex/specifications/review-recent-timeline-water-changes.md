@@ -1,6 +1,6 @@
 # Review Recent Timeline Water Changes
 
-**Status:** Accepted for implementation
+**Status:** Accepted and implemented.
 
 ## Scope
 

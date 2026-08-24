@@ -25,7 +25,17 @@ pnpm nx build veril
 pnpm nx test veril
 pnpm nx lint veril
 pnpm nx graph
+
+# Quality checks
+pnpm quality:affected
+pnpm quality:knip
+pnpm quality:semgrep
+pnpm quality:audit
 ```
+
+Vitest library targets enforce 100% V8 coverage and write test results under
+`reports/test` plus coverage artifacts under `coverage`. The complete quality
+tooling is documented in [`tools/quality/README.md`](tools/quality/README.md).
 
 Application source code lives under `apps/veril`.
 

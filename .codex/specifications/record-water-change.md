@@ -1,6 +1,6 @@
 # Record Water Change
 
-**Status:** Accepted for implementation as the first Maintenance increment
+**Status:** Accepted and implemented as the first Maintenance increment.
 
 ## User value
 

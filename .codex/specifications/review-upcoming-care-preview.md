@@ -1,6 +1,6 @@
 # Review Upcoming Care Preview
 
-**Status:** Accepted for implementation.
+**Status:** Accepted and implemented.
 
 ## Product value
 

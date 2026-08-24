@@ -86,9 +86,5 @@
     (nextPage)="loadMore()"
     (pageSizeChange)="changePageSize($event)"
   />
-  @if (activeContext.get()) {
-  <a mat-flat-button color="primary" routerLink="/app/aquariums/current">
-    Abrir acuario seleccionado
-  </a>
-  } }
+  }
 </section>

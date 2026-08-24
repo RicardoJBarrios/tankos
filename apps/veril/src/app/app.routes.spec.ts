@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { expect, it } from 'vitest';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { appRoutes } from './app.routes';
 import { PrivateShell } from './shells/private-shell/private-shell';
@@ -9,6 +9,10 @@ import { AUTHENTICATION_SESSION } from './shared/ui/providers';
 import { keeperAccessGuard } from './shared/ui/guards/keeper-access.guard';
 import { authenticatedAccessGuard } from './shared/ui/guards/authenticated-access.guard';
 import { editorialAccessGuard } from './shared/ui/guards/editorial-access.guard';
+import {
+  PRIVATE_PRIMARY_DESTINATIONS,
+  PRIVATE_ROUTE_PRESENTATION,
+} from './shells/private-shell/private-route-presentation';
 
 describe('appRoutes', () => {
   beforeEach(() => {
@@ -51,6 +55,14 @@ describe('appRoutes', () => {
     await expect(
       harness.navigateByUrl('/app', PrivateShell),
     ).resolves.toBeTruthy();
+  });
+
+  it('redirects the private entry point to Hoy', async () => {
+    const harness = await RouterTestingHarness.create();
+
+    await harness.navigateByUrl('/app');
+
+    expect(TestBed.inject(Router).url).toBe('/app/aquariums/current');
   });
 
   it('protects the private application with the keeper guard', () => {
@@ -98,6 +110,35 @@ describe('appRoutes', () => {
     expect(privateRoute?.children?.map((route) => route.path)).toContain(
       'aquariums/current',
     );
+  });
+
+  it('defines the four primary destinations in one presentation contract', () => {
+    expect(PRIVATE_PRIMARY_DESTINATIONS).toEqual([
+      { id: 'today', label: 'Hoy', route: '/app/aquariums/current' },
+      { id: 'agenda', label: 'Agenda', route: '/app/aquariums/care/planned' },
+      {
+        id: 'history',
+        label: 'Historial',
+        route: '/app/aquariums/timeline',
+      },
+      { id: 'aquarium', label: 'Acuario', route: '/app/aquariums/manage' },
+    ]);
+  });
+
+  it('classifies every private child route deliberately', () => {
+    const privateRoute = appRoutes.find((route) => route.path === 'app');
+    const childRoutes = privateRoute?.children ?? [];
+
+    expect(childRoutes.find((route) => route.path === '')?.redirectTo).toBe(
+      'aquariums/current',
+    );
+    for (const route of childRoutes.filter((route) => route.path !== '')) {
+      expect(route.data?.['presentation']).toBeTruthy();
+    }
+    expect(PRIVATE_ROUTE_PRESENTATION.today.title).toBe('Hoy');
+    expect(PRIVATE_ROUTE_PRESENTATION.agenda.title).toBe('Agenda');
+    expect(PRIVATE_ROUTE_PRESENTATION.timeline.title).toBe('Historial');
+    expect(PRIVATE_ROUTE_PRESENTATION.manageAquarium.title).toBe('Acuario');
   });
 
   it('defines the Configure Aquarium Timezone child route', () => {

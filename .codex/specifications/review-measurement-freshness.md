@@ -1,6 +1,6 @@
 # Review Measurement Age
 
-**Status:** Ready for implementation as the next Measurement increment.
+**Status:** Accepted and implemented as a derived Measurement age view.
 
 ## Product value
 

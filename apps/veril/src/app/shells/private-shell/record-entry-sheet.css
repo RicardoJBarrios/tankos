@@ -1,0 +1,46 @@
+:host {
+  display: block;
+}
+
+section {
+  padding: 0.5rem 0 1rem;
+}
+
+h2 {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+p {
+  margin: 0.5rem 0 1rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.record-entry-options {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.record-entry-option {
+  min-height: 4rem;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  white-space: normal;
+}
+
+.option-label,
+.option-description {
+  display: block;
+}
+
+.option-label {
+  font: var(--mat-sys-title-medium);
+}
+
+.option-description {
+  margin-top: 0.125rem;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}

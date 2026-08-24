@@ -1,0 +1,66 @@
+.page-section {
+  max-width: var(--veril-content-readable);
+}
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--veril-space-section);
+  flex-wrap: wrap;
+  margin-bottom: var(--veril-space-heading);
+}
+.eyebrow {
+  margin: 0 0 0.25rem;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-large);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+h2 {
+  margin: 0;
+  font: var(--mat-sys-headline-medium);
+}
+.filters {
+  margin-bottom: 1.5rem;
+}
+.filters mat-card-content {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+select,
+input {
+  min-height: 2.5rem;
+  padding: 0.4rem;
+  font: inherit;
+}
+ul {
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+li mat-card-content {
+  display: grid;
+  gap: 0.4rem;
+}
+.measurement-label {
+  color: var(--mat-sys-on-surface-variant);
+}
+time {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+.feedback-error {
+  color: var(--mat-sys-error);
+}
+.empty-state {
+  padding: 1rem;
+}
+@media (max-width: 50rem) {
+  .filters mat-card-content {
+    grid-template-columns: 1fr;
+  }
+}

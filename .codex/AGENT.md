@@ -4,7 +4,8 @@ Read this file first. It is the only mandatory starting point for work on Veril.
 
 ## Project
 
-Veril is the product application managed with Nx for marine-aquarium management.
+Veril is the product application managed with Nx for aquarium management across
+freshwater, saltwater, brackish, planted, reef, shrimp, snail and mixed systems.
 `Aquarium` is the central domain aggregate root; Veril is never an Aquarium.
 Technical identifiers and documentation are written in English; Spanish is
 reserved for user-facing application content.
@@ -34,6 +35,11 @@ Read only the documents needed for the task. Do not load the whole repository.
 - Validate external data with Zod before mapping it into the domain.
 - Do not expose transport DTOs directly to domain or UI code.
 - Do not add dependencies, abstractions or Nx projects without justification.
+- Keep library-specific documentation and architecture decisions inside that
+  library's `docs` directory. Use `.codex` only for shared guardrails and
+  cross-library decisions.
+- Apply [`CODE_GUARDRAILS.md`](CODE_GUARDRAILS.md): public code requires TSDoc,
+  and libraries require 100% coverage plus public-API breaking/contract tests.
 - Do not run `git push` or `git reset --hard`.
 - Never modify secrets or make destructive changes without confirmation.
 

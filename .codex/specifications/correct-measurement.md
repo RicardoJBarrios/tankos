@@ -1,6 +1,6 @@
 # Correct Measurement
 
-**Status:** Accepted for implementation
+**Status:** Accepted and implemented.
 
 ## Context
 

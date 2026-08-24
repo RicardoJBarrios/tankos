@@ -1,6 +1,6 @@
 # Select an Aquarium
 
-**Status:** Accepted
+**Status:** Accepted and implemented.
 
 ## User value
 

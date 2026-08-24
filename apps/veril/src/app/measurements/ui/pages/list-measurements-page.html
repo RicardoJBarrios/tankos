@@ -8,8 +8,14 @@
       <p class="eyebrow">Evidencia cuantitativa</p>
       <h2 id="measurements-title">Mediciones</h2>
     </div>
-    <a mat-stroked-button routerLink="/app/aquariums/measurements/new"
+    <a
+      mat-flat-button
+      color="primary"
+      routerLink="/app/aquariums/measurements/new"
       >Registrar medición</a
+    >
+    <a mat-button routerLink="/app/aquariums/measurements/history"
+      >Historial por parámetro</a
     >
   </div>
 
@@ -73,7 +79,7 @@
             <span>{{ formatMeasurementAge(item) }}</span>
             @if (item.correctsMeasurementId) {
             <span>Corrección de una medición anterior</span>
-            } @else {
+            } @else if (!item.isCorrected) {
             <a
               mat-button
               [routerLink]="['/app/aquariums/measurements', item.id, 'correct']"
@@ -101,6 +107,6 @@
   <a mat-button routerLink="/app/aquariums/measurements/new"
     >Registrar medición</a
   >
-  <a mat-button routerLink="/app/aquariums">Volver a mis acuarios</a>
+  <a mat-button routerLink="/app/aquariums/timeline">Volver a Historial</a>
   }
 </section>

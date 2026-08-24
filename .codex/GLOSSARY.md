@@ -7,19 +7,23 @@ and Pull Requests. Prefer these terms and document any deliberate synonym.
 
 ### Aquarium
 
-A manageable marine-aquarium care system. It is the aggregate root and relates
-care information, supporting systems, Equipment and Livestock. It does not imply
+A manageable aquarium care system. It is the aggregate root and relates care
+information, components, Equipment and Livestock. It does not imply
 a user, a single physical vessel, a SaaS tenant, one Aquarium or many Aquariums.
 
-### Display
+### AquariumComponent
 
-A physical, observable water-and-life area related to an Aquarium. Whether it
-needs identity, lifecycle or a separate representation is use-case-dependent.
+A physical, biological, technical or auxiliary part of an AquariumSystem. Common
+aquarist examples include a `display tank`, `sump`, `refugium`, `chamber` and
+integrated `breeding box`. It is a component when it shares the system's water
+and operational lifecycle; independent water and lifecycle mean a separate
+AquariumSystem.
 
-### System
+### Feature of Interest
 
-A coherent physical, biological or technical arrangement that supports an
-Aquarium. It is not automatically an aggregate, a hierarchy or a storage model.
+The AquariumSystem, component or zone targeted by a Measurement or Observation,
+following the SOSA/SSN meaning. The complete AquariumSystem is the default
+target when no more specific target is supplied.
 
 ### Livestock
 
@@ -46,8 +50,8 @@ colony is represented as a group in the first Livestock workflow.
 
 ### Equipment
 
-A physical or logical device used by an Aquarium or System, such as lighting,
-pumps, probes or controllers. In the accepted Equipment workflow it is an
+A physical or logical device used by an Aquarium or one of its components, such
+as lighting, pumps, probes or controllers. In the accepted Equipment workflow it is an
 independent aggregate owned by the Aquarium's keeper, associated with one
 Aquarium at a time, and retired through a traceable soft delete.
 
@@ -107,8 +111,8 @@ authority and safety rules remain to be defined.
 
 ### Maintenance
 
-Work performed to inspect, clean, repair or preserve an Aquarium, System or
-Equipment item.
+Work performed to inspect, clean, repair or preserve an Aquarium,
+AquariumComponent or Equipment item.
 
 ### Care Work
 

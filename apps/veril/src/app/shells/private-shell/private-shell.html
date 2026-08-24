@@ -1,16 +1,95 @@
-<mat-toolbar aria-label="Navegación privada">
-  <a mat-button routerLink="/">Veril</a>
-  <span class="spacer"></span>
-  <a mat-button routerLink="/app/aquariums">Mis acuarios</a>
-  <a mat-button routerLink="/app/aquariums/access">Compartir acuario</a>
-  <a mat-button routerLink="/">Área pública</a>
-</mat-toolbar>
+<header>
+  <mat-toolbar class="top-app-bar" aria-label="Navegación privada">
+    <a mat-button class="brand" routerLink="/">Veril</a>
+    <div class="page-context">
+      <h1 class="page-title">{{ presentation().title }}</h1>
+      @if (aquariumName(); as name) {
+      <a
+        mat-button
+        class="active-aquarium"
+        routerLink="/app/aquariums"
+        [attr.aria-label]="'Cambiar de acuario: ' + name"
+      >
+        {{ name }}
+      </a>
+      } @else if (activeAquariumId()) {
+      <a
+        mat-button
+        class="active-aquarium"
+        routerLink="/app/aquariums"
+        aria-label="Cambiar de acuario"
+      >
+        Acuario activo
+      </a>
+      }
+    </div>
+    <span class="spacer"></span>
+    <button mat-button [matMenuTriggerFor]="globalMenu">Más</button>
+    <mat-menu #globalMenu="matMenu">
+      <a mat-menu-item routerLink="/app/aquariums">Mis acuarios</a>
+      <a mat-menu-item routerLink="/app/aquariums/access">Compartir acceso</a>
+      <a mat-menu-item routerLink="/">Área pública</a>
+    </mat-menu>
+  </mat-toolbar>
+</header>
 
-<main>
-  <div class="page-heading">
-    <p class="eyebrow">Área privada</p>
-    <h1>Mis acuarios</h1>
-    <p>Registra lo que ocurre y consulta la información de cada acuario.</p>
-  </div>
-  <router-outlet></router-outlet>
-</main>
+<mat-sidenav-container class="shell-layout">
+  <mat-sidenav class="navigation-drawer" mode="side" opened>
+    <nav aria-label="Destinos principales">
+      @for (destination of destinations; track destination.id) {
+      <a
+        mat-button
+        [routerLink]="destination.route"
+        [attr.aria-current]="isActive(destination.id) ? 'page' : null"
+      >
+        {{ destination.label }}
+      </a>
+      }
+    </nav>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <nav class="navigation-rail" aria-label="Destinos principales">
+      @for (destination of destinations; track destination.id) {
+      <a
+        mat-button
+        [routerLink]="destination.route"
+        [attr.aria-current]="isActive(destination.id) ? 'page' : null"
+      >
+        {{ destination.label }}
+      </a>
+      }
+    </nav>
+
+    <main>
+      <router-outlet></router-outlet>
+    </main>
+
+    @if (canShowRecordEntry()) {
+    <button
+      #recordEntryTrigger
+      mat-fab
+      extended
+      class="record-entry-fab"
+      type="button"
+      aria-label="Registrar"
+      aria-haspopup="dialog"
+      (click)="openRecordEntry()"
+    >
+      Registrar
+    </button>
+    }
+
+    <nav class="compact-navigation" aria-label="Destinos principales">
+      @for (destination of destinations; track destination.id) {
+      <a
+        mat-button
+        [routerLink]="destination.route"
+        [attr.aria-current]="isActive(destination.id) ? 'page' : null"
+      >
+        {{ destination.label }}
+      </a>
+      }
+    </nav>
+  </mat-sidenav-content>
+</mat-sidenav-container>

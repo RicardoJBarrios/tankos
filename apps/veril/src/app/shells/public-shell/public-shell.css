@@ -18,12 +18,12 @@ mat-toolbar {
 
 main {
   margin: 0 auto;
-  max-width: 72rem;
+  max-width: var(--veril-content-wide);
   padding: clamp(2rem, 5vw, 4rem) 1.5rem;
 }
 
 .page-heading {
-  max-width: 42rem;
+  max-width: var(--veril-content-form);
   margin-bottom: 2.5rem;
 }
 

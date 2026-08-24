@@ -19,6 +19,8 @@ architecture documents follow the design precedence defined in `AGENT.md`:
 - [`bounded-contexts.md`](bounded-contexts.md)
 - [`firestore-model.md`](firestore-model.md) — persistence conventions, not a
   schema
+- [`firestore-data-access-and-finops.md`](firestore-data-access-and-finops.md) —
+  global access, security, consistency, cost and operations policy
 - [`cross-cutting-policies.md`](cross-cutting-policies.md)
 - [`image-strategy.md`](image-strategy.md)
 - [`operations-and-observability.md`](operations-and-observability.md)

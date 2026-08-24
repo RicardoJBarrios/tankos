@@ -3,6 +3,7 @@ import { ActiveAquariumContext } from '../../../shared/application/active-aquari
 import { ReviewCurrentMeasurements } from '../../../measurements/application/review-current-measurements';
 import { ReviewMeasurementForCorrection } from '../../../measurements/application/review-measurement-for-correction';
 import { CorrectMeasurement } from '../../../measurements/application/correct-measurement';
+import { ListParameterHistory } from '../../../measurements/application/list-parameter-history';
 import { KEEPER_SESSION } from '../../../shared/ui/providers';
 import { FirestoreMeasurementRepository } from '../../../measurements/infrastructure/firestore-measurement-repository';
 import { FirestoreAquariumRepository } from '../../../aquarium-management/infrastructure/firestore-aquarium-repository';
@@ -12,12 +13,17 @@ import {
   MEASUREMENT_READER,
   MEASUREMENT_WRITER,
   MEASUREMENT_CORRECTOR,
+  PARAMETER_HISTORY_READER,
 } from '../../../measurements/ui/providers';
 
 export const PRIVATE_MEASUREMENT_PROVIDERS: Provider[] = [
   { provide: MEASUREMENT_WRITER, useClass: FirestoreMeasurementRepository },
   { provide: MEASUREMENT_CORRECTOR, useClass: FirestoreMeasurementRepository },
   { provide: MEASUREMENT_READER, useClass: FirestoreMeasurementRepository },
+  {
+    provide: PARAMETER_HISTORY_READER,
+    useClass: FirestoreMeasurementRepository,
+  },
   {
     provide: CURRENT_MEASUREMENT_READER,
     useClass: FirestoreMeasurementRepository,
@@ -50,6 +56,15 @@ export const PRIVATE_MEASUREMENT_PROVIDERS: Provider[] = [
       new CorrectMeasurement(
         inject(MEASUREMENT_READER),
         inject(MEASUREMENT_CORRECTOR),
+        inject(KEEPER_SESSION),
+        inject(ActiveAquariumContext),
+      ),
+  },
+  {
+    provide: ListParameterHistory,
+    useFactory: () =>
+      new ListParameterHistory(
+        inject(PARAMETER_HISTORY_READER),
         inject(KEEPER_SESSION),
         inject(ActiveAquariumContext),
       ),

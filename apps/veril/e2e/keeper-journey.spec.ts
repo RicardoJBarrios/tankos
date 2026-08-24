@@ -5,6 +5,8 @@ import { expect, test } from '@playwright/test';
 test('a keeper can establish, select and record Aquarium evidence', async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+
   process.env['FIREBASE_AUTH_EMULATOR_HOST'] = '127.0.0.1:9099';
   process.env['FIRESTORE_EMULATOR_HOST'] = '127.0.0.1:8080';
 
@@ -70,7 +72,7 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   );
   await page.goto('/');
   await page.getByRole('link', { name: 'Área privada' }).click();
-  await page.getByRole('link', { name: 'Mis acuarios' }).click();
+  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
 
   await expect(
     page.getByText('No has establecido ningún acuario todavía.'),
@@ -78,20 +80,21 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await page.getByRole('link', { name: 'Establecer acuario' }).click();
   await page.getByLabel('Nombre del acuario').fill('Veril E2E');
   await page.getByRole('button', { name: 'Crear acuario' }).click();
-
-  await expect(
-    page.getByRole('status').filter({
-      hasText: 'Acuario «Veril E2E» creado correctamente.',
-    }),
-  ).toBeVisible();
-  await page.getByRole('link', { name: 'Ver mis acuarios' }).click();
-
-  const aquarium = page
-    .getByTestId('aquarium-option')
-    .filter({ hasText: 'Veril E2E' });
-  await expect(aquarium).toBeVisible();
-  await aquarium.click();
   await expect(page).toHaveURL('/app/aquariums/current');
+  await expect(page.getByRole('heading', { name: 'Veril E2E' })).toBeVisible();
+
+  const recordEntry = page.getByRole('button', { name: 'Registrar' });
+  await expect(recordEntry).toBeVisible();
+  await recordEntry.click();
+  await expect(page.getByRole('heading', { name: 'Registrar' })).toBeVisible();
+  await expect(page.getByTestId('record-entry-option')).toHaveCount(4);
+  await page.keyboard.press('Escape');
+  await expect(recordEntry).toBeFocused();
+
+  await recordEntry.click();
+  await page.getByTestId('record-entry-option').first().click();
+  await expect(page).toHaveURL('/app/aquariums/observations/new');
+  await page.goto('/app/aquariums/current');
 
   await page.reload();
   await page.goto('/app/aquariums');
@@ -99,7 +102,7 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
     .getByTestId('aquarium-option')
     .filter({ hasText: 'Veril E2E' });
   await expect(restoredAquarium).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
+  await restoredAquarium.click();
   await expect(page).toHaveURL('/app/aquariums/current');
   await expect(page.getByRole('heading', { name: 'Veril E2E' })).toBeVisible({
     timeout: 15_000,
@@ -137,9 +140,10 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   );
   await expect(page.getByTestId('local-weather')).toContainText('24.1 °C');
 
+  await page.getByRole('button', { name: 'Registrar' }).click();
   await page
-    .getByLabel('Registrar')
-    .getByRole('link', { name: 'Registrar observación' })
+    .getByTestId('record-entry-option')
+    .filter({ hasText: 'Observación' })
     .click();
   await page.getByLabel('¿Qué has observado?').fill('El coral está abierto.');
   await page.getByRole('button', { name: 'Guardar observación' }).click();
@@ -148,16 +152,20 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
       .getByRole('status')
       .filter({ hasText: 'Observación guardada correctamente.' }),
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Ver observaciones' }).click();
+  await page.getByRole('link', { name: 'Volver a Hoy' }).click();
+  await page.goto('/app/aquariums/observations');
   await expect(page).toHaveURL('/app/aquariums/observations');
   await expect(page.getByTestId('observation-list')).toContainText(
     'El coral está abierto.',
   );
 
-  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
+  await page.getByRole('link', { name: /Cambiar de acuario/ }).click();
   await expect(page.getByLabel('Acuario seleccionado')).toBeVisible();
-  await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
-  await page.getByRole('link', { name: 'Objetivos de parámetros' }).click();
+  await page
+    .getByTestId('aquarium-option')
+    .filter({ hasText: 'Veril E2E' })
+    .click();
+  await page.getByRole('link', { name: 'Configurar objetivo' }).first().click();
   await expect(page.getByTestId('parameter-targets')).toContainText(
     'Sin objetivo configurado',
   );
@@ -172,7 +180,11 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
     'Intervalo objetivo: 24 – 26 °C',
   );
   await page.getByRole('link', { name: 'Volver al acuario' }).click();
-  await page.getByRole('link', { name: 'Registrar medición' }).click();
+  await page.getByRole('button', { name: 'Registrar' }).click();
+  await page
+    .getByTestId('record-entry-option')
+    .filter({ hasText: 'Medición' })
+    .click();
   await page.getByLabel('Valor').fill('25.4');
   await page.getByRole('button', { name: 'Guardar medición' }).click();
   await expect(
@@ -180,9 +192,12 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
       .getByRole('status')
       .filter({ hasText: 'Medición guardada correctamente.' }),
   ).toBeVisible();
-  await page.getByRole('link', { name: 'Ver mediciones' }).click();
-  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
-  await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
+  await page.goto('/app/aquariums/measurements');
+  await page.getByRole('link', { name: /Cambiar de acuario/ }).click();
+  await page
+    .getByTestId('aquarium-option')
+    .filter({ hasText: 'Veril E2E' })
+    .click();
   await expect(page.getByTestId('current-measurements')).toContainText(
     '25.4 °C',
   );
@@ -195,7 +210,7 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
     'No hay cuidados planificados',
   );
 
-  await page.getByRole('link', { name: 'Objetivos de parámetros' }).click();
+  await page.getByRole('link', { name: 'Configurar objetivo' }).first().click();
   await page.getByRole('button', { name: 'Editar objetivo' }).first().click();
   await page.getByLabel('Mínimo (°C)').fill('30');
   await page.getByLabel('Máximo (°C)').fill('31');
@@ -210,7 +225,7 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page.getByTestId('current-measurements')).toContainText(
     'Por debajo del objetivo',
   );
-  await page.getByRole('link', { name: 'Objetivos de parámetros' }).click();
+  await page.getByRole('link', { name: 'Configurar objetivo' }).first().click();
   await page.getByRole('button', { name: 'Eliminar objetivo' }).first().click();
   await expect(page.getByTestId('parameter-targets')).toContainText(
     'Sin objetivo configurado',
@@ -223,9 +238,14 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
     'Sin objetivo configurado',
   );
 
-  await page.getByRole('link', { name: 'Ver mediciones' }).click();
+  await page.goto('/app/aquariums/measurements');
   await expect(page).toHaveURL('/app/aquariums/measurements');
   await expect(page.getByTestId('measurement-list')).toContainText('25.4 °C');
+
+  await page.getByRole('link', { name: 'Historial por parámetro' }).click();
+  await expect(page).toHaveURL('/app/aquariums/measurements/history');
+  await expect(page.getByTestId('parameter-history')).toContainText('25.4 °C');
+  await page.getByRole('link', { name: 'Ver todas las mediciones' }).click();
 
   await page.getByRole('link', { name: 'Corregir' }).first().click();
   await expect(page).toHaveURL(/\/app\/aquariums\/measurements\/.*\/correct/);
@@ -234,14 +254,19 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page.getByRole('status')).toContainText(
     'Corrección guardada correctamente.',
   );
-  await page.getByRole('link', { name: 'Ver mediciones' }).click();
+  await page.getByRole('link', { name: 'Volver a Hoy' }).click();
+  await page.goto('/app/aquariums/measurements');
   await expect(page.getByTestId('measurement-list')).toContainText('26.1 °C');
   await expect(page.getByTestId('measurement-list')).toContainText(
     'Corrección de una medición anterior',
   );
+  await expect(page.getByRole('link', { name: 'Corregir' })).toHaveCount(0);
 
-  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
-  await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
+  await page.getByRole('link', { name: /Cambiar de acuario/ }).click();
+  await page
+    .getByTestId('aquarium-option')
+    .filter({ hasText: 'Veril E2E' })
+    .click();
   await expect(page.getByTestId('current-measurements')).toContainText(
     '26.1 °C',
   );
@@ -314,7 +339,7 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page.getByTestId('upcoming-care-preview')).toContainText(
     'No hay cuidados planificados',
   );
-  await page.getByRole('link', { name: 'Ver cuidados' }).click();
+  await page.goto('/app/aquariums/care');
   await expect(page.getByTestId('care-work-list')).toContainText(
     'Limpiar la copa del skimmer mañana.',
   );
@@ -328,21 +353,44 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
   await expect(page.getByTestId('recent-timeline')).toContainText(
     'Limpiar la copa del skimmer mañana.',
   );
+  await expect(page.getByRole('link', { name: 'Mediciones' })).toHaveAttribute(
+    'href',
+    '/app/aquariums/measurements',
+  );
+  await expect(
+    page.getByRole('link', { name: 'Observaciones' }),
+  ).toHaveAttribute('href', '/app/aquariums/observations');
+  await expect(
+    page.getByRole('link', { name: 'Cuidados realizados' }),
+  ).toHaveAttribute('href', '/app/aquariums/care');
+  await expect(
+    page.getByRole('link', { name: 'Cambios de agua' }),
+  ).toHaveAttribute('href', '/app/aquariums/maintenance');
+  await expect(
+    page.getByRole('link', { name: 'Historial de habitantes' }),
+  ).toHaveAttribute('href', '/app/aquariums/livestock/history');
 
-  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
+  await page.getByRole('link', { name: /Cambiar de acuario/ }).click();
   await expect(page).toHaveURL('/app/aquariums');
-  await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
-  await page.getByRole('link', { name: 'Registrar cuidado' }).click();
+  await page
+    .getByTestId('aquarium-option')
+    .filter({ hasText: 'Veril E2E' })
+    .click();
+  await page.getByRole('button', { name: 'Registrar' }).click();
+  await page
+    .getByTestId('record-entry-option')
+    .filter({ hasText: 'Cuidado realizado' })
+    .click();
   await page.getByLabel('¿Qué has hecho?').fill('Limpié la copa del skimmer.');
   await page.getByRole('button', { name: 'Guardar cuidado' }).click();
   await expect(
     page.getByRole('status').filter({
-      hasText: 'Cuidado guardado correctamente en el acuario seleccionado.',
+      hasText: 'Cuidado guardado correctamente.',
     }),
   ).toBeVisible();
 
-  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
-  await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
+  await page.getByRole('link', { name: 'Volver a Hoy' }).click();
+  await expect(page).toHaveURL('/app/aquariums/current');
   await expectRecentActivity(page, 'Limpié la copa del skimmer.');
   await page.getByRole('link', { name: 'Ver toda la actividad' }).click();
   await expect(page.getByTestId('recent-timeline')).toContainText('Cuidado');
@@ -350,16 +398,19 @@ test('a keeper can establish, select and record Aquarium evidence', async ({
     'Limpié la copa del skimmer.',
   );
 
-  await page.getByRole('link', { name: 'Volver a mis acuarios' }).click();
-  await page.getByRole('link', { name: 'Abrir acuario seleccionado' }).click();
-  await page.getByRole('link', { name: 'Ver cuidados' }).click();
+  await page.getByRole('link', { name: /Cambiar de acuario/ }).click();
+  await page
+    .getByTestId('aquarium-option')
+    .filter({ hasText: 'Veril E2E' })
+    .click();
+  await page.goto('/app/aquariums/care');
   await expect(page).toHaveURL('/app/aquariums/care');
   await expect(page.getByTestId('care-work-list')).toContainText(
     'Limpié la copa del skimmer.',
   );
 
   await page.getByRole('link', { name: 'Volver al acuario' }).click();
-  await page.getByRole('link', { name: 'Programar semanal' }).click();
+  await page.goto('/app/aquariums/care/recurring/new');
   await page
     .getByLabel('¿Qué quieres hacer cada semana?')
     .fill('Cambio semanal de agua.');

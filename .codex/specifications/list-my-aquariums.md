@@ -1,6 +1,6 @@
 # List My Aquariums
 
-**Status:** Accepted
+**Status:** Accepted and implemented.
 
 ## User value
 

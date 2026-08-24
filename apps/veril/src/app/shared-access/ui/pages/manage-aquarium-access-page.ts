@@ -17,7 +17,6 @@ import {
   AquariumAccessPermission,
   AquariumAccessPermissions,
 } from '../../application/ports';
-import { FirestoreAquariumAccessService } from '../../infrastructure/firestore-aquarium-access-service';
 import { KEEPER_SESSION } from '../../../shared/ui/providers';
 import { AQUARIUM_ACCESS_SERVICE } from '../providers';
 
@@ -29,16 +28,6 @@ type PageState = 'loading' | 'ready' | 'saving' | 'failure' | 'no-context';
   templateUrl: './manage-aquarium-access-page.html',
   styleUrl: './manage-aquarium-access-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    {
-      provide: FirestoreAquariumAccessService,
-      useFactory: () => new FirestoreAquariumAccessService(),
-    },
-    {
-      provide: AQUARIUM_ACCESS_SERVICE,
-      useExisting: FirestoreAquariumAccessService,
-    },
-  ],
 })
 export class ManageAquariumAccessPage implements OnInit {
   private readonly service = inject(AQUARIUM_ACCESS_SERVICE);

@@ -37,7 +37,8 @@ module.
 ### Measurements
 
 Provides durable quantitative evidence for the selected Aquarium through a
-closed Parameter catalogue.
+catalogue of system-defined Parameters and public configurable
+`ParameterDefinition` entries.
 
 - Record Measurement — accepted and implemented.
 - List Measurements — accepted and implemented.
@@ -45,7 +46,9 @@ closed Parameter catalogue.
   the latest known value without classifying it as fresh or stale.
 - Correct Measurement — accepted and implemented as an append-only correction
   Fact with traceable history.
-- Parameter History — candidate.
+- Parameter History — accepted and implemented as a bounded read with
+  parameter/time filtering, cursor pagination and correction traceability;
+  see [its specification](../specifications/parameter-history.md).
 - Configure Parameter Targets — implemented as optional Aquarium-owned keeper
   intervals; see [its specification](../specifications/configure-parameter-targets.md).
 - Review Parameter Status — implemented as a derived comparison of latest
@@ -98,14 +101,21 @@ source of truth.
 Manage individual or grouped organisms associated with an Aquarium and link
 them to globally shared Species Profiles. The first accepted increment supports
 owner-scoped association, transfer between owned Aquariums, lifecycle history
-and soft removal with traceability. Taxonomy, additional lifecycle states,
-Species Profile editorial workflow and source-record associations remain
-deferred.
+and soft removal with traceability. It is implemented; taxonomy, additional
+lifecycle states, Species Profile editorial workflow and source-record
+associations remain deferred.
 
 ### Equipment
 
-Manage devices and care-supporting equipment once identity, ownership, state and
-sharing rules are validated.
+Manage devices and care-supporting equipment once identity, ownership, state
+and sharing rules are validated. The accepted first increment is implemented
+with owner-scoped creation, editing, transfer, retirement and bounded listing.
+
+### Species Knowledge
+
+The accepted editorial Species Profile increment is implemented with separate
+editorial authority, publication lifecycle, public reading and profile history.
+Broader taxonomy and Aquarium-specific interpretation remain deferred.
 
 ### Maintenance
 

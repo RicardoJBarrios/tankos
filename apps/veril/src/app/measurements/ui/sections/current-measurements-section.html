@@ -11,8 +11,13 @@
       >Configurar objetivo</a
     >
   </div>
-
-  @if (loading) {
+  @if (!hasParameterTargets) {
+  <p data-testid="parameter-targets-guidance">
+    Los objetivos son opcionales. Puedes configurarlos para interpretar mejor
+    tus mediciones.
+    <a routerLink="/app/aquariums/parameter-targets">Configurar objetivos</a>
+  </p>
+  } @if (loading) {
   <div class="feedback" role="status" aria-live="polite">
     <mat-progress-spinner
       mode="indeterminate"

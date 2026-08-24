@@ -41,6 +41,16 @@ export type MeasurementCursor = string & {
   readonly __measurementCursor: unique symbol;
 };
 
+export type ParameterHistoryCursor = string & {
+  readonly __parameterHistoryCursor: unique symbol;
+};
+
+export interface ParameterHistoryFilter {
+  readonly parameterId: ParameterId;
+  readonly from?: Date;
+  readonly to?: Date;
+}
+
 export interface MeasurementListItem {
   readonly id: MeasurementId;
   readonly parameterId: ParameterId;
@@ -50,11 +60,17 @@ export interface MeasurementListItem {
   readonly recordedAt: Date;
   readonly provenance: 'manual';
   readonly correctsMeasurementId?: MeasurementId;
+  readonly isCorrected?: boolean;
 }
 
 export interface MeasurementPage {
   readonly items: readonly MeasurementListItem[];
   readonly nextCursor?: MeasurementCursor;
+}
+
+export interface ParameterHistoryPage {
+  readonly items: readonly MeasurementListItem[];
+  readonly nextCursor?: ParameterHistoryCursor;
 }
 
 export interface MeasurementReader {
@@ -69,6 +85,16 @@ export interface MeasurementReader {
     aquariumId: AquariumId,
     measurementId: MeasurementId,
   ): Promise<MeasurementListItem | null>;
+}
+
+export interface ParameterHistoryReader {
+  listOwnedHistory(
+    ownerKeeperId: string,
+    aquariumId: AquariumId,
+    filter: ParameterHistoryFilter,
+    cursor?: ParameterHistoryCursor,
+    pageSize?: number,
+  ): Promise<ParameterHistoryPage>;
 }
 
 export interface CurrentMeasurementValue {

@@ -1,3 +1,41 @@
+.shared-context-bar {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem max(1rem, calc((100% - 60rem) / 2));
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.brand {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.context-copy {
+  display: grid;
+  flex: 1;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.context-copy strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.context-copy span,
+.read-only-badge {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875rem;
+}
+
+.read-only-badge {
+  font-weight: 700;
+}
+
 .page-section {
   max-width: 60rem;
   margin: 2rem auto;

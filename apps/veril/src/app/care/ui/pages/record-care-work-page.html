@@ -17,8 +17,11 @@
       </p>
       } @else if (state() === 'success') {
       <p role="status" class="feedback feedback-success">
-        Cuidado guardado correctamente en el acuario seleccionado.
+        Cuidado guardado correctamente.
       </p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums/current"
+        >Volver a Hoy</a
+      >
       } @else {
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
         <mat-form-field appearance="outline">
@@ -62,12 +65,14 @@
     </mat-card-content>
 
     <mat-card-actions>
-      @if (state() === 'success') {
-      <a mat-flat-button color="primary" routerLink="/app/aquariums"
-        >Volver a mis acuarios</a
+      @if (state() !== 'success') {
+      <a
+        mat-button
+        [routerLink]="
+          hasActiveContext ? '/app/aquariums/current' : '/app/aquariums'
+        "
+        >{{ hasActiveContext ? 'Volver a Hoy' : 'Volver a mis acuarios' }}</a
       >
-      } @else {
-      <a mat-button routerLink="/app/aquariums">Volver a mis acuarios</a>
       }
     </mat-card-actions>
   </mat-card>

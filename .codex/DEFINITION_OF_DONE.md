@@ -28,6 +28,10 @@ ceremony or test layers that cannot reveal a relevant failure.
 - Focused Vitest tests cover pure domain and application behavior where present.
 - Angular behavior is covered with Spectator and Vitest where an Angular unit is
   introduced.
+- Every library reaches 100% V8 coverage for lines, statements, functions and
+  branches, and includes breaking/contract tests for its public API.
+- All exported TypeScript and Angular declarations, plus non-obvious internal
+  logic, have TSDoc that explains contract and justification.
 - Firebase-backed behavior has Emulator Suite adapter integration tests and
   Security Rules tests where applicable.
 - Lint, relevant tests, production build, formatting, peer-dependency validity

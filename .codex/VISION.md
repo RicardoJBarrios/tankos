@@ -2,8 +2,9 @@
 
 ## Purpose
 
-Veril is the product that helps marine-aquarium keepers understand, present,
-plan and carry out care with trustworthy, low-friction records. It exposes
+Veril is the product that helps aquarium keepers understand, present, plan and
+carry out care for freshwater, saltwater, brackish, planted, reef, shrimp,
+snail and mixed systems with trustworthy, low-friction records. It exposes
 public and private capabilities over the same Aquarium, making the relevant
 context, next useful action and history understandable without pretending that
 uncertain data is certain.

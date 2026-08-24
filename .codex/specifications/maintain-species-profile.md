@@ -1,6 +1,6 @@
 # Accepted: Maintain Species Profile
 
-**Status:** Accepted for implementation.
+**Status:** Accepted and implemented.
 
 ## Product value
 

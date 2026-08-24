@@ -9,6 +9,7 @@ import { PRIVATE_TIMELINE_PROVIDERS } from './providers/timeline.providers';
 import { PRIVATE_LIVESTOCK_PROVIDERS } from './providers/livestock.providers';
 import { PRIVATE_EQUIPMENT_PROVIDERS } from './providers/equipment.providers';
 import { PRIVATE_MAINTENANCE_PROVIDERS } from './providers/maintenance.providers';
+import { SHARED_ACCESS_PROVIDERS } from '../../composition/shared-access/shared-access.providers';
 
 export const PRIVATE_SHELL_PROVIDERS: Provider[] = [
   ...PRIVATE_SHARED_PROVIDERS,
@@ -20,5 +21,6 @@ export const PRIVATE_SHELL_PROVIDERS: Provider[] = [
   ...PRIVATE_LIVESTOCK_PROVIDERS,
   ...PRIVATE_EQUIPMENT_PROVIDERS,
   ...PRIVATE_MAINTENANCE_PROVIDERS,
+  ...SHARED_ACCESS_PROVIDERS,
   AquariumDashboardStore,
 ];

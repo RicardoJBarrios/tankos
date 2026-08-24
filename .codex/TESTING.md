@@ -7,9 +7,50 @@
 | Firebase adapters and Security Rules         | Firebase Emulator Suite | Use deterministic fixtures and resettable emulators.    |
 | Browser journeys                             | Playwright              | Validate only meaningful cross-route keeper journeys.   |
 
+## Library guardrail
+
+Every library must enable coverage in its default Nx `test` target and pass
+100% V8 coverage for lines, statements, functions and branches. Coverage must
+include pure behavior, Angular behavior and public API breaking/contract tests
+where those surfaces exist. Every documented use case must have an explicit
+test scenario; aggregate V8 percentages do not prove that all use cases are
+covered. A public API change is not complete until its contract test and the
+library's local `docs/` migration note are updated when the change is
+intentional. See
+[`CODE_GUARDRAILS.md`](CODE_GUARDRAILS.md).
+
+Keep specifications split by public element or behavior and write scenarios in
+Given/When/Then form. Tests should read as executable documentation, not as a
+single inventory of unrelated assertions.
+
 Avoid excessive mocks. Prefer fakes for application ports where practical.
 Do not force Spectator into pure TypeScript tests. CI must not connect to Firebase
 production.
+
+Every accepted input variant requires an explicit test scenario. For union
+types and polymorphic arguments, test each permitted type and relevant edge
+value, including `NaN` and infinities for numbers, `null`, `undefined`, empty
+and whitespace-only strings, zero, negative values and empty collections when
+the contract permits or rejects them. Assertions must describe the expected
+value, normalization or error rather than relying only on type coverage.
+
+For every edge-case audit, use an explicit completeness checklist: test both
+`Infinity` and `-Infinity` (not just one), `NaN`, `null`, `undefined`, leading
+and trailing whitespace, special characters, signed and boundary values, and
+malformed structured objects. For union arguments, cover every permitted input
+type and meaningful mixed representations between arguments. Keep exhaustive
+malformed-input matrices at the parser or validator that owns them and add
+only boundary contract tests at transparent facades and adapters, so
+completeness does not become redundant overtesting.
+
+Use `@ngneat/spectator/vitest` for Angular integration tests that create a
+component, directive, rendered pipe, fixture or Angular dependency-injection
+context. Prefer `createComponentFactory` and `createPipeFactory` over direct
+`TestBed.createComponent` or manual Angular fixture setup. A focused unit test
+for an injectable class or pipe that does not render a template may use
+`TestBed.runInInjectionContext`; this is not a substitute for a required
+component or fixture integration test. Keep direct Vitest tests for pure
+TypeScript rules and adapters.
 
 ## Current slices
 
@@ -39,7 +80,7 @@ through the SDK and verifies the persisted document. Its Rules coverage verifies
 authorized creation, anonymous rejection, cross-owner creation rejection,
 owner reads, anonymous reads and cross-owner reads.
 
-`Record a Measurement` has pure domain tests for the closed Parameter catalogue,
+`Record a Measurement` has pure domain tests for the active Parameter catalogue,
 canonical Unit compatibility, numeric validity, identity, timestamps and manual
 provenance. Application tests cover Active Context, authentication, validation
 and infrastructure failures. Its Spectator test covers Parameter selection,
@@ -192,6 +233,13 @@ the visible UI, then configures a temperature target, records one Measurement
 inside it, verifies `Dentro del objetivo`, edits the same target and verifies
 `Por debajo del objetivo` without recording another Measurement, and finally
 removes the target and verifies `Sin objetivo configurado`.
+
+Shared Parameter History reuses the immutable Measurement documents for a
+delegated authenticated guest. The shared-access adapter and Rules are
+covered by the existing Firebase Emulator permission flow; the browser journey
+verifies parameter history navigation, the bounded first page and immediate
+read denial after revoking the `measurements` grant. The shared UI remains
+read-only and does not expose correction actions.
 
 The Aquarium Dashboard uses a scoped Signal Store for cross-section context and
 configuration state. It is also the single owner of Current Measurement loading,

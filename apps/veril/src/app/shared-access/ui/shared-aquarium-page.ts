@@ -11,25 +11,17 @@ import {
   AquariumAccessService,
   SharedAquariumView,
 } from '../application/ports';
-import { FirestoreAquariumAccessService } from '../infrastructure/firestore-aquarium-access-service';
 import { AQUARIUM_ACCESS_SERVICE } from './providers';
 
 @Component({
   selector: 'veril-shared-aquarium-page',
   imports: [RouterLink],
-  providers: [
-    FirestoreAquariumAccessService,
-    {
-      provide: AQUARIUM_ACCESS_SERVICE,
-      useExisting: FirestoreAquariumAccessService,
-    },
-  ],
   templateUrl: './shared-aquarium-page.html',
   styleUrl: './shared-aquarium-page.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SharedAquariumPage {
-  private readonly route = inject(ActivatedRoute);
+  readonly route = inject(ActivatedRoute);
   readonly state = signal<'loading' | 'ready' | 'failure'>('loading');
   readonly aquarium = signal<SharedAquariumView | null>(null);
   readonly sectionKeys = [
@@ -56,6 +48,20 @@ export class SharedAquariumPage {
     section: AquariumAccessPermission,
   ): number | undefined {
     return view.sections[section];
+  }
+
+  sectionLabel(section: AquariumAccessPermission): string {
+    return {
+      aquarium: 'Acuario',
+      measurements: 'Mediciones',
+      observations: 'Observaciones',
+      careWorks: 'Cuidados realizados',
+      plannedCareWorks: 'Cuidados planificados',
+      recurringCarePlans: 'Planes recurrentes',
+      livestock: 'Habitantes',
+      equipment: 'Equipos',
+      waterChanges: 'Cambios de agua',
+    }[section];
   }
 
   private async load(): Promise<void> {

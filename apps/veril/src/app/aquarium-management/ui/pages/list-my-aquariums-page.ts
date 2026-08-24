@@ -73,6 +73,7 @@ export class ListMyAquariumsPage implements OnInit {
 
   async select(aquarium: AquariumListItem): Promise<void> {
     if (this.activeContext.get() === aquarium.id) {
+      await this.router.navigateByUrl('/app/aquariums/current');
       return;
     }
 

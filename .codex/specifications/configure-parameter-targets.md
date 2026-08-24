@@ -21,7 +21,8 @@ The authenticated keeper who owns the selected Aquarium.
 - The keeper is authenticated.
 - An Aquarium is selected in Active Context.
 - The selected Aquarium belongs to the authenticated keeper.
-- The Parameter belongs to the closed MVP catalogue.
+- The Parameter belongs to the active catalogue, whether it is system-defined
+  or a valid public `ParameterDefinition`.
 
 Active Context identifies the Aquarium but is not authorization. Firestore
 Rules remain authoritative.

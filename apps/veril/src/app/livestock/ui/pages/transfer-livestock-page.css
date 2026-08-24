@@ -1,5 +1,5 @@
 .page-section {
-  max-width: 42rem;
+  max-width: var(--veril-content-form);
 }
 .eyebrow {
   margin: 0 0 0.25rem;
@@ -15,7 +15,7 @@ h2 {
 }
 form {
   display: grid;
-  gap: 1rem;
+  gap: var(--veril-space-section);
 }
 label {
   display: grid;

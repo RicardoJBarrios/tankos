@@ -1,0 +1,117 @@
+import { Timestamp } from 'firebase/firestore';
+import { createNativeTimeAdapter } from '@tank-os/time';
+import { createFirestoreTimeAdapter } from './firestore-time-adapter';
+
+describe('firestore-time-adapter', () => {
+  const adapter = createFirestoreTimeAdapter(createNativeTimeAdapter());
+
+  it('Given an instant, When converting it to Firestore, Then it returns a Timestamp with the same UTC millisecond', () => {
+    expect(adapter.toTimestamp('2026-08-20T15:30:01.250Z')).toEqual(
+      Timestamp.fromMillis(Date.parse('2026-08-20T15:30:01.250Z')),
+    );
+  });
+
+  it('Given a Firestore Timestamp, When converting it to an instant, Then it returns the normalized instant', () => {
+    expect(
+      adapter.fromTimestamp(
+        Timestamp.fromMillis(Date.parse('2026-08-20T15:30:01.250Z')),
+      ),
+    ).toEqual({
+      kind: 'instant',
+      epochMilliseconds: Date.parse('2026-08-20T15:30:01.250Z'),
+    });
+  });
+
+  it('Given a valid instant, When converting it to Firestore and back, Then the temporal value is preserved', () => {
+    const value = '2026-08-20T15:30:01.250Z';
+
+    expect(adapter.fromTimestamp(adapter.toTimestamp(value))).toEqual({
+      kind: 'instant',
+      epochMilliseconds: Date.parse(value),
+    });
+  });
+
+  it.each([
+    '2026-08-20',
+    { kind: 'local-date', year: 2026, month: 8, day: 20 } as const,
+  ])(
+    'Given a local date %s, When converting it to Firestore, Then it stores the canonical calendar string',
+    (value) => {
+      expect(adapter.toLocalDate(value)).toBe('2026-08-20');
+    },
+  );
+
+  it('Given a Firestore local date string, When converting it, Then it returns a LocalDate', () => {
+    expect(adapter.fromLocalDate('2026-08-20')).toEqual({
+      kind: 'local-date',
+      year: 2026,
+      month: 8,
+      day: 20,
+    });
+  });
+
+  it('Given a valid local date, When converting it to Firestore and back, Then the calendar value is preserved', () => {
+    const value = '2026-08-20';
+
+    expect(adapter.fromLocalDate(adapter.toLocalDate(value))).toEqual({
+      kind: 'local-date',
+      year: 2026,
+      month: 8,
+      day: 20,
+    });
+  });
+
+  it.each([
+    ['PT1H', 3_600_000],
+    [-1_500, -1_500],
+    [{ kind: 'duration', milliseconds: 60_000 }, 60_000],
+  ])(
+    'Given a duration %s, When converting it to Firestore, Then it stores integer milliseconds %s',
+    (value, expected) => {
+      expect(adapter.toDuration(value as never)).toBe(expected);
+    },
+  );
+
+  it('Given Firestore duration milliseconds, When converting it, Then it returns a normalized duration', () => {
+    expect(adapter.fromDuration(3_600_000)).toEqual({
+      kind: 'duration',
+      milliseconds: 3_600_000,
+    });
+  });
+
+  it.each([
+    null,
+    undefined,
+    20260820,
+    '2026-08-20 ',
+    { kind: 'local-date', year: 2026, month: 8, day: 20 },
+  ])(
+    'Given an invalid Firestore local date %s, When converting it, Then it raises a range error',
+    (value) => {
+      expect(() => adapter.fromLocalDate(value)).toThrow(RangeError);
+    },
+  );
+
+  it.each([null, undefined, {}, new Date(0)])(
+    'Given an invalid Firestore timestamp %s, When converting it, Then it raises a range error',
+    (value) => {
+      expect(() => adapter.fromTimestamp(value)).toThrow(RangeError);
+    },
+  );
+
+  it('Given a Firestore Timestamp with sub-millisecond precision, When converting it, Then it truncates to milliseconds', () => {
+    const timestamp = new Timestamp(1_756_000_001, 1);
+
+    expect(adapter.fromTimestamp(timestamp)).toEqual({
+      kind: 'instant',
+      epochMilliseconds: 1_756_000_001_000,
+    });
+  });
+
+  it.each([null, undefined, NaN, '3600000', Infinity, -Infinity])(
+    'Given invalid Firestore duration %s, When converting it, Then it raises a range error',
+    (value) => {
+      expect(() => adapter.fromDuration(value)).toThrow(RangeError);
+    },
+  );
+});

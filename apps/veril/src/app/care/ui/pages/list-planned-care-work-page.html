@@ -5,13 +5,16 @@
 >
   <div class="section-heading">
     <div>
-      <p class="eyebrow">Intenciones futuras</p>
-      <h2 id="planned-care-work-title">Cuidados planificados</h2>
+      <p class="eyebrow">Trabajo previsto</p>
+      <h2 id="planned-care-work-title">Agenda</h2>
     </div>
-    <a mat-stroked-button routerLink="/app/aquariums/care/planned/new"
+    <a
+      mat-flat-button
+      color="primary"
+      routerLink="/app/aquariums/care/planned/new"
       >Planificar cuidado</a
     >
-    <a mat-stroked-button routerLink="/app/aquariums/care/recurring/new"
+    <a mat-button routerLink="/app/aquariums/care/recurring/new"
       >Programar cuidado semanal</a
     >
   </div>
@@ -112,8 +115,6 @@
   <p class="feedback feedback-error" role="alert">{{ completionError() }}</p>
   } @if (cancellationError()) {
   <p class="feedback feedback-error" role="alert">{{ cancellationError() }}</p>
-  } @if (stoppingError()) {
-  <p class="feedback feedback-error" role="alert">{{ stoppingError() }}</p>
   } @if (stoppingError()) {
   <p class="feedback feedback-error" role="alert">{{ stoppingError() }}</p>
   }

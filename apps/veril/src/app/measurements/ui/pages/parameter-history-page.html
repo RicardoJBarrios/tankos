@@ -1,0 +1,104 @@
+<section
+  class="page-section"
+  aria-labelledby="parameter-history-title"
+  data-testid="parameter-history"
+>
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Evidencia cuantitativa</p>
+      <h2 id="parameter-history-title">Historial de parámetro</h2>
+    </div>
+    <a mat-button routerLink="/app/aquariums/measurements"
+      >Ver todas las mediciones</a
+    >
+  </div>
+
+  @if (state() === 'no-context') {
+  <mat-card appearance="outlined"
+    ><mat-card-content>
+      <p role="status">
+        Primero selecciona un acuario para consultar su historial.
+      </p>
+      <a mat-flat-button color="primary" routerLink="/app/aquariums"
+        >Volver a mis acuarios</a
+      >
+    </mat-card-content></mat-card
+  >
+  } @else {
+  <mat-card appearance="outlined" class="filters">
+    <mat-card-content>
+      <label for="history-parameter">Parámetro</label>
+      <select
+        id="history-parameter"
+        [value]="parameterId()"
+        (change)="updateParameter($any($event.target).value)"
+      >
+        @for (parameter of parameters; track parameter.id) {
+        <option [value]="parameter.id">{{ parameter.label }}</option>
+        }
+      </select>
+      <label for="history-from">Desde</label>
+      <input
+        id="history-from"
+        type="datetime-local"
+        [value]="from()"
+        (input)="updateFrom($any($event.target).value)"
+      />
+      <label for="history-to">Hasta</label>
+      <input
+        id="history-to"
+        type="datetime-local"
+        [value]="to()"
+        (input)="updateTo($any($event.target).value)"
+      />
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="applyFilters()"
+      >
+        Aplicar filtros
+      </button>
+    </mat-card-content>
+  </mat-card>
+
+  @if (state() === 'loading') {
+  <div class="loading-state" role="status">Cargando historial…</div>
+  } @else if (state() === 'failure') {
+  <p class="feedback feedback-error" role="alert">{{ errorMessage() }}</p>
+  <button mat-stroked-button type="button" (click)="applyFilters()">
+    Reintentar
+  </button>
+  } @else if (state() === 'empty') {
+  <p class="empty-state">
+    No hay mediciones para este parámetro en el intervalo seleccionado.
+  </p>
+  } @else {
+  <ul aria-label="Historial del parámetro">
+    @for (item of items(); track item.id) {
+    <li>
+      <mat-card appearance="outlined"
+        ><mat-card-content>
+          <span class="measurement-label">{{ label(item) }}</span>
+          <strong>{{ item.canonicalValue }} {{ unit(item) }}</strong>
+          <time [attr.datetime]="item.measuredAt.toISOString()"
+            >{{ item.measuredAt | date:'medium' }}</time
+          >
+          @if (item.correctsMeasurementId) {
+          <span>Corrección de una medición anterior</span> } @else if
+          (item.isCorrected) {
+          <span>Medición sustituida por una corrección</span> }
+        </mat-card-content></mat-card
+      >
+    </li>
+    }
+  </ul>
+  <veril-pagination-controls
+    [hasNextPage]="!!nextCursor()"
+    [isLoading]="isLoadingMore()"
+    [pageSize]="pageSize()"
+    (nextPage)="loadMore()"
+    (pageSizeChange)="changePageSize($event)"
+  />
+  } }
+</section>

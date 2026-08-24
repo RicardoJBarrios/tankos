@@ -1,6 +1,7 @@
 # Review Parameter Policy
 
-**Status:** Accepted as the semantic policy for future Parameter capabilities.
+**Status:** Legacy policy superseded by the accepted configurable-property
+direction in [`PARAMETER_CONFIGURABILITY_PLAN.md`](../product/PARAMETER_CONFIGURABILITY_PLAN.md).
 
 ## Product language
 
@@ -10,7 +11,11 @@ Aquarium. It supplies identity, semantic meaning and compatible Units.
 Parameter is not simultaneously a target, a recommendation, an alert or a
 measurement schedule. Those are separate concerns.
 
-The catalogue is closed in the MVP and users cannot create Parameters.
+The legacy MVP catalogue was closed and system-defined. The accepted direction
+now adds public `ParameterDefinition` entries and complete keeper CRUD for
+custom definitions. This document remains as the semantic baseline for the
+existing built-in Parameters; it is not authoritative for custom-definition
+lifecycle.
 
 ## Canonical catalogue
 

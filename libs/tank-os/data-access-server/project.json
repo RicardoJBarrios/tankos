@@ -1,0 +1,41 @@
+{
+  "name": "data-access-server",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/tank-os/data-access-server/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["scope:shared", "scope:tank-os", "type:adapter"],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "dependsOn": ["data-access:build"],
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "project": "libs/tank-os/data-access-server/ng-package.json",
+        "tsConfig": "libs/tank-os/data-access-server/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/tank-os/data-access-server/tsconfig.lib.prod.json"
+        },
+        "development": {}
+      }
+    },
+    "nx-release-publish": {
+      "options": {
+        "packageRoot": "dist/{projectRoot}"
+      }
+    },
+    "test": {
+      "outputs": [
+        "{projectRoot}/{options.coverage.reportsDirectory}",
+        "{workspaceRoot}/coverage/libs/tank-os/data-access-server"
+      ],
+      "options": {
+        "coverage": true,
+        "coverage.reportsDirectory": "../../../coverage/libs/tank-os/data-access-server"
+      }
+    }
+  }
+}

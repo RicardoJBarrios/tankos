@@ -1,0 +1,10 @@
+{
+  "name": "@tank-os/units-zod",
+  "version": "0.0.0",
+  "peerDependencies": {
+    "@tank-os/decimal": "^0.0.0",
+    "@tank-os/units": "^0.0.0",
+    "zod": "^4.4.3"
+  },
+  "sideEffects": false
+}

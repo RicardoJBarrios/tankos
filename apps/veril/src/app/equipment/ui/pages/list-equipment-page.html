@@ -2,7 +2,7 @@
   <div class="section-heading">
     <div>
       <p class="eyebrow">Sistemas</p>
-      <h2 id="equipment-title">Equipment</h2>
+      <h2 id="equipment-title">Equipos</h2>
     </div>
     <div class="actions">
       <a mat-stroked-button routerLink="/app/aquariums/equipment/transfer"
@@ -27,7 +27,7 @@
   } @else if (state() === 'loading') {
   <div role="status">
     <mat-progress-spinner mode="indeterminate" diameter="32" /> Cargando
-    equipment…
+    equipos…
   </div>
   } @else if (state() === 'failure') {
   <div role="alert">
@@ -44,7 +44,7 @@
     ></mat-card
   >
   } @else {
-  <ul aria-label="Equipment del acuario" data-testid="equipment-list">
+  <ul aria-label="Equipos del acuario" data-testid="equipment-list">
     @for (item of items(); track item.id) {
     <li>
       <mat-card appearance="outlined"

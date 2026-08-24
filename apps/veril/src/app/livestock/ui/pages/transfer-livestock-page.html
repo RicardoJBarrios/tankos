@@ -1,6 +1,6 @@
 <section aria-labelledby="transfer-livestock-title" class="page-section">
   <p class="eyebrow">Seres vivos</p>
-  <h2 id="transfer-livestock-title">Transferir livestock</h2>
+  <h2 id="transfer-livestock-title">Transferir habitante</h2>
   <mat-card appearance="outlined"
     ><mat-card-content>
       @if (state() === 'loading') {
@@ -10,7 +10,7 @@
         Transferencia realizada. El registro conserva su historial.
       </p>
       <a mat-flat-button color="primary" routerLink="/app/aquariums/livestock"
-        >Ver livestock</a
+        >Ver Habitantes</a
       >
       } @else if (state() === 'failure') {
       <p class="error" role="alert">{{ errorMessage() }}</p>

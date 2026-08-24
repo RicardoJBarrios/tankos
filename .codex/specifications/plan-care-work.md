@@ -1,6 +1,6 @@
 # Plan Care Work
 
-**Status:** Accepted for implementation.
+**Status:** Accepted and implemented.
 
 ## Actor and value
 
