@@ -214,6 +214,7 @@ for (const adapterPackage of [
   'time-zod',
   'decimal-big-js',
   'decimal-zod',
+  'units-zod',
 ]) {
   modules[`libs/tank-os/${adapterPackage}/src`] = [
     'context:tank-os',
@@ -241,6 +242,10 @@ modules['libs/tank-os/decimal-big-js/src/lib/big-js'] = [
   'tank-os:layer:adapter',
 ];
 modules['libs/tank-os/decimal-zod/src/lib/zod'] = [
+  'context:tank-os',
+  'tank-os:layer:adapter',
+];
+modules['libs/tank-os/units-zod/src/lib/zod'] = [
   'context:tank-os',
   'tank-os:layer:adapter',
 ];

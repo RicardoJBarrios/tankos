@@ -34,7 +34,8 @@
       "@tank-os/decimal-zod": ["./libs/tank-os/decimal-zod/src/index.ts"],
       "@tank-os/data-access-firestore-admin": [
         "./libs/tank-os/data-access-firestore-admin/src/index.ts"
-      ]
+      ],
+      "@tank-os/units-zod": ["./libs/tank-os/units-zod/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
