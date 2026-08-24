@@ -46,7 +46,7 @@
     "@angular/platform-browser-dynamic": "20.3.27",
     "@axe-core/playwright": "^4.13.0",
     "@eslint/js": "^9.8.0",
-    "@firebase/rules-unit-testing": "^4.0.1",
+    "@firebase/rules-unit-testing": "5.0.2",
     "@ngneat/spectator": "20.0.0",
     "@nx/angular": "23.1.1",
     "@nx/devkit": "23.1.1",
