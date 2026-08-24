@@ -9,9 +9,7 @@
     "build": {
       "executor": "@nx/angular:ng-packagr-lite",
       "dependsOn": ["decimal:build"],
-      "outputs": [
-        "{workspaceRoot}/dist/{projectRoot}"
-      ],
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "defaultConfiguration": "production",
       "options": {
         "project": "libs/tank-os/decimal-big-js/ng-package.json",

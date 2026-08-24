@@ -29,7 +29,11 @@ export function createUnitDefinition(
   if (!definition || typeof definition !== 'object') {
     throw new TypeError('Unit definition must be an object');
   }
-  if (!['si', 'metric', 'british-imperial', 'us-customary', 'custom'].includes(definition.system)) {
+  if (
+    !['si', 'metric', 'british-imperial', 'us-customary', 'custom'].includes(
+      definition.system,
+    )
+  ) {
     throw new TypeError('Unit definition system is invalid');
   }
   if (!isNonEmptyTrimmedString(definition.conversionFamily)) {
@@ -55,5 +59,7 @@ export function createUnitDefinition(
 }
 
 function isNonEmptyTrimmedString(value: unknown): value is string {
-  return typeof value === 'string' && value.length > 0 && value === value.trim();
+  return (
+    typeof value === 'string' && value.length > 0 && value === value.trim()
+  );
 }

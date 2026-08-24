@@ -25,6 +25,18 @@ export default defineConfig(() => ({
       ...createVitestReporting('data-access', '../../../').coverage,
       reportsDirectory: '../../../coverage/libs/tank-os/data-access',
       provider: 'v8' as const,
+      // Type-only contracts have no executable behavior to measure.
+      exclude: [
+        '**/*.config.*',
+        '**/test-setup.ts',
+        'src/lib/core/ports/**',
+        'src/lib/core/value-types/batch-result.ts',
+        'src/lib/core/value-types/batch-scope.ts',
+        'src/lib/core/value-types/crud-record.ts',
+        'src/lib/core/value-types/crud-request.ts',
+        'src/lib/core/value-types/record-metadata.ts',
+        'src/lib/core/value-types/versioning.ts',
+      ],
       thresholds: {
         lines: 100,
         statements: 100,

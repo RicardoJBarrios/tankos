@@ -47,20 +47,22 @@ export const unitDefinitionDtoSchema = z.strictObject({
 export type UnitDefinitionDto = z.input<typeof unitDefinitionDtoSchema>;
 
 /** Parses a transport unit definition into an immutable domain value. */
-export const unitDefinitionSchema = unitDefinitionDtoSchema.transform((value, context): UnitDefinition | typeof z.NEVER => {
-  try {
-    return createUnitDefinition({
-      code: createUnitCode(value.code),
-      system: value.system,
-      dimension: createDimensionSignature(value.dimension),
-      quantityKind: createQuantityKind(value.quantityKind),
-      representation: createUnitRepresentation(value.representation),
-      conversionFamily: value.conversionFamily,
-      catalogueVersion: value.catalogueVersion,
-      status: value.status,
-    });
-  } catch (error) {
-    context.addIssue({ code: 'custom', message: String(error) });
-    return z.NEVER;
-  }
-});
+export const unitDefinitionSchema = unitDefinitionDtoSchema.transform(
+  (value, context): UnitDefinition | typeof z.NEVER => {
+    try {
+      return createUnitDefinition({
+        code: createUnitCode(value.code),
+        system: value.system,
+        dimension: createDimensionSignature(value.dimension),
+        quantityKind: createQuantityKind(value.quantityKind),
+        representation: createUnitRepresentation(value.representation),
+        conversionFamily: value.conversionFamily,
+        catalogueVersion: value.catalogueVersion,
+        status: value.status,
+      });
+    } catch (error) {
+      context.addIssue({ code: 'custom', message: String(error) });
+      return z.NEVER;
+    }
+  },
+);

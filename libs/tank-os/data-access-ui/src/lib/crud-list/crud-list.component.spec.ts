@@ -1,4 +1,7 @@
-import { createComponentFactory, type Spectator } from '@ngneat/spectator/vitest';
+import {
+  createComponentFactory,
+  type Spectator,
+} from '@ngneat/spectator/vitest';
 import { setupTestBed } from '@analogjs/vitest-angular/setup-testbed';
 import { createEntityId, type CrudRecord } from '@tank-os/data-access';
 import { describe, expect, it } from 'vitest';
@@ -34,13 +37,17 @@ describe('CrudListComponent', () => {
   it('Given records, When rendered, Then displays the supplied label and actions', () => {
     const spectator = render();
     expect(spectator.query('li')?.textContent).toContain('One');
-    expect(spectator.queryAll('button').map((button) => button.textContent?.trim())).toContain('Edit');
+    expect(
+      spectator.queryAll('button').map((button) => button.textContent?.trim()),
+    ).toContain('Edit');
   });
 
   it('Given a visible record, When delete is clicked, Then emits the record', () => {
     const spectator = render();
     let emitted: CrudRecord<{ name: string }> | undefined;
-    spectator.output('markForDeletionRequested').subscribe((value) => (emitted = value));
+    spectator
+      .output('markForDeletionRequested')
+      .subscribe((value) => (emitted = value));
     spectator.click('li button:last-of-type');
     expect(emitted).toEqual(record);
   });
@@ -50,7 +57,9 @@ describe('CrudListComponent', () => {
     spectator.setInput('selectedIds', [record.id]);
     spectator.detectChanges();
     let operation: string | undefined;
-    spectator.output('batchRequested').subscribe((value) => (operation = value));
+    spectator
+      .output('batchRequested')
+      .subscribe((value) => (operation = value));
     spectator.click('[data-testid="batch-mark-for-deletion"]');
     expect(operation).toBe('mark-for-deletion');
   });
@@ -74,14 +83,19 @@ describe('CrudListComponent', () => {
   });
 
   it('Given a marked record and another page, When rendered, Then exposes restore and paging actions', () => {
-    const marked = { ...record, lifecycle: { status: 'marked-for-deletion' as const } };
+    const marked = {
+      ...record,
+      lifecycle: { status: 'marked-for-deletion' as const },
+    };
     const spectator = createComponent();
     spectator.setInput('items', [marked]);
     spectator.setInput('hasMore', true);
     spectator.detectChanges();
     let restored: CrudRecord<{ name: string }> | undefined;
     let loadMore = false;
-    spectator.output('restoreRequested').subscribe((value) => (restored = value));
+    spectator
+      .output('restoreRequested')
+      .subscribe((value) => (restored = value));
     spectator.output('loadMoreRequested').subscribe(() => (loadMore = true));
     spectator.click('li button:last-of-type');
     spectator.click('[data-testid="load-more"]');
@@ -94,7 +108,9 @@ describe('CrudListComponent', () => {
     let edited: CrudRecord<{ name: string }> | undefined;
     let selected: string | undefined;
     spectator.output('editRequested').subscribe((value) => (edited = value));
-    spectator.output('selectionToggled').subscribe((value) => (selected = value));
+    spectator
+      .output('selectionToggled')
+      .subscribe((value) => (selected = value));
     spectator.click('li button:first-of-type');
     spectator.click('input[type="checkbox"]');
     expect(edited).toEqual(record);

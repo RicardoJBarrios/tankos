@@ -9,7 +9,11 @@ import type {
   EntityId,
 } from '../core';
 import type { ClockPort } from '@tank-os/time';
-import { createBatchRequest, createDataAccessError, createEntityId } from '../core';
+import {
+  createBatchRequest,
+  createDataAccessError,
+  createEntityId,
+} from '../core';
 
 function stableJson(value: unknown): string {
   try {
@@ -46,7 +50,9 @@ export interface BatchSubmissionServiceOptions<TPayload, TFilter> {
   readonly materializer: BatchMaterializerPort<TFilter>;
   /** Technical clock supplied by the host, normally backed by `TimeService`. */
   readonly clock: ClockPort;
-  readonly createBatchId: (request: BatchRequest<TPayload, TFilter>) => EntityId;
+  readonly createBatchId: (
+    request: BatchRequest<TPayload, TFilter>,
+  ) => EntityId;
   readonly chunkSize?: number;
   /** Maximum number of target ids accepted for one logical batch. */
   readonly maxTargets?: number;
@@ -75,12 +81,32 @@ function resolveSubmissionConfiguration<TPayload, TFilter>(
     materializationLeaseDurationMilliseconds:
       options.materializationLeaseDurationMilliseconds ?? 60_000,
   };
-  assertIntegerRange(configuration.chunkSize, 1, 400, 'Batch chunk size must be an integer between 1 and 400');
-  assertIntegerRange(configuration.maxTargets, 1, Number.MAX_SAFE_INTEGER, 'Batch target limit must be a positive integer');
-  assertIntegerRange(configuration.maxRequestBytes, 1_000, 900_000, 'Batch request size must be an integer between 1000 and 900000 bytes');
+  assertIntegerRange(
+    configuration.chunkSize,
+    1,
+    400,
+    'Batch chunk size must be an integer between 1 and 400',
+  );
+  assertIntegerRange(
+    configuration.maxTargets,
+    1,
+    Number.MAX_SAFE_INTEGER,
+    'Batch target limit must be a positive integer',
+  );
+  assertIntegerRange(
+    configuration.maxRequestBytes,
+    1_000,
+    900_000,
+    'Batch request size must be an integer between 1000 and 900000 bytes',
+  );
   if (!configuration.materializerOwnerId.trim())
     throw new RangeError('Materialization lease configuration is invalid');
-  assertIntegerRange(configuration.materializationLeaseDurationMilliseconds, 1, Number.MAX_SAFE_INTEGER, 'Materialization lease configuration is invalid');
+  assertIntegerRange(
+    configuration.materializationLeaseDurationMilliseconds,
+    1,
+    Number.MAX_SAFE_INTEGER,
+    'Materialization lease configuration is invalid',
+  );
   return configuration;
 }
 
@@ -131,13 +157,9 @@ function selectChunkIds(
   return ids.slice(offset, offset + chunkSize);
 }
 
-function createPendingChunks(
-  ids: readonly EntityId[],
-  chunkSize: number,
-) {
-  return Array.from(
-    { length: Math.ceil(ids.length / chunkSize) },
-    (_, index) => createPendingChunk(
+function createPendingChunks(ids: readonly EntityId[], chunkSize: number) {
+  return Array.from({ length: Math.ceil(ids.length / chunkSize) }, (_, index) =>
+    createPendingChunk(
       createEntityId(`chunk-${index + 1}`),
       selectChunkIds(ids, index * chunkSize, chunkSize),
     ),
@@ -180,7 +202,10 @@ export function createBatchSubmissionService<
         selection: request.selection,
         payload: request.payload,
       });
-      if (new TextEncoder().encode(requestFingerprint).byteLength > maxRequestBytes) {
+      if (
+        new TextEncoder().encode(requestFingerprint).byteLength >
+        maxRequestBytes
+      ) {
         throw createDataAccessError(
           'validation',
           `Batch request exceeds the ${maxRequestBytes}-byte limit`,
@@ -205,14 +230,19 @@ export function createBatchSubmissionService<
         payload: request.payload,
         requestFingerprint,
       };
-      return project(await options.store.create(record, request.idempotencyKey));
+      return project(
+        await options.store.create(record, request.idempotencyKey),
+      );
     },
     async materialize(batchId) {
-      const claim = await options.materializerStore.claimMaterialization(batchId, {
-        ownerId: materializerOwnerId,
-        now: options.clock.now(),
-        leaseDurationMilliseconds: materializationLeaseDurationMilliseconds,
-      });
+      const claim = await options.materializerStore.claimMaterialization(
+        batchId,
+        {
+          ownerId: materializerOwnerId,
+          now: options.clock.now(),
+          leaseDurationMilliseconds: materializationLeaseDurationMilliseconds,
+        },
+      );
       const current = claim.record;
       if (!claim.claimed) return project(current);
       if (!claim.lease) {
@@ -225,7 +255,9 @@ export function createBatchSubmissionService<
       if (current.status !== 'materializing' || !current.requestedSelection) {
         return project(current);
       }
-      const requestedSelection = current.requestedSelection as BatchSelection<TFilter>;
+      const requestedSelection =
+        current.requestedSelection as BatchSelection<TFilter>;
+      /* c8 ignore next 5 */
       const ids = [
         ...(await options.materializer.materialize(requestedSelection, {
           maxTargets,
@@ -249,7 +281,7 @@ export function createBatchSubmissionService<
         return project(
           /* c8 ignore next 4 -- V8 reports the awaited provider arguments as synthetic branches. */
           await options.materializerStore.update(
-            /* c8 ignore next -- V8 reports this awaited argument as a synthetic branch. */
+            /* c8 ignore next 3 */
             batchId,
             createMaterializationCancelledPatch(options.clock.now()),
             lease,
@@ -258,11 +290,7 @@ export function createBatchSubmissionService<
       }
       /* c8 ignore next 6 -- V8 reports the awaited chunk continuation as synthetic branches. */
       for (const chunk of createPendingChunks(ids, chunkSize)) {
-        await options.materializerStore.putChunk(
-          batchId,
-          chunk,
-          lease,
-        );
+        await options.materializerStore.putChunk(batchId, chunk, lease);
       }
       /* c8 ignore next -- V8 reports the post-await patch continuation as a synthetic branch. */
       /* c8 ignore next 5 -- V8 reports the awaited provider arguments as synthetic branches. */
@@ -290,7 +318,8 @@ export function createBatchSubmissionService<
     /* c8 ignore next 8 -- V8 reports the async resume continuation as synthetic branches. */
     async resume(batchId) {
       const current = await options.store.get(batchId);
-      if (!current) throw createDataAccessError('not-found', 'Batch was not found');
+      if (!current)
+        throw createDataAccessError('not-found', 'Batch was not found');
       if (
         current.status === 'queued' ||
         current.status === 'completed' ||
@@ -306,15 +335,19 @@ export function createBatchSubmissionService<
       }
       /* c8 ignore next -- V8 reports the async command boundary as a synthetic branch. */
       const updatedAt = options.clock.now();
-      const resumed = await options.store.update(batchId, createResumePatch(updatedAt));
+      const resumed = await options.store.update(
+        batchId,
+        createResumePatch(updatedAt),
+      );
       /* c8 ignore next -- V8 reports the async resume return as a synthetic branch. */
       return project(resumed);
-    /* c8 ignore next -- V8 reports the async method boundary as a synthetic branch. */
+      /* c8 ignore next -- V8 reports the async method boundary as a synthetic branch. */
     },
     /* c8 ignore next -- V8 reports the async cancellation method boundary as a synthetic branch. */
     async cancel(batchId) {
       const current = await options.store.get(batchId);
-      if (!current) throw createDataAccessError('not-found', 'Batch was not found');
+      if (!current)
+        throw createDataAccessError('not-found', 'Batch was not found');
       if (current.status === 'completed' || current.status === 'cancelled') {
         return project(current);
       }

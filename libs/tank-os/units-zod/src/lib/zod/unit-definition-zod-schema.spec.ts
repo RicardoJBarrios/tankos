@@ -42,9 +42,18 @@ describe('unitDefinitionSchema', () => {
     { ...validDefinition, code: 'LTR' },
     { ...validDefinition, code: 'UN/CEFACT:LTR!' },
     { ...validDefinition, quantityKind: ' ' },
-    { ...validDefinition, dimension: { ...validDefinition.dimension, mass: 1.5 } },
-    { ...validDefinition, representation: { ...validDefinition.representation, symbol: ' ' } },
-    { ...validDefinition, representation: { ...validDefinition.representation, asciiFallback: '' } },
+    {
+      ...validDefinition,
+      dimension: { ...validDefinition.dimension, mass: 1.5 },
+    },
+    {
+      ...validDefinition,
+      representation: { ...validDefinition.representation, symbol: ' ' },
+    },
+    {
+      ...validDefinition,
+      representation: { ...validDefinition.representation, asciiFallback: '' },
+    },
     { ...validDefinition, extra: true },
   ])('Given an invalid DTO %s, When parsed, Then rejects it', (value) => {
     expect(unitDefinitionSchema.safeParse(value).success).toBe(false);

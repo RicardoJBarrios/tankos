@@ -64,7 +64,9 @@ describe('createInMemoryBatchOperation', () => {
       currentChunk: 'chunk-2',
     });
     expect(processed).toEqual(['one', 'two', 'three']);
-    await expect(adapter.get(queued.batchId)).resolves.toMatchObject({ status: 'completed' });
+    await expect(adapter.get(queued.batchId)).resolves.toMatchObject({
+      status: 'completed',
+    });
   });
 
   it('Given item warnings and failures, When the worker runs, Then completes with warnings and continues', async () => {
@@ -136,7 +138,9 @@ describe('createInMemoryBatchOperation', () => {
     expect(await adapter.cancel(cancelled.batchId)).toMatchObject({
       status: 'cancelled',
     });
-    await expect(adapter.get(cancelled.batchId)).resolves.toMatchObject({ status: 'cancelled' });
+    await expect(adapter.get(cancelled.batchId)).resolves.toMatchObject({
+      status: 'cancelled',
+    });
   });
 
   it('Given an unknown batch or invalid chunk size, When operated, Then returns a typed error', async () => {

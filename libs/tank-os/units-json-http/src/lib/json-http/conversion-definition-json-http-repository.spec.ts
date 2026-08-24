@@ -25,13 +25,21 @@ describe('createConversionDefinitionJsonHttpRepository', () => {
     roles: ['admin'],
     requestId: 'request-1',
   };
-  const command = { access, id: createEntityId('conversion-1'), expectedRevision: 1 };
+  const command = {
+    access,
+    id: createEntityId('conversion-1'),
+    expectedRevision: 1,
+  };
   const record = {
     id: 'conversion-1',
     data: conversionDefinitionToDto(definition),
     lifecycle: { status: 'active' as const },
     revision: 1,
-    metadata: { schemaVersion: 1, createdAt: '2026-08-20T15:30:00Z', updatedAt: '2026-08-20T15:30:00Z' },
+    metadata: {
+      schemaVersion: 1,
+      createdAt: '2026-08-20T15:30:00Z',
+      updatedAt: '2026-08-20T15:30:00Z',
+    },
   };
 
   it('Given a conversion domain command, When sent over HTTP, Then maps it through the shared repository', async () => {
@@ -44,8 +52,17 @@ describe('createConversionDefinitionJsonHttpRepository', () => {
       recordUrl: (id: string) => `/conversion-definitions/${id}`,
     });
 
-    await expect(repository.create({ access: { ...access, requestId: 'request-2' }, input: definition })).resolves.toMatchObject({ data: definition });
-    await expect(repository.replace(command, definition)).resolves.toMatchObject({ data: definition });
-    expect(client.request).toHaveBeenCalledWith(expect.objectContaining({ body: conversionDefinitionToDto(definition) }));
+    await expect(
+      repository.create({
+        access: { ...access, requestId: 'request-2' },
+        input: definition,
+      }),
+    ).resolves.toMatchObject({ data: definition });
+    await expect(
+      repository.replace(command, definition),
+    ).resolves.toMatchObject({ data: definition });
+    expect(client.request).toHaveBeenCalledWith(
+      expect.objectContaining({ body: conversionDefinitionToDto(definition) }),
+    );
   });
 });

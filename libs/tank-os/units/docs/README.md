@@ -68,13 +68,13 @@ The current catalogue is an immutable aquarium-first subset of
 UN/CEFACT Recommendation 20, pinned as `UN/CEFACT-Rev17-aquarium-core`.
 It contains 13 definitions:
 
-| Family | Codes |
-| --- | --- |
-| volume | `LTR`, `MLT`, `GLI`, `GLL` |
-| length | `MTR`, `CMT` |
-| mass | `KGM`, `GRM` |
-| temperature | `CEL`, `KEL`, `FAH` |
-| pressure | `BAR`, `PAL` |
+| Family      | Codes                      |
+| ----------- | -------------------------- |
+| volume      | `LTR`, `MLT`, `GLI`, `GLL` |
+| length      | `MTR`, `CMT`               |
+| mass        | `KGM`, `GRM`               |
+| temperature | `CEL`, `KEL`, `FAH`        |
+| pressure    | `BAR`, `PAL`               |
 
 `GLI` (British Imperial gallon) and `GLL` (US gallon) are distinct units.
 The catalogue never collapses them into an ambiguous `gallon`.

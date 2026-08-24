@@ -29,9 +29,17 @@ describe('createConversionDefinitionCrudService', () => {
       catalogue: createStandardUnitCatalogue(),
     });
     const access = { principalId: createEntityId('admin-1'), roles: ['admin'] };
-    const listRequest = { access, page: { pageSize: 10 }, filter: { family: 'volume' } };
+    const listRequest = {
+      access,
+      page: { pageSize: 10 },
+      filter: { family: 'volume' },
+    };
     const getRequest = { access, id: createEntityId('conversion-1') };
-    const command = { access, id: createEntityId('conversion-1'), expectedRevision: 1 };
+    const command = {
+      access,
+      id: createEntityId('conversion-1'),
+      expectedRevision: 1,
+    };
 
     await service.list(listRequest);
     await service.get(getRequest);
@@ -43,7 +51,10 @@ describe('createConversionDefinitionCrudService', () => {
 
     expect(repository.list).toHaveBeenCalledWith(listRequest);
     expect(repository.get).toHaveBeenCalledWith(getRequest);
-    expect(repository.create).toHaveBeenCalledWith({ access, input: definition });
+    expect(repository.create).toHaveBeenCalledWith({
+      access,
+      input: definition,
+    });
     expect(repository.replace).not.toHaveBeenCalled();
     expect(repository.markForDeletion).toHaveBeenCalledWith(command);
     expect(repository.restore).toHaveBeenCalledWith(command);
@@ -57,7 +68,10 @@ describe('createConversionDefinitionCrudService', () => {
     });
 
     await expect(
-      service.create({ access: { principalId: createEntityId('admin-1'), roles: ['admin'] }, input: { ...definition, origin: 'standard' } }),
+      service.create({
+        access: { principalId: createEntityId('admin-1'), roles: ['admin'] },
+        input: { ...definition, origin: 'standard' },
+      }),
     ).rejects.toMatchObject({ code: 'CONVERSION_CUSTOM_REQUIRED' });
     expect(repository.create).not.toHaveBeenCalled();
   });
@@ -70,14 +84,23 @@ describe('createConversionDefinitionCrudService', () => {
 
     await expect(
       service.replace(
-        { access: { principalId: createEntityId('admin-1'), roles: ['admin'] }, id: createEntityId('conversion-1'), expectedRevision: 1 },
+        {
+          access: { principalId: createEntityId('admin-1'), roles: ['admin'] },
+          id: createEntityId('conversion-1'),
+          expectedRevision: 1,
+        },
         { ...definition, origin: 'standard' },
       ),
     ).rejects.toMatchObject({ code: 'CONVERSION_CUSTOM_REQUIRED' });
     expect(repository.create).not.toHaveBeenCalled();
   });
 
-  function createRepository(): CrudRepositoryPort<ConversionDefinition, ConversionDefinition, ConversionDefinition, ConversionDefinitionFilter> {
+  function createRepository(): CrudRepositoryPort<
+    ConversionDefinition,
+    ConversionDefinition,
+    ConversionDefinition,
+    ConversionDefinitionFilter
+  > {
     return {
       list: vi.fn(async () => ({ items: [], hasMore: false })),
       get: vi.fn(async () => undefined),

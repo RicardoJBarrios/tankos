@@ -19,9 +19,9 @@ describe('createStandardConversionDefinitions', () => {
       'pressure-pascal-to-bar',
     ]);
     expect(Object.isFrozen(definitions)).toBe(true);
-    expect(definitions.every((definition) => definition.origin === 'standard')).toBe(
-      true,
-    );
+    expect(
+      definitions.every((definition) => definition.origin === 'standard'),
+    ).toBe(true);
   });
 
   it('Given the Fahrenheit to Celsius definition, When inspected, Then retains its exact rational offset', () => {

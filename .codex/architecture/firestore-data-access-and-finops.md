@@ -146,13 +146,13 @@ batch dashboard to every host application.
 
 Choose the smallest primitive that satisfies the invariant:
 
-| Primitive | Use when | Global restriction |
-| --- | --- | --- |
-| Single write | One independent document | Must be idempotent when retried |
-| Transaction | Current state must be read before writing | Callback may run repeatedly and must have no external side effects |
-| Write batch | Known writes need bounded atomicity | Each operation is still billed independently |
-| BulkWriter/parallel server writes | Large independent workload | Must be chunked, rate-controlled and resumable |
-| Logical batch | Asynchronous multi-chunk workflow | Not equivalent to a Firestore `WriteBatch` |
+| Primitive                         | Use when                                  | Global restriction                                                 |
+| --------------------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
+| Single write                      | One independent document                  | Must be idempotent when retried                                    |
+| Transaction                       | Current state must be read before writing | Callback may run repeatedly and must have no external side effects |
+| Write batch                       | Known writes need bounded atomicity       | Each operation is still billed independently                       |
+| BulkWriter/parallel server writes | Large independent workload                | Must be chunked, rate-controlled and resumable                     |
+| Logical batch                     | Asynchronous multi-chunk workflow         | Not equivalent to a Firestore `WriteBatch`                         |
 
 Transactions are required for read-modify-write version replacement and other
 cross-document invariants. They must not contain email delivery, event

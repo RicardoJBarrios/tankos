@@ -48,7 +48,9 @@ export function createUnitDefinitionCrudService(
   });
 }
 
-function requireCustom(input: CustomUnitDefinitionInput): CustomUnitDefinitionInput {
+function requireCustom(
+  input: CustomUnitDefinitionInput,
+): CustomUnitDefinitionInput {
   if (input.system !== 'custom') {
     throw new UnitError(
       'UNIT_CUSTOM_REQUIRED',

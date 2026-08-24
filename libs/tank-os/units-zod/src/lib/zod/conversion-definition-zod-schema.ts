@@ -10,17 +10,14 @@ import {
 } from '@tank-os/decimal';
 import { z } from 'zod';
 
-const decimalInputSchema = z.union([z.string(), z.number()]).refine(
-  (value) => {
-    try {
-      normalizeDecimalInput(value);
-      return true;
-    } catch {
-      return false;
-    }
-  },
-  'Must be a finite decimal number',
-);
+const decimalInputSchema = z.union([z.string(), z.number()]).refine((value) => {
+  try {
+    normalizeDecimalInput(value);
+    return true;
+  } catch {
+    return false;
+  }
+}, 'Must be a finite decimal number');
 
 const factorSchema = z.strictObject({
   numerator: decimalInputSchema,
@@ -55,21 +52,24 @@ export type ConversionDefinitionDto = z.input<
 >;
 
 /** Parses a transport conversion into an immutable domain value. */
-export const conversionDefinitionSchema = conversionDefinitionDtoSchema.transform((value, context): ConversionDefinition | typeof z.NEVER => {
-  try {
-    return createConversionDefinition({
-      ...value,
-      sourceUnit: createUnitCode(value.sourceUnit),
-      targetUnit: createUnitCode(value.targetUnit),
-      divisionContext: value.divisionContext
-        ? createDecimalContext(
-            value.divisionContext.decimalPlaces,
-            value.divisionContext.rounding,
-          )
-        : undefined,
-    });
-  } catch (error) {
-    context.addIssue({ code: 'custom', message: String(error) });
-    return z.NEVER;
-  }
-});
+export const conversionDefinitionSchema =
+  conversionDefinitionDtoSchema.transform(
+    (value, context): ConversionDefinition | typeof z.NEVER => {
+      try {
+        return createConversionDefinition({
+          ...value,
+          sourceUnit: createUnitCode(value.sourceUnit),
+          targetUnit: createUnitCode(value.targetUnit),
+          divisionContext: value.divisionContext
+            ? createDecimalContext(
+                value.divisionContext.decimalPlaces,
+                value.divisionContext.rounding,
+              )
+            : undefined,
+        });
+      } catch (error) {
+        context.addIssue({ code: 'custom', message: String(error) });
+        return z.NEVER;
+      }
+    },
+  );

@@ -87,7 +87,9 @@ describe('createFirestoreAdminBatchExecutor', () => {
       concurrency: 1,
     });
 
-    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
+    await expect(
+      executor.run(base.batchId, base.principalId),
+    ).resolves.toMatchObject({
       status: 'completed',
       processed: 2,
     });
@@ -128,7 +130,9 @@ describe('createFirestoreAdminBatchExecutor', () => {
       execute: async (id) => ({ id, outcome: 'succeeded' }),
     });
 
-    await expect(executor.run(base.batchId, base.principalId)).rejects.toThrow('Batch was not found');
+    await expect(executor.run(base.batchId, base.principalId)).rejects.toThrow(
+      'Batch was not found',
+    );
     expect(authorize).not.toHaveBeenCalled();
   });
 
@@ -146,7 +150,9 @@ describe('createFirestoreAdminBatchExecutor', () => {
       },
     });
 
-    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
+    await expect(
+      executor.run(base.batchId, base.principalId),
+    ).resolves.toMatchObject({
       status: 'failed',
       warnings: 1,
       failures: 1,
@@ -165,7 +171,9 @@ describe('createFirestoreAdminBatchExecutor', () => {
       execute: async (id) => ({ id, outcome: 'warning' as const }),
     });
 
-    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
+    await expect(
+      executor.run(base.batchId, base.principalId),
+    ).resolves.toMatchObject({
       status: 'completed-with-warnings',
       warnings: 2,
     });
@@ -184,7 +192,9 @@ describe('createFirestoreAdminBatchExecutor', () => {
       },
     });
 
-    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
+    await expect(
+      executor.run(base.batchId, base.principalId),
+    ).resolves.toMatchObject({
       status: 'failed',
       failures: 2,
     });
@@ -206,7 +216,9 @@ describe('createFirestoreAdminBatchExecutor', () => {
       },
     });
 
-    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
+    await expect(
+      executor.run(base.batchId, base.principalId),
+    ).resolves.toMatchObject({
       status: 'cancelled',
     });
     expect(executions).toBe(0);
@@ -226,7 +238,9 @@ describe('createFirestoreAdminBatchExecutor', () => {
       execute: async (id) => ({ id, outcome: 'succeeded' }),
     });
 
-    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
+    await expect(
+      executor.run(base.batchId, base.principalId),
+    ).resolves.toMatchObject({
       status: 'completed',
     });
   });
@@ -244,7 +258,9 @@ describe('createFirestoreAdminBatchExecutor', () => {
       execute: async (id) => ({ id, outcome: 'succeeded' }),
     });
 
-    await expect(executor.run(base.batchId, base.principalId)).rejects.toMatchObject({
+    await expect(
+      executor.run(base.batchId, base.principalId),
+    ).rejects.toMatchObject({
       code: 'not-found',
     });
   });
@@ -354,7 +370,9 @@ describe('createFirestoreAdminBatchExecutor', () => {
       execute: async (id) => ({ id, outcome: 'succeeded' }),
     });
 
-    await expect(executor.run(base.batchId, base.principalId)).resolves.toMatchObject({
+    await expect(
+      executor.run(base.batchId, base.principalId),
+    ).resolves.toMatchObject({
       status: 'completed',
     });
     expect(removed).toBe(true);

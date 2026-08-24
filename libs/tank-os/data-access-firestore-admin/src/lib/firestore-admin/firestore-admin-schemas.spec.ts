@@ -31,7 +31,9 @@ describe('Firestore Admin batch schemas', () => {
   });
 
   it('Given malformed persisted data, When parsed, Then rejects it', () => {
-    expect(() => firestoreAdminBatchDtoSchema.parse({ status: 'running' })).toThrow();
+    expect(() =>
+      firestoreAdminBatchDtoSchema.parse({ status: 'running' }),
+    ).toThrow();
   });
 
   it('Given a chunk with an invalid counter, When parsed, Then rejects it', () => {

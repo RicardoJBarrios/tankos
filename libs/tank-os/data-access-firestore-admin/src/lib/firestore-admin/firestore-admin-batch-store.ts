@@ -80,11 +80,11 @@ interface BatchDto extends DocumentData {
 
 type FirestoreAdminBatchImplementation<TPayload> = Pick<
   BatchSubmissionStorePort<TPayload>,
-  'create' |
-    'get' |
-    'requestCancellation' |
-    'isCancellationRequested' |
-    'remove'
+  | 'create'
+  | 'get'
+  | 'requestCancellation'
+  | 'isCancellationRequested'
+  | 'remove'
 > & {
   claim(
     batchId: EntityId,
@@ -158,32 +158,32 @@ const toDto = <TPayload>(record: BatchOperationRecord<TPayload>): BatchDto => ({
 const fromDto = <TPayload>(value: unknown): BatchOperationRecord<TPayload> => {
   const dto = firestoreAdminBatchDtoSchema.parse(value) as BatchDto;
   return {
-  batchId: dto.batchId as EntityId,
-  principalId: dto.principalId as EntityId,
-  schema: dto.schema,
-  operation: dto.operation,
-  status: dto.status,
-  total: dto.total,
-  processed: dto.processed,
-  warnings: dto.warnings,
-  failures: dto.failures,
-  retryCount: dto.retryCount,
-  currentChunk: dto.currentChunk as EntityId | undefined,
-  createdAt: toTechnicalTimestamp(dto.createdAt),
-  updatedAt: toTechnicalTimestamp(dto.updatedAt),
-  selection: dto.selection,
-  requestedSelection: dto.requestedSelection,
-  payload: dto.payload as TPayload | undefined,
-  requestFingerprint: dto.requestFingerprint,
-  leaseOwner: dto.leaseOwner ?? undefined,
-  leaseUntil: dto.leaseUntil
-    ? toTechnicalTimestamp(dto.leaseUntil)
-    : undefined,
-  materializationLeaseOwner: dto.materializationLeaseOwner ?? undefined,
-  materializationLeaseToken: dto.materializationLeaseToken ?? undefined,
-  materializationLeaseUntil: dto.materializationLeaseUntil
-    ? toTechnicalTimestamp(dto.materializationLeaseUntil)
-    : undefined,
+    batchId: dto.batchId as EntityId,
+    principalId: dto.principalId as EntityId,
+    schema: dto.schema,
+    operation: dto.operation,
+    status: dto.status,
+    total: dto.total,
+    processed: dto.processed,
+    warnings: dto.warnings,
+    failures: dto.failures,
+    retryCount: dto.retryCount,
+    currentChunk: dto.currentChunk as EntityId | undefined,
+    createdAt: toTechnicalTimestamp(dto.createdAt),
+    updatedAt: toTechnicalTimestamp(dto.updatedAt),
+    selection: dto.selection,
+    requestedSelection: dto.requestedSelection,
+    payload: dto.payload as TPayload | undefined,
+    requestFingerprint: dto.requestFingerprint,
+    leaseOwner: dto.leaseOwner ?? undefined,
+    leaseUntil: dto.leaseUntil
+      ? toTechnicalTimestamp(dto.leaseUntil)
+      : undefined,
+    materializationLeaseOwner: dto.materializationLeaseOwner ?? undefined,
+    materializationLeaseToken: dto.materializationLeaseToken ?? undefined,
+    materializationLeaseUntil: dto.materializationLeaseUntil
+      ? toTechnicalTimestamp(dto.materializationLeaseUntil)
+      : undefined,
   };
 };
 
@@ -210,13 +210,16 @@ const mapError = (error: unknown, message: string): never => {
 export function createFirestoreAdminBatchStore<TPayload = unknown>(
   options: FirestoreAdminBatchStoreOptions,
 ): FirestoreAdminBatchStores<TPayload> {
-  const clock = options.clock ?? {
-    now: () => ({
-      kind: 'instant' as const,
-      epochMilliseconds: Timestamp.now().toMillis(),
-    }),
-  } satisfies ClockPort;
-  const timestampNow = () => Timestamp.fromMillis(clock.now().epochMilliseconds);
+  const clock =
+    options.clock ??
+    ({
+      now: () => ({
+        kind: 'instant' as const,
+        epochMilliseconds: Timestamp.now().toMillis(),
+      }),
+    } satisfies ClockPort);
+  const timestampNow = () =>
+    Timestamp.fromMillis(clock.now().epochMilliseconds);
   const root = options.firestore.collection(options.collectionPath);
   const idempotency = options.firestore.collection(
     `${options.collectionPath}__idempotency`,
@@ -238,15 +241,18 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
     lease: BatchLease,
     kind: LeaseKind,
   ): void => {
-    const owner = kind === 'worker'
-      ? current.leaseOwner
-      : current.materializationLeaseOwner;
-    const token = kind === 'worker'
-      ? current.leaseToken
-      : current.materializationLeaseToken;
-    const until = kind === 'worker'
-      ? current.leaseUntil
-      : current.materializationLeaseUntil;
+    const owner =
+      kind === 'worker'
+        ? current.leaseOwner
+        : current.materializationLeaseOwner;
+    const token =
+      kind === 'worker'
+        ? current.leaseToken
+        : current.materializationLeaseToken;
+    const until =
+      kind === 'worker'
+        ? current.leaseUntil
+        : current.materializationLeaseUntil;
     const active =
       owner === lease.owner &&
       token === lease.token &&
@@ -334,7 +340,9 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
                   'The batch idempotency key was reused with a different request',
                 );
               }
-              const current = await transaction.get(batchReference(stored.batchId as EntityId));
+              const current = await transaction.get(
+                batchReference(stored.batchId as EntityId),
+              );
               if (!current.exists) {
                 if (stored.record) return fromDto<TPayload>(stored.record);
                 throw createDataAccessError(
@@ -437,7 +445,10 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
         return mapError(error, 'Firestore Admin materialization claim failed');
       }
     },
-    async claim(batchId, request: BatchClaimRequest): Promise<BatchClaim<TPayload>> {
+    async claim(
+      batchId,
+      request: BatchClaimRequest,
+    ): Promise<BatchClaim<TPayload>> {
       try {
         if (
           typeof request.ownerId !== 'string' ||
@@ -458,7 +469,8 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
           const current = fromDto<TPayload>(snapshot.data() as BatchDto);
           const leaseActive =
             current.leaseUntil !== undefined &&
-            current.leaseUntil.epochMilliseconds > request.now.epochMilliseconds;
+            current.leaseUntil.epochMilliseconds >
+              request.now.epochMilliseconds;
           if (
             current.status === 'materializing' ||
             current.status === 'cancelled' ||
@@ -516,11 +528,10 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
             return fromDto<TPayload>({
               ...current,
               ...encoded,
-              leaseUntil:
-                !('leaseUntil' in patch)
-                  ? current.leaseUntil
-                  : patch.leaseUntil === null
-                    ? undefined
+              leaseUntil: !('leaseUntil' in patch)
+                ? current.leaseUntil
+                : patch.leaseUntil === null
+                  ? undefined
                   : patch.leaseUntil
                     ? toTimestamp(patch.leaseUntil)
                     : current.leaseUntil,
@@ -548,12 +559,7 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
         return mapError(error, 'Firestore Admin batch update failed');
       }
     },
-    async putChunk(
-      batchId,
-      chunk,
-      lease,
-      leaseKind: LeaseKind = 'worker',
-    ) {
+    async putChunk(batchId, chunk, lease, leaseKind: LeaseKind = 'worker') {
       try {
         await options.firestore.runTransaction(async (transaction) => {
           const batchSnapshot = await transaction.get(batchReference(batchId));
@@ -571,7 +577,9 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
         const query = batchReference(batchId)
           .collection('chunks')
           .where('status', 'in', ['pending', 'failed']);
-        const result = await (limit === undefined ? query : query.limit(limit)).get();
+        const result = await (
+          limit === undefined ? query : query.limit(limit)
+        ).get();
         return result.docs.map((item) => {
           const parsed = firestoreAdminBatchChunkSchema.parse(item.data());
           return {
@@ -657,7 +665,10 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
         const finalBatch = options.firestore.batch();
         if (dto.idempotencyKey) {
           finalBatch.update(
-            idempotencyReference(dto.principalId as EntityId, dto.idempotencyKey),
+            idempotencyReference(
+              dto.principalId as EntityId,
+              dto.idempotencyKey,
+            ),
             { record: idempotencyProjection(dto) },
           );
         }

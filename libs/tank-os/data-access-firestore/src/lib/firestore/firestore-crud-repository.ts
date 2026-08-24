@@ -163,7 +163,10 @@ export function createFirestoreCrudRepository<
   const schemaVersion = options.schemaVersion ?? 1;
   const configuredClock = options.clock;
   const timestampNow = configuredClock
-    ? () => firestoreSdk.Timestamp.fromMillis(configuredClock.now().epochMilliseconds)
+    ? () =>
+        firestoreSdk.Timestamp.fromMillis(
+          configuredClock.now().epochMilliseconds,
+        )
     : () => firestoreSdk.Timestamp.now();
   if (!Number.isInteger(schemaVersion) || schemaVersion < 1) {
     throw new RangeError('Firestore schema version must be a positive integer');
@@ -186,7 +189,11 @@ export function createFirestoreCrudRepository<
       await options.authorize(access, operation, lifecycle);
       return;
     }
-    if (operation === 'mark' || operation === 'restore' || operation === 'delete') {
+    if (
+      operation === 'mark' ||
+      operation === 'restore' ||
+      operation === 'delete'
+    ) {
       throw createDataAccessError(
         'forbidden',
         `Firestore ${operation} requires an authorization policy`,
@@ -200,7 +207,9 @@ export function createFirestoreCrudRepository<
   ) => {
     validateLifecycleSelection(lifecycle);
     if (
-      lifecycle?.some((status) => status !== 'active' && status !== 'inactive') &&
+      lifecycle?.some(
+        (status) => status !== 'active' && status !== 'inactive',
+      ) &&
       !options.authorize
     ) {
       throw createDataAccessError(

@@ -29,7 +29,12 @@ describe('createCrudListStore', () => {
     markForDeletion: vi.fn(async () => record),
     restore: vi.fn(async () => record),
     delete: vi.fn(),
-  } as unknown as CrudService<{ name: string }, { name: string }, { name: string }, { query: string }>;
+  } as unknown as CrudService<
+    { name: string },
+    { name: string },
+    { name: string },
+    { query: string }
+  >;
 
   function createStore() {
     return new (createCrudListStore({
@@ -80,7 +85,12 @@ describe('createCrudListStore', () => {
   });
 
   it('Given a failed list request, When loaded, Then exposes the error state', async () => {
-    const failing = { ...service, list: vi.fn(async () => { throw new Error('offline'); }) } as unknown as typeof service;
+    const failing = {
+      ...service,
+      list: vi.fn(async () => {
+        throw new Error('offline');
+      }),
+    } as unknown as typeof service;
     const store = new (createCrudListStore({
       service: failing,
       schema: 'units',
@@ -93,17 +103,26 @@ describe('createCrudListStore', () => {
   });
 
   it('Given a next cursor, When loading more, Then appends the next page', async () => {
-    const nextPage = { items: [{ ...record, id: createEntityId('two') }], hasMore: false };
+    const nextPage = {
+      items: [{ ...record, id: createEntityId('two') }],
+      hasMore: false,
+    };
     service.list
-      .mockResolvedValueOnce({ items: [record], hasMore: true, nextCursor: createPageCursor('next') })
+      .mockResolvedValueOnce({
+        items: [record],
+        hasMore: true,
+        nextCursor: createPageCursor('next'),
+      })
       .mockResolvedValueOnce(nextPage);
     const store = createStore();
     await store.load(access);
     await store.loadMore(access);
     expect(store.items()).toEqual([record, ...nextPage.items]);
-    expect(service.list).toHaveBeenLastCalledWith(expect.objectContaining({
-      page: expect.objectContaining({ after: createPageCursor('next') }),
-    }));
+    expect(service.list).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        page: expect.objectContaining({ after: createPageCursor('next') }),
+      }),
+    );
   });
 
   it('Given no next page, When loading more, Then leaves the list unchanged', async () => {
@@ -138,18 +157,24 @@ describe('createCrudListStore', () => {
     });
     expect(result).toEqual(progress);
     expect(store.hasRunningBatch()).toBe(true);
+    store.updateBatch({ ...progress, status: 'materializing' });
+    expect(store.hasRunningBatch()).toBe(true);
+    store.updateBatch({ ...progress, status: 'running' });
+    expect(store.hasRunningBatch()).toBe(true);
     store.updateBatch({ ...progress, status: 'completed' });
     expect(store.batch()?.status).toBe('completed');
   });
 
   it('Given no batch capability, When submitted, Then rejects with a capability error', async () => {
     const store = createStore();
-    await expect(store.submitBatch({
-      access,
-      operation: 'mark-for-deletion',
-      confirmationToken: 'confirmed',
-      idempotencyKey: 'request-1',
-      selection: { kind: 'filter', filter: { query: 'one' } },
-    })).rejects.toThrow('no batch capability');
+    await expect(
+      store.submitBatch({
+        access,
+        operation: 'mark-for-deletion',
+        confirmationToken: 'confirmed',
+        idempotencyKey: 'request-1',
+        selection: { kind: 'filter', filter: { query: 'one' } },
+      }),
+    ).rejects.toThrow('no batch capability');
   });
 });

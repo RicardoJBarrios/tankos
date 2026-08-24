@@ -1,4 +1,7 @@
-import { createNativeTimeAdapter, createNativeTimeZoneDatabase } from '@tank-os/time';
+import {
+  createNativeTimeAdapter,
+  createNativeTimeZoneDatabase,
+} from '@tank-os/time';
 import { createZodTimeSchemas } from './zod-time-schemas';
 
 describe('createZodTimeSchemas', () => {

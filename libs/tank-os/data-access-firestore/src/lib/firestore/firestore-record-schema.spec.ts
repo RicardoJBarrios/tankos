@@ -4,7 +4,9 @@ import { z } from 'zod';
 import { createFirestoreRecordSchema } from './firestore-record-schema';
 
 describe('createFirestoreRecordSchema', () => {
-  const schema = createFirestoreRecordSchema(z.strictObject({ name: z.string() }));
+  const schema = createFirestoreRecordSchema(
+    z.strictObject({ name: z.string() }),
+  );
 
   it('Given a complete envelope, When parsed, Then preserves data and technical metadata', () => {
     const instant = Timestamp.fromMillis(0);

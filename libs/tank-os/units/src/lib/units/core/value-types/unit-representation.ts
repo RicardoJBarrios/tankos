@@ -41,5 +41,7 @@ export function createUnitRepresentation(
 }
 
 function isNonEmptyTrimmedString(value: unknown): value is string {
-  return typeof value === 'string' && value.length > 0 && value === value.trim();
+  return (
+    typeof value === 'string' && value.length > 0 && value === value.trim()
+  );
 }

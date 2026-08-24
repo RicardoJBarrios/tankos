@@ -11,9 +11,9 @@ export function createCrudRepositoryToken<
   TCreate,
   TUpdate,
   TFilter = unknown,
->(description: string): InjectionToken<
-  CrudRepositoryPort<TData, TCreate, TUpdate, TFilter>
-> {
+>(
+  description: string,
+): InjectionToken<CrudRepositoryPort<TData, TCreate, TUpdate, TFilter>> {
   return new InjectionToken(description);
 }
 
@@ -23,7 +23,9 @@ export function createCrudServiceToken<
   TCreate,
   TUpdate,
   TFilter = unknown,
->(description: string): InjectionToken<
+>(
+  description: string,
+): InjectionToken<
   import('../../application').CrudService<TData, TCreate, TUpdate, TFilter>
 > {
   return new InjectionToken(description);
@@ -35,6 +37,5 @@ export const BATCH_OPERATION_PORT = new InjectionToken<BatchOperationPort>(
 );
 
 /** Injection token for application-level scoped cache invalidation. */
-export const CACHE_INVALIDATION_PORT = new InjectionToken<CacheInvalidationPort>(
-  'TANK_OS_CACHE_INVALIDATION_PORT',
-);
+export const CACHE_INVALIDATION_PORT =
+  new InjectionToken<CacheInvalidationPort>('TANK_OS_CACHE_INVALIDATION_PORT');

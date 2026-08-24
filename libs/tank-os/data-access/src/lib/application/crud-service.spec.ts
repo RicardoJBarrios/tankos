@@ -89,7 +89,11 @@ describe('createCrudService', () => {
   it('Given a CRUD command, When composed, Then delegates each operation unchanged', async () => {
     const dependency = repository();
     const service = createCrudService(dependency.port);
-    const command = { access: { principalId: id, roles: ['keeper'] as const }, id, expectedRevision: 1 };
+    const command = {
+      access: { principalId: id, roles: ['keeper'] as const },
+      id,
+      expectedRevision: 1,
+    };
     const create = { name: 'new' };
     const update = { name: 'updated' };
 

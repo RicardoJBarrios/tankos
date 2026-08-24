@@ -14,9 +14,9 @@ export function createUnitsJsonHttpRecordSchemas<TData>(
   dataSchema: z.ZodType<TData>,
   time: JsonHttpTimeAdapter,
 ): UnitsJsonHttpRecordSchemas<TData> {
-  const instantSchema = z.unknown().transform((value) =>
-    time.deserializeInstant(value),
-  );
+  const instantSchema = z
+    .unknown()
+    .transform((value) => time.deserializeInstant(value));
   const recordSchema = z.strictObject({
     id: z.string().min(1).transform(createEntityId),
     data: dataSchema,
@@ -31,7 +31,11 @@ export function createUnitsJsonHttpRecordSchemas<TData>(
       createdBy: z.string().min(1).transform(createEntityId).optional(),
       updatedBy: z.string().min(1).transform(createEntityId).optional(),
       lifecycleChangedAt: instantSchema.optional(),
-      lifecycleChangedBy: z.string().min(1).transform(createEntityId).optional(),
+      lifecycleChangedBy: z
+        .string()
+        .min(1)
+        .transform(createEntityId)
+        .optional(),
     }),
   }) as z.ZodType<CrudRecord<TData>>;
 

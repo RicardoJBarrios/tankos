@@ -34,10 +34,19 @@ export function createAccessContext(context: AccessContext): AccessContext {
   if (!context || typeof context !== 'object') {
     throw new TypeError('Access context must be an object');
   }
-  assertNonEmptyString(context.principalId, 'Access principal id must be a non-empty string');
+  assertNonEmptyString(
+    context.principalId,
+    'Access principal id must be a non-empty string',
+  );
   validateRoles(context.roles);
-  validateOptionalString(context.aquariumId, 'Aquarium scope must be a non-empty string');
-  validateOptionalString(context.requestId, 'Request id must be a non-empty string');
+  validateOptionalString(
+    context.aquariumId,
+    'Aquarium scope must be a non-empty string',
+  );
+  validateOptionalString(
+    context.requestId,
+    'Request id must be a non-empty string',
+  );
   return {
     ...context,
     roles: [...context.roles],

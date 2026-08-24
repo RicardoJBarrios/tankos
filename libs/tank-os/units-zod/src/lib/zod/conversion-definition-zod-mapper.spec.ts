@@ -39,6 +39,8 @@ describe('conversionDefinitionToDto', () => {
       provenance: 'test',
     });
 
-    expect(conversionDefinitionToDto(definition).divisionContext).toBeUndefined();
+    expect(
+      conversionDefinitionToDto(definition).divisionContext,
+    ).toBeUndefined();
   });
 });

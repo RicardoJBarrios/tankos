@@ -29,14 +29,17 @@ describe('createEffectiveUnitCatalogue', () => {
   it.each([
     createDefinition('TANKOS:CUSTOM-RETIRED', 'retired'),
     createDefinition('TANKOS:CUSTOM-DEPRECATED', 'deprecated'),
-  ])('Given an inactive custom unit, When composed, Then excludes it', (inactive) => {
-    const catalogue = createEffectiveUnitCatalogue({
-      standard: createStandardUnitCatalogue(),
-      custom: [inactive],
-    });
+  ])(
+    'Given an inactive custom unit, When composed, Then excludes it',
+    (inactive) => {
+      const catalogue = createEffectiveUnitCatalogue({
+        standard: createStandardUnitCatalogue(),
+        custom: [inactive],
+      });
 
-    expect(catalogue.find(inactive.code)).toBeUndefined();
-  });
+      expect(catalogue.find(inactive.code)).toBeUndefined();
+    },
+  );
 
   it('Given a custom code colliding with a standard code, When composed, Then rejects the catalogue', () => {
     expect(() =>

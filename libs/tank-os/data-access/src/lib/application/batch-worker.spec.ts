@@ -18,14 +18,12 @@ describe('createAuthorizedBatchWorker', () => {
       updatedAt: { kind: 'instant' as const, epochMilliseconds: 0 },
       retryCount: 1,
     };
-    const worker = createAuthorizedBatchWorker(
-      {
-        run: async (_batchId, principalId) => {
-          calls.push(`run:${principalId}`);
-          return progress;
-        },
+    const worker = createAuthorizedBatchWorker({
+      run: async (_batchId, principalId) => {
+        calls.push(`run:${principalId}`);
+        return progress;
       },
-    );
+    });
 
     await expect(
       worker.run(batchId, {
@@ -40,9 +38,7 @@ describe('createAuthorizedBatchWorker', () => {
     const run = vi.fn(async () => {
       throw new Error('IAM denied');
     });
-    const worker = createAuthorizedBatchWorker(
-      { run },
-    );
+    const worker = createAuthorizedBatchWorker({ run });
 
     await expect(
       worker.run(createEntityId('batch-1'), {

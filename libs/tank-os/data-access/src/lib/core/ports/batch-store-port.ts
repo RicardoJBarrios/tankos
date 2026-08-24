@@ -106,7 +106,11 @@ export interface BatchMaterializerStorePort<TPayload = unknown> {
     lease: BatchLease,
   ): Promise<BatchOperationRecord<TPayload>>;
   /** Persists one bounded physical chunk with materializer fencing. */
-  putChunk(batchId: EntityId, chunk: BatchChunk, lease: BatchLease): Promise<void>;
+  putChunk(
+    batchId: EntityId,
+    chunk: BatchChunk,
+    lease: BatchLease,
+  ): Promise<void>;
   /** Reads cooperative cancellation between materialization phases. */
   isCancellationRequested(batchId: EntityId): Promise<boolean>;
 }
@@ -128,7 +132,10 @@ export interface BatchWorkerStorePort<TPayload = unknown> {
   /** Reads the cancellation flag used between chunks and items. */
   isCancellationRequested(batchId: EntityId): Promise<boolean>;
   /** Claims a non-terminal operation so only one worker executes it. */
-  claim(batchId: EntityId, request: BatchClaimRequest): Promise<BatchClaim<TPayload>>;
+  claim(
+    batchId: EntityId,
+    request: BatchClaimRequest,
+  ): Promise<BatchClaim<TPayload>>;
   /** Updates a summary only when the supplied lease is still current. */
   update(
     batchId: EntityId,
@@ -136,7 +143,11 @@ export interface BatchWorkerStorePort<TPayload = unknown> {
     lease: BatchLease,
   ): Promise<BatchOperationRecord<TPayload>>;
   /** Writes a chunk only when the supplied lease is still current. */
-  putChunk(batchId: EntityId, chunk: BatchChunk, lease: BatchLease): Promise<void>;
+  putChunk(
+    batchId: EntityId,
+    chunk: BatchChunk,
+    lease: BatchLease,
+  ): Promise<void>;
   /** Writes all item results for a chunk under one fenced transaction. */
   putResults(
     batchId: EntityId,

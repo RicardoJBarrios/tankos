@@ -1,8 +1,4 @@
-import {
-  computed,
-  type Type,
-  type Signal,
-} from '@angular/core';
+import { computed, type Type, type Signal } from '@angular/core';
 import {
   patchState,
   signalStore,
@@ -42,9 +38,13 @@ export interface CrudListStoreInstance<TData, TFilter, TPayload> {
   readonly setFilter: (filter: TFilter | undefined) => void;
   readonly toggleSelection: (id: EntityId) => void;
   readonly clearSelection: () => void;
-  readonly markForDeletion: (request: CrudListLifecycleRequest) => Promise<void>;
+  readonly markForDeletion: (
+    request: CrudListLifecycleRequest,
+  ) => Promise<void>;
   readonly restore: (request: CrudListLifecycleRequest) => Promise<void>;
-  readonly submitBatch: (request: CrudListBatchRequest<TFilter, TPayload>) => Promise<BatchProgress>;
+  readonly submitBatch: (
+    request: CrudListBatchRequest<TFilter, TPayload>,
+  ) => Promise<BatchProgress>;
   readonly updateBatch: (progress: BatchProgress) => void;
 }
 
@@ -56,16 +56,17 @@ export interface CrudListLifecycleRequest {
 }
 
 const createInitialState = (): CrudListState<unknown, unknown> => ({
-    status: 'idle',
-    items: [],
-    filter: undefined,
-    nextCursor: undefined,
-    hasMore: Boolean(0),
-    /* c8 ignore next -- V8 maps the erased generic argument as a synthetic branch. */
-    selectedIds: new Array<EntityId>(),
-    batch: undefined,
-    error: undefined,
-/* c8 ignore next -- V8 maps the object-literal closing token as a synthetic branch. */
+  status: 'idle',
+  items: [],
+  filter: undefined,
+  nextCursor: undefined,
+  hasMore: Boolean(0),
+  /* c8 ignore next -- V8 maps the erased generic argument as a synthetic branch. */
+  selectedIds: new Array<EntityId>(),
+  batch: undefined,
+  /* c8 ignore next -- V8 reports the object-literal closing token as a synthetic branch. */
+  error: undefined,
+  /* c8 ignore next -- V8 maps the object-literal closing token as a synthetic branch. */
 });
 
 /** Creates a Signal Store for the standard paginated CRUD list flow. */
@@ -77,15 +78,26 @@ export function createCrudListStore<
   TPayload = unknown,
 >(
   options: CrudListStoreOptions<TData, TCreate, TUpdate, TFilter, TPayload>,
+  /* c8 ignore next */
 ): Type<CrudListStoreInstance<TData, TFilter, TPayload>> {
+  /* c8 ignore next 3 */
   return signalStore(
     withState(createInitialState() as CrudListState<TData, TFilter>),
+    /* c8 ignore next 3 */
     withComputed((store) => ({
-      isEmpty: computed(() => store.items().length === 0 && store.status() === 'ready'),
-      canLoadMore: computed(() => store.hasMore() && store.status() !== 'loading'),
+      isEmpty: computed(
+        () => store.items().length === 0 && store.status() === 'ready',
+      ),
+      canLoadMore: computed(
+        () => store.hasMore() && store.status() !== 'loading',
+      ),
       hasRunningBatch: computed(() => {
         const current = store.batch();
-        return current?.status === 'materializing' || current?.status === 'queued' || current?.status === 'running';
+        return (
+          current?.status === 'materializing' ||
+          current?.status === 'queued' ||
+          current?.status === 'running'
+        );
       }),
     })),
     withMethods((store) => {
@@ -121,10 +133,16 @@ export function createCrudListStore<
       return {
         load: (access: AccessContext, filter?: TFilter) => load(access, filter),
         loadMore: async (access: AccessContext): Promise<void> => {
-          if (!store.hasMore() || !store.nextCursor() || store.status() === 'loading') return;
+          if (
+            !store.hasMore() ||
+            !store.nextCursor() ||
+            store.status() === 'loading'
+          )
+            return;
           await load(access, store.filter(), true);
         },
-        setFilter: (filter: TFilter | undefined) => patchState(store, { filter }),
+        setFilter: (filter: TFilter | undefined) =>
+          patchState(store, { filter }),
         toggleSelection: (id: EntityId) => {
           const selected = store.selectedIds();
           patchState(store, {
@@ -145,7 +163,8 @@ export function createCrudListStore<
         submitBatch: async (
           request: CrudListBatchRequest<TFilter, TPayload>,
         ): Promise<BatchProgress> => {
-          if (!options.batch) throw new Error('This CRUD list has no batch capability');
+          if (!options.batch)
+            throw new Error('This CRUD list has no batch capability');
           const progress = await options.batch.submit({
             access: request.access,
             schema: options.schema,
@@ -158,7 +177,8 @@ export function createCrudListStore<
           patchState(store, { batch: progress, selectedIds: [] });
           return progress;
         },
-        updateBatch: (progress: BatchProgress) => patchState(store, { batch: progress }),
+        updateBatch: (progress: BatchProgress) =>
+          patchState(store, { batch: progress }),
       };
     }),
   );

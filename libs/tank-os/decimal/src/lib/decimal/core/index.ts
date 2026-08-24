@@ -1,3 +1,3 @@
 export * from './errors';
-export * from './ports';
+export type * from './ports';
 export * from './value-types';

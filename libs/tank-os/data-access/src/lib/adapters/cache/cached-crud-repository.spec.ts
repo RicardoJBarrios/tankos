@@ -286,7 +286,17 @@ describe('createCachedCrudRepository', () => {
         reads += 1;
         return { items: [], hasMore: false };
       },
-      get: async () => ({ id: 'one' as never, data: {}, lifecycle: { status: 'active' }, revision: 1, metadata: { schemaVersion: 1, createdAt: { kind: 'instant' as const, epochMilliseconds: 0 }, updatedAt: { kind: 'instant' as const, epochMilliseconds: 0 } } }),
+      get: async () => ({
+        id: 'one' as never,
+        data: {},
+        lifecycle: { status: 'active' },
+        revision: 1,
+        metadata: {
+          schemaVersion: 1,
+          createdAt: { kind: 'instant' as const, epochMilliseconds: 0 },
+          updatedAt: { kind: 'instant' as const, epochMilliseconds: 0 },
+        },
+      }),
     } as unknown as CrudRepositoryPort<unknown, unknown, unknown>;
     const cache = {
       get: vi.fn().mockRejectedValue(cacheError),

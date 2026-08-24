@@ -89,8 +89,7 @@ export function createCachedCrudRepository<
       let cached: Page<CrudRecord<TData>> | undefined;
       try {
         cached = (await cache.get(key, readOptions)) as
-          | Page<CrudRecord<TData>>
-          | undefined;
+          Page<CrudRecord<TData>> | undefined;
       } catch (error) {
         options.onCacheError?.(error);
       }
@@ -119,32 +118,34 @@ export function createCachedCrudRepository<
     },
     get(request, readOptions) {
       return (async () => {
-      const key = getKey(request);
-      let cached: CrudRecord<TData> | undefined;
-      try {
-        cached = (await cache.get(key, readOptions)) as
-          | CrudRecord<TData>
-          | undefined;
-      } catch (error) {
-        options.onCacheError?.(error);
-      }
-      if (cached !== undefined && isCacheFirst(readOptions)) return cached;
-      const existing = inFlight.get(key) as
-        Promise<CrudRecord<TData> | undefined> | undefined;
-      if (existing) return existing;
-      const requestPromise = (async () => {
-        const readGeneration = invalidationGeneration;
-        const result = await backing.get(request);
-        if (result !== undefined && readGeneration === invalidationGeneration) {
-          await cache
-            .set(key, result, options.ttlMilliseconds)
-            .catch((error) => options.onCacheError?.(error));
+        const key = getKey(request);
+        let cached: CrudRecord<TData> | undefined;
+        try {
+          cached = (await cache.get(key, readOptions)) as
+            CrudRecord<TData> | undefined;
+        } catch (error) {
+          options.onCacheError?.(error);
         }
-        /* c8 ignore next -- V8 reports the async return boundary as a synthetic branch. */
-        return result;
-      })().finally(() => inFlight.delete(key));
-      inFlight.set(key, requestPromise);
-      return requestPromise;
+        if (cached !== undefined && isCacheFirst(readOptions)) return cached;
+        const existing = inFlight.get(key) as
+          Promise<CrudRecord<TData> | undefined> | undefined;
+        if (existing) return existing;
+        const requestPromise = (async () => {
+          const readGeneration = invalidationGeneration;
+          const result = await backing.get(request);
+          if (
+            result !== undefined &&
+            readGeneration === invalidationGeneration
+          ) {
+            await cache
+              .set(key, result, options.ttlMilliseconds)
+              .catch((error) => options.onCacheError?.(error));
+          }
+          /* c8 ignore next -- V8 reports the async return boundary as a synthetic branch. */
+          return result;
+        })().finally(() => inFlight.delete(key));
+        inFlight.set(key, requestPromise);
+        return requestPromise;
       })();
     },
     async create(input) {

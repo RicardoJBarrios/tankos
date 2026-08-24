@@ -8,10 +8,7 @@ import type {
   CrudRepositoryPort,
   Page,
 } from '@tank-os/data-access';
-import {
-  type UnitDefinition,
-  type UnitDefinitionFilter,
-} from '@tank-os/units';
+import { type UnitDefinition, type UnitDefinitionFilter } from '@tank-os/units';
 import {
   unitDefinitionDtoSchema,
   unitDefinitionSchema,
@@ -54,12 +51,14 @@ export function createUnitDefinitionFirestoreRepository(
   return {
     list: async (request) => mapPage(await repository.list(request)),
     get: async (request) => mapRecord(await repository.get(request)),
-    create: async (request) => mapRequiredRecord(await repository.create(request)),
+    create: async (request) =>
+      mapRequiredRecord(await repository.create(request)),
     replace: async (request, input) =>
       mapRequiredRecord(await repository.replace(request, input)),
     markForDeletion: async (request) =>
       mapRequiredRecord(await repository.markForDeletion(request)),
-    restore: async (request) => mapRequiredRecord(await repository.restore(request)),
+    restore: async (request) =>
+      mapRequiredRecord(await repository.restore(request)),
     delete: (request) => repository.delete(request),
   };
 }
@@ -83,6 +82,8 @@ function mapRequiredRecord(
   return mapRecord(record) as CrudRecord<UnitDefinition>;
 }
 
-function mapPage(page: Page<CrudRecord<UnitDefinitionDto>>): Page<CrudRecord<UnitDefinition>> {
+function mapPage(
+  page: Page<CrudRecord<UnitDefinitionDto>>,
+): Page<CrudRecord<UnitDefinition>> {
   return { ...page, items: page.items.map(mapRequiredRecord) };
 }

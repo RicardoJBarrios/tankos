@@ -21,7 +21,9 @@ describe('validateConversionDefinition', () => {
   it('Given active compatible endpoints, When validated, Then returns the original definition', () => {
     const definition = createConversionDefinition(base);
 
-    expect(validateConversionDefinition(definition, { catalogue })).toBe(definition);
+    expect(validateConversionDefinition(definition, { catalogue })).toBe(
+      definition,
+    );
   });
 
   it('Given an unknown endpoint, When validated, Then rejects the conversion', () => {
@@ -30,9 +32,9 @@ describe('validateConversionDefinition', () => {
       sourceUnit: createUnitCode('UN/CEFACT:UNKNOWN'),
     });
 
-    expect(() => validateConversionDefinition(definition, { catalogue })).toThrow(
-      /not active/i,
-    );
+    expect(() =>
+      validateConversionDefinition(definition, { catalogue }),
+    ).toThrow(/not active/i);
   });
 
   it('Given incompatible endpoints, When validated, Then rejects the conversion', () => {
@@ -41,8 +43,8 @@ describe('validateConversionDefinition', () => {
       targetUnit: createUnitCode('UN/CEFACT:KGM'),
     });
 
-    expect(() => validateConversionDefinition(definition, { catalogue })).toThrow(
-      /incompatible/i,
-    );
+    expect(() =>
+      validateConversionDefinition(definition, { catalogue }),
+    ).toThrow(/incompatible/i);
   });
 });

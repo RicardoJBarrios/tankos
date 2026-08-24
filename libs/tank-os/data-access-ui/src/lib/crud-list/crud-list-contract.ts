@@ -45,9 +45,11 @@ export interface CrudListBatchRequest<TFilter, TPayload = unknown> {
   readonly operation: BatchOperation;
   readonly confirmationToken: string;
   readonly idempotencyKey: string;
-  readonly selection: { readonly kind: 'ids'; readonly ids: readonly EntityId[] } | {
-    readonly kind: 'filter';
-    readonly filter: TFilter;
-  };
+  readonly selection:
+    | { readonly kind: 'ids'; readonly ids: readonly EntityId[] }
+    | {
+        readonly kind: 'filter';
+        readonly filter: TFilter;
+      };
   readonly payload?: TPayload;
 }

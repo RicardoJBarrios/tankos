@@ -67,7 +67,11 @@ function validateExecutorOptions<TPayload>(
 ): void {
   assertCleanupConfiguration(values.cleanupTerminal, options.cleanup);
   assertConcurrency(values.concurrency);
-  assertWorkerConfiguration(options.workerId, values.leaseDurationMilliseconds, values.maxChunks);
+  assertWorkerConfiguration(
+    options.workerId,
+    values.leaseDurationMilliseconds,
+    values.maxChunks,
+  );
 }
 
 function assertCleanupConfiguration(
@@ -101,14 +105,19 @@ function assertWorkerConfiguration(
     !Number.isInteger(maxChunks) ||
     maxChunks < 1
   ) {
-    throw new RangeError('Batch worker identity and lease duration are invalid');
+    throw new RangeError(
+      'Batch worker identity and lease duration are invalid',
+    );
   }
 }
 
 async function executeClaimedChunks<TPayload>(
   options: FirestoreAdminBatchExecutorOptions<TPayload>,
   batchId: EntityId,
-  claim: { readonly record: BatchOperationRecord<TPayload>; readonly lease: BatchLease },
+  claim: {
+    readonly record: BatchOperationRecord<TPayload>;
+    readonly lease: BatchLease;
+  },
   concurrency: number,
   leaseDurationMilliseconds: number,
   maxChunks: number,
@@ -126,12 +135,16 @@ async function executeClaimedChunks<TPayload>(
   }
   for (const chunk of chunks) {
     if (await options.store.isCancellationRequested(batchId)) {
-      return options.store.update(batchId, {
-        status: 'cancelled',
-        updatedAt: options.clock.now(),
-        leaseOwner: null,
-        leaseUntil: null,
-      }, lease);
+      return options.store.update(
+        batchId,
+        {
+          status: 'cancelled',
+          updatedAt: options.clock.now(),
+          leaseOwner: null,
+          leaseUntil: null,
+        },
+        lease,
+      );
     }
     current = await processChunk(
       options,
@@ -143,30 +156,41 @@ async function executeClaimedChunks<TPayload>(
       leaseDurationMilliseconds,
     );
   }
-  const terminal = await options.store.update(batchId, {
-    status: terminalStatus(current.failures, current.warnings),
-    updatedAt: options.clock.now(),
-    leaseOwner: null,
-    leaseUntil: null,
-  }, lease);
-  if (cleanupTerminal && current.failures === 0 && cleanup) await cleanup.remove(batchId);
+  const terminal = await options.store.update(
+    batchId,
+    {
+      status: terminalStatus(current.failures, current.warnings),
+      updatedAt: options.clock.now(),
+      leaseOwner: null,
+      leaseUntil: null,
+    },
+    lease,
+  );
+  if (cleanupTerminal && current.failures === 0 && cleanup)
+    await cleanup.remove(batchId);
   return terminal;
 }
 
 async function processChunk<TPayload>(
   options: FirestoreAdminBatchExecutorOptions<TPayload>,
   batchId: EntityId,
-  chunk: Awaited<ReturnType<BatchWorkerStorePort<TPayload>['listRunnableChunks']>>[number],
+  chunk: Awaited<
+    ReturnType<BatchWorkerStorePort<TPayload>['listRunnableChunks']>
+  >[number],
   current: BatchOperationRecord<TPayload>,
   lease: BatchLease,
   concurrency: number,
   leaseDurationMilliseconds: number,
 ): Promise<BatchOperationRecord<TPayload>> {
-  await options.store.putChunk(batchId, {
-    ...chunk,
-    status: 'running',
-    attempts: chunk.attempts + 1,
-  }, lease);
+  await options.store.putChunk(
+    batchId,
+    {
+      ...chunk,
+      status: 'running',
+      attempts: chunk.attempts + 1,
+    },
+    lease,
+  );
   const results = await boundedMap(chunk.ids, concurrency, async (id) => {
     try {
       return await options.execute(id, current);
@@ -181,32 +205,43 @@ async function processChunk<TPayload>(
     failures: chunk.failures ?? 0,
   };
   await options.store.putResults(batchId, chunk.chunkId, results, lease);
-  await options.store.putChunk(batchId, {
-    ...chunk,
-    status: attempt.failures > 0 ? 'failed' : 'completed',
-    attempts: chunk.attempts + 1,
-    ...attempt,
-  }, lease);
-  const updatedAt = options.clock.now();
-  return options.store.update(batchId, {
-    processed: current.processed + attempt.succeeded + attempt.warnings - previous.succeeded - previous.warnings,
-    warnings: current.warnings + attempt.warnings - previous.warnings,
-    failures: current.failures + attempt.failures - previous.failures,
-    currentChunk: chunk.chunkId,
-    retryCount: current.retryCount + (chunk.attempts > 0 ? 1 : 0),
-    updatedAt,
-    leaseOwner: options.workerId,
-    leaseUntil: {
-      kind: 'instant',
-      epochMilliseconds: updatedAt.epochMilliseconds + leaseDurationMilliseconds,
+  await options.store.putChunk(
+    batchId,
+    {
+      ...chunk,
+      status: attempt.failures > 0 ? 'failed' : 'completed',
+      attempts: chunk.attempts + 1,
+      ...attempt,
     },
-  }, lease);
+    lease,
+  );
+  const updatedAt = options.clock.now();
+  return options.store.update(
+    batchId,
+    {
+      processed:
+        current.processed +
+        attempt.succeeded +
+        attempt.warnings -
+        previous.succeeded -
+        previous.warnings,
+      warnings: current.warnings + attempt.warnings - previous.warnings,
+      failures: current.failures + attempt.failures - previous.failures,
+      currentChunk: chunk.chunkId,
+      retryCount: current.retryCount + (chunk.attempts > 0 ? 1 : 0),
+      updatedAt,
+      leaseOwner: options.workerId,
+      leaseUntil: {
+        kind: 'instant',
+        epochMilliseconds:
+          updatedAt.epochMilliseconds + leaseDurationMilliseconds,
+      },
+    },
+    lease,
+  );
 }
 
-function createItemFailure(
-  id: EntityId,
-  error: unknown,
-): BatchItemResult {
+function createItemFailure(id: EntityId, error: unknown): BatchItemResult {
   return {
     id,
     outcome: 'failed',
@@ -221,7 +256,8 @@ function summarizeResults(results: readonly BatchItemResult[]): {
   readonly failures: number;
 } {
   return {
-    succeeded: results.filter((result) => result.outcome === 'succeeded').length,
+    succeeded: results.filter((result) => result.outcome === 'succeeded')
+      .length,
     warnings: results.filter((result) => result.outcome === 'warning').length,
     failures: results.filter((result) => result.outcome === 'failed').length,
   };
@@ -262,11 +298,7 @@ export function createFirestoreAdminBatchExecutor<TPayload = unknown>(
       if (!stored) {
         throw createDataAccessError('not-found', 'Batch was not found');
       }
-      await options.authorize(
-        batchId,
-        callerPrincipalId,
-        stored.principalId,
-      );
+      await options.authorize(batchId, callerPrincipalId, stored.principalId);
       const claim = await options.store.claim(batchId, {
         ownerId: options.workerId,
         now: options.clock.now(),

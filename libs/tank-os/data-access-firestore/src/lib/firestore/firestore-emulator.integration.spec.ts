@@ -2,11 +2,7 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import {
-  orderBy,
-  query,
-  type Timestamp,
-} from 'firebase/firestore';
+import { orderBy, query, type Timestamp } from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';
 import { afterAll, beforeAll } from 'vitest';
@@ -75,9 +71,9 @@ describe('Firestore CRUD adapter against Firebase Emulator Suite', () => {
         principalId: createEntityId('emulator-keeper'),
         roles: ['keeper'] as const,
       };
-      const firestore = requireTestEnvironment().authenticatedContext(
-        'emulator-keeper',
-      ).firestore();
+      const firestore = requireTestEnvironment()
+        .authenticatedContext('emulator-keeper')
+        .firestore();
       const repository = createFirestoreCrudRepository({
         firestore,
         collectionPath,

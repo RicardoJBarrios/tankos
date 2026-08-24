@@ -9,14 +9,19 @@ describe('createVersionedCrudService', () => {
     const service = createVersionedCrudService(createService(calls), {
       toCreateInput: (input) => input,
     });
-    const access = { principalId: createEntityId('keeper-1'), roles: ['admin'] };
+    const access = {
+      principalId: createEntityId('keeper-1'),
+      roles: ['admin'],
+    };
     const request = {
       access,
       id: createEntityId('old-unit'),
       expectedRevision: 4,
     };
 
-    await expect(service.replace(request, { value: 'new' })).resolves.toMatchObject({
+    await expect(
+      service.replace(request, { value: 'new' }),
+    ).resolves.toMatchObject({
       data: { value: 'new' },
     });
     expect(calls).toEqual(['create', 'mark-for-deletion']);

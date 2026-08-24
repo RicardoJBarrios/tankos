@@ -63,12 +63,12 @@ function createHarness(failure?: unknown, writeFailure?: unknown) {
     get: async () => {
       if (failure !== undefined) throw failure;
       const docs = [...values.entries()]
-          .filter(
-            ([key]) =>
-              key.startsWith(`${path}/`) &&
-              key.slice(path.length + 1).includes('/') === false,
-          )
-          .map(([key, value]) => ({ ref: reference(key), data: () => value }));
+        .filter(
+          ([key]) =>
+            key.startsWith(`${path}/`) &&
+            key.slice(path.length + 1).includes('/') === false,
+        )
+        .map(([key, value]) => ({ ref: reference(key), data: () => value }));
       return { docs, empty: docs.length === 0, size: docs.length };
     },
     limit: (value) => ({
@@ -255,7 +255,9 @@ describe('createFirestoreAdminBatchStore', () => {
     let providerNow = 0;
     const stores = createFirestoreAdminBatchStore({
       firestore: firestore as never,
-      clock: { now: () => ({ kind: 'instant', epochMilliseconds: providerNow }) },
+      clock: {
+        now: () => ({ kind: 'instant', epochMilliseconds: providerNow }),
+      },
     });
     await stores.submissionStore.create(
       { ...record(), status: 'materializing' },
@@ -436,7 +438,13 @@ describe('createFirestoreAdminBatchStore', () => {
     ).resolves.toMatchObject({ leaseUntil: undefined });
   });
 
-  it.each(['materializing', 'running', 'cancelled', 'completed', 'completed-with-warnings'] as const)(
+  it.each([
+    'materializing',
+    'running',
+    'cancelled',
+    'completed',
+    'completed-with-warnings',
+  ] as const)(
     'Given a %s operation, When claimed, Then leaves it owned by its current state',
     async (status) => {
       const { firestore } = createHarness();
@@ -450,7 +458,10 @@ describe('createFirestoreAdminBatchStore', () => {
           ...(status === 'running'
             ? {
                 leaseOwner: 'other-worker',
-                leaseUntil: { kind: 'instant' as const, epochMilliseconds: 2000 },
+                leaseUntil: {
+                  kind: 'instant' as const,
+                  epochMilliseconds: 2000,
+                },
               }
             : {}),
         },
@@ -490,16 +501,19 @@ describe('createFirestoreAdminBatchStore', () => {
       }),
     ).rejects.toMatchObject({ code: 'transient' });
     await expect(
-      unavailable.materializerStore.claimMaterialization(createEntityId('batch-1'), {
-        ownerId: 'materializer-1',
-        now: { kind: 'instant', epochMilliseconds: 0 },
-        leaseDurationMilliseconds: 60_000,
-      }),
+      unavailable.materializerStore.claimMaterialization(
+        createEntityId('batch-1'),
+        {
+          ownerId: 'materializer-1',
+          now: { kind: 'instant', epochMilliseconds: 0 },
+          leaseDurationMilliseconds: 60_000,
+        },
+      ),
     ).rejects.toMatchObject({ code: 'transient' });
     await expect(
       createMaterializerStore({
         firestore: createHarness().firestore as never,
-    }).claimMaterialization(createEntityId('missing'), {
+      }).claimMaterialization(createEntityId('missing'), {
         ownerId: 'materializer-1',
         now: { kind: 'instant', epochMilliseconds: 0 },
         leaseDurationMilliseconds: 60_000,
@@ -547,9 +561,7 @@ describe('createFirestoreAdminBatchStore', () => {
     });
     await store.create(record(), 'same-key');
     values.delete('batches/batch-1');
-    const reservation = values.get(
-      'batches__idempotency/keeper-1%00same-key',
-    );
+    const reservation = values.get('batches__idempotency/keeper-1%00same-key');
     values.set('batches__idempotency/keeper-1%00same-key', {
       ...reservation,
       record: undefined,
@@ -639,12 +651,16 @@ describe('createFirestoreAdminBatchStore', () => {
         leaseOf(claim),
       ),
     ).resolves.toMatchObject({ status: 'running' });
-    await worker.putChunk(createEntityId('batch-1'), {
-      chunkId: createEntityId('chunk-1'),
-      ids: [createEntityId('unit-1')],
-      status: 'pending',
-      attempts: 0,
-    }, leaseOf(claim));
+    await worker.putChunk(
+      createEntityId('batch-1'),
+      {
+        chunkId: createEntityId('chunk-1'),
+        ids: [createEntityId('unit-1')],
+        status: 'pending',
+        attempts: 0,
+      },
+      leaseOf(claim),
+    );
     await worker.putResults(
       createEntityId('batch-1'),
       createEntityId('chunk-1'),
@@ -708,9 +724,11 @@ describe('createFirestoreAdminBatchStore', () => {
     await expect(
       store.isCancellationRequested(createEntityId('missing')),
     ).rejects.toMatchObject({ code: 'not-found' });
-    await expect(store.remove(createEntityId('missing'))).rejects.toMatchObject({
-      code: 'not-found',
-    });
+    await expect(store.remove(createEntityId('missing'))).rejects.toMatchObject(
+      {
+        code: 'not-found',
+      },
+    );
   });
 
   it('Given missing batch state, When fenced details are written, Then reports not found', async () => {
@@ -763,12 +781,16 @@ describe('createFirestoreAdminBatchStore', () => {
       now: { kind: 'instant', epochMilliseconds: 0 },
       leaseDurationMilliseconds: 60_000,
     });
-    await worker.putChunk(createEntityId('batch-1'), {
-      chunkId: createEntityId('chunk-1'),
-      ids: [createEntityId('unit-1')],
-      status: 'completed',
-      attempts: 1,
-    }, leaseOf(claim));
+    await worker.putChunk(
+      createEntityId('batch-1'),
+      {
+        chunkId: createEntityId('chunk-1'),
+        ids: [createEntityId('unit-1')],
+        status: 'completed',
+        attempts: 1,
+      },
+      leaseOf(claim),
+    );
     await store.remove(createEntityId('batch-1'));
 
     await expect(store.get(createEntityId('batch-1'))).resolves.toBeUndefined();
@@ -821,12 +843,16 @@ describe('createFirestoreAdminBatchStore', () => {
       leaseDurationMilliseconds: 60_000,
     });
     await expect(
-      worker.putChunk(createEntityId('batch-1'), {
-        chunkId: createEntityId('chunk-1'),
-        ids: [],
-        status: 'pending',
-        attempts: 0,
-      }, leaseOf(claim)),
+      worker.putChunk(
+        createEntityId('batch-1'),
+        {
+          chunkId: createEntityId('chunk-1'),
+          ids: [],
+          status: 'pending',
+          attempts: 0,
+        },
+        leaseOf(claim),
+      ),
     ).rejects.toMatchObject({ code: 'transient' });
     await expect(
       worker.putResults(

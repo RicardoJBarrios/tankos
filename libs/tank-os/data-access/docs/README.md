@@ -10,13 +10,13 @@ server runtime.
 
 The runtime adapters are separate publishable Nx libraries:
 
-| Package                          | Responsibility                                                                  | Runtime dependencies        |
-| -------------------------------- | ------------------------------------------------------------------------------- | --------------------------- |
-| `@tank-os/data-access`           | Core ports, application services, memory/cache adapters and Angular composition | Angular, `@tank-os/time`    |
-| `@tank-os/data-access-firestore` | Firestore CRUD persistence and DTO validation                                   | Firebase, Zod, core package |
-| `@tank-os/data-access-json-http` | JSON/HTTP CRUD transport and response validation                                | Zod, core package           |
-| `@tank-os/data-access-server`    | Trusted Firebase Admin authorization                                             | Core package                |
-| `@tank-os/data-access-firestore-admin` | Durable Firestore Admin batches and trusted execution                     | Firebase Admin, core package |
+| Package                                | Responsibility                                                                  | Runtime dependencies         |
+| -------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------- |
+| `@tank-os/data-access`                 | Core ports, application services, memory/cache adapters and Angular composition | Angular, `@tank-os/time`     |
+| `@tank-os/data-access-firestore`       | Firestore CRUD persistence and DTO validation                                   | Firebase, Zod, core package  |
+| `@tank-os/data-access-json-http`       | JSON/HTTP CRUD transport and response validation                                | Zod, core package            |
+| `@tank-os/data-access-server`          | Trusted Firebase Admin authorization                                            | Core package                 |
+| `@tank-os/data-access-firestore-admin` | Durable Firestore Admin batches and trusted execution                           | Firebase Admin, core package |
 
 Each package has its own `src`, public `index.ts`, tests, documentation,
 `ng-packagr-lite` build and coverage target. Adapter source is never reexported

@@ -35,7 +35,9 @@ function assertBatchText(value: unknown, message: string): void {
   if (typeof value !== 'string' || !value.trim()) throw new TypeError(message);
 }
 
-function validateBatchSelection<TFilter>(selection: BatchSelection<TFilter>): void {
+function validateBatchSelection<TFilter>(
+  selection: BatchSelection<TFilter>,
+): void {
   if (!selection || typeof selection !== 'object') {
     throw new TypeError('Batch selection must be an object');
   }
@@ -57,8 +59,14 @@ export function createBatchRequest<TPayload = unknown, TFilter = unknown>(
 ): BatchRequest<TPayload, TFilter> {
   assertBatchText(request.schema, 'Batch schema must be a non-empty string');
   const access = createAccessContext(request.access);
-  assertBatchText(request.confirmationToken, 'Batch confirmation token must be a non-empty string');
-  assertBatchText(request.idempotencyKey, 'Batch idempotency key must be a non-empty string');
+  assertBatchText(
+    request.confirmationToken,
+    'Batch confirmation token must be a non-empty string',
+  );
+  assertBatchText(
+    request.idempotencyKey,
+    'Batch idempotency key must be a non-empty string',
+  );
   validateBatchSelection(request.selection);
   return { ...request, access };
 }

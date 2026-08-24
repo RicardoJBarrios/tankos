@@ -49,21 +49,22 @@ export function provideCrudRepository<
   TUpdate,
   TFilter = unknown,
 >(
-  token: ReturnType<typeof createCrudRepositoryToken<TData, TCreate, TUpdate, TFilter>>,
+  token: ReturnType<
+    typeof createCrudRepositoryToken<TData, TCreate, TUpdate, TFilter>
+  >,
   repository: CrudRepositoryPort<TData, TCreate, TUpdate, TFilter>,
 ): EnvironmentProviders {
   return makeEnvironmentProviders([{ provide: token, useValue: repository }]);
 }
 
 /** Registers a typed CRUD service using Angular's `inject()` factory. */
-export function provideCrudService<
-  TData,
-  TCreate,
-  TUpdate,
-  TFilter = unknown,
->(
-  serviceToken: ReturnType<typeof createCrudServiceToken<TData, TCreate, TUpdate, TFilter>>,
-  repositoryToken: ReturnType<typeof createCrudRepositoryToken<TData, TCreate, TUpdate, TFilter>>,
+export function provideCrudService<TData, TCreate, TUpdate, TFilter = unknown>(
+  serviceToken: ReturnType<
+    typeof createCrudServiceToken<TData, TCreate, TUpdate, TFilter>
+  >,
+  repositoryToken: ReturnType<
+    typeof createCrudRepositoryToken<TData, TCreate, TUpdate, TFilter>
+  >,
 ): EnvironmentProviders {
   return makeEnvironmentProviders([
     {

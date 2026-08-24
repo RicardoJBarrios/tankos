@@ -9,6 +9,8 @@ describe('TankOS Data Access public entry point', () => {
     expect(publicApi.BATCH_OPERATION_PORT).toBeDefined();
     expect(publicApi.createCrudRepositoryToken).toEqual(expect.any(Function));
     expect(publicApi.createTtlCache).toEqual(expect.any(Function));
-    expect(publicApi.createInMemoryCrudRepository).toEqual(expect.any(Function));
+    expect(publicApi.createInMemoryCrudRepository).toEqual(
+      expect.any(Function),
+    );
   });
 });

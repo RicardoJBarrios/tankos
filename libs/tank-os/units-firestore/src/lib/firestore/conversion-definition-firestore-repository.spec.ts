@@ -62,14 +62,26 @@ describe('createConversionDefinitionFirestoreRepository', () => {
     await expect(
       repository.list({ access, page: { pageSize: 10 } as never }),
     ).resolves.toMatchObject({ items: [{ data: definition }] });
-    await expect(repository.get({ access, id: command.id })).resolves.toMatchObject({ data: definition });
-    await expect(repository.create({ access, input: definition })).resolves.toMatchObject({ data: definition });
-    await expect(repository.replace(command, definition)).resolves.toMatchObject({ data: definition });
-    await expect(repository.markForDeletion(command)).resolves.toMatchObject({ data: definition });
-    await expect(repository.restore(command)).resolves.toMatchObject({ data: definition });
+    await expect(
+      repository.get({ access, id: command.id }),
+    ).resolves.toMatchObject({ data: definition });
+    await expect(
+      repository.create({ access, input: definition }),
+    ).resolves.toMatchObject({ data: definition });
+    await expect(
+      repository.replace(command, definition),
+    ).resolves.toMatchObject({ data: definition });
+    await expect(repository.markForDeletion(command)).resolves.toMatchObject({
+      data: definition,
+    });
+    await expect(repository.restore(command)).resolves.toMatchObject({
+      data: definition,
+    });
     await repository.delete(command);
     raw.get.mockResolvedValueOnce(undefined);
-    await expect(repository.get({ access, id: command.id })).resolves.toBeUndefined();
+    await expect(
+      repository.get({ access, id: command.id }),
+    ).resolves.toBeUndefined();
 
     expect(firestoreAdapter.createFirestoreCrudRepository).toHaveBeenCalledWith(
       expect.objectContaining({

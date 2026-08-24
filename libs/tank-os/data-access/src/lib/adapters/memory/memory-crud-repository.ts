@@ -22,7 +22,10 @@ export interface InMemoryCrudRepositoryOptions<
   TFilter,
 > {
   readonly initialRecords?: readonly CrudRecord<TData>[];
-  readonly create: (input: TCreate, now: TechnicalTimestamp) => CrudRecord<TData>;
+  readonly create: (
+    input: TCreate,
+    now: TechnicalTimestamp,
+  ) => CrudRecord<TData>;
   readonly update: (data: TData, input: TUpdate) => TData;
   readonly matches?: (record: CrudRecord<TData>, filter: TFilter) => boolean;
   readonly clock: ClockPort;
@@ -53,10 +56,15 @@ export function createInMemoryCrudRepository<
   const validateAccess = (access: Parameters<typeof createAccessContext>[0]) =>
     createAccessContext(access);
 
-  const requireLifecycleRole = (access: Parameters<typeof createAccessContext>[0]) => {
+  const requireLifecycleRole = (
+    access: Parameters<typeof createAccessContext>[0],
+  ) => {
     validateAccess(access);
     if (!access.roles.some((role) => elevatedRoles.has(role))) {
-      throw failure('forbidden', 'Lifecycle operations require an elevated role');
+      throw failure(
+        'forbidden',
+        'Lifecycle operations require an elevated role',
+      );
     }
   };
 
@@ -73,16 +81,20 @@ export function createInMemoryCrudRepository<
     access: Parameters<typeof createAccessContext>[0],
     lifecycle: readonly string[] | undefined,
   ): void {
-    if (
-      lifecycle?.some((status) => !visibleByDefault.has(status))
-    ) {
+    if (lifecycle?.some((status) => !visibleByDefault.has(status))) {
       requireLifecycleRole(access);
     }
   }
 
-  function requireRevision(record: CrudRecord<TData>, request: RecordCommand): void {
+  function requireRevision(
+    record: CrudRecord<TData>,
+    request: RecordCommand,
+  ): void {
     if (!Number.isInteger(request.expectedRevision)) {
-      throw failure('validation', 'Record commands require an integer expectedRevision');
+      throw failure(
+        'validation',
+        'Record commands require an integer expectedRevision',
+      );
     }
     if (request.expectedRevision !== record.revision) {
       throw failure('conflict', `Record ${record.id} revision is stale`);
@@ -112,7 +124,10 @@ export function createInMemoryCrudRepository<
     };
   }
 
-  function orderValue(record: CrudRecord<TData>, field: string): string | number {
+  function orderValue(
+    record: CrudRecord<TData>,
+    field: string,
+  ): string | number {
     const value = field.split('.').reduce<unknown>((current, segment) => {
       if (!current || typeof current !== 'object') return undefined;
       return (current as Record<string, unknown>)[segment];
@@ -121,7 +136,9 @@ export function createInMemoryCrudRepository<
   }
 
   return {
-    async list(request: ListRequest<TFilter>): Promise<Page<CrudRecord<TData>>> {
+    async list(
+      request: ListRequest<TFilter>,
+    ): Promise<Page<CrudRecord<TData>>> {
       validateAccess(request.access);
       createPageRequest(request.page);
       validateLifecycleSelection(request.access, request.lifecycle);
@@ -148,17 +165,20 @@ export function createInMemoryCrudRepository<
       let start = 0;
       if (request.page.after) {
         const cursor = JSON.parse(request.page.after) as
-          | { id?: string; orderBy?: unknown }
-          | undefined;
+          { id?: string; orderBy?: unknown } | undefined;
         if (
           !cursor ||
           typeof cursor.id !== 'string' ||
-          JSON.stringify(cursor.orderBy) !== JSON.stringify(request.page.orderBy)
+          JSON.stringify(cursor.orderBy) !==
+            JSON.stringify(request.page.orderBy)
         ) {
           throw failure('validation', 'Invalid in-memory page cursor');
         }
-        const cursorIndex = filtered.findIndex((record) => record.id === cursor.id);
-        if (cursorIndex < 0) throw failure('validation', 'Cursor record was not found');
+        const cursorIndex = filtered.findIndex(
+          (record) => record.id === cursor.id,
+        );
+        if (cursorIndex < 0)
+          throw failure('validation', 'Cursor record was not found');
         start = cursorIndex + 1;
       }
       const items = filtered.slice(start, start + request.page.pageSize);
@@ -167,10 +187,12 @@ export function createInMemoryCrudRepository<
         items,
         hasMore,
         nextCursor: hasMore
-          ? createPageCursor(JSON.stringify({
-              id: items[items.length - 1].id,
-              orderBy: request.page.orderBy,
-            }))
+          ? createPageCursor(
+              JSON.stringify({
+                id: items[items.length - 1].id,
+                orderBy: request.page.orderBy,
+              }),
+            )
           : undefined,
       };
     },
@@ -198,7 +220,10 @@ export function createInMemoryCrudRepository<
         throw failure('lifecycle', `Record ${record.id} is terminally deleted`);
       }
       const replacement = withUpdatedMetadata(record, request.access);
-      const updated = { ...replacement, data: options.update(record.data, input) };
+      const updated = {
+        ...replacement,
+        data: options.update(record.data, input),
+      };
       records.set(record.id, updated);
       return updated;
     },
@@ -209,7 +234,9 @@ export function createInMemoryCrudRepository<
       if (record.lifecycle.status === 'deleted') {
         throw failure('lifecycle', `Record ${record.id} is terminally deleted`);
       }
-      const updated = withUpdatedMetadata(record, request.access, { status: 'marked-for-deletion' });
+      const updated = withUpdatedMetadata(record, request.access, {
+        status: 'marked-for-deletion',
+      });
       records.set(record.id, updated);
       return updated;
     },
@@ -218,9 +245,14 @@ export function createInMemoryCrudRepository<
       const record = requireRecord(request);
       requireRevision(record, request);
       if (record.lifecycle.status !== 'marked-for-deletion') {
-        throw failure('lifecycle', `Record ${record.id} is not marked for deletion`);
+        throw failure(
+          'lifecycle',
+          `Record ${record.id} is not marked for deletion`,
+        );
       }
-      const updated = withUpdatedMetadata(record, request.access, { status: 'active' });
+      const updated = withUpdatedMetadata(record, request.access, {
+        status: 'active',
+      });
       records.set(record.id, updated);
       return updated;
     },
@@ -229,7 +261,10 @@ export function createInMemoryCrudRepository<
       const record = requireRecord(request);
       requireRevision(record, request);
       if (record.lifecycle.status !== 'marked-for-deletion') {
-        throw failure('lifecycle', `Record ${record.id} must be marked for deletion`);
+        throw failure(
+          'lifecycle',
+          `Record ${record.id} must be marked for deletion`,
+        );
       }
       records.delete(record.id);
     },

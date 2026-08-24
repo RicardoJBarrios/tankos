@@ -14,6 +14,8 @@ describe('Units public entry point', () => {
   });
 
   it('Given the public entry point, When imported, Then exposes custom conversion CRUD', () => {
-    expect(publicApi.createConversionDefinitionCrudService).toBeTypeOf('function');
+    expect(publicApi.createConversionDefinitionCrudService).toBeTypeOf(
+      'function',
+    );
   });
 });

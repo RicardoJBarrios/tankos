@@ -143,8 +143,7 @@ factory. This keeps
 grouping and precedence visible in TypeScript without an expression parser:
 
 ```ts
-const result = service.decimal('2.5').add('1.5').multiply('3')
-  .subtract('2').divide('3', service.context(2, 'half-up'));
+const result = service.decimal('2.5').add('1.5').multiply('3').subtract('2').divide('3', service.context(2, 'half-up'));
 
 // result.value === '3.33'
 ```

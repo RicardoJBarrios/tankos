@@ -44,7 +44,9 @@ describe('createTtlCache', () => {
     const cache = createTtlCache<string>(clock());
 
     for (const ttl of [0, -1, NaN, Infinity, -Infinity]) {
-      await expect(cache.set('units', 'catalogue', ttl)).rejects.toThrow(RangeError);
+      await expect(cache.set('units', 'catalogue', ttl)).rejects.toThrow(
+        RangeError,
+      );
     }
   });
 

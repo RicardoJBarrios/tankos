@@ -35,6 +35,13 @@ export default defineConfig(() => ({
       ...createVitestReporting('decimal', '../../../').coverage,
       reportsDirectory: '../../../coverage/libs/tank-os/decimal',
       provider: 'v8' as const,
+      // Type-only contracts have no executable behavior to measure.
+      exclude: [
+        '**/*.config.*',
+        '**/test-setup.ts',
+        'src/lib/decimal/core/ports/**',
+        'src/lib/decimal/core/value-types/decimal.ts',
+      ],
       thresholds: {
         lines: 100,
         statements: 100,

@@ -1,13 +1,13 @@
-import type {
-  CreateRequest,
-  CrudRecord,
-  RecordCommand,
-} from '../core';
+import type { CreateRequest, CrudRecord, RecordCommand } from '../core';
 import type { CrudService } from './crud-service';
 
 /** CRUD service whose replacement creates a new record before retiring the old one. */
-export type VersionedCrudService<TData, TCreate, TUpdate, TFilter = unknown> =
-  CrudService<TData, TCreate, TUpdate, TFilter>;
+export type VersionedCrudService<
+  TData,
+  TCreate,
+  TUpdate,
+  TFilter = unknown,
+> = CrudService<TData, TCreate, TUpdate, TFilter>;
 
 type VersionedCrudSource<TData, TCreate, TUpdate, TFilter> = Omit<
   CrudService<TData, TCreate, TUpdate, TFilter>,

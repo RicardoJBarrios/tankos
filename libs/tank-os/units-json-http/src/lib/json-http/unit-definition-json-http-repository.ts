@@ -4,10 +4,7 @@ import {
 } from '@tank-os/data-access-json-http';
 import type { CrudRepositoryPort } from '@tank-os/data-access';
 import type { UnitDefinition, UnitDefinitionFilter } from '@tank-os/units';
-import {
-  unitDefinitionSchema,
-  unitDefinitionToDto,
-} from '@tank-os/units-zod';
+import { unitDefinitionSchema, unitDefinitionToDto } from '@tank-os/units-zod';
 import type { JsonHttpTimeAdapter } from '@tank-os/time-json-http';
 import { createUnitsJsonHttpRecordSchemas } from './json-http-record-schemas';
 
@@ -33,7 +30,10 @@ export function createUnitDefinitionJsonHttpRepository(
 > {
   return createJsonHttpCrudRepository({
     ...options,
-    schemas: createUnitsJsonHttpRecordSchemas(unitDefinitionSchema, options.time),
+    schemas: createUnitsJsonHttpRecordSchemas(
+      unitDefinitionSchema,
+      options.time,
+    ),
     serializeCreate: unitDefinitionToDto,
     serializeUpdate: unitDefinitionToDto,
   });

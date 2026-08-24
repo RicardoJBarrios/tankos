@@ -1,7 +1,4 @@
-import type {
-  ConversionDefinition,
-  UnitCataloguePort,
-} from '../core';
+import type { ConversionDefinition, UnitCataloguePort } from '../core';
 import { areDimensionsCompatible, UnitError } from '../core';
 
 /** Dependencies needed to validate conversion endpoints. */

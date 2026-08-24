@@ -21,7 +21,10 @@ describe('conversionDefinitionSchema', () => {
     expect(result.factor).toEqual({ numerator: '1000', denominator: '1' });
     expect(result.offset).toBe('0');
     expect(result.sourceUnit).toBe('UN/CEFACT:LTR');
-    expect(result.divisionContext).toEqual({ decimalPlaces: 4, rounding: 'half-up' });
+    expect(result.divisionContext).toEqual({
+      decimalPlaces: 4,
+      rounding: 'half-up',
+    });
     expect(Object.isFrozen(result)).toBe(true);
     expect(Object.isFrozen(result.factor)).toBe(true);
     expect(Object.isFrozen(result.divisionContext)).toBe(true);
@@ -40,7 +43,9 @@ describe('conversionDefinitionSchema', () => {
   it('Given a DTO without a division context, When parsed, Then leaves the context absent', () => {
     const withoutContext = { ...validDefinition, divisionContext: undefined };
 
-    expect(conversionDefinitionSchema.parse(withoutContext).divisionContext).toBeUndefined();
+    expect(
+      conversionDefinitionSchema.parse(withoutContext).divisionContext,
+    ).toBeUndefined();
   });
 
   it.each([
@@ -56,7 +61,10 @@ describe('conversionDefinitionSchema', () => {
     { ...validDefinition, factor: { numerator: '1,2', denominator: 1 } },
     { ...validDefinition, factor: { numerator: ' ', denominator: 1 } },
     { ...validDefinition, factor: { numerator: Infinity, denominator: 1 } },
-    { ...validDefinition, divisionContext: { decimalPlaces: -1, rounding: 'down' } },
+    {
+      ...validDefinition,
+      divisionContext: { decimalPlaces: -1, rounding: 'down' },
+    },
     { ...validDefinition, extra: true },
   ])('Given an invalid DTO %s, When parsed, Then rejects it', (value) => {
     expect(conversionDefinitionSchema.safeParse(value).success).toBe(false);

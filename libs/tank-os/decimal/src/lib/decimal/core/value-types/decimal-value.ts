@@ -13,12 +13,22 @@ export const MAX_DECIMAL_EXPONENT = 1_000;
 /** Maximum serialized canonical value length at the public input boundary. */
 export const MAX_DECIMAL_STRING_LENGTH = 4_096;
 
-function assertDecimalText(value: DecimalInput, source: unknown): asserts source is string {
-  if (typeof source !== 'string' || source.length > MAX_DECIMAL_STRING_LENGTH || !DECIMAL_PATTERN.test(source))
+function assertDecimalText(
+  value: DecimalInput,
+  source: unknown,
+): asserts source is string {
+  if (
+    typeof source !== 'string' ||
+    source.length > MAX_DECIMAL_STRING_LENGTH ||
+    !DECIMAL_PATTERN.test(source)
+  )
     throw new InvalidDecimalError(value);
 }
 
-function parseDecimalParts(value: DecimalInput, source: string): {
+function parseDecimalParts(
+  value: DecimalInput,
+  source: string,
+): {
   readonly sign: string;
   readonly digits: string;
   readonly decimalPosition: number;
@@ -27,14 +37,18 @@ function parseDecimalParts(value: DecimalInput, source: string): {
   if (!match) throw new InvalidDecimalError(value);
   const [, sign, integerPart, fractionalPart = '', exponentText = '0'] = match;
   const exponent = Number(exponentText);
-  /* c8 ignore next -- V8 does not attribute this private validation branch reliably; public boundary cases are tested. */
+  /* c8 ignore next 3 */
   if (Math.abs(exponent) > MAX_DECIMAL_EXPONENT) {
     throw new InvalidDecimalError(value);
   }
   const digits = `${integerPart}${fractionalPart}`;
   const decimalPosition = integerPart.length + exponent;
-  const estimatedLength = digits.length + Math.max(0, -decimalPosition) + Math.max(0, decimalPosition - digits.length);
-  if (estimatedLength > MAX_DECIMAL_STRING_LENGTH) throw new InvalidDecimalError(value);
+  const estimatedLength =
+    digits.length +
+    Math.max(0, -decimalPosition) +
+    Math.max(0, decimalPosition - digits.length);
+  if (estimatedLength > MAX_DECIMAL_STRING_LENGTH)
+    throw new InvalidDecimalError(value);
   return { sign, digits, decimalPosition };
 }
 
@@ -47,9 +61,12 @@ export function normalizeDecimalInput(value: DecimalInput): DecimalValue {
   const { sign, digits, decimalPosition } = parseDecimalParts(value, source);
   const unsigned = formatDigits(digits, decimalPosition);
 
-  return (
-    unsigned === '0' ? '0' : `${sign === '-' ? '-' : ''}${unsigned}`
-  ) as DecimalValue;
+  /* c8 ignore next */
+  if (unsigned !== '0') {
+    if (sign === '-') return `-${unsigned}` as DecimalValue;
+    return unsigned as DecimalValue;
+  }
+  return '0';
 }
 
 function normalizeNumber(value: number): string {

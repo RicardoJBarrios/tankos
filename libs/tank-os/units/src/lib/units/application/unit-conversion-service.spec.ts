@@ -1,8 +1,5 @@
 import { createBigJsDecimalAdapter } from '@tank-os/decimal-big-js';
-import {
-  createDecimalContext,
-  normalizeDecimalInput,
-} from '@tank-os/decimal';
+import { createDecimalContext, normalizeDecimalInput } from '@tank-os/decimal';
 import { createStandardUnitCatalogue } from '../adapters/standard';
 import { createConversionDefinition, createUnitCode } from '../core';
 import { createUnitConversionService } from './unit-conversion-service';

@@ -16,10 +16,7 @@ function parseInstantParts(value: string): RegExpExecArray {
   return match;
 }
 
-function assertInstantParts(
-  value: string,
-  parts: RegExpExecArray,
-): void {
+function assertInstantParts(value: string, parts: RegExpExecArray): void {
   const [, year, month, day, hour, minute, second, , offset] = parts;
   const numericOffset = offset === 'Z' ? 0 : Number(offset.slice(1, 3));
   const offsetMinutes = offset === 'Z' ? 0 : Number(offset.slice(4, 6));

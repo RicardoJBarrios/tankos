@@ -18,7 +18,14 @@ export function validateLifecycleSelection(
   if (new Set(lifecycle).size !== lifecycle.length) {
     throw new TypeError('Lifecycle selection must not contain duplicates');
   }
-  if (lifecycle.some((status) => !['active', 'inactive', 'marked-for-deletion', 'deleted'].includes(status))) {
+  if (
+    lifecycle.some(
+      (status) =>
+        !['active', 'inactive', 'marked-for-deletion', 'deleted'].includes(
+          status,
+        ),
+    )
+  ) {
     throw new TypeError('Lifecycle selection contains an invalid status');
   }
   return lifecycle;

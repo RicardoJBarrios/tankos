@@ -7,7 +7,11 @@ import type {
   ConversionDefinition,
   ConversionDefinitionFilter,
 } from '@tank-os/units';
-import type { CrudRecord, CrudRepositoryPort, Page } from '@tank-os/data-access';
+import type {
+  CrudRecord,
+  CrudRepositoryPort,
+  Page,
+} from '@tank-os/data-access';
 import {
   conversionDefinitionDtoSchema,
   conversionDefinitionSchema,
@@ -50,12 +54,14 @@ export function createConversionDefinitionFirestoreRepository(
   return {
     list: async (request) => mapPage(await repository.list(request)),
     get: async (request) => mapRecord(await repository.get(request)),
-    create: async (request) => mapRequiredRecord(await repository.create(request)),
+    create: async (request) =>
+      mapRequiredRecord(await repository.create(request)),
     replace: async (request, input) =>
       mapRequiredRecord(await repository.replace(request, input)),
     markForDeletion: async (request) =>
       mapRequiredRecord(await repository.markForDeletion(request)),
-    restore: async (request) => mapRequiredRecord(await repository.restore(request)),
+    restore: async (request) =>
+      mapRequiredRecord(await repository.restore(request)),
     delete: (request) => repository.delete(request),
   };
 }

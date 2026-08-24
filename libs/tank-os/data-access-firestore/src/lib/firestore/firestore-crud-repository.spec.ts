@@ -282,7 +282,11 @@ describe('createFirestoreCrudRepository', () => {
   it('Given an active record, When marked for deletion, Then updates its lifecycle in a transaction', async () => {
     const { repository: current, transaction } = transactionalRepository();
 
-    await current.markForDeletion({ access, id: createEntityId('unit-1'), expectedRevision: 1 });
+    await current.markForDeletion({
+      access,
+      id: createEntityId('unit-1'),
+      expectedRevision: 1,
+    });
 
     expect(transaction.update).toHaveBeenCalledWith(
       expect.anything(),
@@ -293,7 +297,11 @@ describe('createFirestoreCrudRepository', () => {
   it('Given a marked record, When restored, Then updates its lifecycle to active', async () => {
     const { repository: current, transaction } = transactionalRepository();
 
-    await current.restore({ access, id: createEntityId('unit-1'), expectedRevision: 1 });
+    await current.restore({
+      access,
+      id: createEntityId('unit-1'),
+      expectedRevision: 1,
+    });
 
     expect(transaction.update).toHaveBeenCalledWith(
       expect.anything(),
@@ -316,7 +324,11 @@ describe('createFirestoreCrudRepository', () => {
     );
 
     await expect(
-      repository().delete({ access, id: createEntityId('unit-1'), expectedRevision: 1 }),
+      repository().delete({
+        access,
+        id: createEntityId('unit-1'),
+        expectedRevision: 1,
+      }),
     ).resolves.toBeUndefined();
 
     expect(transaction.delete).toHaveBeenCalled();
@@ -396,7 +408,11 @@ describe('createFirestoreCrudRepository', () => {
     );
 
     await expect(
-      repository().restore({ access, id: createEntityId('unit-1'), expectedRevision: 1 }),
+      repository().restore({
+        access,
+        id: createEntityId('unit-1'),
+        expectedRevision: 1,
+      }),
     ).rejects.toMatchObject({
       code: 'lifecycle',
     });
