@@ -1,4 +1,5 @@
 /// <reference types='vitest' />
+import { createVitestReporting } from '../../../tools/testing/vitest-reporting';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
@@ -17,7 +18,9 @@ export default defineConfig(() => ({
     environment: 'jsdom',
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     reporters: ['default'],
+    ...createVitestReporting('units-firestore', '../../../'),
     coverage: {
+      ...createVitestReporting('units-firestore', '../../../').coverage,
       reportsDirectory: '../../../coverage/libs/tank-os/units-firestore',
       provider: 'v8' as const,
       thresholds: {

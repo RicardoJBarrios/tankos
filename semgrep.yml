@@ -1,0 +1,24 @@
+rules:
+  - id: veril-no-firebase-admin-in-browser
+    languages:
+      - typescript
+      - javascript
+    message: Browser-facing code must not import firebase-admin; keep admin access in the server adapter.
+    severity: ERROR
+    paths:
+      include:
+        - /apps/**/src/**
+        - /libs/**/src/**
+      exclude:
+        - /apps/veril/src/app/**/infrastructure/fixtures/**
+        - /libs/tank-os/data-access-firestore-admin/**
+        - /libs/tank-os/data-access-server/**
+    pattern-regex: 'from ["'']firebase-admin(?:/[^"'']*)?["'']'
+
+  - id: veril-no-private-key-literal
+    languages:
+      - typescript
+      - javascript
+    message: Do not commit private key material; use the repository secret store or local emulator configuration.
+    severity: ERROR
+    pattern-regex: '-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----'

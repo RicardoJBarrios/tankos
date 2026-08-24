@@ -1,4 +1,5 @@
 /// <reference types='vitest' />
+import { createVitestReporting } from '../../../tools/testing/vitest-reporting';
 import { defineConfig } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -20,7 +21,9 @@ export default defineConfig(() => ({
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['src/test-setup.ts'],
     reporters: ['default'],
+    ...createVitestReporting('decimal-big-js', '../../../'),
     coverage: {
+      ...createVitestReporting('decimal-big-js', '../../../').coverage,
       reportsDirectory: '../../../coverage/libs/tank-os/decimal-big-js',
       provider: 'v8' as const,
       thresholds: {

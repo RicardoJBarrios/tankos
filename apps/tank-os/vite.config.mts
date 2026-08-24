@@ -1,4 +1,5 @@
 /// <reference types='vitest' />
+import { createVitestReporting } from '../../tools/testing/vitest-reporting';
 import { defineConfig } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
 
@@ -15,7 +16,9 @@ export default defineConfig(() => ({
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['src/test-setup.ts'],
     reporters: ['default'],
+    ...createVitestReporting('tank-os', '../../'),
     coverage: {
+      ...createVitestReporting('tank-os', '../../').coverage,
       reportsDirectory: '../../coverage/apps/tank-os',
       provider: 'v8' as const,
     },

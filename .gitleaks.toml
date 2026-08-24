@@ -1,0 +1,16 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Generated dependencies and local build artifacts are not source secrets."
+paths = [
+  '''(^|/)node_modules/''',
+  '''(^|/)\.git/''',
+  '''(^|/)\.nx/''',
+  '''(^|/)coverage/''',
+  '''(^|/)dist/''',
+  '''(^|/)reports/''',
+  '''(^|/)test-results/''',
+  '''(^|/)\.quality-venv/''',
+  '''^apps/veril/src/app/shared/infrastructure/firebase-runtime-config\.ts$'''
+]

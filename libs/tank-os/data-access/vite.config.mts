@@ -1,4 +1,5 @@
 /// <reference types='vitest' />
+import { createVitestReporting } from '../../../tools/testing/vitest-reporting';
 import { defineConfig } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
@@ -19,7 +20,9 @@ export default defineConfig(() => ({
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['src/test-setup.ts'],
     reporters: ['default'],
+    ...createVitestReporting('data-access', '../../../'),
     coverage: {
+      ...createVitestReporting('data-access', '../../../').coverage,
       reportsDirectory: '../../../coverage/libs/tank-os/data-access',
       provider: 'v8' as const,
       thresholds: {

@@ -1,4 +1,5 @@
 /// <reference types='vitest' />
+import { createVitestReporting } from '../../../tools/testing/vitest-reporting';
 import { defineConfig } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
@@ -19,10 +20,7 @@ export default defineConfig(() => ({
         '../decimal-big-js/src/index.ts',
       ),
       '@tank-os/decimal': resolve(__dirname, '../decimal/src/index.ts'),
-      '@tank-os/data-access': resolve(
-        __dirname,
-        '../data-access/src/index.ts',
-      ),
+      '@tank-os/data-access': resolve(__dirname, '../data-access/src/index.ts'),
     },
   },
   test: {
@@ -33,7 +31,9 @@ export default defineConfig(() => ({
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['src/test-setup.ts'],
     reporters: ['default'],
+    ...createVitestReporting('units', '../../../'),
     coverage: {
+      ...createVitestReporting('units', '../../../').coverage,
       reportsDirectory: '../../../coverage/libs/tank-os/units',
       provider: 'v8' as const,
       thresholds: {

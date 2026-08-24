@@ -1,4 +1,5 @@
 /// <reference types='vitest' />
+import { createVitestReporting } from '../../../tools/testing/vitest-reporting';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
@@ -18,10 +19,17 @@ export default defineConfig(() => ({
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['src/test-setup.ts'],
     reporters: ['default'],
+    ...createVitestReporting('units-json-http', '../../../'),
     coverage: {
+      ...createVitestReporting('units-json-http', '../../../').coverage,
       reportsDirectory: '../../../coverage/libs/tank-os/units-json-http',
       provider: 'v8' as const,
-      thresholds: { lines: 100, statements: 100, functions: 100, branches: 100 },
+      thresholds: {
+        lines: 100,
+        statements: 100,
+        functions: 100,
+        branches: 100,
+      },
     },
   },
 }));

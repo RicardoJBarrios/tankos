@@ -1,4 +1,5 @@
 /// <reference types='vitest' />
+import { createVitestReporting } from '../../../tools/testing/vitest-reporting';
 import { defineConfig } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -20,7 +21,9 @@ export default defineConfig(() => ({
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['src/test-setup.ts'],
     reporters: ['default'],
+    ...createVitestReporting('time-json-http', '../../../'),
     coverage: {
+      ...createVitestReporting('time-json-http', '../../../').coverage,
       reportsDirectory: '../../../coverage/libs/tank-os/time-json-http',
       provider: 'v8' as const,
       thresholds: {

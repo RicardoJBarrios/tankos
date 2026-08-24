@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "bash ./tools/dev.sh",
     "firebase:set-keeper-claim": "node tools/firebase/set-keeper-claim.mjs",
-    "firebase:set-editorial-claim": "node tools/firebase/set-editorial-claim.mjs"
+    "firebase:set-editorial-claim": "node tools/firebase/set-editorial-claim.mjs",
+    "quality:knip": "knip --no-progress --include files,dependencies,unlisted,unresolved,binaries --no-exit-code",
+    "quality:semgrep": "semgrep scan --config semgrep.yml --error",
+    "quality:audit": "pnpm audit --prod --audit-level high",
+    "quality:affected": "pnpm exec nx affected -t lint test"
   },
   "private": true,
   "dependencies": {
@@ -78,6 +82,7 @@
     "jiti": "2.4.2",
     "jsdom": "~22.1.0",
     "jsonc-eslint-parser": "^2.1.0",
+    "knip": "5.64.0",
     "ng-packagr": "20.3.0",
     "nx": "23.1.1",
     "postcss": "8.5.13",

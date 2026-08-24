@@ -1,4 +1,5 @@
 /// <reference types='vitest' />
+import { createVitestReporting } from '../../../tools/testing/vitest-reporting';
 import { defineConfig } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -29,6 +30,7 @@ export default defineConfig(() => ({
     include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     setupFiles: ['src/test-setup.ts'],
     reporters: ['default'],
+    ...createVitestReporting('data-access-ui', '../../../'),
     server: {
       deps: {
         inline: [
@@ -42,6 +44,7 @@ export default defineConfig(() => ({
       },
     },
     coverage: {
+      ...createVitestReporting('data-access-ui', '../../../').coverage,
       reportsDirectory: '../../../coverage/libs/tank-os/data-access-ui',
       provider: 'v8' as const,
       include: [
