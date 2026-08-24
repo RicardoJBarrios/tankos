@@ -7,6 +7,7 @@ import type {
   GetRequest,
   ListRequest,
   Page,
+  PageCursor,
   RecordCommand,
 } from '../../core';
 import {
@@ -276,7 +277,7 @@ export class MemoryCrudRepository<
   #nextCursor(
     items: readonly CrudRecord<TData>[],
     orderBy: ListRequest<TFilter>['page']['orderBy'],
-  ): string {
+  ): PageCursor {
     return createPageCursor(
       JSON.stringify({ id: items[items.length - 1].id, orderBy }),
     );
