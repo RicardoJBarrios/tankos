@@ -150,7 +150,7 @@ Provider adapters must not perform a read-after-write merely to reconstruct a
 successful mutation response. Return a projected record from the write result,
 or make any required precondition read part of the same transaction. Mutations
 must expose a stable idempotency key when a retry can repeat them. Technical
-timestamps must come from the injectable `ClockPort` of `@tank-os/time` whose
+timestamps must come from the injectable `ClockPort` of `@tankos/time` whose
 trust model is documented; normally the composition root supplies `TimeService`.
 Do not create a second clock abstraction or hide an extra network read behind
 timestamp normalization.
