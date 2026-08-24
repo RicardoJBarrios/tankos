@@ -6,6 +6,7 @@ import {
   type ConversionDefinition,
   type ConversionDefinitionFilter,
 } from '../core';
+import { createStandardUnitCatalogue } from '../adapters/standard';
 import { createConversionDefinitionCrudService } from './conversion-definition-crud-service';
 
 describe('createConversionDefinitionCrudService', () => {
@@ -24,7 +25,9 @@ describe('createConversionDefinitionCrudService', () => {
 
   it('Given a custom repository, When CRUD commands are used, Then delegates every operation', async () => {
     const repository = createRepository();
-    const service = createConversionDefinitionCrudService(repository);
+    const service = createConversionDefinitionCrudService(repository, {
+      catalogue: createStandardUnitCatalogue(),
+    });
     const access = { principalId: createEntityId('admin-1'), roles: ['admin'] };
     const listRequest = { access, page: { pageSize: 10 }, filter: { family: 'volume' } };
     const getRequest = { access, id: createEntityId('conversion-1') };
@@ -49,7 +52,9 @@ describe('createConversionDefinitionCrudService', () => {
 
   it('Given a standard definition, When creation is requested, Then rejects it before reaching the repository', async () => {
     const repository = createRepository();
-    const service = createConversionDefinitionCrudService(repository);
+    const service = createConversionDefinitionCrudService(repository, {
+      catalogue: createStandardUnitCatalogue(),
+    });
 
     await expect(
       service.create({ access: { principalId: createEntityId('admin-1'), roles: ['admin'] }, input: { ...definition, origin: 'standard' } }),
@@ -59,7 +64,9 @@ describe('createConversionDefinitionCrudService', () => {
 
   it('Given a standard definition, When replacement is requested, Then rejects it before reaching the repository', async () => {
     const repository = createRepository();
-    const service = createConversionDefinitionCrudService(repository);
+    const service = createConversionDefinitionCrudService(repository, {
+      catalogue: createStandardUnitCatalogue(),
+    });
 
     await expect(
       service.replace(

@@ -84,6 +84,11 @@ snapshot. A code is not enabled in TankOS merely because it exists in the
 external standard. Any catalogue expansion must record its source release and
 provenance without silently changing an existing code's meaning.
 
+`createEffectiveUnitCatalogue()` combines the fixed standard catalogue with
+active custom definitions, orders codes deterministically and rejects custom
+entries with invalid systems or code collisions. Deprecated and retired custom
+units are not available for new conversions.
+
 ## Conversion contract
 
 `UnitConversionPort` executes a declared conversion between two known,
@@ -149,7 +154,8 @@ capabilities.
 Custom conversion definitions follow the same boundary: standard conversions
 are immutable catalogue entries, while custom conversions are managed through
 `createConversionDefinitionCrudService()` and the shared versioned CRUD
-workflow.
+workflow. Before persistence, `validateConversionDefinition()` requires both
+endpoints to be active in the effective catalogue and dimensionally compatible.
 
 ## Testing and publication
 

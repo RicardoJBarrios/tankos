@@ -7,8 +7,10 @@ import {
 import type {
   ConversionDefinition,
   ConversionDefinitionFilter,
+  UnitCataloguePort,
 } from '../core';
 import { UnitError } from '../core';
+import { validateConversionDefinition } from './conversion-definition-validator';
 
 /** Input accepted when creating or replacing a custom conversion definition. */
 export type CustomConversionDefinitionInput = ConversionDefinition;
@@ -20,6 +22,11 @@ export type ConversionDefinitionCrudService = CrudService<
   CustomConversionDefinitionInput,
   ConversionDefinitionFilter
 >;
+
+/** Dependencies required to validate custom conversion endpoints. */
+export interface ConversionDefinitionCrudServiceDependencies {
+  readonly catalogue: UnitCataloguePort;
+}
 
 /**
  * Creates the custom-conversion CRUD service.
@@ -35,6 +42,7 @@ export function createConversionDefinitionCrudService(
     CustomConversionDefinitionInput,
     ConversionDefinitionFilter
   >,
+  dependencies: ConversionDefinitionCrudServiceDependencies,
 ): ConversionDefinitionCrudService {
   const crud = createCrudService(repository);
   const custom: Omit<ConversionDefinitionCrudService, 'replace'> = {
@@ -44,12 +52,22 @@ export function createConversionDefinitionCrudService(
     restore: crud.restore,
     delete: crud.delete,
     create: async (request) =>
-      crud.create({ ...request, input: requireCustom(request.input) }),
+      crud.create({
+        ...request,
+        input: validateCustom(request.input, dependencies),
+      }),
   };
 
   return createVersionedCrudService(custom, {
-    toCreateInput: (input) => requireCustom(input),
+    toCreateInput: (input) => validateCustom(input, dependencies),
   });
+}
+
+function validateCustom(
+  input: CustomConversionDefinitionInput,
+  dependencies: ConversionDefinitionCrudServiceDependencies,
+): CustomConversionDefinitionInput {
+  return validateConversionDefinition(requireCustom(input), dependencies);
 }
 
 function requireCustom(
