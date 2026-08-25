@@ -3,7 +3,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "prefix": "veril",
-  "sourceRoot": "apps/veril/src",
+  "sourceRoot": "legacy/veril/src",
   "tags": ["scope:app", "type:app"],
   "targets": {
     "build": {
@@ -11,21 +11,21 @@
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/apps/veril",
-        "browser": "apps/veril/src/main.ts",
-        "tsConfig": "apps/veril/tsconfig.app.json",
+        "outputPath": "dist/legacy/veril",
+        "browser": "legacy/veril/src/main.ts",
+        "tsConfig": "legacy/veril/tsconfig.app.json",
         "polyfills": ["zone.js"],
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/veril/public"
+            "input": "legacy/veril/public"
           }
         ],
         "styles": [
-          "apps/veril/src/material-theme.scss",
-          "apps/veril/src/styles.css"
+          "legacy/veril/src/material-theme.scss",
+          "legacy/veril/src/styles.css"
         ],
-        "server": "apps/veril/src/main.server.ts",
+        "server": "legacy/veril/src/main.server.ts",
         "ssr": true,
         "outputMode": "static",
         "allowedCommonJsDependencies": ["@grpc/grpc-js", "@grpc/proto-loader"]
@@ -45,7 +45,7 @@
             }
           ],
           "outputHashing": "all",
-          "serviceWorker": "apps/veril/ngsw-config.json"
+          "serviceWorker": "legacy/veril/ngsw-config.json"
         },
         "development": {
           "optimization": false,
@@ -84,7 +84,7 @@
       "executor": "@angular/build:unit-test",
       "options": {
         "buildTarget": "veril:build:development",
-        "tsConfig": "apps/veril/tsconfig.spec.json",
+        "tsConfig": "legacy/veril/tsconfig.spec.json",
         "runner": "vitest",
         "watch": false,
         "exclude": ["**/*.integration.spec.ts"]
@@ -95,7 +95,7 @@
       "executor": "@nx/web:file-server",
       "options": {
         "buildTarget": "veril:build",
-        "staticFilePath": "dist/apps/veril/browser",
+        "staticFilePath": "dist/legacy/veril/browser",
         "spa": true
       }
     }

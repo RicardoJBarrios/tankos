@@ -1,141 +1,66 @@
 # Codex Project Entry Point
 
-Read this file first. It is the only mandatory starting point for work on TankOS.
+This is the operational entry point for TankOS. Use [`README.md`](README.md)
+to select the smallest relevant documentation set; do not read `.codex` in
+bulk.
 
-## Project
+## Project baseline
 
-TankOS is the product application managed with Nx for aquarium management across
-freshwater, saltwater, brackish, planted, reef, shrimp, snail and mixed systems.
-`Aquarium` is the central domain aggregate root; TankOS is never an Aquarium.
-Technical identifiers and documentation are written in English; Spanish is
-reserved for user-facing application content.
+TankOS is an Nx Angular application for managing freshwater, saltwater,
+brackish, planted, reef, shrimp, snail and mixed aquariums. `Aquarium` is the
+central domain aggregate root; TankOS is the product, never an Aquarium.
 
-## Mandatory reading order
+Technical identifiers and documentation use English. Spanish is reserved for
+user-facing application content.
 
-1. `VISION.md` and `PROJECT_CONTEXT.md` for product intent and context.
-2. `GLOSSARY.md`, `.codex/product/MENTAL_MODEL.md`,
-   `.codex/product/PRODUCT_PRINCIPLES.md`, `.codex/product/UX_PHILOSOPHY.md`,
-   `DOMAIN_RULES.md`, relevant product material and relevant specifications or
-   aggregate discovery documents for domain work.
-3. `CONSTITUTION.md` and `WORKFLOW.md` for permanent principles and process.
-   Read `DEFINITION_OF_READY.md` before implementation planning and
-   `DEFINITION_OF_DONE.md` before closing a vertical slice.
-4. `RETRIEVAL.md` for context retrieval.
-5. `CODING.md` or `TESTING.md` when implementation or tests are involved.
-6. Relevant technical architecture and ADRs only after the domain context.
-7. `STACK.md` and `MCP.md` when tooling or technology is involved.
+## Non-negotiable rules
 
-Read only the documents needed for the task. Do not load the whole repository.
+- Use pnpm and Nx workspace targets.
+- Keep the domain independent of Angular, Firebase, AngularFire, Zod and NgRx.
+- Keep the dependency direction `UI -> Signal Store -> application -> ports <- adapters`.
+- Validate external data with Zod and map DTOs at the boundary.
+- Keep transport DTOs, domain models and view models separate.
+- Use `inject()`, standalone Angular APIs, Signals and typed forms for new code.
+- Keep libraries independently owned, tagged and consumed through public APIs.
+- Apply [`CODE_GUARDRAILS.md`](CODE_GUARDRAILS.md) to code, tests and library
+  boundaries.
+- Do not use production Firebase for local development or CI.
+- Do not commit secrets, push from an agent or use `git reset --hard`.
 
-## Operating rules
+## Read by task
 
-- Use pnpm and execute workspace tasks through Nx.
-- Prefer small, localized and verifiable changes.
-- Reuse existing patterns and respect domain boundaries.
-- Validate external data with Zod before mapping it into the domain.
-- Do not expose transport DTOs directly to domain or UI code.
-- Do not add dependencies, abstractions or Nx projects without justification.
-- Keep library-specific documentation and architecture decisions inside that
-  library's `docs` directory. Use `.codex` only for shared guardrails and
-  cross-library decisions.
-- Apply [`CODE_GUARDRAILS.md`](CODE_GUARDRAILS.md): public code requires TSDoc,
-  and libraries require 100% coverage plus public-API breaking/contract tests.
-- Do not run `git push` or `git reset --hard`.
-- Never modify secrets or make destructive changes without confirmation.
+1. Product/domain: [`VISION.md`](VISION.md), [`GLOSSARY.md`](GLOSSARY.md),
+   [`DOMAIN_RULES.md`](DOMAIN_RULES.md), then the relevant product index and
+   specification.
+2. Implementation: [`DEFINITION_OF_READY.md`](DEFINITION_OF_READY.md),
+   [`CODING.md`](CODING.md), the relevant architecture page and ADRs.
+3. Tests: [`TESTING.md`](TESTING.md) and the applicable library `docs/`.
+4. Technology or operations: [`STACK.md`](STACK.md), [`MCP.md`](MCP.md),
+   [`architecture/`](architecture/) and [`operations/`](operations/).
+5. Completion: [`DEFINITION_OF_DONE.md`](DEFINITION_OF_DONE.md) and
+   [`WORKFLOW.md`](WORKFLOW.md).
 
-## Mandatory workflow
-
-1. Understand the request and constraints.
-2. Validate that the required context exists.
-3. Locate and read the minimum relevant context.
-4. Analyze impact, boundaries, risks and missing information.
-5. Present the standard pre-implementation summary.
-6. Implement only after the context and plan are sufficient.
-7. Run focused validation, review the diff and report the result.
-
-If context is insufficient, stop and explain what is missing.
-
-## Standard pre-implementation response
+## Design precedence
 
 ```text
-Context understood:
-Relevant documentation:
-Relevant ADRs:
-Relevant domain rules:
-Affected modules:
-Affected files:
-Potential risks:
-Missing information:
-Implementation plan:
+Vision -> language -> use case -> aggregate hypothesis
+-> domain model -> events -> technical architecture -> persistence -> code
 ```
 
-## Validation and definition of done
+ADRs record durable decisions. Specifications refine accepted use cases.
+Product candidates and research do not authorize implementation by themselves.
 
-Before finishing, validate the affected types, lint, tests, build and formatting
-as appropriate. The task is done only when the requested behavior is implemented,
-relevant tests pass, documentation is current, the diff is reviewed and risks or
-pending decisions are reported.
+## Working method
 
-## Standard final response
+Before changing code, identify the relevant sources, affected boundaries,
+risks and validation. Implement the smallest coherent slice, run focused
+checks, review the diff and report remaining failures or decisions. Use
+[`AUDITOR.md`](AUDITOR.md) when a change crosses architecture, persistence,
+security or documentation boundaries.
 
-Report:
+## Retrieval and integrations
 
-- summary and scope;
-- files created, modified or removed;
-- tools and retrieval used;
-- validations and results;
-- risks, missing information and follow-up work.
-
-## Pre-flight checklist
-
-- Is the context sufficient?
-- Are the glossary and domain rules understood?
-- Are the relevant ADRs and boundaries known?
-- Does the change already exist elsewhere?
-- Is the smallest safe plan clear?
-
-## Post-flight checklist
-
-- Does the diff match the plan?
-- Are tests and documentation sufficient?
-- Were secrets and destructive operations avoided?
-- Are risks and remaining decisions explicit?
-
-## Retrieval and MCP
-
-Start with documentation and exact local search. Use CodeGraph only for
-structural symbol/import/caller/callee questions. Use Nx MCP for projects,
-boundaries, dependencies, generators and targets. Use Firebase MCP and GitHub
-MCP only for their external domains. See `RETRIEVAL.md` and `MCP.md`.
-
-## Architecture
-
-### Design precedence
-
-```text
-Vision -> Ubiquitous Language -> Use Cases -> Aggregate hypotheses
--> Domain Model -> Events -> Technical Architecture -> Persistence -> Code
-```
-
-ADRs record accepted, durable decisions at the point where they constrain this
-sequence. Specifications refine an accepted use case; implementation follows
-the relevant specification and ADRs. Technology and Firestore must not create
-business rules by inference. Accepted feature specifications live in
-`.codex/specifications/`.
-
-The direction is:
-
-```text
-UI -> Signal Store -> application -> ports <- adapters
-```
-
-Firebase, AngularFire, Zod, Angular Material and NgRx remain outside the domain.
-The target architecture is `.codex/architecture/target-architecture.md` and
-accepted decisions are in `.codex/adr/`.
-Conceptual domain discovery, persistence conventions and operational models are linked from
-`.codex/architecture/README.md`.
-
-## Self-review
-
-Before implementation, use `AUDITOR.md` to check duplication, boundaries,
-architecture, tests, documentation, security and maintainability.
+Start with local documentation and exact search. Use CodeGraph for structural
+questions, Nx tooling for workspace questions, and Firebase or GitHub tooling
+only for their external domains. See [`RETRIEVAL.md`](RETRIEVAL.md) and
+[`MCP.md`](MCP.md).

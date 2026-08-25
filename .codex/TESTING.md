@@ -7,17 +7,14 @@
 | Firebase adapters and Security Rules         | Firebase Emulator Suite | Use deterministic fixtures and resettable emulators.    |
 | Browser journeys                             | Playwright              | Validate only meaningful cross-route keeper journeys.   |
 
-## Library guardrail
+## Library contract
 
-Every library must enable coverage in its default Nx `test` target and pass
-100% V8 coverage for lines, statements, functions and branches. Coverage must
-include pure behavior, Angular behavior and public API breaking/contract tests
-where those surfaces exist. Every documented use case must have an explicit
-test scenario; aggregate V8 percentages do not prove that all use cases are
-covered. A public API change is not complete until its contract test and the
-library's local `docs/` migration note are updated when the change is
-intentional. See
-[`CODE_GUARDRAILS.md`](CODE_GUARDRAILS.md).
+Every library enables coverage in its default Nx `test` target and targets 100%
+V8 coverage for lines, statements, functions and branches. Public behavior,
+Angular behavior and public API contract tests are included where applicable.
+The complete coverage, export and breaking-test policy lives in
+[`CODE_GUARDRAILS.md`](CODE_GUARDRAILS.md); this page defines only test-tool
+selection and test-reading conventions.
 
 Keep specifications split by public element or behavior and write scenarios in
 Given/When/Then form. Tests should read as executable documentation, not as a
@@ -27,21 +24,10 @@ Avoid excessive mocks. Prefer fakes for application ports where practical.
 Do not force Spectator into pure TypeScript tests. CI must not connect to Firebase
 production.
 
-Every accepted input variant requires an explicit test scenario. For union
-types and polymorphic arguments, test each permitted type and relevant edge
-value, including `NaN` and infinities for numbers, `null`, `undefined`, empty
-and whitespace-only strings, zero, negative values and empty collections when
-the contract permits or rejects them. Assertions must describe the expected
-value, normalization or error rather than relying only on type coverage.
-
-For every edge-case audit, use an explicit completeness checklist: test both
-`Infinity` and `-Infinity` (not just one), `NaN`, `null`, `undefined`, leading
-and trailing whitespace, special characters, signed and boundary values, and
-malformed structured objects. For union arguments, cover every permitted input
-type and meaningful mixed representations between arguments. Keep exhaustive
-malformed-input matrices at the parser or validator that owns them and add
-only boundary contract tests at transparent facades and adapters, so
-completeness does not become redundant overtesting.
+Input variants and extreme-value coverage follow the exhaustive contract in
+[`CODE_GUARDRAILS.md`](CODE_GUARDRAILS.md). Keep malformed-input matrices at
+the parser or validator that owns them and use focused boundary tests at
+transparent facades and adapters.
 
 Use `@ngneat/spectator/vitest` for Angular integration tests that create a
 component, directive, rendered pipe, fixture or Angular dependency-injection

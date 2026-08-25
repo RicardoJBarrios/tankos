@@ -117,25 +117,25 @@ Prefer using the [`inject`](/api/core/inject) function over injecting constructo
 - [`inject`](/api/core/inject) offers better type inference.
 - When targeting ES2022+ with [`useDefineForClassFields`](https://www.typescriptlang.org/tsconfig/#useDefineForClassFields), you can avoid separating field declaration and initialization when fields read on injected dependencies.
 
-[You can refactor existing code to `inject` with an automatic tool](reference/migrations/inject-function).
+[You can refactor existing code to `inject` with an automatic tool](https://angular.dev/reference/migrations/inject-function).
 
 ## Components and directives
 
 ### Choosing component selectors
 
 See
-the [Components guide for details on choosing component selectors](guide/components/selectors#choosing-a-selector).
+the [Components guide for details on choosing component selectors](https://angular.dev/guide/components/selectors#choosing-a-selector).
 
 ### Naming component and directive members
 
 See the Components guide for details
-on [naming input properties](guide/components/inputs#choosing-input-names)
-and [naming output properties](guide/components/outputs#choosing-event-names).
+on [naming input properties](https://angular.dev/guide/components/inputs#choosing-input-names)
+and [naming output properties](https://angular.dev/guide/components/outputs#choosing-event-names).
 
 ### Choosing directive selectors
 
 Directives should use the
-same [application-specific prefix](guide/components/selectors#selector-prefixes)
+same [application-specific prefix](https://angular.dev/guide/components/selectors#selector-prefixes)
 as your components.
 
 When using an attribute selector for a directive, use a camelCase attribute name. For example, if
@@ -160,11 +160,11 @@ classes.
 ### Avoid overly complex logic in templates
 
 Angular templates are designed to
-accommodate [JavaScript-like expressions](guide/templates/expression-syntax).
+accommodate [JavaScript-like expressions](https://angular.dev/guide/templates/expression-syntax).
 You should take advantage of these expressions to capture relatively straightforward logic directly
 in template expressions.
 
-When the code in a template gets too complex, though, refactor logic into the TypeScript code (typically with a [computed](guide/signals#computed-signals)).
+When the code in a template gets too complex, though, refactor logic into the TypeScript code (typically with a [computed](https://angular.dev/guide/signals#computed-signals)).
 
 There's no one hard-and-fast rule that determines what constitutes "complex". Use your best
 judgement.
@@ -172,7 +172,7 @@ judgement.
 ### Use `protected` on class members that are only used by a component's template
 
 A component class's public members intrinsically define a public API that's accessible via
-dependency injection and [queries](guide/components/queries). Prefer `protected`
+dependency injection and [queries](https://angular.dev/guide/components/queries). Prefer `protected`
 access for any members that are meant to be read from the component's template.
 
 ```ts
@@ -243,7 +243,7 @@ developers familiar with basic HTML.
 Additionally, the `NgClass` and `NgStyle` directives incur an additional performance cost compared
 to the built-in `class` and `style` binding syntax.
 
-For more details, refer to the [bindings guide](/guide/templates/binding#css-class-and-style-property-bindings)
+For more details, refer to the [bindings guide](https://angular.dev/guide/templates/binding#css-class-and-style-property-bindings)
 
 ### Name event handlers for what they _do_, not for the triggering event
 
@@ -314,7 +314,7 @@ Angular provides a TypeScript interface for each lifecycle method. When adding a
 your class, import and `implement` these interfaces to ensure that the methods are named correctly.
 
 ```ts
-import {Component, OnInit} from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 
 @Component(/* ... */)
 export class UserProfile implements OnInit {

@@ -16,7 +16,7 @@
 | AngularFire             | 20.0.1               | Angular integration boundary                           |
 | Firebase Emulator Suite | Firebase CLI tooling | Local and integration backend                          |
 | Playwright              | workspace baseline   | E2E testing                                            |
-| GitHub Actions          | repository CI        | Reproducible validation and delivery                   |
+| GitHub                  | repository hosting   | Source control and deferred delivery integration       |
 
 Stable compatible releases are preferred. Do not use prereleases, peer overrides
 or forced installs. Rejected alternatives remain documented in the relevant ADRs.
