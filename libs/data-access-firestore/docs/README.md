@@ -33,9 +33,12 @@ Firestore errors are translated at this boundary: permission failures become
 failures `transient`, and configuration/precondition failures `permanent`.
 
 This package contains the client-side Firestore boundary and finite CRUD/write
-operations. Durable logical batches use the separate
-`@tankos/data-access-firestore-admin` package so Firebase Admin never enters
-an Angular client bundle.
+operations. `createFirestoreAtomicBatch()` maps the provider-neutral
+`AtomicBatchPort` to the Firebase Client SDK. It validates document paths,
+enforces Firestore's 500-operation limit and leaves authorization to Firestore
+Rules. It does not claim to provide a trusted worker, server scheduler or
+atomicity across multiple batches; those guarantees are not available to a
+browser-only Firebase application.
 
 ## Local Firestore cache
 

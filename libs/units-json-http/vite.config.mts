@@ -1,16 +1,13 @@
 /// <reference types='vitest' />
 import { createVitestReporting } from '../../tools/testing/vitest-reporting';
 import { defineConfig } from 'vite';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/libs/units-json-http',
-  plugins: [
-    tsconfigPaths(),
-    viteStaticCopy({ targets: [{ src: '*.md', dest: '.' }] }),
-  ],
+  resolve: { tsconfigPaths: true },
+  plugins: [viteStaticCopy({ targets: [{ src: '*.md', dest: '.' }] })],
   test: {
     name: 'units-json-http',
     watch: false,

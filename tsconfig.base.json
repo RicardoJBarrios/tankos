@@ -24,15 +24,11 @@
       "@tankos/data-access-json-http": [
         "./libs/data-access-json-http/src/index.ts"
       ],
-      "@tankos/data-access-server": ["./libs/data-access-server/src/index.ts"],
       "@tankos/time-firestore": ["./libs/time-firestore/src/index.ts"],
       "@tankos/time-json-http": ["./libs/time-json-http/src/index.ts"],
       "@tankos/time-zod": ["./libs/time-zod/src/index.ts"],
       "@tankos/decimal-big-js": ["./libs/decimal-big-js/src/index.ts"],
       "@tankos/decimal-zod": ["./libs/decimal-zod/src/index.ts"],
-      "@tankos/data-access-firestore-admin": [
-        "./libs/data-access-firestore-admin/src/index.ts"
-      ],
       "@tankos/units-zod": ["./libs/units-zod/src/index.ts"],
       "@tankos/units-firestore": ["./libs/units-firestore/src/index.ts"],
       "@tankos/units-json-http": ["./libs/units-json-http/src/index.ts"],

@@ -125,7 +125,9 @@ function parseObjectDuration(value: DurationInput & object): Duration {
   };
 }
 
-function isValidDurationCandidate(candidate: Partial<Duration>): boolean {
+function isValidDurationCandidate(
+  candidate: Partial<Duration>,
+): candidate is Duration {
   return (
     candidate.kind === 'duration' &&
     typeof candidate.milliseconds === 'number' &&

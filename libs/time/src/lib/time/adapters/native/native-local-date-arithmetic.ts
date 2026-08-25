@@ -48,7 +48,9 @@ export function nativeAddLocalDate(
   return normalized;
 }
 
-function validatePeriod(period: CalendarPeriod | null): void {
+function validatePeriod(
+  period: CalendarPeriod | null,
+): asserts period is CalendarPeriod {
   if (period === null || typeof period !== 'object') {
     throw new RangeError('Invalid calendar period');
   }

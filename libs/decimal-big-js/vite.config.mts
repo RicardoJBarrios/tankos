@@ -2,15 +2,14 @@
 import { createVitestReporting } from '../../tools/testing/vitest-reporting';
 import { defineConfig } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/libs/decimal-big-js',
+  resolve: { tsconfigPaths: true },
   plugins: [
     angular(),
-    tsconfigPaths(),
     viteStaticCopy({ targets: [{ src: '*.md', dest: '.' }] }),
   ],
   test: {

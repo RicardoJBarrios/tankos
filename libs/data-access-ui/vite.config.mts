@@ -2,18 +2,13 @@
 import { createVitestReporting } from '../../tools/testing/vitest-reporting';
 import { defineConfig } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../node_modules/.vite/libs/data-access-ui',
-  plugins: [
-    angular(),
-    tsconfigPaths(),
-    viteStaticCopy({ targets: [{ src: '*.md', dest: '.' }] }),
-  ],
   resolve: {
+    tsconfigPaths: true,
     dedupe: [
       '@angular/common',
       '@angular/compiler',
@@ -22,6 +17,10 @@ export default defineConfig(() => ({
       '@angular/platform-browser-dynamic',
     ],
   },
+  plugins: [
+    angular(),
+    viteStaticCopy({ targets: [{ src: '*.md', dest: '.' }] }),
+  ],
   test: {
     name: 'data-access-ui',
     watch: false,

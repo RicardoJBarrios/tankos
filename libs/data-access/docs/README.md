@@ -10,13 +10,11 @@ server runtime.
 
 The runtime adapters are separate publishable Nx libraries:
 
-| Package                                | Responsibility                                                                  | Runtime dependencies         |
-| -------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------- |
-| `@tankos/data-access`                 | Core ports, application services, memory/cache adapters and Angular composition | Angular, `@tankos/time`     |
-| `@tankos/data-access-firestore`       | Firestore CRUD persistence and DTO validation                                   | Firebase, Zod, core package  |
-| `@tankos/data-access-json-http`       | JSON/HTTP CRUD transport and response validation                                | Zod, core package            |
-| `@tankos/data-access-server`          | Trusted Firebase Admin authorization                                            | Core package                 |
-| `@tankos/data-access-firestore-admin` | Durable Firestore Admin batches and trusted execution                           | Firebase Admin, core package |
+| Package                         | Responsibility                                                                  | Runtime dependencies        |
+| ------------------------------- | ------------------------------------------------------------------------------- | --------------------------- |
+| `@tankos/data-access`           | Core ports, application services, memory/cache adapters and Angular composition | Angular, `@tankos/time`     |
+| `@tankos/data-access-firestore` | Firestore CRUD persistence and DTO validation                                   | Firebase, Zod, core package |
+| `@tankos/data-access-json-http` | JSON/HTTP CRUD transport and response validation                                | Zod, core package           |
 
 Each package has its own `src`, public `index.ts`, tests, documentation,
 `ng-packagr-lite` build and coverage target. Adapter source is never reexported
@@ -83,17 +81,20 @@ terminal state.
 
 The contract supports update, mark-for-deletion and permanent delete. There is
 one confirmation per batch; a filter applies to the whole matching set, not
-only the visible page. Execution is asynchronous and naturally ordered by
-last-write arrival: deletion wins when it arrives after a modification, while
-the last modification wins against another modification. Reusing an
-idempotency key with a different request is a conflict.
+only the visible page. The browser implementation uses `runForegroundBatch()`:
+it commits sequential client-side chunks, reports progress, supports
+cancellation and returns a checkpoint for retry or resume. Reusing an
+idempotency key with a different request is a conflict where the host persists
+that control state.
 
 `BatchWorkerPort` and `BatchAuthorizationPort` are integration contracts. The
 production worker and durable batch repository belong to the host. The memory
 adapter already enforces logical chunk and item-concurrency limits, while a
 production worker must preserve those limits and make retries idempotent.
-`@tankos/data-access-server` provides the Firebase Admin Auth authorization
-boundary; browser claims are never authoritative.
+The browser must treat Firebase Rules as the authorization boundary. It cannot
+create custom claims, run a trusted worker or guarantee progress after the tab
+closes. Those server-only capabilities are intentionally outside this
+workspace.
 
 The contracts distinguish two provider capabilities:
 
@@ -206,6 +207,4 @@ All packages use Nx `@nx/angular:ng-packagr-lite`. The public contracts are:
 @tankos/data-access
 @tankos/data-access-firestore
 @tankos/data-access-json-http
-@tankos/data-access-server
-@tankos/data-access-firestore-admin
 ```

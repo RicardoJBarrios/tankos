@@ -1,19 +1,4 @@
 rules:
-  - id: tankos-no-firebase-admin-in-browser
-    languages:
-      - typescript
-      - javascript
-    message: Browser-facing code must not import firebase-admin; keep admin access in the server adapter.
-    severity: ERROR
-    paths:
-      include:
-        - /apps/**/src/**
-        - /libs/**/src/**
-      exclude:
-        - /libs/data-access-firestore-admin/**
-        - /libs/data-access-server/**
-    pattern-regex: 'from ["'']firebase-admin(?:/[^"'']*)?["'']'
-
   - id: tankos-no-private-key-literal
     languages:
       - typescript

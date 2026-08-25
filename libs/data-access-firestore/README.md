@@ -22,3 +22,8 @@ Build, unit-test and emulator-test this package independently:
 Mutations against an existing record require its integer `expectedRevision`.
 The emulator integration suite runs authenticated and unauthenticated requests
 against the package Rules file.
+
+`createFirestoreAtomicBatch()` provides finite client-side all-or-nothing writes
+through the Firebase Client SDK. Firestore Rules remain the authorization
+boundary and one batch is limited to 500 document operations; larger user
+actions must be executed as bounded, resumable foreground work.

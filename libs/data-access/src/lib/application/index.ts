@@ -1,8 +1,6 @@
 export { createBatchService } from './batch-service';
 export type { BatchService } from './batch-service';
-export {
-  createBatchSubmissionService,
-} from './batch-submission-service';
+export { createBatchSubmissionService } from './batch-submission-service';
 export type { BatchSubmissionServiceOptions } from './batch-submission-service';
 export { createAuthorizedBatchWorker } from './batch-worker';
 export type {
@@ -16,3 +14,11 @@ export type {
   VersionedCrudService,
   VersionedCrudServiceOptions,
 } from './versioned-crud-service';
+export { runForegroundBatch } from './foreground-batch-runner';
+export type {
+  ForegroundBatchCheckpoint,
+  ForegroundBatchProgress,
+  ForegroundBatchResult,
+  ForegroundBatchRunOptions,
+  ForegroundBatchStatus,
+} from './foreground-batch-runner';

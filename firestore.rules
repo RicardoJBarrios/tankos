@@ -30,18 +30,20 @@ service cloud.firestore {
     }
 
     function isKeeper() {
-      return isAuthenticated()
-        && isPersistentUser()
-        && request.auth.token.keys().hasAll(['isKeeper'])
-        && request.auth.token.isKeeper == true
-        && keeperAccessIsNotRevoked();
+      return isPersistentUser() && keeperAccessIsNotRevoked();
     }
 
     function isEditorialKeeper() {
-      return isAuthenticated()
-        && request.auth.token.keys().hasAll(['editorialAdmin'])
-        && request.auth.token.editorialAdmin == true
-        && isPersistentUser()
+      return isPersistentUser()
+        && exists(
+          /databases/$(database)/documents/userAccess/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/userAccess/$(request.auth.uid)
+        ).data.keys().hasAll(['editorialAdmin'])
+        && get(
+          /databases/$(database)/documents/userAccess/$(request.auth.uid)
+        ).data.editorialAdmin == true
         && editorialAccessIsNotRevoked();
     }
 
@@ -60,6 +62,11 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid))).data.status == 'active'
         && get(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid))).data.permissions.keys().hasAll([permission])
         && get(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid))).data.permissions[permission] == true;
+    }
+
+    match /userAccess/{userId} {
+      allow get: if isAuthenticated() && request.auth.uid == userId;
+      allow list, create, update, delete: if false;
     }
 
     function canReadAquarium(aquariumId, permission) {

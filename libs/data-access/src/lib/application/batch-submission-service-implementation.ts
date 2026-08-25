@@ -79,6 +79,7 @@ export class BatchSubmissionServiceImplementation<
         'conflict',
         'A claimed materialization must include a fencing lease',
       );
+    const lease = claim.lease;
     if (
       current.status !== 'materializing' ||
       current.requestedSelection === undefined
@@ -89,12 +90,14 @@ export class BatchSubmissionServiceImplementation<
       current.requestedSelection as BatchSelection<TFilter>,
     );
     if (await this.#options.materializerStore.isCancellationRequested(batchId))
-      return this.#cancelMaterialization(batchId, claim.lease);
-    await Promise.all(createPendingChunks(ids, this.#configuration.chunkSize).map(async (chunk) => { await this.#options.materializerStore.putChunk(
-        batchId,
-        chunk,
-        claim.lease,
-      ); }));
+      return this.#cancelMaterialization(batchId, lease);
+    await Promise.all(
+      createPendingChunks(ids, this.#configuration.chunkSize).map(
+        async (chunk) => {
+          await this.#options.materializerStore.putChunk(batchId, chunk, lease);
+        },
+      ),
+    );
     const queuedPatch = createQueuedPatch(
       current.requestFingerprint,
       ids.length,
@@ -104,7 +107,7 @@ export class BatchSubmissionServiceImplementation<
     const queued = await this.#options.materializerStore.update(
       batchId,
       queuedPatch,
-      claim.lease,
+      lease,
     );
     return project(queued);
   }

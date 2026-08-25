@@ -100,7 +100,7 @@ function cursorStart<TData, TFilter>(
 function isValidCursor<TFilter>(
   cursor: { id?: string; orderBy?: unknown } | null,
   orderBy: ListRequest<TFilter>['page']['orderBy'],
-): boolean {
+): cursor is { id: string; orderBy?: unknown } {
   return (
     cursor !== null &&
     typeof cursor.id === 'string' &&

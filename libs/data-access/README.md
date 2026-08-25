@@ -9,11 +9,13 @@ Provider adapters are physically isolated publishable packages:
 ```ts
 import { createFirestoreCrudRepository } from '@tankos/data-access-firestore';
 import { createJsonHttpCrudRepository } from '@tankos/data-access-json-http';
-import { createFirebaseAdminBatchAuthorization } from '@tankos/data-access-server';
+import { runForegroundBatch } from '@tankos/data-access';
 ```
 
 The primary package can therefore be used without installing Firebase, Zod or
-Firebase Admin. Each adapter has its own source tree, public barrel, tests,
+Firebase Admin. For the browser-only Firebase application, use the client
+Firestore adapter and `runForegroundBatch`; the Admin packages are not runtime
+dependencies. Each adapter has its own source tree, public barrel, tests,
 documentation, peer dependencies and build artifact.
 
 Commands:
