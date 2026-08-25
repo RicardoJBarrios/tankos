@@ -10,6 +10,9 @@ path and does not authorize implementation by itself.
 - `research/`: source and market research.
 - `operations/`: operational procedures.
 - `specifications/`: detailed historical use-case specifications.
+- `adr/`: the former decision-record format, retained as historical rationale;
+  new decisions belong in the active architecture contract.
 
 The active entry points are the compact documents in the parent `.codex/`
-directory and the ADRs in [`../adr/`](../adr/).
+directory and the active architecture contract in
+[`../ARCHITECTURE.md`](../ARCHITECTURE.md).

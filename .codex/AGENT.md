@@ -22,8 +22,8 @@ user-facing application content.
 ## Read by task
 
 1. Product/domain: [`PROJECT.md`](PROJECT.md) and [`PRODUCT.md`](PRODUCT.md).
-2. Implementation: [`ENGINEERING.md`](ENGINEERING.md),
-   [`ARCHITECTURE.md`](ARCHITECTURE.md) and applicable ADRs.
+2. Implementation: [`ENGINEERING.md`](ENGINEERING.md) and
+   [`ARCHITECTURE.md`](ARCHITECTURE.md).
 3. Delivery: [`DELIVERY.md`](DELIVERY.md) and the affected library `docs/`.
 4. Detail only when needed: [`archive/`](archive/).
 
@@ -34,8 +34,8 @@ Vision -> language -> use case -> aggregate hypothesis
 -> domain model -> events -> technical architecture -> persistence -> code
 ```
 
-ADRs record durable decisions. Product candidates and archived research do not
-authorize implementation by themselves.
+`ARCHITECTURE.md` records durable technical decisions. Product candidates and
+archived research do not authorize implementation by themselves.
 
 ## Working method
 

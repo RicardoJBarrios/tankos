@@ -8,7 +8,7 @@ Accepted
 
 The application needs managed identity, persistence and hosting while keeping
 operational cost and accidental production access low. See the
-[target architecture](../ARCHITECTURE.md).
+[target architecture](../../ARCHITECTURE.md).
 
 ## Decision
 

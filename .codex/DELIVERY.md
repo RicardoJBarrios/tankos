@@ -2,7 +2,7 @@
 
 ## Before implementation
 
-Identify the accepted behavior, affected boundary, relevant ADR, persistence
+Identify the accepted behavior, affected boundary, relevant architecture
 and authorization impact, tests and risks. Do not infer unresolved behavior.
 Use the smallest coherent slice.
 

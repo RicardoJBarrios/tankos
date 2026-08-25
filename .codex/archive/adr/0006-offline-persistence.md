@@ -9,7 +9,7 @@ Accepted
 The private application must remain useful offline without silently losing writes
 or retaining sensitive data on every device. Firestore provides native local
 persistence and synchronization but uses last-write-wins for competing document
-updates. See the [target architecture](../ARCHITECTURE.md).
+updates. See the [target architecture](../../ARCHITECTURE.md).
 
 ## Decision
 

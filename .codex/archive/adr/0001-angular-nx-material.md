@@ -8,7 +8,7 @@ Accepted
 
 `tankos` needs a modern web platform, consistent workspace tooling and an
 accessible component system that can grow without creating parallel conventions.
-See the [target architecture](../ARCHITECTURE.md).
+See the [target architecture](../../ARCHITECTURE.md).
 
 ## Decision
 

@@ -1,7 +1,8 @@
 # Engineering contract
 
 This is the compact workspace contract. Library-specific rules live in each
-library's `docs/`; durable technical decisions live in [`adr/`](adr/).
+library's `docs/`; durable technical decisions live in
+[`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Boundaries
 
@@ -43,5 +44,5 @@ not belong in the application runtime.
 
 ## Safety
 
-Do not commit secrets, bypass an applicable ADR, add speculative abstractions,
-or use destructive Git commands. Do not push from an agent.
+Do not commit secrets, bypass the architecture contract, add speculative
+abstractions, or use destructive Git commands. Do not push from an agent.

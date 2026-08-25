@@ -8,7 +8,7 @@ Accepted
 
 The workspace must grow across aquarium-management domains without premature
 project proliferation or uncontrolled dependencies. See the
-[target architecture](../ARCHITECTURE.md).
+[target architecture](../../ARCHITECTURE.md).
 
 ## Decision
 
