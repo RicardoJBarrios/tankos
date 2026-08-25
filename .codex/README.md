@@ -11,6 +11,7 @@ in each library's `docs/` directory. Detailed historical material is in
 | Product and domain | [`PROJECT.md`](PROJECT.md)               | [`PRODUCT.md`](PRODUCT.md)           |
 | Implementation     | [`ENGINEERING.md`](ENGINEERING.md)       | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
 | Delivery           | [`DELIVERY.md`](DELIVERY.md)             | Affected library `docs/`             |
+| Tool integrations  | [`MCP.md`](MCP.md)                       | `tools/quality/README.md`            |
 | Durable decisions  | [`adr/README.md`](adr/README.md)         | Only applicable ADRs                 |
 | Historical detail  | [`archive/README.md`](archive/README.md) | One archived page only               |
 

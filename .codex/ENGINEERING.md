@@ -38,6 +38,9 @@ Node 24, pnpm 11, Nx 23, Angular 22, TypeScript 6, Vitest 4, Firebase JS SDK
 12, NgRx Signals 22, Spectator 20 and Playwright. See `package.json` for exact
 versions.
 
+External tooling and SonarCloud are described in [`MCP.md`](MCP.md). They do
+not belong in the application runtime.
+
 ## Safety
 
 Do not commit secrets, bypass an applicable ADR, add speculative abstractions,
