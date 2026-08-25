@@ -33,6 +33,7 @@ describe('native-duration-parsing', () => {
     'P1M',
     'P1Y',
     'P1W',
+    'P1XT1S',
     { kind: 'duration', milliseconds: NaN },
     { kind: 'duration' },
     { kind: 'duration', milliseconds: '2_000' },

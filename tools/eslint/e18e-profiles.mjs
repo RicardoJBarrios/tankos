@@ -10,7 +10,6 @@ const compatibleRuleNames = [
   'e18e/prefer-date-now',
   'e18e/prefer-includes',
   'e18e/prefer-nullish-coalescing',
-  'e18e/prefer-spread-syntax',
   'e18e/prefer-static-regex',
   'e18e/prefer-string-fromcharcode',
   'e18e/prefer-timer-args',

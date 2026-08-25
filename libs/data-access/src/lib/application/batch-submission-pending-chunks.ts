@@ -9,7 +9,7 @@ export function createPendingChunks(
 ) {
   return Array.from({ length: Math.ceil(ids.length / chunkSize) }, (_, index) =>
     createPendingChunk(
-      createEntityId(`chunk-${index + 1}`),
+      createEntityId(`chunk-${String(index + 1)}`),
       ids.slice(index * chunkSize, index * chunkSize + chunkSize),
     ),
   );

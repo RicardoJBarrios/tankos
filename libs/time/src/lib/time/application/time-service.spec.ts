@@ -2,6 +2,9 @@ import { TestBed } from '@angular/core/testing';
 import { provideTankOsTime } from '../composition';
 import { TimeService } from './time-service';
 
+const UTC_SUFFIX_PATTERN = /Z$/u;
+const DURATION_PREFIX_PATTERN = /^-?P/u;
+
 describe('time-service', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [provideTankOsTime()] });
@@ -52,7 +55,7 @@ describe('time-service', () => {
     (value) => {
       expect(
         TestBed.inject(TimeService).toUtcIsoString(value as never),
-      ).toMatch(/Z$/);
+      ).toMatch(UTC_SUFFIX_PATTERN);
     },
   );
 
@@ -157,7 +160,7 @@ describe('time-service', () => {
     (value) => {
       expect(
         TestBed.inject(TimeService).toDurationIsoString(value as never),
-      ).toMatch(/^-?P/);
+      ).toMatch(DURATION_PREFIX_PATTERN);
     },
   );
 

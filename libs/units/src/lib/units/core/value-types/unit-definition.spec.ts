@@ -53,6 +53,15 @@ describe('createUnitDefinition', () => {
     ).toThrow('Unit definition status is invalid');
   });
 
+  it.each([null, undefined, 'not-an-object'])(
+    'Given a non-object definition (%s), When created, Then rejects it',
+    (definition) => {
+      expect(() => createUnitDefinition(definition as never)).toThrow(
+        'Unit definition must be an object',
+      );
+    },
+  );
+
   function createDefinition(): UnitDefinition {
     return {
       code: createUnitCode('UN/CEFACT:LTR'),

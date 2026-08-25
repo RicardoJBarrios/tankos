@@ -14,6 +14,7 @@ const typedParserOptions = {
       '*.config.mts',
       'apps/*/playwright.config.mts',
       'apps/*/vitest.integration.config.ts',
+      'tools/testing/vitest-reporting.ts',
     ],
   },
   tsconfigRootDir: repositoryRoot,
@@ -24,6 +25,22 @@ const duplicatedStylisticRules = new Set([
   '@typescript-eslint/prefer-nullish-coalescing',
   '@typescript-eslint/prefer-regexp-exec',
 ]);
+
+// These public boundary functions intentionally accept malformed runtime
+// values even though their TypeScript contracts describe validated values.
+// Their null/object guards are therefore meaningful at runtime.
+const runtimeValidationFiles = [
+  '**/core/value-types/access-context.ts',
+  '**/core/value-types/batch-operation.ts',
+  '**/firestore/firestore-local-cache.ts',
+  '**/firestore-admin-batch-store-context.ts',
+  '**/firestore-admin-batch-store-leases-operations.ts',
+  '**/native-local-date-arithmetic.ts',
+  '**/native-time-interval.ts',
+  '**/core/value-types/conversion-definition.ts',
+  '**/core/value-types/unit-definition.ts',
+  '**/core/value-types/unit-representation.ts',
+];
 
 /**
  * Restricts a typescript-eslint preset object to TypeScript-family files.
@@ -77,6 +94,10 @@ export function createTypeScriptEslintConfig() {
       languageOptions: {
         parserOptions: typedParserOptions,
       },
+    },
+    {
+      files: runtimeValidationFiles,
+      rules: { '@typescript-eslint/no-unnecessary-condition': 'off' },
     },
   ];
 }

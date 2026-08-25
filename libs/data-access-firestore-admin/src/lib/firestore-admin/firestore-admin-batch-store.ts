@@ -33,7 +33,7 @@ export function createFirestoreAdminBatchStore<TPayload = unknown>(
   const implementation = {
     ...createFirestoreAdminBatchStoreSubmissionOperations<TPayload>(context),
     ...createFirestoreAdminBatchStoreLeasesOperations<TPayload>(context),
-    ...createFirestoreAdminBatchStoreChunksOperations<TPayload>(context),
+    ...createFirestoreAdminBatchStoreChunksOperations(context),
     ...createFirestoreAdminBatchStoreCancellationOperations<TPayload>(context),
   } as FirestoreAdminBatchImplementation<TPayload>;
   return createPublicStores(implementation);

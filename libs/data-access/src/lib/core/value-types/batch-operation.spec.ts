@@ -56,4 +56,22 @@ describe('createBatchRequest', () => {
       }),
     ).toThrow(RangeError);
   });
+
+  it.each([null, undefined, 'not-an-object'])(
+    'Given a non-object selection (%s), When validated, Then rejects it',
+    (selection) => {
+      expect(() =>
+        createBatchRequest({ ...valid, selection: selection as never }),
+      ).toThrow('Batch selection must be an object');
+    },
+  );
+
+  it('Given an unsupported selection kind, When validated, Then rejects it', () => {
+    expect(() =>
+      createBatchRequest({
+        ...valid,
+        selection: { kind: 'unsupported' } as never,
+      }),
+    ).toThrow('Batch selection kind is invalid');
+  });
 });

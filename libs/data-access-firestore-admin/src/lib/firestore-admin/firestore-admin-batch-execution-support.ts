@@ -57,7 +57,7 @@ export function summarizeResults(results: readonly BatchItemResult[]): {
 export function terminalStatus(
   failures: number,
   warnings: number,
-): BatchOperationRecord<unknown>['status'] {
+): BatchOperationRecord['status'] {
   if (failures > 0) return 'failed';
   if (warnings > 0) return 'completed-with-warnings';
   return 'completed';

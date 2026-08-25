@@ -25,7 +25,7 @@ describe('provideTankOsDataAccess', () => {
   });
 
   it('Given one entity repository, When composed with typed tokens, Then injects its typed CRUD service', async () => {
-    type Data = { readonly name: string };
+    interface Data { readonly name: string }
     const repository = {
       list: async () => ({ items: [], hasMore: false }),
       get: async () => undefined,

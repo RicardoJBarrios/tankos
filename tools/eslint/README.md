@@ -22,6 +22,17 @@ Every project receives the workspace profile through the root configuration:
 - Workspace module-boundary constraints.
 - SonarJS recommended rules for library TypeScript, plus complexity limits of
   10 cyclomatic and 15 cognitive complexity.
+- Essential and Unicorn maintainability rules reject nested conditionals and
+  nested ternaries, and prefer simplified conditions.
+- Unicorn's additional correctness rules reject redundant or duplicated
+  comparisons, unsafe `Promise.allSettled()` access, unnecessary `await`,
+  multiple promise resolution and malformed error construction.
+- `eslint-plugin-ai-guard` strict rules reject AI-prone reliability and
+  security patterns such as empty catches, floating promises, unsafe
+  deserialization, hardcoded secrets and dead branches.
+- The local `tankos/no-multiple-comparisons-in-condition` rule rejects more
+  than two atomic terms in a single conditional test; extract a named predicate
+  or comparator instead. The maximum is configurable.
 - `class-methods-use-this` and the workspace function-declaration guardrails.
 - Library limits of 300 lines per file and 60 lines per function.
 

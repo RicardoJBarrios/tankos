@@ -98,7 +98,7 @@ export class CrudListComponent<TData> {
     (item) => item.id,
   );
   /** Emitted when the host should start creation. */
-  readonly createRequested = output<void>();
+  readonly createRequested = output();
   /** Emitted when the host should start editing. */
   readonly editRequested = output<CrudRecord<TData>>();
   /** Emitted when a record should be logically deleted. */
@@ -108,7 +108,7 @@ export class CrudListComponent<TData> {
   /** Emitted when selection changes. */
   readonly selectionToggled = output<EntityId>();
   /** Emitted when another page is requested. */
-  readonly loadMoreRequested = output<void>();
+  readonly loadMoreRequested = output();
   /** Emitted when the host should open batch confirmation. */
   readonly batchRequested = output<CrudListBatchOperation>();
 

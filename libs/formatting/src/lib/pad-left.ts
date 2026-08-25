@@ -15,7 +15,7 @@ export function padLeft(
   if (!Number.isInteger(width) || width < 0) {
     throw new RangeError('Padding width must be a non-negative integer');
   }
-  if ([...fillCharacter].length !== 1) {
+  if (Array.from(fillCharacter).length !== 1) {
     throw new RangeError(
       'Padding character must contain exactly one character',
     );

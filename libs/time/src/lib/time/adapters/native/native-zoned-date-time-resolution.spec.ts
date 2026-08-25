@@ -6,6 +6,10 @@ import {
 import { nativeToUtcIsoString } from './native-instant-serialization';
 import { createNativeTimeZoneDatabase } from './native-time-zone-database';
 
+const NONEXISTENT_TIME_PATTERN = /does not exist/u;
+const AMBIGUOUS_TIME_PATTERN = /ambiguous/u;
+const INVALID_TIME_ZONE_PATTERN = /Invalid time zone/u;
+
 describe('native-zoned-date-time-resolution', () => {
   const timeZoneDatabase = createNativeTimeZoneDatabase();
 
@@ -86,7 +90,7 @@ describe('native-zoned-date-time-resolution', () => {
         'America/New_York',
         timeZoneDatabase,
       ),
-    ).toThrow(/does not exist/);
+    ).toThrow(NONEXISTENT_TIME_PATTERN);
   });
 
   it('Given an ambiguous DST local time, When resolving it, Then it raises a range error', () => {
@@ -96,7 +100,7 @@ describe('native-zoned-date-time-resolution', () => {
         'America/New_York',
         timeZoneDatabase,
       ),
-    ).toThrow(/ambiguous/);
+    ).toThrow(AMBIGUOUS_TIME_PATTERN);
   });
 
   it('Given an invalid local clock value, When resolving it, Then it raises a range error', () => {
@@ -112,6 +116,6 @@ describe('native-zoned-date-time-resolution', () => {
         'Not/A_Time_Zone',
         timeZoneDatabase,
       ),
-    ).toThrow(/Invalid time zone/);
+    ).toThrow(INVALID_TIME_ZONE_PATTERN);
   });
 });

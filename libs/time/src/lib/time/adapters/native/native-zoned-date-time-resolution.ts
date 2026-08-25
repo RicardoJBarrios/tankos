@@ -50,7 +50,7 @@ export function nativeResolveOffsetDateTime(
     !Number.isInteger(offsetMinutes) ||
     Math.abs(offsetMinutes) > 23 * 60 + 59
   ) {
-    throw new RangeError(`Invalid time-zone offset: ${offsetMinutes}`);
+    throw new RangeError(`Invalid time-zone offset: ${String(offsetMinutes)}`);
   }
 
   const localAsUtc = createUtcTimestamp(parseLocalDateTime(value));

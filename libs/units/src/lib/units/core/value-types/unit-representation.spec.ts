@@ -30,6 +30,26 @@ describe('createUnitRepresentation', () => {
     ).toThrow('Unit representation symbol must be non-empty');
   });
 
+  it.each([null, undefined, 'not-an-object'])(
+    'Given a non-object representation (%s), When created, Then rejects it',
+    (representation) => {
+      expect(() => createUnitRepresentation(representation as never)).toThrow(
+        'Unit representation must be an object',
+      );
+    },
+  );
+
+  it('Given an empty ASCII fallback, When representation is created, Then rejects it', () => {
+    expect(() =>
+      createUnitRepresentation({
+        symbol: 'L',
+        asciiFallback: ' ',
+        position: 'suffix',
+        spacing: 'narrow',
+      }),
+    ).toThrow('Unit representation ASCII fallback must be non-empty');
+  });
+
   it('Given invalid placement or spacing, When representation is created, Then rejects it', () => {
     expect(() =>
       createUnitRepresentation({

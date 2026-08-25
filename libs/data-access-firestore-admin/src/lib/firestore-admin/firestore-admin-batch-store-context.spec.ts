@@ -69,8 +69,8 @@ describe('firestore-admin-batch-store-context', () => {
     expect(result).toMatchObject({
       batchId: dto.batchId,
       createdAt: instant,
-      leaseToken: dto.leaseToken,
     });
+    expect(result).not.toHaveProperty('leaseToken');
   });
 
   it.each([
@@ -100,7 +100,7 @@ describe('firestore-admin-batch-store-context', () => {
   ])(
     'Given an invalid lease request, When validated, Then rejects it',
     (request) => {
-      expect(() => validateClaimRequest(request as never, 'worker')).toThrow(
+      expect(() => { validateClaimRequest(request as never, 'worker'); }).toThrow(
         'invalid',
       );
     },
@@ -108,10 +108,10 @@ describe('firestore-admin-batch-store-context', () => {
 
   it('Given a valid lease request, When validated, Then accepts it', () => {
     expect(() =>
-      validateClaimRequest(
+      { validateClaimRequest(
         { ownerId: 'worker', leaseDurationMilliseconds: 100 },
         'materializer',
-      ),
+      ); },
     ).not.toThrow();
   });
 

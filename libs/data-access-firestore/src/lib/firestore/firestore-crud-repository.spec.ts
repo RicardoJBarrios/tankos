@@ -157,6 +157,17 @@ describe('createFirestoreCrudRepository', () => {
     });
   });
 
+  it('Given a Firestore list provider failure, When listed, Then maps it to a transient data-access error', async () => {
+    firestoreMocks.getDocs.mockRejectedValue(new Error('offline'));
+
+    await expect(
+      repository().list({
+        access,
+        page: { pageSize: 2, orderBy: [{ field: 'id', direction: 'asc' }] },
+      }),
+    ).rejects.toMatchObject({ code: 'transient' });
+  });
+
   it('Given optional Firestore metadata, When a record is mapped, Then preserves the metadata values', async () => {
     const value: FirestoreRecordDto<{ name: string }> = {
       ...dto,

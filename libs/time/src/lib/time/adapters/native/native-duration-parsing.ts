@@ -94,7 +94,7 @@ function validDurationParts(
 
 function matchDate(date: string | undefined): RegExpExecArray | undefined {
   if (date === undefined) return undefined;
-  return DATE_PATTERN.exec(date) ?? undefined;
+  return DATE_PATTERN.exec(date) as RegExpExecArray | undefined;
 }
 
 function matchTime(time: string | undefined): RegExpExecArray | undefined {

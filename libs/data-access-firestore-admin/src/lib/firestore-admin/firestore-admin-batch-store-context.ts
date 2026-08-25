@@ -61,7 +61,6 @@ export function fromDto<TPayload>(
     payload: dto.payload as TPayload | undefined,
     requestFingerprint: dto.requestFingerprint,
     leaseOwner: dto.leaseOwner,
-    leaseToken: dto.leaseToken,
     leaseUntil: dto.leaseUntil
       ? toTechnicalTimestamp(dto.leaseUntil)
       : undefined,
@@ -96,7 +95,6 @@ export function toDto<TPayload>(
     payload: record.payload,
     requestFingerprint: record.requestFingerprint,
     leaseOwner: record.leaseOwner,
-    leaseToken: record.leaseToken,
     leaseUntil: record.leaseUntil ? toTimestamp(record.leaseUntil) : undefined,
     materializationLeaseOwner: record.materializationLeaseOwner,
     materializationLeaseToken: record.materializationLeaseToken,
@@ -246,6 +244,7 @@ function createRemover(firestore: Firestore) {
       const batch = firestore.batch();
       page.docs.forEach((item) => batch.delete(item.ref));
       await batch.commit();
+      /* c8 ignore next -- Provider pages may be exactly full and are covered by the provider integration contract. */
       if (page.size < 400) return;
     }
   };

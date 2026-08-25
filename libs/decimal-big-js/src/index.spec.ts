@@ -6,5 +6,7 @@ describe('Decimal Big.js entry point', () => {
     expect(publicApi.provideTankOsDecimalWithBigJs).toEqual(
       expect.any(Function),
     );
+    expect(publicApi.createBigJsDecimalAdapter().add('1', '2')).toBe('3');
+    expect(publicApi.provideTankOsDecimalWithBigJs()).toHaveLength(2);
   });
 });

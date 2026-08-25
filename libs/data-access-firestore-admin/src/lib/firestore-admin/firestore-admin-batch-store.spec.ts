@@ -71,6 +71,7 @@ describe('createFirestoreAdminBatchStore', () => {
     const { firestore } = createHarness();
     const stores = createFirestoreAdminBatchStore({
       firestore: firestore as never,
+      collectionPath: 'batches',
       clock: { now: () => ({ kind: 'instant', epochMilliseconds: 0 }) },
     });
     await stores.submissionStore.create(
@@ -613,6 +614,7 @@ describe('createFirestoreAdminBatchStore', () => {
     const { firestore } = createHarness();
     const stores = createFirestoreAdminBatchStore({
       firestore: firestore as never,
+      collectionPath: 'batches',
       clock: { now: () => ({ kind: 'instant', epochMilliseconds: 0 }) },
     });
     const store = stores.submissionStore;
@@ -641,6 +643,20 @@ describe('createFirestoreAdminBatchStore', () => {
     ).resolves.toMatchObject({
       batchId: 'batch-1',
     });
+  });
+
+  it('Given a legacy summary without idempotency metadata, When removed, Then deletes it without updating history', async () => {
+    const { firestore, values } = createHarness();
+    const store = createFirestoreAdminBatchStore({
+      firestore: firestore as never,
+      collectionPath: 'batches',
+      clock: { now: () => ({ kind: 'instant', epochMilliseconds: 0 }) },
+    }).submissionStore;
+    await store.create(record(), 'legacy-key');
+    const summary = values.get('batches/batch-1');
+    if (summary) delete summary['idempotencyKey'];
+
+    await expect(store.remove(createEntityId('batch-1'))).resolves.toBeUndefined();
   });
 
   it.each([

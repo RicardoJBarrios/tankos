@@ -34,6 +34,18 @@ describe('createJsonHttpCrudRepository', () => {
     roles: ['keeper'] as const,
   };
 
+  function repositoryWith(request: ReturnType<typeof vi.fn>) {
+    return createJsonHttpCrudRepository({
+      client: { request },
+      baseUrl: '/api',
+      schemas: { record: schema, page: pageSchema },
+      serializeCreate: (input: { name: string }) => ({ label: input.name }),
+      serializeUpdate: (input: { name: string }) => ({ label: input.name }),
+      listUrl: () => '/units',
+      recordUrl: (id) => `/units/${id}`,
+    });
+  }
+
   it('Given a valid JSON response, When listed, Then validates and maps the page', async () => {
     const request = vi
       .fn()
@@ -159,6 +171,90 @@ describe('createJsonHttpCrudRepository', () => {
     await expect(
       repository.create({ access, input: { name: 'litre' } }),
     ).rejects.toThrow('requestId');
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it('Given an existing record, When fetched, Then validates and returns the record', async () => {
+    const request = vi.fn().mockResolvedValue(record);
+
+    await expect(
+      repositoryWith(request).get({ access, id: record.id }),
+    ).resolves.toEqual(record);
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({ method: 'GET', url: `/api/units/${record.id}` }),
+    );
+  });
+
+  it('Given a replace command, When sent, Then sends its payload and revision', async () => {
+    const request = vi.fn().mockResolvedValue(record);
+
+    await repositoryWith(request).replace(
+      { access: { ...access, requestId: 'replace-unit-1' }, id: record.id, expectedRevision: 1 },
+      { name: 'litre' },
+    );
+
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'PUT',
+        body: { input: { label: 'litre' }, expectedRevision: 1 },
+      }),
+    );
+  });
+
+  it.each([
+    ['markForDeletion', 'mark-for-deletion'],
+    ['restore', 'restore'],
+  ] as const)(
+    'Given a lifecycle command, When %s is sent, Then uses the lifecycle endpoint',
+    async (method, action) => {
+      const request = vi.fn().mockResolvedValue(record);
+
+      await repositoryWith(request)[method]({
+        access: { ...access, requestId: `${method}-unit-1` },
+        id: record.id,
+        expectedRevision: 1,
+      });
+
+      expect(request).toHaveBeenCalledWith(
+        expect.objectContaining({
+          method: 'POST',
+          url: `/api/units/${record.id}/${action}`,
+          body: { expectedRevision: 1 },
+        }),
+      );
+    },
+  );
+
+  it('Given a delete command, When sent, Then sends the expected revision', async () => {
+    const request = vi.fn().mockResolvedValue(undefined);
+
+    await repositoryWith(request).delete({
+      access: { ...access, requestId: 'delete-unit-1' },
+      id: record.id,
+      expectedRevision: 1,
+    });
+
+    expect(request).toHaveBeenCalledWith(
+      expect.objectContaining({
+        method: 'DELETE',
+        url: `/api/units/${record.id}`,
+        body: { expectedRevision: 1 },
+      }),
+    );
+  });
+
+  it.each([
+    ['replace', (repository: ReturnType<typeof repositoryWith>) => repository.replace(
+      { access: { ...access, requestId: 'replace-unit-2' }, id: record.id, expectedRevision: 0.5 },
+      { name: 'litre' },
+    )],
+    ['delete', (repository: ReturnType<typeof repositoryWith>) => repository.delete(
+      { access: { ...access, requestId: 'delete-unit-2' }, id: record.id, expectedRevision: Number.NaN },
+    )],
+  ] as const)('Given an invalid revision, When %s is sent, Then rejects before transport access', async (_method, operation) => {
+    const request = vi.fn().mockResolvedValue(record);
+
+    await expect(operation(repositoryWith(request))).rejects.toThrow('expectedRevision');
     expect(request).not.toHaveBeenCalled();
   });
 });

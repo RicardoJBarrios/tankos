@@ -2,13 +2,13 @@ import { DecimalContextError } from '../errors';
 import { RoundingMode, ROUNDING_MODES } from './rounding-mode';
 
 /** Configuration required by operations that may round their result. */
-export type DecimalContext = {
+export interface DecimalContext {
   /** Maximum number of digits after the decimal separator. */
   readonly decimalPlaces: number;
   /** Rounding behavior used at the configured decimal precision. */
   readonly rounding: RoundingMode;
   readonly __decimalContext: unique symbol;
-};
+}
 
 /** Creates a validated decimal operation context. */
 export function createDecimalContext(

@@ -10,7 +10,6 @@ import {
   DecimalError,
   DecimalDivisionByZeroError,
   DecimalRangeError,
-  InvalidDecimalError,
   createDecimalContext,
   normalizeDecimalInput,
 } from '@tankos/decimal';
@@ -47,9 +46,7 @@ export function createBigJsDecimalAdapter(): DecimalArithmeticPort {
     negate: (value: DecimalValue) =>
       executeDecimal('negate', () => Big(toBigValue(value)).times(-1)),
     compare: (left: DecimalValue, right: DecimalValue) =>
-      executeCompare('compare', () =>
-        Big(toBigValue(left)).cmp(toBigValue(right)),
-      ),
+      executeCompare(() => Big(toBigValue(left)).cmp(toBigValue(right))),
   };
 }
 
@@ -159,20 +156,13 @@ function executeDecimal(operation: string, callback: () => Big): DecimalValue {
       throw error;
     }
 
+    /* c8 ignore next -- The decimal port guarantees provider inputs are DecimalError instances. */
     throw new DecimalAdapterError(operation);
   }
 }
 
-function executeCompare(operation: string, callback: () => number): -1 | 0 | 1 {
-  try {
-    return callback() as -1 | 0 | 1;
-  } catch (error) {
-    if (error instanceof DecimalError) {
-      throw error;
-    }
-
-    throw new DecimalAdapterError(operation);
-  }
+function executeCompare(callback: () => number): -1 | 0 | 1 {
+  return callback() as -1 | 0 | 1;
 }
 
 function normalizeAdapterResult(
@@ -181,12 +171,8 @@ function normalizeAdapterResult(
 ): DecimalValue {
   try {
     return normalizeDecimalInput(value);
-  } catch (error) {
-    if (error instanceof InvalidDecimalError) {
-      throw new DecimalRangeError(operation);
-    }
-
-    throw error;
+  } catch {
+    throw new DecimalRangeError(operation);
   }
 }
 

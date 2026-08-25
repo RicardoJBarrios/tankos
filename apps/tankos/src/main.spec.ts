@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const bootstrapApplication = vi.fn();
 
 vi.mock('@angular/platform-browser', () => ({ bootstrapApplication }));
-vi.mock('./app/app', () => ({ App: class App {} }));
+vi.mock('./app/app', () => ({ App: function App(): void { return undefined; } }));
 
 describe('main', () => {
   beforeEach(() => {

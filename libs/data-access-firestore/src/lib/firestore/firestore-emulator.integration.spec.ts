@@ -12,9 +12,7 @@ import {
   type FirestoreRecordDto,
 } from './firestore-crud-repository';
 
-const emulatorTest = (name: string, test: () => Promise<void>): void =>
-  // The wrapper deliberately accepts scenario titles as data.
-  // eslint-disable-next-line vitest/valid-title
+const emulatorTest = (name: string, test: () => Promise<void>): void => {
   it(name, async () => {
     expect(typeof test).toBe('function');
     if (!process.env['FIRESTORE_EMULATOR_HOST']) {
@@ -27,10 +25,11 @@ const emulatorTest = (name: string, test: () => Promise<void>): void =>
     }
     await test();
   });
+};
 
 describe('Firestore CRUD adapter against Firebase Emulator Suite', () => {
   let testEnvironment: RulesTestEnvironment | undefined;
-  const collectionPath = `data-access-test-${Date.now()}`;
+  const collectionPath = `data-access-test-${String(Date.now())}`;
   const recordSchema = z.object({
     data: z.object({ name: z.string() }),
     lifecycle: z.object({ status: z.literal('active') }),

@@ -57,6 +57,6 @@ export function createNativeTimeAdapter(
     resolveZonedDateTime: (value, timeZone) =>
       nativeResolveZonedDateTime(value, timeZone, timeZoneDatabase),
     resolveOffsetDateTime: nativeResolveOffsetDateTime,
-    isValidTimeZone: timeZoneDatabase.isValid,
+    isValidTimeZone: (timeZone) => timeZoneDatabase.isValid(timeZone),
   };
 }

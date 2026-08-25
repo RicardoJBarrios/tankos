@@ -14,7 +14,7 @@ export function createNativeTimeZoneDatabase(): TimeZoneDatabasePort {
     isValid: nativeIsValidTimeZone,
     resolveLocalDateTime(value, timeZone) {
       if (!nativeIsValidTimeZone(timeZone)) {
-        throw new RangeError(`Invalid time zone: ${timeZone}`);
+        throw new RangeError(`Invalid time zone: ${String(timeZone)}`);
       }
 
       const localParts = parseLocalDateTime(value);
@@ -44,7 +44,7 @@ export function createNativeTimeZoneDatabase(): TimeZoneDatabasePort {
     },
     getOffsetMinutes(instant, timeZone) {
       if (!nativeIsValidTimeZone(timeZone)) {
-        throw new RangeError(`Invalid time zone: ${timeZone}`);
+        throw new RangeError(`Invalid time zone: ${String(timeZone)}`);
       }
       return getTimeZoneOffset(instant.epochMilliseconds, timeZone) / 60_000;
     },

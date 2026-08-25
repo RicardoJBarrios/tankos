@@ -36,4 +36,16 @@ describe('createDataAccessError', () => {
       'Missing document',
     );
   });
+
+  it('Given a structured provider value, When mapped, Then retains its JSON cause', () => {
+    expect(
+      createDataAccessError('validation', 'Invalid document', { reason: 'bad' }),
+    ).toMatchObject({ message: 'Invalid document: {"reason":"bad"}' });
+  });
+
+  it('Given an unserializable provider value, When mapped, Then uses a safe cause fallback', () => {
+    expect(
+      createDataAccessError('validation', 'Invalid document', Symbol('bad')),
+    ).toMatchObject({ message: 'Invalid document: <unserializable cause>' });
+  });
 });

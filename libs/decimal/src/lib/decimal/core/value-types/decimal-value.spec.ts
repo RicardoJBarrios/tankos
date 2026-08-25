@@ -52,8 +52,8 @@ describe('normalizeDecimalInput', () => {
     '--1',
     '.',
     '1e9999999',
-    `1e${MAX_DECIMAL_EXPONENT + 1}`,
-    `1e-${MAX_DECIMAL_EXPONENT + 1}`,
+    `1e${String(MAX_DECIMAL_EXPONENT + 1)}`,
+    `1e-${String(MAX_DECIMAL_EXPONENT + 1)}`,
   ])(
     'Given an invalid decimal string %s, When normalized, Then throws an invalid input error',
     (input) => {
@@ -62,7 +62,7 @@ describe('normalizeDecimalInput', () => {
   );
 
   it('Given an input at the exponent boundary, When normalized, Then accepts it without exceeding the output limit', () => {
-    expect(normalizeDecimalInput(`1e${MAX_DECIMAL_EXPONENT}`)).toHaveLength(
+    expect(normalizeDecimalInput(`1e${String(MAX_DECIMAL_EXPONENT)}`)).toHaveLength(
       MAX_DECIMAL_EXPONENT + 1,
     );
   });
@@ -71,5 +71,13 @@ describe('normalizeDecimalInput', () => {
     const oversized = '1'.repeat(MAX_DECIMAL_STRING_LENGTH + 1);
 
     expect(() => normalizeDecimalInput(oversized)).toThrow(InvalidDecimalError);
+  });
+
+  it('Given a valid decimal whose expanded representation exceeds the limit, When normalized, Then rejects it before expansion', () => {
+    const oversizedExpansion = `${'1'.repeat(3_597)}e500`;
+
+    expect(() => normalizeDecimalInput(oversizedExpansion)).toThrow(
+      InvalidDecimalError,
+    );
   });
 });

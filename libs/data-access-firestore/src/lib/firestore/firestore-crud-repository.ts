@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import * as firestoreSdk from 'firebase/firestore';
 import type {
-  DocumentData,
   DocumentSnapshot,
   Firestore,
   Query,
@@ -57,16 +56,16 @@ export interface FirestoreCrudRepositoryOptions<
   readonly buildQuery: (
     reference: ReturnType<typeof firestoreSdk.collection>,
     request: ListRequest<TFilter>,
-  ) => Query<DocumentData>;
+  ) => Query;
   readonly encodeCursor: (
-    snapshot: QueryDocumentSnapshot<DocumentData>,
+    snapshot: QueryDocumentSnapshot,
     request: ListRequest<TFilter>,
   ) => PageCursor;
   readonly authorize?: (
     access: AccessContext,
     operation:
       'list' | 'get' | 'create' | 'replace' | 'mark' | 'restore' | 'delete',
-    lifecycle?: readonly CrudRecord<TData>['lifecycle']['status'][] | undefined,
+    lifecycle?: readonly CrudRecord<TData>['lifecycle']['status'][]  ,
   ) => void | Promise<void>;
 }
 
@@ -117,7 +116,7 @@ export function validateDocumentId(id: string): string {
 
 /** Maps a validated Firestore DTO into the provider-neutral record. */
 export function mapRecord<TData>(
-  snapshot: DocumentSnapshot<DocumentData>,
+  snapshot: DocumentSnapshot,
   schema: z.ZodType<FirestoreRecordDto<TData>>,
 ): CrudRecord<TData> {
   const dto = schema.parse(snapshot.data());

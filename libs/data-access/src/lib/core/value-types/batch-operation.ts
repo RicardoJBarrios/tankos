@@ -98,7 +98,7 @@ export interface BatchOperationRecord<
   readonly principalId: EntityId;
   readonly selection: FrozenBatchScope;
   /** Original selection retained while the trusted worker materializes IDs. */
-  readonly requestedSelection?: BatchSelection<unknown>;
+  readonly requestedSelection?: BatchSelection;
   readonly payload?: TPayload;
   /** Fingerprint of the complete request, excluding the idempotency key. */
   readonly requestFingerprint: string;

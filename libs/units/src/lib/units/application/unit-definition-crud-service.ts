@@ -35,11 +35,11 @@ export function createUnitDefinitionCrudService(
 ): UnitDefinitionCrudService {
   const crud = createCrudService(repository);
   const custom: Omit<UnitDefinitionCrudService, 'replace'> = {
-    list: crud.list,
-    get: crud.get,
-    markForDeletion: crud.markForDeletion,
-    restore: crud.restore,
-    delete: crud.delete,
+    list: (request) => crud.list(request),
+    get: (request) => crud.get(request),
+    markForDeletion: (request) => crud.markForDeletion(request),
+    restore: (request) => crud.restore(request),
+    delete: (request) => crud.delete(request),
     create: async (request) =>
       crud.create({ ...request, input: requireCustom(request.input) }),
   };

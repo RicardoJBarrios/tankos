@@ -117,7 +117,7 @@ async function executeClaimedChunks<TPayload>(
   if (chunks.length > maxChunks) {
     throw createDataAccessError(
       'validation',
-      `Batch execution exceeds the ${maxChunks} chunk limit`,
+      `Batch execution exceeds the ${String(maxChunks)} chunk limit`,
     );
   }
   for (const chunk of chunks) {

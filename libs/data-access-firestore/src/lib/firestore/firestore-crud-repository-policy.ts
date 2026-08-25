@@ -1,7 +1,6 @@
 import type {
   AccessContext,
   CrudRecord,
-  GetRequest,
   ListRequest,
   RecordCommand,
 } from '@tankos/data-access';
@@ -63,7 +62,7 @@ export async function authorizeFirestoreLifecycleRead<
 >(
   options: FirestoreCrudRepositoryOptions<TData, TCreate, TUpdate, TFilter>,
   access: AccessContext,
-  lifecycle: ListRequest<TFilter>['lifecycle'] | GetRequest['lifecycle'],
+  lifecycle: ListRequest<TFilter>['lifecycle']  ,
   operation: 'list' | 'get',
 ): Promise<void> {
   validateLifecycleSelection(lifecycle);

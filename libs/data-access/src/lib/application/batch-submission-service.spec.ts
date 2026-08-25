@@ -33,6 +33,10 @@ function record(
 
 function storeHarness(initial = record()) {
   let current: BatchOperationRecord | undefined = initial;
+  const requireCurrent = (): BatchOperationRecord => {
+    if (current === undefined) throw new Error('Expected current batch record');
+    return current;
+  };
   const chunks: unknown[] = [];
   let cancellationRequested = false;
   const store: BatchSubmissionStorePort = {
@@ -42,12 +46,12 @@ function storeHarness(initial = record()) {
     },
     get: async () => current,
     update: async (_id, patch) => {
-      current = { ...(current as BatchOperationRecord), ...patch };
+      current = { ...requireCurrent(), ...patch };
       return current;
     },
     requestCancellation: async () => {
       cancellationRequested = true;
-      return current as BatchOperationRecord;
+      return requireCurrent();
     },
     isCancellationRequested: async () => cancellationRequested,
     remove: async () => undefined,
@@ -56,11 +60,11 @@ function storeHarness(initial = record()) {
     get: async () => current,
     claimMaterialization: async () => ({
       claimed: current?.status === 'materializing',
-      record: current as BatchOperationRecord,
+      record: requireCurrent(),
       lease: { owner: 'materializer-1', token: 'materializer-token-1' },
     }),
     update: async (_id, patch) => {
-      current = { ...(current as BatchOperationRecord), ...patch };
+      current = { ...requireCurrent(), ...patch };
       return current;
     },
     putChunk: async (_id, chunk) => chunks.push(chunk),
@@ -101,6 +105,21 @@ describe('createBatchSubmissionService', () => {
     ).resolves.toMatchObject({ status: 'materializing', total: 0 });
   });
 
+  it('Given an existing batch, When fetched, Then returns its progress projection', async () => {
+    const harness = storeHarness(record('queued'));
+    const service = createBatchSubmissionService({
+      store: harness.store,
+      materializerStore: harness.materializerStore,
+      materializer: { materialize: async () => [] },
+      clock: { now: () => now },
+      createBatchId: () => createEntityId('batch-1'),
+    });
+
+    await expect(service.get(createEntityId('batch-1'))).resolves.toMatchObject({
+      status: 'queued',
+    });
+  });
+
   it('Given an active request, When cancelled, Then requests cooperative cancellation from the store', async () => {
     const harness = storeHarness(record('queued'));
     const service = createBatchSubmissionService({
@@ -114,6 +133,22 @@ describe('createBatchSubmissionService', () => {
     await service.cancel(createEntityId('batch-1'));
 
     expect(harness.cancellationRequested).toBe(true);
+  });
+
+  it('Given a completed request, When cancelled, Then returns it without requesting cancellation', async () => {
+    const harness = storeHarness(record('completed'));
+    const service = createBatchSubmissionService({
+      store: harness.store,
+      materializerStore: harness.materializerStore,
+      materializer: { materialize: async () => [] },
+      clock: { now: () => now },
+      createBatchId: () => createEntityId('batch-1'),
+    });
+
+    await expect(service.cancel(createEntityId('batch-1'))).resolves.toMatchObject({
+      status: 'completed',
+    });
+    expect(harness.cancellationRequested).toBe(false);
   });
 
   it('Given a primitive payload, When submitted, Then includes it in the stable request fingerprint', async () => {
@@ -141,7 +176,9 @@ describe('createBatchSubmissionService', () => {
 
   it('Given a materializing request, When materialized, Then writes bounded chunks and queues it', async () => {
     const harness = storeHarness();
-    const ids = [1, 2, 3, 4, 5].map((id) => createEntityId(`unit-${id}`));
+    const ids = [1, 2, 3, 4, 5].map((id) =>
+      createEntityId(`unit-${String(id)}`),
+    );
     const service = createBatchSubmissionService({
       store: harness.store,
       materializerStore: harness.materializerStore,
@@ -324,7 +361,7 @@ describe('createBatchSubmissionService', () => {
     ).rejects.toThrow('queue-failure');
   });
 
-  it('Given duplicate IDs or missing state, When materialized, Then rejects the invalid request', async () => {
+  it('Given duplicate IDs, When materialized, Then rejects the invalid request', async () => {
     const duplicate = storeHarness();
     const service = createBatchSubmissionService({
       store: duplicate.store,
@@ -342,9 +379,21 @@ describe('createBatchSubmissionService', () => {
       service.materialize(createEntityId('batch-1')),
     ).rejects.toMatchObject({ code: 'validation' });
 
-    duplicate.setCurrent(undefined);
+  });
+
+  it('Given missing state, When a batch is resumed, Then rejects with not-found', async () => {
+    const harness = storeHarness();
+    harness.setCurrent(undefined);
+    const service = createBatchSubmissionService({
+      store: harness.store,
+      materializerStore: harness.materializerStore,
+      materializer: { materialize: async () => [] },
+      clock: { now: () => now },
+      createBatchId: () => createEntityId('batch-1'),
+    });
+
     await expect(
-      service.materialize(createEntityId('missing')),
+      service.resume(createEntityId('missing')),
     ).rejects.toMatchObject({ code: 'not-found' });
   });
 
@@ -501,4 +550,28 @@ describe('createBatchSubmissionService', () => {
       ).toThrow(RangeError);
     },
   );
+
+  it('Given a request fingerprint above the configured byte limit, When submitted, Then rejects before persistence', async () => {
+    const harness = storeHarness();
+    const service = createBatchSubmissionService({
+      store: harness.store,
+      materializerStore: harness.materializerStore,
+      materializer: { materialize: async () => [] },
+      clock: { now: () => now },
+      createBatchId: () => createEntityId('batch-1'),
+      maxRequestBytes: 1_000,
+    });
+
+    await expect(
+      service.submit({
+        access: { principalId: createEntityId('keeper-1'), roles: ['keeper'] },
+        schema: 'units',
+        operation: 'update',
+        selection: { kind: 'filter', filter: { active: true } },
+        confirmationToken: 'confirmed',
+        idempotencyKey: 'request',
+        payload: 'x'.repeat(2_000),
+      }),
+    ).rejects.toMatchObject({ code: 'validation' });
+  });
 });

@@ -21,5 +21,5 @@ export function createFirestoreRecordSchema<T>(
       lifecycleChangedAt: z.instanceof(Timestamp).optional(),
       lifecycleChangedBy: z.string().optional(),
     }),
-  }) as z.ZodType<FirestoreRecordDto<T>>;
+  });
 }

@@ -253,4 +253,10 @@ describe('createBigJsDecimalAdapter', () => {
       expect(adapter.compare(left as never, right as never)).toBe(expected);
     },
   );
+
+  it('Given an invalid right operand, When compared, Then preserves the shared input error', () => {
+    expect(() => adapter.compare('1' as never, 'not-a-decimal' as never)).toThrow(
+      InvalidDecimalError,
+    );
+  });
 });

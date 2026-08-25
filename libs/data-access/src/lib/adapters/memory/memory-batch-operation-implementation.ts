@@ -160,7 +160,7 @@ export class MemoryBatchOperationImplementation<
   }
 
   #store(request: BatchRequest<TPayload, TFilter>, key: string): BatchProgress {
-    const batchId = createEntityId(`batch-${++this.#sequence}`);
+    const batchId = createEntityId(`batch-${String(++this.#sequence)}`);
     const operation = createInitialOperation(
       request,
       this.#options.clock.now(),

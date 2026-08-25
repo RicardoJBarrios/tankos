@@ -19,7 +19,7 @@ function mapRequiredRecord<TDto, TData>(
   record: CrudRecord<TDto>,
   parse: (value: TDto) => TData,
 ): CrudRecord<TData> {
-  return mapRecord(record, parse) as CrudRecord<TData>;
+  return { ...record, data: parse(record.data) };
 }
 
 function mapPage<TDto, TData>(

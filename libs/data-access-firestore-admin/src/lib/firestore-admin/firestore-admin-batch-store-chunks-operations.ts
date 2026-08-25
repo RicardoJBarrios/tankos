@@ -13,9 +13,9 @@ import {
   type LeaseKind,
 } from './firestore-admin-batch-store-context';
 
-function createPutChunkOperation<TPayload>(
+function createPutChunkOperation(
   context: FirestoreAdminBatchStoreContext,
-): BatchWorkerStorePort<TPayload>['putChunk'] {
+): BatchWorkerStorePort['putChunk'] {
   return async (batchId, chunk, lease, leaseKind: LeaseKind = 'worker') => {
     try {
       await context.firestore.runTransaction(async (transaction) => {
@@ -37,9 +37,9 @@ function createPutChunkOperation<TPayload>(
   };
 }
 
-function createListRunnableChunksOperation<TPayload>(
+function createListRunnableChunksOperation(
   context: FirestoreAdminBatchStoreContext,
-): BatchWorkerStorePort<TPayload>['listRunnableChunks'] {
+): BatchWorkerStorePort['listRunnableChunks'] {
   return async (batchId, limit) => {
     try {
       const query = context
@@ -63,9 +63,9 @@ function createListRunnableChunksOperation<TPayload>(
   };
 }
 
-function createPutResultsOperation<TPayload>(
+function createPutResultsOperation(
   context: FirestoreAdminBatchStoreContext,
-): BatchWorkerStorePort<TPayload>['putResults'] {
+): BatchWorkerStorePort['putResults'] {
   return async (batchId, chunkId, results, lease: BatchLease) => {
     try {
       await context.firestore.runTransaction(async (transaction) => {
@@ -93,12 +93,12 @@ function createPutResultsOperation<TPayload>(
 }
 
 /** Creates the chunks operations for the Admin batch store. */
-export function createFirestoreAdminBatchStoreChunksOperations<TPayload>(
+export function createFirestoreAdminBatchStoreChunksOperations(
   context: FirestoreAdminBatchStoreContext,
 ) {
   return {
-    putChunk: createPutChunkOperation<TPayload>(context),
-    listRunnableChunks: createListRunnableChunksOperation<TPayload>(context),
-    putResults: createPutResultsOperation<TPayload>(context),
+    putChunk: createPutChunkOperation(context),
+    listRunnableChunks: createListRunnableChunksOperation(context),
+    putResults: createPutResultsOperation(context),
   };
 }

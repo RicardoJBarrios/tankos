@@ -1,7 +1,7 @@
 import { isValidCalendarDate } from '../../core/validation';
 import { LocalDate, LocalDateInput } from '../../core';
 
-const LOCAL_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+const LOCAL_DATE_PATTERN = /^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})$/u;
 
 function parseStructuredLocalDate(value: unknown): LocalDate | undefined {
   if (
@@ -29,7 +29,8 @@ function parseStructuredLocalDate(value: unknown): LocalDate | undefined {
 function parseLocalDateString(value: string): LocalDate {
   const match = LOCAL_DATE_PATTERN.exec(value);
   if (!match) throw new RangeError('A local date must use YYYY-MM-DD syntax');
-  const [, year, month, day] = match;
+  const groups = match.groups as Record<string, string>;
+  const { year, month, day } = groups;
   const parsed = {
     kind: 'local-date' as const,
     year: Number(year),

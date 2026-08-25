@@ -20,7 +20,7 @@ export function nativeToDurationIsoString(value: DurationInput): string {
   remainder %= MILLISECONDS_PER_MINUTE;
   const seconds = Math.floor(remainder / MILLISECONDS_PER_SECOND);
   const millis = remainder % MILLISECONDS_PER_SECOND;
-  const datePart = days > 0 ? `${days}D` : '';
+  const datePart = days > 0 ? `${String(days)}D` : '';
   const timePart =
     days > 0 && hours === 0 && minutes === 0 && seconds === 0 && millis === 0
       ? ''
@@ -41,17 +41,17 @@ function formatTimePart(
 
   const timeParts: string[] = [];
   if (hours > 0) {
-    timeParts.push(`${hours}H`);
+    timeParts.push(`${String(hours)}H`);
   }
   if (minutes > 0) {
-    timeParts.push(`${minutes}M`);
+    timeParts.push(`${String(minutes)}M`);
   }
   if (seconds > 0 || milliseconds > 0) {
     const fractionalSeconds =
       milliseconds > 0
         ? `.${trimTrailingZeros(padLeft(milliseconds.toString(), 3))}`
         : '';
-    timeParts.push(`${seconds}${fractionalSeconds}S`);
+    timeParts.push(`${String(seconds)}${fractionalSeconds}S`);
   }
   return `T${timeParts.join('')}`;
 }

@@ -190,7 +190,9 @@ describe('createFirebaseAdminBatchAuthorization', () => {
     const authorization = createFirebaseAdminBatchAuthorization({
       auth: {
         getUser: async () => {
-          throw { code: 'unavailable' };
+          throw Object.assign(new Error('unavailable'), {
+            code: 'unavailable',
+          });
         },
       },
     });

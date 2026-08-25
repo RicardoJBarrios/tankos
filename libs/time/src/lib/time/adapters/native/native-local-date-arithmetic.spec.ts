@@ -32,4 +32,10 @@ describe('native-local-date-arithmetic', () => {
       );
     },
   );
+
+  it('Given a period outside the native calendar range, When adding it, Then raises a range error', () => {
+    expect(() =>
+      nativeAddLocalDate('9999-12-31', { days: 1 }),
+    ).toThrow(RangeError);
+  });
 });

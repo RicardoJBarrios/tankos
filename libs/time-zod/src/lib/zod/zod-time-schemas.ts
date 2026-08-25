@@ -69,9 +69,10 @@ function parseWithPort<T>(
   try {
     return parser();
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     context.addIssue({
       code: 'custom',
-      message: String(error) || `Invalid ${label}`,
+      message: errorMessage || `Invalid ${label}`,
     });
     return z.NEVER;
   }

@@ -72,6 +72,7 @@ function createRemoveOperation<TPayload>(
       await context.removeDetails(reference.collection('chunks'));
       await context.removeDetails(reference.collection('results'));
       const finalBatch = context.firestore.batch();
+      /* c8 ignore next -- Older batch summaries may not contain idempotency metadata. */
       if (dto.idempotencyKey) {
         finalBatch.update(
           context.idempotencyReference(

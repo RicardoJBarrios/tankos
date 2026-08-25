@@ -67,10 +67,12 @@ describe('firestore CRUD policy', () => {
 
   it('Given a matching revision, When validating a command, Then accepts it', () => {
     expect(() =>
-      requireFirestoreRevision(
-        { id: record.id, access, expectedRevision: 1 },
-        record,
-      ),
+      () => {
+        requireFirestoreRevision(
+          { id: record.id, access, expectedRevision: 1 },
+          record,
+        );
+      },
     ).not.toThrow();
   });
 
@@ -99,11 +101,20 @@ describe('firestore CRUD policy', () => {
 
   it('Given a stale revision, When validating a command, Then raises a conflict', () => {
     expect(() =>
-      requireFirestoreRevision(
+      { requireFirestoreRevision(
         { id: record.id, access, expectedRevision: 2 },
         record,
-      ),
+      ); },
     ).toThrow('Record revision is stale');
+  });
+
+  it('Given a missing expected revision, When validating a command, Then raises a validation error', () => {
+    expect(() => {
+      requireFirestoreRevision(
+        { id: record.id, access, expectedRevision: undefined },
+        record,
+      );
+    }).toThrow('Record commands require an integer expectedRevision');
   });
 
   it('Given no host policy, When a lifecycle write is authorized, Then rejects it', async () => {

@@ -179,7 +179,7 @@ export async function executeMemoryBatch<TPayload, TFilter>(
     );
     current = updateProgress(
       current,
-      createEntityId(`chunk-${Math.floor(offset / chunkSize) + 1}`),
+      createEntityId(`chunk-${String(Math.floor(offset / chunkSize) + 1)}`),
       results,
       options.clock.now(),
     );

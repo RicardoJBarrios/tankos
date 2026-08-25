@@ -1,7 +1,6 @@
 import { createEntityId } from '@tankos/data-access';
 import {
   createStandardUnitCatalogue,
-  type UnitDefinition,
 } from '@tankos/units';
 import { unitDefinitionToDto } from '@tankos/units-zod';
 import { Timestamp } from 'firebase/firestore';
@@ -21,9 +20,8 @@ vi.mock('@tankos/data-access-firestore', async (importOriginal) => ({
 }));
 
 describe('createUnitDefinitionFirestoreRepository', () => {
-  const definition = createStandardUnitCatalogue().find(
-    'UN/CEFACT:LTR' as never,
-  ) as UnitDefinition;
+  const definition = createStandardUnitCatalogue().find('UN/CEFACT:LTR' as never);
+  if (!definition) throw new Error('Expected the standard litre definition');
   const record = {
     id: createEntityId('unit-1'),
     data: unitDefinitionToDto(definition),

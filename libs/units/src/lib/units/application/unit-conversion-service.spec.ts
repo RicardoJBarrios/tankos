@@ -1,5 +1,9 @@
 import { createBigJsDecimalAdapter } from '@tankos/decimal-big-js';
-import { createDecimalContext, normalizeDecimalInput } from '@tankos/decimal';
+import {
+  createDecimalContext,
+  DecimalDivisionByZeroError,
+  normalizeDecimalInput,
+} from '@tankos/decimal';
 import { createStandardUnitCatalogue } from '../adapters/standard';
 import { createConversionDefinition, createUnitCode } from '../core';
 import { createUnitConversionService } from './unit-conversion-service';
@@ -159,6 +163,96 @@ describe('createUnitConversionService', () => {
         }),
       'UNIT_CONVERSION_UNIT_UNKNOWN',
     );
+  });
+
+  it('Given a non-unit denominator without a division context, When conversion is requested, Then reports the missing context', () => {
+    const service = createService([
+      conversion(
+        'volume-litre-to-millilitre',
+        'UN/CEFACT:LTR',
+        'UN/CEFACT:MLT',
+        '1000',
+        '2',
+      ),
+    ]);
+
+    expectCode(
+      () =>
+        service.convert({
+          value: '1',
+          ...units('UN/CEFACT:LTR', 'UN/CEFACT:MLT'),
+        }),
+      'UNIT_CONVERSION_CONTEXT_REQUIRED',
+    );
+  });
+
+  it('Given an arithmetic provider that reports division by zero, When conversion is requested, Then maps it to a unit error', () => {
+    const service = createUnitConversionService({
+      arithmetic: {
+        ...arithmetic,
+        divide: () => {
+          throw new DecimalDivisionByZeroError();
+        },
+      },
+      catalogue,
+      definitions: [
+        createConversionDefinition({
+          ...units('UN/CEFACT:LTR', 'UN/CEFACT:MLT'),
+          code: 'zero-provider',
+          version: '1',
+          origin: 'custom',
+          family: 'volume',
+          kind: 'linear',
+          factor: { numerator: '1', denominator: '2' },
+          offset: '0',
+          divisionContext: createDecimalContext(2, 'half-up'),
+          provenance: 'test',
+        }),
+      ],
+    });
+
+    expectCode(
+      () =>
+        service.convert({
+          value: '1',
+          ...units('UN/CEFACT:LTR', 'UN/CEFACT:MLT'),
+        }),
+      'UNIT_CONVERSION_DENOMINATOR_ZERO',
+    );
+  });
+
+  it('Given an arithmetic provider failure unrelated to division by zero, When conversion is requested, Then propagates the provider error', () => {
+    const providerError = new Error('provider-failure');
+    const service = createUnitConversionService({
+      arithmetic: {
+        ...arithmetic,
+        divide: () => {
+          throw providerError;
+        },
+      },
+      catalogue,
+      definitions: [
+        createConversionDefinition({
+          ...units('UN/CEFACT:LTR', 'UN/CEFACT:MLT'),
+          code: 'provider-failure',
+          version: '1',
+          origin: 'custom',
+          family: 'volume',
+          kind: 'linear',
+          factor: { numerator: '1', denominator: '2' },
+          offset: '0',
+          divisionContext: createDecimalContext(2, 'half-up'),
+          provenance: 'test',
+        }),
+      ],
+    });
+
+    expect(() =>
+      service.convert({
+        value: '1',
+        ...units('UN/CEFACT:LTR', 'UN/CEFACT:MLT'),
+      }),
+    ).toThrow(providerError);
   });
 
   function createService(

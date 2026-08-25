@@ -29,6 +29,15 @@ describe('createPageRequest', () => {
     },
   );
 
+  it('Given a non-numeric page size, When validated, Then rejects it as a range error', () => {
+    expect(() =>
+      createPageRequest({
+        pageSize: '20',
+        orderBy: [{ field: 'id', direction: 'asc' }],
+      }),
+    ).toThrow(RangeError);
+  });
+
   it('Given no ordering fields, When validated, Then rejects the request', () => {
     expect(() => createPageRequest({ pageSize: 20, orderBy: [] })).toThrow(
       TypeError,
@@ -42,7 +51,7 @@ describe('createPageRequest', () => {
     [],
   ])('Given invalid ordering %j, When validated, Then rejects the request', (orderBy) => {
     expect(() =>
-      createPageRequest({ pageSize: 20, orderBy } as never),
+        createPageRequest({ pageSize: 20, orderBy }),
     ).toThrow(TypeError);
   });
 
@@ -54,7 +63,7 @@ describe('createPageRequest', () => {
     null,
   ])('Given an invalid ordering field %j, When validated, Then rejects it', (item) => {
     expect(() =>
-      createPageRequest({ pageSize: 20, orderBy: [item] } as never),
+        createPageRequest({ pageSize: 20, orderBy: [item] }),
     ).toThrow(TypeError);
   });
 

@@ -33,4 +33,16 @@ describe('DataAccessError', () => {
       createDataAccessError('permanent', 'failed', 'bad-config').message,
     ).toBe('failed: bad-config');
   });
+
+  it('Given a structured cause, When normalized, Then retains its JSON representation', () => {
+    expect(createDataAccessError('permanent', 'failed', { reason: 'bad-config' }).message).toBe(
+      'failed: {"reason":"bad-config"}',
+    );
+  });
+
+  it('Given a cause that cannot be JSON serialized, When normalized, Then uses a safe fallback', () => {
+    expect(createDataAccessError('permanent', 'failed', Symbol('cause')).message).toBe(
+      'failed: <unserializable cause>',
+    );
+  });
 });

@@ -111,7 +111,7 @@ describe('createInMemoryBatchOperation', () => {
       clock: { now: () => now },
       materialize: () => [ids[0]],
       execute: async () => {
-        throw 'failure';
+        throw new Error('failure');
       },
     });
     const queued = await adapter.submit(request);

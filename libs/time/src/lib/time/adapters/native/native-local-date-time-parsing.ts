@@ -2,7 +2,7 @@ import { isValidCalendarDate } from '../../core/validation';
 import { DateTimeParts } from '../../core';
 
 const LOCAL_DATE_TIME_PATTERN =
-  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(\.\d{1,3}|))?$/;
+  /^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})T(?<hour>\d{2}):(?<minute>\d{2})(?::(?<second>\d{2})(?<fraction>\.\d{1,3})?)?$/u;
 
 /**
  * Parses the local date-time portion used by the native time-zone adapter.
@@ -19,7 +19,8 @@ export function parseLocalDateTime(value: string): DateTimeParts {
     );
   }
 
-  const [, year, month, day, hour, minute, second, fraction] = match;
+  const groups = match.groups as Record<string, string | undefined>;
+  const { year, month, day, hour, minute, second, fraction } = groups;
   const parts: DateTimeParts = {
     year: Number(year),
     month: Number(month),

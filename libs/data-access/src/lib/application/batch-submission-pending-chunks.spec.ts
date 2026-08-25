@@ -4,7 +4,7 @@ import { createPendingChunks } from './batch-submission-pending-chunks';
 
 describe('createPendingChunks', () => {
   it('Given materialized ids, When creating pending chunks, Then splits them deterministically', () => {
-    const ids = [1, 2, 3].map((id) => createEntityId(`unit-${id}`));
+    const ids = [1, 2, 3].map((id) => createEntityId(`unit-${String(id)}`));
     expect(createPendingChunks(ids, 2)).toEqual([
       {
         chunkId: createEntityId('chunk-1'),

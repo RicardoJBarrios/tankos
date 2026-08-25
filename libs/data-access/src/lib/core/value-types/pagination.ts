@@ -24,34 +24,44 @@ export interface Page<TRecord> {
 }
 
 /** Validates a bounded cursor page request before it reaches a provider. */
-export function createPageRequest(request: PageRequest): PageRequest {
+export function createPageRequest(request: unknown): PageRequest {
   if (!request || typeof request !== 'object') {
     throw new TypeError('Page request must be an object');
   }
+  const candidate = request as {
+    readonly pageSize?: unknown;
+    readonly orderBy?: unknown;
+  };
+  if (typeof candidate.pageSize !== 'number') {
+    throw new RangeError('Page size must be an integer between 1 and 500');
+  }
   if (
-    !Number.isInteger(request.pageSize) ||
-    request.pageSize < 1 ||
-    request.pageSize > 500
+    !Number.isInteger(candidate.pageSize) ||
+    candidate.pageSize < 1 ||
+    candidate.pageSize > 500
   ) {
     throw new RangeError('Page size must be an integer between 1 and 500');
   }
-  if (!Array.isArray(request.orderBy) || request.orderBy.length === 0) {
+  if (!Array.isArray(candidate.orderBy) || candidate.orderBy.length === 0) {
     throw new TypeError('Page ordering must contain at least one field');
   }
-  if (
-    request.orderBy.some(
-      (item) =>
-        !item ||
-        typeof item.field !== 'string' ||
-        !item.field.trim() ||
-        (item.direction !== 'asc' && item.direction !== 'desc'),
-    )
-  ) {
+  const orderBy = candidate.orderBy.filter(isOrderBy);
+  if (orderBy.length !== candidate.orderBy.length) {
     throw new TypeError('Page ordering fields must be non-empty');
   }
-  const fields = request.orderBy.map((item) => item.field);
+  const fields = orderBy.map((item) => item.field);
   if (new Set(fields).size !== fields.length) {
     throw new TypeError('Page ordering fields must be unique');
   }
-  return request;
+  return request as PageRequest;
+}
+
+function isOrderBy(value: unknown): value is OrderBy {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as { readonly field?: unknown; readonly direction?: unknown };
+  return (
+    typeof candidate.field === 'string' &&
+    candidate.field.trim().length > 0 &&
+    (candidate.direction === 'asc' || candidate.direction === 'desc')
+  );
 }

@@ -74,6 +74,10 @@ describe('native-instant-parsing', () => {
     },
   );
 
+  it('Given an epoch outside the native Date range, When parsing it, Then raises a range error', () => {
+    expect(() => nativeParseInstant(8_640_000_000_000_001)).toThrow(RangeError);
+  });
+
   it('Given fractional epoch milliseconds, When parsing it, Then it truncates toward zero', () => {
     expect(nativeParseInstant(-1.9)).toEqual({
       kind: 'instant',

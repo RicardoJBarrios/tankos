@@ -1,6 +1,8 @@
 import { padLeft } from '@tankos/formatting';
 import { Instant, TimeZoneDatabasePort } from '../../core';
 
+const OFFSET_PATTERN = /^(?<sign>[+-])(?<hours>\d{2}):?(?<minutes>\d{2})$/u;
+
 /**
  * Converts a time zone identifier into the numeric offset accepted by
  * Angular's `DatePipe` for a particular instant.
@@ -19,14 +21,16 @@ export function toDatePipeTimeZone(
     return '+0000';
   }
 
-  const offsetMatch = /^([+-])(\d{2}):?(\d{2})$/.exec(timeZone);
+  const offsetMatch = OFFSET_PATTERN.exec(timeZone);
   if (offsetMatch) {
-    const hours = Number(offsetMatch[2]);
-    const minutes = Number(offsetMatch[3]);
+    const groups = offsetMatch.groups as Record<string, string>;
+    const { sign, hours: hourText, minutes: minuteText } = groups;
+    const hours = Number(hourText);
+    const minutes = Number(minuteText);
     if (hours > 23 || minutes > 59) {
       throw new RangeError(`Invalid fixed time-zone offset: ${timeZone}`);
     }
-    return `${offsetMatch[1]}${offsetMatch[2]}${offsetMatch[3]}`;
+    return `${sign}${hourText}${minuteText}`;
   }
 
   const instant: Instant = { kind: 'instant', epochMilliseconds };

@@ -9,7 +9,7 @@ export interface LifecycleState {
 
 /** Validates lifecycle filters before they reach a provider query. */
 export function validateLifecycleSelection(
-  lifecycle: readonly LifecycleStatus[] | undefined,
+  lifecycle: unknown,
 ): readonly LifecycleStatus[] | undefined {
   if (lifecycle === undefined) return undefined;
   if (!Array.isArray(lifecycle) || lifecycle.length === 0) {
@@ -21,12 +21,16 @@ export function validateLifecycleSelection(
   if (
     lifecycle.some(
       (status) =>
-        !['active', 'inactive', 'marked-for-deletion', 'deleted'].includes(
-          status,
-        ),
+        typeof status !== 'string' ||
+        !new Set<LifecycleStatus>([
+          'active',
+          'inactive',
+          'marked-for-deletion',
+          'deleted',
+        ]).has(status as LifecycleStatus),
     )
   ) {
     throw new TypeError('Lifecycle selection contains an invalid status');
   }
-  return lifecycle;
+  return lifecycle as readonly LifecycleStatus[];
 }

@@ -4,7 +4,7 @@ import { UnitCodeError } from '../errors';
 export type UnitCode = string & { readonly __unitCode: unique symbol };
 
 const UNIT_CODE_PATTERN =
-  /^[A-Za-z][A-Za-z0-9./_-]*:[A-Za-z0-9][A-Za-z0-9._-]*$/;
+  /^[A-Za-z][\w\-./]*:[0-9A-Za-z][\w\-.]*$/u;
 
 /** Creates a validated, qualified unit code such as `UN/CEFACT:LTR`. */
 export function createUnitCode(value: string): UnitCode {

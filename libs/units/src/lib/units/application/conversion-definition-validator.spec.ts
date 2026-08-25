@@ -3,6 +3,9 @@ import { createStandardUnitCatalogue } from '../adapters/standard';
 import { createConversionDefinition, createUnitCode } from '../core';
 import { validateConversionDefinition } from './conversion-definition-validator';
 
+const NOT_ACTIVE_PATTERN = /not active/iu;
+const INCOMPATIBLE_PATTERN = /incompatible/iu;
+
 describe('validateConversionDefinition', () => {
   const catalogue = createStandardUnitCatalogue();
   const base = {
@@ -34,7 +37,7 @@ describe('validateConversionDefinition', () => {
 
     expect(() =>
       validateConversionDefinition(definition, { catalogue }),
-    ).toThrow(/not active/i);
+    ).toThrow(NOT_ACTIVE_PATTERN);
   });
 
   it('Given incompatible endpoints, When validated, Then rejects the conversion', () => {
@@ -45,6 +48,6 @@ describe('validateConversionDefinition', () => {
 
     expect(() =>
       validateConversionDefinition(definition, { catalogue }),
-    ).toThrow(/incompatible/i);
+    ).toThrow(INCOMPATIBLE_PATTERN);
   });
 });

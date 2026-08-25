@@ -188,7 +188,7 @@ describe('createFirestoreAdminBatchExecutor', () => {
       clock: { now: () => now },
       cleanupTerminal: false,
       execute: async () => {
-        throw 'failure';
+        throw new Error('failure');
       },
     });
 
@@ -248,7 +248,7 @@ describe('createFirestoreAdminBatchExecutor', () => {
   it('Given no stored operation, When executed, Then reports not found', async () => {
     const harness = storeHarness();
     harness.store.claim = async () => {
-      throw { code: 'not-found' };
+      throw Object.assign(new Error('not-found'), { code: 'not-found' });
     };
     const executor = createFirestoreAdminBatchExecutor({
       store: harness.store,

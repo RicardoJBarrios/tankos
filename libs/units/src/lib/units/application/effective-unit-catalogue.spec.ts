@@ -10,6 +10,9 @@ import {
 import { createStandardUnitCatalogue } from '../adapters/standard';
 import { createEffectiveUnitCatalogue } from './effective-unit-catalogue';
 
+const DUPLICATE_CODE_PATTERN = /present more than once/iu;
+const CUSTOM_DEFINITION_PATTERN = /custom unit definitions/iu;
+
 describe('createEffectiveUnitCatalogue', () => {
   const custom = createDefinition('TANKOS:CUSTOM-ALK');
 
@@ -22,7 +25,7 @@ describe('createEffectiveUnitCatalogue', () => {
     expect(catalogue.find(custom.code)).toBe(custom);
     expect(catalogue.find(createUnitCode('UN/CEFACT:LTR'))).toBeDefined();
     expect(catalogue.list().map((unit) => unit.code)).toEqual(
-      [...catalogue.list()].map((unit) => unit.code).sort(),
+      Array.from(catalogue.list(), (unit) => unit.code).sort(),
     );
   });
 
@@ -47,7 +50,7 @@ describe('createEffectiveUnitCatalogue', () => {
         standard: createStandardUnitCatalogue(),
         custom: [createDefinition('UN/CEFACT:LTR')],
       }),
-    ).toThrow(/present more than once/i);
+    ).toThrow(DUPLICATE_CODE_PATTERN);
   });
 
   it('Given a non-custom definition in the custom source, When composed, Then rejects the catalogue', () => {
@@ -56,7 +59,7 @@ describe('createEffectiveUnitCatalogue', () => {
         standard: createStandardUnitCatalogue(),
         custom: [createDefinition('TANKOS:INVALID', 'active', 'si')],
       }),
-    ).toThrow(/custom unit definitions/i);
+    ).toThrow(CUSTOM_DEFINITION_PATTERN);
   });
 
   function createDefinition(

@@ -8,7 +8,11 @@ export type DecimalValue = string & { readonly __decimalValue: unique symbol };
 export type DecimalInput = number | string;
 
 const DECIMAL_PATTERN =
-  /^[+-]?(?:(?:\d+(?:\.\d*)?)|(?:\.\d+))(?:[eE][+-]?\d+)?$/;
+  /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/iu;
+const DECIMAL_PARTS_PATTERN =
+  /^(?<sign>[+-]?)(?<integerPart>\d*)(?:\.(?<fractionalPart>\d*))?(?:e(?<exponent>[+-]?\d+))?$/iu;
+const LEADING_ZERO_PATTERN = /^0+$/u;
+const NORMALIZABLE_INTEGER_PATTERN = /^0+(?=\d)/u;
 /** Maximum accepted exponent magnitude at the public input boundary. */
 export const MAX_DECIMAL_EXPONENT = 1_000;
 /** Maximum serialized canonical value length at the public input boundary. */
@@ -33,10 +37,17 @@ function parseDecimalParts(
   readonly sign: string;
   readonly digits: string;
   readonly decimalPosition: number;
-} {
-  const match = /^([+-]?)(\d*)(?:\.(\d*))?(?:[eE]([+-]?\d+))?$/.exec(source);
+  } {
+  const match = DECIMAL_PARTS_PATTERN.exec(source);
+  /* c8 ignore next -- assertDecimalText guarantees that the canonical pattern matches. */
   if (!match) throw new InvalidDecimalError(value);
-  const [, sign, integerPart, fractionalPart = '', exponentText = '0'] = match;
+  const groups = match.groups as Record<string, string>;
+  const {
+    sign,
+    integerPart,
+    fractionalPart = '',
+    exponent: exponentText = '0',
+  } = groups;
   const exponent = Number(exponentText);
   /* c8 ignore next 3 */
   if (Math.abs(exponent) > MAX_DECIMAL_EXPONENT) {
@@ -76,7 +87,7 @@ function normalizeNumber(value: number): string {
 }
 
 function formatDigits(digits: string, decimalPosition: number): string {
-  if (/^0+$/.test(digits)) {
+  if (LEADING_ZERO_PATTERN.test(digits)) {
     return '0';
   }
 
@@ -91,9 +102,9 @@ function formatDigits(digits: string, decimalPosition: number): string {
     )}`;
   }
 
-  const [integerPart, fractionalPart] = formatted.split('.');
-  const normalizedInteger = integerPart.replace(/^0+(?=\d)/, '');
-  const normalizedFractional = trimTrailingZeros(fractionalPart ?? '');
+  const [integerPart, fractionalPart = ''] = formatted.split('.');
+  const normalizedInteger = integerPart.replace(NORMALIZABLE_INTEGER_PATTERN, '');
+  const normalizedFractional = trimTrailingZeros(fractionalPart);
 
   return normalizedFractional
     ? `${normalizedInteger}.${normalizedFractional}`

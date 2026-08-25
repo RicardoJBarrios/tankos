@@ -15,6 +15,9 @@ export function createVitestReporting(
   const reportDirectory = `${workspacePathPrefix}reports/test/${projectName}`;
 
   return {
+    /** A single worker avoids orphaned Angular/Vitest workers in serial Nx runs. */
+    pool: 'threads' as const,
+    fileParallelism: false,
     reporters: ['default', 'junit', 'json'],
     outputFile: {
       junit: `${reportDirectory}/junit.xml`,

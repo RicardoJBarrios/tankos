@@ -133,7 +133,7 @@ function createCrudListSelectionMethods<TData, TFilter>(
           : [...selected, id],
       });
     },
-    clearSelection: () => patchState(store, { selectedIds: [] }),
+    clearSelection: () => { patchState(store, { selectedIds: [] }); },
   };
 }
 
@@ -182,7 +182,7 @@ function createCrudListBatchMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
       return progress;
     },
     updateBatch: (progress: BatchProgress) =>
-      patchState(store, { batch: progress }),
+      { patchState(store, { batch: progress }); },
   };
 }
 
@@ -235,7 +235,7 @@ export function createCrudListStore<
     })),
     withMethods((store) => ({
       ...createCrudListLoadMethods(store, options),
-      setFilter: (filter: TFilter | undefined) => patchState(store, { filter }),
+      setFilter: (filter: TFilter | undefined) => { patchState(store, { filter }); },
       ...createCrudListSelectionMethods(store),
       ...createCrudListLifecycleMethods(store, options),
       ...createCrudListBatchMethods(store, options),
@@ -244,8 +244,8 @@ export function createCrudListStore<
 }
 
 /** Public signal shape used by headless CRUD views. */
-export type CrudListSignals<TData, TFilter> = {
+export interface CrudListSignals<TData, TFilter> {
   readonly items: Signal<readonly CrudRecord<TData>[]>;
   readonly filter: Signal<TFilter | undefined>;
   readonly selectedIds: Signal<readonly EntityId[]>;
-};
+}

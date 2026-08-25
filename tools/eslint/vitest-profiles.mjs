@@ -24,6 +24,24 @@ export function createVitestEslintConfig() {
       ignores: ['**/e2e/**'],
       languageOptions: { globals: globals.vitest },
       rules: {
+        // Test doubles frequently implement Promise-returning ports with
+        // synchronous in-memory behavior. The production profile still
+        // requires every async implementation to await a real operation.
+        '@typescript-eslint/require-await': 'off',
+        // Vitest's assertion API intentionally receives methods detached from
+        // their object (for example `expect(mock.method)`).
+        '@typescript-eslint/unbound-method': 'off',
+        // Vitest module mocks and Firebase SDK test doubles are intentionally
+        // structural runtime values. Production adapters remain fully typed;
+        // test fixtures must describe behavior without pretending to be the
+        // provider's private SDK implementation.
+        '@typescript-eslint/no-unsafe-argument': 'off',
+        '@typescript-eslint/no-unsafe-assignment': 'off',
+        '@typescript-eslint/no-unsafe-call': 'off',
+        '@typescript-eslint/no-unsafe-member-access': 'off',
+        '@typescript-eslint/no-unsafe-return': 'off',
+        '@typescript-eslint/no-unnecessary-type-conversion': 'off',
+        '@typescript-eslint/restrict-plus-operands': 'off',
         'no-restricted-syntax': [
           'error',
           {

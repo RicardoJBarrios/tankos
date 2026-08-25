@@ -30,7 +30,7 @@ function createClaimMaterializationOperation<TPayload>(
         const snapshot = await transaction.get(reference);
         if (!snapshot.exists)
           throw createDataAccessError('not-found', 'Batch was not found');
-        const current = fromDto<TPayload>(snapshot.data() as BatchDto);
+        const current = fromDto<TPayload>(snapshot.data());
         const active =
           current.materializationLeaseUntil !== undefined &&
           current.materializationLeaseUntil.epochMilliseconds >
@@ -80,7 +80,7 @@ function createClaimOperation<TPayload>(
         const snapshot = await transaction.get(reference);
         if (!snapshot.exists)
           throw createDataAccessError('not-found', 'Batch was not found');
-        const current = fromDto<TPayload>(snapshot.data() as BatchDto);
+        const current = fromDto<TPayload>(snapshot.data());
         const leaseActive =
           current.leaseUntil !== undefined &&
           current.leaseUntil.epochMilliseconds > request.now.epochMilliseconds;

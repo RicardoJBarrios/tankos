@@ -31,6 +31,15 @@ interface FakeCollection {
 }
 
 export function createHarness(failure?: unknown, writeFailure?: unknown) {
+  const throwFailure = (error: unknown): never => {
+    if (error instanceof Error) throw error;
+    if (typeof error === 'string') throw new Error(error);
+    const normalized = new Error(JSON.stringify(error));
+    if (typeof error === 'object' && error !== null) {
+      Object.assign(normalized, error);
+    }
+    throw normalized;
+  };
   const values = new Map<string, Record<string, unknown>>();
   const snapshot = (path: string) => ({
     exists: values.has(path),
@@ -40,17 +49,18 @@ export function createHarness(failure?: unknown, writeFailure?: unknown) {
   const reference = (path: string): FakeReference => ({
     path,
     get: async () => {
-      if (failure !== undefined) throw failure;
+      if (failure !== undefined) throwFailure(failure);
       return snapshot(path);
     },
     set: async (value: Record<string, unknown>) => {
-      if (writeFailure !== undefined) throw writeFailure;
+      if (writeFailure !== undefined) throwFailure(writeFailure);
       values.set(path, value);
     },
     update: async (value: Record<string, unknown>) => {
-      if (writeFailure !== undefined) throw writeFailure;
+      if (writeFailure !== undefined) throwFailure(writeFailure);
       const current = values.get(path);
-      if (!current) throw { code: 'not-found' };
+      if (!current)
+        throw Object.assign(new Error('not-found'), { code: 'not-found' });
       values.set(path, { ...current, ...value });
     },
     collection: (name: string) => collection(`${path}/${name}`),
@@ -58,12 +68,12 @@ export function createHarness(failure?: unknown, writeFailure?: unknown) {
   const collection = (path: string): FakeCollection => ({
     doc: (id: string) => reference(`${path}/${id}`),
     get: async () => {
-      if (failure !== undefined) throw failure;
+      if (failure !== undefined) throwFailure(failure);
       const docs = [...values.entries()]
         .filter(
           ([key]) =>
             key.startsWith(`${path}/`) &&
-            key.slice(path.length + 1).includes('/') === false,
+            !key.slice(path.length + 1).includes('/'),
         )
         .map(([key, value]) => ({ ref: reference(key), data: () => value }));
       return { docs, empty: docs.length === 0, size: docs.length };
@@ -90,26 +100,31 @@ export function createHarness(failure?: unknown, writeFailure?: unknown) {
     delete: vi.fn((ref: { path: string }) => values.delete(ref.path)),
     update: vi.fn((ref: { path: string }, value: Record<string, unknown>) => {
       const current = values.get(ref.path);
-      if (!current) throw { code: 'not-found' };
+      if (!current)
+        throw Object.assign(new Error('not-found'), { code: 'not-found' });
       values.set(ref.path, { ...current, ...value });
     }),
     commit: vi.fn().mockImplementation(async () => {
-      if (writeFailure !== undefined) throw writeFailure;
+      if (writeFailure !== undefined) throwFailure(writeFailure);
     }),
   };
   const transaction = {
     get: async (ref: { get: () => Promise<unknown> }) => ref.get(),
     create: (ref: { path: string }, value: Record<string, unknown>) => {
-      if (values.has(ref.path)) throw { code: 'already-exists' };
+      if (values.has(ref.path))
+        throw Object.assign(new Error('already-exists'), {
+          code: 'already-exists',
+        });
       values.set(ref.path, value);
     },
     update: (ref: { path: string }, value: Record<string, unknown>) => {
       const current = values.get(ref.path);
-      if (!current) throw { code: 'not-found' };
+      if (!current)
+        throw Object.assign(new Error('not-found'), { code: 'not-found' });
       values.set(ref.path, { ...current, ...value });
     },
     set: (ref: { path: string }, value: Record<string, unknown>) => {
-      if (writeFailure !== undefined) throw writeFailure;
+      if (writeFailure !== undefined) throwFailure(writeFailure);
       values.set(ref.path, value);
     },
   };

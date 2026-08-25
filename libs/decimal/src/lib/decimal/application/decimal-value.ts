@@ -9,7 +9,7 @@ import {
 } from '../core';
 
 function toDecimalValue(operand: DecimalOperand): DecimalValue {
-  if (typeof operand === 'object' && operand !== null) {
+  if (typeof operand === 'object') {
     return operand.value;
   }
 

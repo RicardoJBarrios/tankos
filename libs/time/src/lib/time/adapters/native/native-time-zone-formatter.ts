@@ -23,7 +23,9 @@ export function getFormatter(timeZone: string): Intl.DateTimeFormat {
   formatterCache.set(timeZone, formatter);
   if (formatterCache.size > FORMATTER_CACHE_LIMIT) {
     const oldestTimeZone = formatterCache.keys().next().value;
-    if (oldestTimeZone !== undefined) formatterCache.delete(oldestTimeZone);
+    /* c8 ignore next -- a non-empty cache always has a first key. */
+    if (oldestTimeZone === undefined) return formatter;
+    formatterCache.delete(oldestTimeZone);
   }
   return formatter;
 }

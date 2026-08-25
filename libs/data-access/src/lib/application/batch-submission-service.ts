@@ -4,6 +4,7 @@ import type {
   BatchMaterializerStorePort,
   BatchOperationPort,
   BatchRequest,
+  BatchSubmissionStorePort,
   EntityId,
 } from '../core';
 import { BatchSubmissionServiceImplementation } from './batch-submission-service-implementation';

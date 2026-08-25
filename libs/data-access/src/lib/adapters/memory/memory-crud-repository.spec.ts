@@ -73,6 +73,27 @@ describe('createInMemoryCrudRepository', () => {
     expect(secondPage.items).toHaveLength(1);
   });
 
+  it('Given an existing record, When fetched, Then returns it only when its lifecycle is visible', async () => {
+    const service = repository();
+
+    await expect(service.get({ access, id: createEntityId('one') })).resolves.toMatchObject({
+      id: 'one',
+    });
+    await expect(
+      service.get({ access, id: createEntityId('missing') }),
+    ).resolves.toBeUndefined();
+    await expect(
+      service.get({ access, id: createEntityId('deleted') }),
+    ).resolves.toBeUndefined();
+    await expect(
+      service.get({
+        access: administrator,
+        id: createEntityId('deleted'),
+        lifecycle: ['marked-for-deletion'],
+      }),
+    ).resolves.toMatchObject({ id: 'deleted' });
+  });
+
   it('Given an administrative lifecycle filter, When listed, Then includes marked records', async () => {
     const result = await repository().list({
       access: administrator,
@@ -322,6 +343,22 @@ describe('createInMemoryCrudRepository', () => {
     ).rejects.toMatchObject({
       code: 'conflict',
     });
+  });
+
+  it('Given a new record, When created, Then stores and returns it', async () => {
+    const result = await repository().create({ access, input: { name: 'three' } });
+
+    expect(result).toMatchObject({ id: 'three', data: { name: 'three' } });
+  });
+
+  it('Given an active record, When physically deleted without marking, Then returns a lifecycle error', async () => {
+    await expect(
+      repository().delete({
+        access: administrator,
+        id: createEntityId('one'),
+        expectedRevision: 1,
+      }),
+    ).rejects.toMatchObject({ code: 'lifecycle' });
   });
 
   it('Given a marked record, When physically deleted, Then it is absent and cannot be restored', async () => {

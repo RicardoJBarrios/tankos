@@ -79,7 +79,7 @@ export function createFirestoreAdminAtomicBatch<
       try {
         const batch = options.firestore.batch();
         operations.forEach((operation) =>
-          applyAtomicOperation(batch, options.firestore, operation),
+          { applyAtomicOperation(batch, options.firestore, operation); },
         );
         await batch.commit();
       } catch (error) {

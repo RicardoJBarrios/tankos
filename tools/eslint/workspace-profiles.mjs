@@ -1,6 +1,11 @@
 import nx from '@nx/eslint-plugin';
+import aiGuard from 'eslint-plugin-ai-guard';
 import boundaries from 'eslint-plugin-boundaries';
+import essential from 'eslint-plugin-essential';
 import sonarjs from 'eslint-plugin-sonarjs';
+import unicorn from 'eslint-plugin-unicorn';
+
+import localRules from './local-rules.mjs';
 
 const workspaceSourceFiles = [
   '**/*.ts',
@@ -39,10 +44,32 @@ const workspaceRules = {
   ],
 };
 
+const aiGuardPlugin = aiGuard.default ?? aiGuard;
+
 const libraryQualityRules = {
+  ...aiGuardPlugin.configs.strict.rules,
   ...sonarjs.configs.recommended.rules,
   complexity: ['error', 10],
   'sonarjs/cognitive-complexity': ['error', 15],
+  'essential/max-nested-conditions': ['error', { maxDepth: 1 }],
+  'unicorn/no-nested-ternary': 'error',
+  'unicorn/no-boolean-sort-comparator': 'error',
+  'unicorn/no-double-comparison': 'error',
+  'unicorn/no-duplicate-logical-operands': 'error',
+  'unicorn/no-error-property-assignment': 'error',
+  'unicorn/no-impossible-length-comparison': 'error',
+  'unicorn/no-multiple-promise-resolver-calls': 'error',
+  'unicorn/no-redundant-comparison': 'error',
+  'unicorn/no-unsafe-promise-all-settled-values': 'error',
+  'unicorn/no-unnecessary-await': 'error',
+  'unicorn/throw-new-error': 'error',
+  'unicorn/error-message': 'error',
+  'unicorn/prefer-simplified-conditions': 'error',
+  'unicorn/prefer-simple-condition-first': 'error',
+  'tankos/no-multiple-comparisons-in-condition': [
+    'error',
+    { maxConditionTerms: 2 },
+  ],
   // Methods without instance state belong outside the class as functions.
   'class-methods-use-this': ['error', { exceptMethods: [] }],
   // AccessRole is a deliberate ubiquitous-language alias for a role string.
@@ -144,7 +171,7 @@ export function createWorkspaceEslintConfig() {
   return [
     ...nx.configs['flat/base'],
     {
-      files: ['libs/**/*.ts'],
+      files: ['**/*.ts'],
       plugins: { boundaries },
       settings: {
         'boundaries/elements': architecturalElements,
@@ -168,13 +195,19 @@ export function createWorkspaceEslintConfig() {
       rules: workspaceRules,
     },
     {
-      files: ['libs/**/*.ts'],
+      files: ['**/*.ts'],
       ignores: ['**/*.spec.ts', '**/*.test.ts'],
-      plugins: { sonarjs },
+      plugins: {
+        'ai-guard': aiGuardPlugin,
+        essential,
+        sonarjs,
+        tankos: localRules,
+        unicorn,
+      },
       rules: libraryQualityRules,
     },
     {
-      files: ['libs/**/*.ts'],
+      files: ['**/*.ts'],
       ignores: ['**/*.spec.ts', '**/*.test.ts', '**/*.config.ts'],
       rules: librarySizeRules,
     },

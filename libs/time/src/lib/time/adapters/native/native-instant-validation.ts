@@ -1,5 +1,5 @@
 import { nativeParseInstant } from './native-instant-parsing';
-import { InstantInput } from '../../core';
+import type { InstantInput } from '../../core';
 
 /**
  * Checks whether a value can be parsed as an instant.
@@ -9,7 +9,7 @@ import { InstantInput } from '../../core';
  */
 export function nativeIsValidInstant(value: unknown): value is InstantInput {
   try {
-    nativeParseInstant(value as InstantInput);
+    nativeParseInstant(value);
     return true;
   } catch {
     return false;

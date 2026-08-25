@@ -69,7 +69,7 @@ async function resolveExistingRecord<TPayload>(
   const current = await transaction.get(
     context.batchReference(stored.batchId as EntityId),
   );
-  if (current.exists) return fromDto<TPayload>(current.data() as BatchDto);
+  if (current.exists) return fromDto<TPayload>(current.data());
   if (stored.record) return fromDto<TPayload>(stored.record);
   throw createDataAccessError(
     'not-found',
@@ -99,7 +99,7 @@ function createGetOperation<TPayload>(
     try {
       const snapshot = await context.batchReference(batchId).get();
       return snapshot.exists
-        ? fromDto<TPayload>(snapshot.data() as BatchDto)
+        ? fromDto<TPayload>(snapshot.data())
         : undefined;
     } catch (error) {
       return mapError(error, 'Firestore Admin batch read failed');

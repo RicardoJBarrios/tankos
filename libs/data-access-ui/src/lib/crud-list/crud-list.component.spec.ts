@@ -38,7 +38,7 @@ describe('CrudListComponent', () => {
     const spectator = render();
     expect(spectator.query('li')?.textContent).toContain('One');
     expect(
-      spectator.queryAll('button').map((button) => button.textContent?.trim()),
+      spectator.queryAll('button').map((button) => button.textContent.trim()),
     ).toContain('Edit');
   });
 

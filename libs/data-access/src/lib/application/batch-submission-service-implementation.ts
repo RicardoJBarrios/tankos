@@ -154,7 +154,7 @@ export class BatchSubmissionServiceImplementation<
     if (ids.length > this.#configuration.maxTargets)
       throw createDataAccessError(
         'validation',
-        `Batch selection exceeds the ${this.#configuration.maxTargets} target limit`,
+        `Batch selection exceeds the ${String(this.#configuration.maxTargets)} target limit`,
       );
     if (new Set(ids).size !== ids.length)
       throw createDataAccessError(
@@ -191,7 +191,7 @@ export class BatchSubmissionServiceImplementation<
     )
       throw createDataAccessError(
         'validation',
-        `Batch request exceeds the ${this.#configuration.maxRequestBytes}-byte limit`,
+        `Batch request exceeds the ${String(this.#configuration.maxRequestBytes)}-byte limit`,
       );
   }
 }

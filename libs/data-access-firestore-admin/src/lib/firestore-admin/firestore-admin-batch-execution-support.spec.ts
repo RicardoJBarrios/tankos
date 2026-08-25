@@ -19,6 +19,14 @@ describe('firestore admin batch execution support', () => {
     ).toMatchObject({ outcome: 'failed', message: 'failure' });
   });
 
+  it('Given a non-Error failure, When normalizing it, Then uses a stable fallback', () => {
+    expect(createItemFailure(createEntityId('item'), 'failure')).toMatchObject({
+      outcome: 'failed',
+      code: 'unknown',
+      message: 'Unknown failure',
+    });
+  });
+
   it('Given mixed outcomes, When summarizing them, Then counts each outcome', () => {
     expect(
       summarizeResults([

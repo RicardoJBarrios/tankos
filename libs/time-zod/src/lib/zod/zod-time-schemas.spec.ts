@@ -29,6 +29,8 @@ describe('createZodTimeSchemas', () => {
     const throwingTime = {
       ...nativeTime,
       parseInstant: () => {
+        // A provider boundary may reject with a non-Error legacy value.
+        // eslint-disable-next-line @typescript-eslint/only-throw-error
         throw '';
       },
     };
