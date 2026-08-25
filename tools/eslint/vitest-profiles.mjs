@@ -1,8 +1,6 @@
 import vitest from 'eslint-plugin-vitest';
 
-const vitestTestFiles = [
-  '**/*.{spec,test}.{ts,tsx,mts,cts,js,jsx,mjs,cjs}',
-];
+const vitestTestFiles = ['**/*.{spec,test}.{ts,tsx,mts,cts,js,jsx,mjs,cjs}'];
 
 const customTestBlockFunctions = ['emulatorTest'];
 const customAssertionFunctions = ['expect', 'expectCode'];
@@ -21,12 +19,12 @@ export function createVitestEslintConfig() {
     {
       files: vitestTestFiles,
       ignores: ['**/e2e/**'],
+      languageOptions: vitest.configs.env.languageOptions,
       plugins: { vitest },
       rules: {
         ...vitest.configs.recommended.rules,
         'vitest/no-disabled-tests': 'error',
         'vitest/no-focused-tests': 'error',
-        'vitest/no-identical-title': 'error',
         'vitest/expect-expect': [
           'error',
           {
@@ -38,6 +36,7 @@ export function createVitestEslintConfig() {
           'error',
           { additionalTestBlockFunctions: customTestBlockFunctions },
         ],
+        'vitest/no-identical-title': 'error',
       },
     },
   ];

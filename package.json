@@ -86,6 +86,7 @@
     "eslint-plugin-vitest": "0.5.4",
     "firebase-admin": "^14.2.0",
     "firebase-tools": "15.27.0",
+    "globals": "17.9.0",
     "jiti": "2.4.2",
     "jsdom": "~22.1.0",
     "jsonc-eslint-parser": "^2.1.0",

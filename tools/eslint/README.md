@@ -7,10 +7,7 @@ presets or rule blocks.
 ```js
 import { createAngularEslintConfig } from '../../tools/eslint/angular-profiles.mjs';
 
-export default [
-  ...baseConfig,
-  ...createAngularEslintConfig({ prefix: 'tankos' }),
-];
+export default [...baseConfig, ...createAngularEslintConfig({ prefix: 'tankos' })];
 ```
 
 The root `eslint.config.mjs` composes the workspace, TypeScript and JavaScript
@@ -31,12 +28,20 @@ Every project receives the workspace profile through the root configuration:
 TypeScript files additionally receive:
 
 - Nx `flat/typescript`.
+- `typescript-eslint` `strictTypeChecked`.
 - TypeScript ESLint `projectService`, rooted at the workspace, for every
   TypeScript file. Typed linting is mandatory; it is not an opt-in flag.
 
-JavaScript-family files additionally receive Nx `flat/javascript`. This is
-limited to tooling and configuration; product and test code remains
-TypeScript.
+The strict preset objects are explicitly scoped to TypeScript-family files so
+type-aware rules cannot accidentally execute against JavaScript configuration
+files. Formatting remains owned by Prettier, so the separate stylistic
+typescript-eslint preset is intentionally not composed: enabling both would
+make the quality tools compete over formatting decisions.
+
+JavaScript-family files additionally receive Nx `flat/javascript` and
+`@eslint/js` `configs.all`. This is limited to tooling and configuration;
+product and test code remains TypeScript. Node globals are declared explicitly
+for those configuration and tooling files.
 
 Angular projects additionally receive the complete Nx `flat/angular` and
 `flat/angular-template` presets through `createAngularEslintConfig`. The
