@@ -262,6 +262,60 @@ describe('createInMemoryCrudRepository', () => {
     ).rejects.toMatchObject({ code: 'conflict' });
   });
 
+  it('Given a command without an integer revision, When modified, Then returns a validation error', async () => {
+    await expect(
+      repository().replace(
+        { access, id: createEntityId('one'), expectedRevision: undefined },
+        { name: 'x' },
+      ),
+    ).rejects.toMatchObject({ code: 'validation' });
+  });
+
+  it('Given an active record, When restore is requested, Then returns a lifecycle error', async () => {
+    await expect(
+      repository().restore({
+        access: administrator,
+        id: createEntityId('one'),
+        expectedRevision: 1,
+      }),
+    ).rejects.toMatchObject({ code: 'lifecycle' });
+  });
+
+  it('Given a marked record, When restore is requested, Then returns it to active lifecycle', async () => {
+    const restored = await repository().restore({
+      access: administrator,
+      id: createEntityId('deleted'),
+      expectedRevision: 1,
+    });
+    expect(restored.lifecycle.status).toBe('active');
+  });
+
+  it('Given a terminally deleted record, When it is marked for deletion, Then returns a lifecycle error', async () => {
+    const service = createInMemoryCrudRepository({
+      initialRecords: initial.map((record) =>
+        record.id === createEntityId('deleted')
+          ? { ...record, lifecycle: { status: 'deleted' as const } }
+          : record,
+      ),
+      clock: { now: () => instant },
+      create: (input: { name: string }) => ({
+        id: createEntityId(input.name),
+        data: input,
+        lifecycle: { status: 'active' as const },
+        revision: 1,
+        metadata: { schemaVersion: 1, createdAt: instant, updatedAt: instant },
+      }),
+      update: (_data, input: { name: string }) => input,
+    });
+    await expect(
+      service.markForDeletion({
+        access: administrator,
+        id: createEntityId('deleted'),
+        expectedRevision: 1,
+      }),
+    ).rejects.toMatchObject({ code: 'lifecycle' });
+  });
+
   it('Given an existing record, When created with the same id, Then returns a conflict', async () => {
     await expect(
       repository().create({ access, input: { name: 'one' } }),
@@ -279,6 +333,16 @@ describe('createInMemoryCrudRepository', () => {
     ).rejects.toMatchObject({
       code: 'not-found',
     });
+  });
+
+  it('Given a keeper, When a lifecycle operation is requested, Then returns forbidden', async () => {
+    await expect(
+      repository().markForDeletion({
+        access,
+        id: createEntityId('one'),
+        expectedRevision: 1,
+      }),
+    ).rejects.toMatchObject({ code: 'forbidden' });
   });
 
   it('Given no initial records or filter matcher, When created, Then starts with an empty catalogue', async () => {

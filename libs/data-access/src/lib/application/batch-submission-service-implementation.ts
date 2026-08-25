@@ -81,27 +81,33 @@ export class BatchSubmissionServiceImplementation<
         'conflict',
         'A claimed materialization must include a fencing lease',
       );
-    if (current.status !== 'materializing' || !current.requestedSelection)
+    if (
+      current.status !== 'materializing' ||
+      current.requestedSelection === undefined
+    ) {
       return project(current);
+    }
     const ids = await this.#materializeSelection(
       current.requestedSelection as BatchSelection<TFilter>,
     );
     if (await this.#options.materializerStore.isCancellationRequested(batchId))
       return this.#cancelMaterialization(batchId, claim.lease);
-    for (const chunk of createPendingChunks(ids, this.#configuration.chunkSize))
+    for (const chunk of createPendingChunks(ids, this.#configuration.chunkSize)) {
       await this.#options.materializerStore.putChunk(
         batchId,
         chunk,
         claim.lease,
       );
+    }
+    const queuedPatch = createQueuedPatch(
+      current.requestFingerprint,
+      ids.length,
+      this.#configuration.chunkSize,
+      this.#options.clock.now(),
+    );
     const queued = await this.#options.materializerStore.update(
       batchId,
-      createQueuedPatch(
-        current.requestFingerprint,
-        ids.length,
-        this.#configuration.chunkSize,
-        this.#options.clock.now(),
-      ),
+      queuedPatch,
       claim.lease,
     );
     return project(queued);
@@ -113,23 +119,23 @@ export class BatchSubmissionServiceImplementation<
 
   async resume(batchId: EntityId): Promise<BatchProgress> {
     const current = await this.#require(batchId);
-    if (
-      current.status === 'queued' ||
-      current.status === 'completed' ||
-      current.status === 'cancelled'
-    )
-      return project(current);
-    if (current.status !== 'failed' && current.status !== 'interrupted')
-      throw createDataAccessError(
-        'conflict',
-        `Batch cannot be resumed from status ${current.status}`,
-      );
-    return project(
-      await this.#options.store.update(
-        batchId,
-        createResumePatch(this.#options.clock.now()),
-      ),
-    );
+    switch (current.status) {
+      case 'queued':
+      case 'completed':
+      case 'cancelled':
+        return project(current);
+      case 'failed':
+      case 'interrupted':
+        break;
+      default:
+        throw createDataAccessError(
+          'conflict',
+          `Batch cannot be resumed from status ${current.status}`,
+        );
+    }
+    const resumePatch = createResumePatch(this.#options.clock.now());
+    const resumed = await this.#options.store.update(batchId, resumePatch);
+    return project(resumed);
   }
 
   async cancel(batchId: EntityId): Promise<BatchProgress> {

@@ -136,14 +136,16 @@ export async function executeWithConcurrency<TItem, TResult>(
 ): Promise<TResult[]> {
   const results = new Array<TResult>(items.length);
   let nextIndex = 0;
-  const worker = async (): Promise<void> => {
-    while (nextIndex < items.length) {
-      const index = nextIndex++;
-      results[index] = await execute(items[index]);
-    }
-  };
   await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, () => worker()),
+    Array.from(
+      { length: Math.min(concurrency, items.length) },
+      async (): Promise<void> => {
+        while (nextIndex < items.length) {
+          const index = nextIndex++;
+          results[index] = await execute(items[index]);
+        }
+      },
+    ),
   );
   return results;
 }

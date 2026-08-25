@@ -1,11 +1,18 @@
 import { createEntityId } from '@tankos/data-access';
 import {
+  boundedMap,
   createItemFailure,
   summarizeResults,
   terminalStatus,
 } from './firestore-admin-batch-execution-support';
 
 describe('firestore admin batch execution support', () => {
+  it('Given ordered items, When boundedMap executes them, Then it returns results in input order', async () => {
+    await expect(
+      boundedMap([1, 2, 3], 2, async (value) => value * 2),
+    ).resolves.toEqual([2, 4, 6]);
+  });
+
   it('Given an Error, When normalizing it, Then preserves its diagnostic fields', () => {
     expect(
       createItemFailure(createEntityId('item'), new Error('failure')),

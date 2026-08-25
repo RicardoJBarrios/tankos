@@ -248,6 +248,38 @@ describe('createInMemoryBatchOperation', () => {
     });
   });
 
+  it('Given a materializing batch, When the worker runs before materialization, Then rejects the invalid state', async () => {
+    const adapter = createInMemoryBatchOperation({
+      clock: { now: () => now },
+      materialize: () => ids,
+      execute: async (id) => ({ id, outcome: 'succeeded' as const }),
+    });
+    const submitted = await adapter.submit(request);
+    await expect(adapter.run(submitted.batchId, worker)).rejects.toMatchObject({
+      code: 'validation',
+    });
+  });
+
+  it('Given a running batch, When it is run again, Then rejects the concurrent worker', async () => {
+    let release: (() => void) | undefined;
+    const adapter = createInMemoryBatchOperation({
+      clock: { now: () => now },
+      materialize: () => [ids[0]],
+      execute: async (id) => {
+        await new Promise<void>((resolve) => (release = resolve));
+        return { id, outcome: 'succeeded' as const };
+      },
+    });
+    const submitted = await adapter.submit(request);
+    await adapter.materialize(submitted.batchId);
+    const running = adapter.run(submitted.batchId, worker);
+    await expect(adapter.run(submitted.batchId, worker)).rejects.toMatchObject({
+      code: 'conflict',
+    });
+    release?.();
+    await running;
+  });
+
   it('Given the same idempotency key, When submitted twice, Then materializes and stores one operation', async () => {
     let materializations = 0;
     const adapter = createInMemoryBatchOperation({

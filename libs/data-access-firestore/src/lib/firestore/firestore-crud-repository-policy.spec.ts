@@ -4,6 +4,8 @@ import type { FirestoreCrudRepositoryOptions } from './firestore-crud-repository
 import {
   authorizeFirestoreAccess,
   authorizeFirestoreLifecycleRead,
+  createFirestoreTimestampFactory,
+  handleFirestoreError,
   requireFirestoreRevision,
 } from './firestore-crud-repository-policy';
 
@@ -36,6 +38,29 @@ describe('firestore CRUD policy', () => {
         record,
       ),
     ).not.toThrow();
+  });
+
+  it('Given a clock, When creating a timestamp factory, Then it converts the technical instant', () => {
+    const factory = createFirestoreTimestampFactory({
+      now: () => ({ kind: 'instant', epochMilliseconds: 4321 }),
+    });
+    expect(factory().toMillis()).toBe(4321);
+  });
+
+  it('Given no clock, When creating a timestamp factory, Then it delegates to Firestore now', () => {
+    expect(createFirestoreTimestampFactory(undefined)()).toBeDefined();
+  });
+
+  it('Given a data-access error, When handling a provider error, Then it preserves the original error', () => {
+    const error = new Error('existing');
+    error.name = 'DataAccessError';
+    expect(handleFirestoreError(error, 'transient', 'fallback')).toBe(error);
+  });
+
+  it('Given an unknown provider error, When handling it, Then it creates the fallback data-access error', () => {
+    expect(
+      handleFirestoreError(new Error('provider'), 'transient', 'fallback'),
+    ).toMatchObject({ code: 'transient' });
   });
 
   it('Given a stale revision, When validating a command, Then raises a conflict', () => {
@@ -103,5 +128,17 @@ describe('firestore CRUD policy', () => {
       'get',
     );
     expect(authorize).toHaveBeenCalledWith(access, 'get', ['deleted']);
+  });
+
+  it('Given visible lifecycle states without a host policy, When reading, Then allows the request', async () => {
+    await expect(
+      authorizeFirestoreLifecycleRead(options, access, ['active'], 'list'),
+    ).resolves.toBeUndefined();
+  });
+
+  it('Given no lifecycle filter without a host policy, When reading, Then allows the request', async () => {
+    await expect(
+      authorizeFirestoreLifecycleRead(options, access, undefined, 'get'),
+    ).resolves.toBeUndefined();
   });
 });

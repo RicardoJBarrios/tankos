@@ -3,8 +3,16 @@ import { describe, expect, it, vi } from 'vitest';
 import { createEntityId } from '@tankos/data-access';
 import {
   createFirestoreCrudRepository,
+  firestoreErrorCode,
+  mapRecord,
+  timestamp,
+  validateDocumentId,
   type FirestoreRecordDto,
 } from './firestore-crud-repository';
+import {
+  deleteFirestoreRecord,
+  transactFirestoreUpdate,
+} from './firestore-crud-repository-policy';
 
 const firestoreMocks = vi.hoisted(() => ({
   collection: vi.fn(() => ({})),
@@ -78,6 +86,98 @@ describe('createFirestoreCrudRepository', () => {
     firestoreMocks.getDoc.mockResolvedValue(snapshot(true));
     return { repository: repository(), transaction };
   }
+
+  it('Given a Firestore timestamp, When timestamp maps it, Then it returns the technical instant', () => {
+    expect(timestamp({ toMillis: () => 1234 } as never)).toEqual({
+      kind: 'instant',
+      epochMilliseconds: 1234,
+    });
+  });
+
+  it.each([
+    ['permission-denied', 'forbidden'],
+    ['not-found', 'not-found'],
+    ['aborted', 'transient'],
+    ['invalid-argument', 'validation'],
+    ['unmapped', undefined],
+  ] as const)('Given a Firestore code %s, When mapping it, Then returns %s', (code, expected) => {
+    expect(firestoreErrorCode({ code })).toBe(expected);
+  });
+
+  it('Given a Zod error, When mapping its provider code, Then returns validation', () => {
+    expect(firestoreErrorCode(new z.ZodError([]))).toBe('validation');
+  });
+
+  it.each(['', ' ', '.', '..', 'units/one'])(
+    'Given an invalid document id %s, When validating it, Then it rejects the path segment',
+    (id) => {
+      expect(() => validateDocumentId(id)).toThrow('single path segments');
+    },
+  );
+
+  it('Given a valid document id, When validating it, Then it preserves the id', () => {
+    expect(validateDocumentId('unit-1')).toBe('unit-1');
+  });
+
+  it('Given a valid DTO snapshot, When mapRecord maps it, Then it converts technical timestamps and metadata', () => {
+    expect(mapRecord(snapshot(true), schema)).toMatchObject({
+      id: 'unit-1',
+      data: { name: 'litre' },
+      metadata: {
+        createdAt: { epochMilliseconds: 0 },
+        updatedAt: { epochMilliseconds: 0 },
+      },
+    });
+  });
+
+  it('Given a marked-for-deletion record, When deleteFirestoreRecord runs, Then it deletes the document in the transaction', async () => {
+    const transaction = {
+      get: vi.fn().mockResolvedValue(
+        snapshot(true, 'unit-1', {
+          ...dto,
+          lifecycle: { status: 'marked-for-deletion' },
+        }),
+      ),
+      delete: vi.fn(),
+    };
+    await deleteFirestoreRecord(
+      transaction as never,
+      { id: createEntityId('unit-1'), access, expectedRevision: 1 },
+      {
+        firestore: {} as never,
+        collectionPath: 'units',
+        recordSchema: schema,
+      } as never,
+    );
+    expect(transaction.delete).toHaveBeenCalled();
+  });
+
+  it('Given an existing active record, When transactFirestoreUpdate replaces it, Then it writes the next revision and returns it', async () => {
+    const transaction = {
+      get: vi.fn().mockResolvedValue(snapshot(true)),
+      update: vi.fn(),
+    };
+    firestoreMocks.runTransaction.mockImplementation(
+      async (_firestore, callback) => callback(transaction),
+    );
+    const result = await transactFirestoreUpdate(
+      {
+        firestore: {} as never,
+        collectionPath: 'units',
+        recordSchema: schema,
+      } as never,
+      () => ({ toMillis: () => 0 }) as never,
+      { id: createEntityId('unit-1'), access, expectedRevision: 1 },
+      'replace',
+      (current) => ({
+        data: { name: 'gallon' },
+        lifecycle: current.lifecycle,
+      }),
+    );
+    expect(result.data).toEqual({ name: 'gallon' });
+    expect(result.revision).toBe(2);
+    expect(transaction.update).toHaveBeenCalled();
+  });
 
   it('Given a valid Firestore page, When listed, Then maps records and returns a cursor', async () => {
     firestoreMocks.getDocs.mockResolvedValue({

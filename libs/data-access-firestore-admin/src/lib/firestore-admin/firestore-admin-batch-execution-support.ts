@@ -12,14 +12,16 @@ export async function boundedMap<TItem, TResult>(
 ): Promise<TResult[]> {
   const results = new Array<TResult>(items.length);
   let cursor = 0;
-  const worker = async (): Promise<void> => {
-    while (cursor < items.length) {
-      const index = cursor++;
-      results[index] = await callback(items[index]);
-    }
-  };
   await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, () => worker()),
+    Array.from(
+      { length: Math.min(concurrency, items.length) },
+      async (): Promise<void> => {
+        while (cursor < items.length) {
+          const index = cursor++;
+          results[index] = await callback(items[index]);
+        }
+      },
+    ),
   );
   return results;
 }

@@ -5,6 +5,73 @@ import { createTtlCache } from './ttl-cache';
 
 describe('createCachedCrudRepository', () => {
   const access = { principalId: 'keeper' as never, roles: ['keeper'] as const };
+
+  it.each([0, Number.NaN, Number.POSITIVE_INFINITY])(
+    'Given an invalid TTL %s, When creating the cache decorator, Then it rejects the configuration',
+    (ttlMilliseconds) => {
+      expect(() =>
+        createCachedCrudRepository(
+          {} as CrudRepositoryPort<unknown, unknown, unknown>,
+          createTtlCache({ now: () => 0 }),
+          { scope: { domain: 'units' }, ttlMilliseconds },
+        ),
+      ).toThrow(RangeError);
+    },
+  );
+
+  it('Given a slow backing list, When the same request is read concurrently, Then shares the in-flight request', async () => {
+    let resolve: ((page: { items: never[]; hasMore: boolean }) => void) | undefined;
+    const backing = {
+      list: vi.fn(
+        () =>
+          new Promise<{ items: never[]; hasMore: boolean }>((complete) => {
+            resolve = complete;
+          }),
+      ),
+    } as unknown as CrudRepositoryPort<unknown, unknown, unknown>;
+    const repository = createCachedCrudRepository(
+      backing,
+      createTtlCache({ now: () => 0 }),
+      { scope: { domain: 'units' }, ttlMilliseconds: 100 },
+    );
+    const request = {
+      access,
+      page: { pageSize: 1, orderBy: [{ field: 'id', direction: 'asc' as const }] },
+    };
+    const first = repository.list(request);
+    const second = repository.list(request);
+    await Promise.resolve();
+    resolve?.({ items: [], hasMore: false });
+    await expect(Promise.all([first, second])).resolves.toHaveLength(2);
+    expect(backing.list).toHaveBeenCalledTimes(1);
+  });
+
+  it('Given a slow backing get, When the same record is read concurrently, Then shares the in-flight request', async () => {
+    let resolve: ((record: undefined) => void) | undefined;
+    const backing = {
+      get: vi.fn(
+        () =>
+          new Promise<undefined>((complete) => {
+            resolve = complete;
+          }),
+      ),
+    } as unknown as CrudRepositoryPort<unknown, unknown, unknown>;
+    const repository = createCachedCrudRepository(
+      backing,
+      createTtlCache({ now: () => 0 }),
+      { scope: { domain: 'units' }, ttlMilliseconds: 100 },
+    );
+    const request = { access, id: 'unit-1' as never };
+    const first = repository.get(request);
+    const second = repository.get(request);
+    await Promise.resolve();
+    resolve?.(undefined);
+    await expect(Promise.all([first, second])).resolves.toEqual([
+      undefined,
+      undefined,
+    ]);
+    expect(backing.get).toHaveBeenCalledTimes(1);
+  });
   it('Given a backing repository, When a query repeats, Then serves the second read from cache', async () => {
     let reads = 0;
     const page = { items: [], hasMore: false };

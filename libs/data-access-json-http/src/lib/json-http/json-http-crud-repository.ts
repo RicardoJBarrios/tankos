@@ -1,5 +1,6 @@
 import type { z } from 'zod';
 import type {
+  CrudRecord,
   CrudRepositoryPort,
   ListRequest,
   Page,

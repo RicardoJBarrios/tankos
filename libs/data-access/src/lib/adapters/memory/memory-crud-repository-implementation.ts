@@ -17,6 +17,91 @@ import {
 } from '../../core';
 import type { InMemoryCrudRepositoryOptions } from './memory-crud-repository';
 
+function failure(code: DataAccessErrorCode, message: string): DataAccessError {
+  return new DataAccessError(code, message, {
+    retryable: code === 'transient',
+  });
+}
+
+function validateAccess(
+  access: Parameters<typeof createAccessContext>[0],
+): void {
+  createAccessContext(access);
+}
+
+function nextCursor<TData, TFilter>(
+  items: readonly CrudRecord<TData>[],
+  orderBy: ListRequest<TFilter>['page']['orderBy'],
+): PageCursor {
+  return createPageCursor(
+    JSON.stringify({ id: items[items.length - 1].id, orderBy }),
+  );
+}
+
+function orderValue<TData>(
+  record: CrudRecord<TData>,
+  field: string,
+): string | number {
+  const value = field.split('.').reduce<unknown>((current, segment) => {
+    if (!current || typeof current !== 'object') return undefined;
+    return (current as Record<string, unknown>)[segment];
+  }, record);
+  return value as string | number;
+}
+
+function requireRevision<TData>(
+  record: CrudRecord<TData>,
+  request: RecordCommand,
+): void {
+  if (!Number.isInteger(request.expectedRevision))
+    throw failure(
+      'validation',
+      'Record commands require an integer expectedRevision',
+    );
+  if (request.expectedRevision !== record.revision)
+    throw failure('conflict', `Record ${record.id} revision is stale`);
+}
+
+function requireNotDeleted<TData>(record: CrudRecord<TData>): void {
+  if (record.lifecycle.status === 'deleted')
+    throw failure('lifecycle', `Record ${record.id} is terminally deleted`);
+}
+
+function sortRecords<TData, TFilter>(
+  records: CrudRecord<TData>[],
+  orderBy: ListRequest<TFilter>['page']['orderBy'],
+): void {
+  records.sort((left, right) => {
+    for (const order of orderBy) {
+      const leftValue = orderValue(left, order.field);
+      const rightValue = orderValue(right, order.field);
+      if (leftValue === rightValue) continue;
+      const comparison = leftValue < rightValue ? -1 : 1;
+      return order.direction === 'asc' ? comparison : -comparison;
+    }
+    return left.id.localeCompare(right.id);
+  });
+}
+
+function cursorStart<TData, TFilter>(
+  records: readonly CrudRecord<TData>[],
+  after: string | undefined,
+  orderBy: ListRequest<TFilter>['page']['orderBy'],
+): number {
+  if (!after) return 0;
+  const cursor = JSON.parse(after) as
+    { id?: string; orderBy?: unknown } | undefined;
+  if (
+    !cursor ||
+    typeof cursor.id !== 'string' ||
+    JSON.stringify(cursor.orderBy) !== JSON.stringify(orderBy)
+  )
+    throw failure('validation', 'Invalid in-memory page cursor');
+  const index = records.findIndex((record) => record.id === cursor.id);
+  if (index < 0) throw failure('validation', 'Cursor record was not found');
+  return index + 1;
+}
+
 /** Stateful in-memory implementation used by the public factory. */
 export class MemoryCrudRepository<
   TData,
@@ -47,13 +132,13 @@ export class MemoryCrudRepository<
   }
 
   async list(request: ListRequest<TFilter>): Promise<Page<CrudRecord<TData>>> {
-    this.#validateAccess(request.access);
+    validateAccess(request.access);
     createPageRequest(request.page);
     this.#validateLifecycleSelection(request.access, request.lifecycle);
     const lifecycle = new Set(request.lifecycle ?? [...this.#visibleByDefault]);
     const filtered = this.#filterRecords(request, lifecycle);
-    this.#sortRecords(filtered, request.page.orderBy);
-    const start = this.#cursorStart(
+    sortRecords(filtered, request.page.orderBy);
+    const start = cursorStart(
       filtered,
       request.page.after,
       request.page.orderBy,
@@ -63,14 +148,12 @@ export class MemoryCrudRepository<
     return {
       items,
       hasMore,
-      nextCursor: hasMore
-        ? this.#nextCursor(items, request.page.orderBy)
-        : undefined,
+      nextCursor: hasMore ? nextCursor(items, request.page.orderBy) : undefined,
     };
   }
 
   async get(request: GetRequest): Promise<CrudRecord<TData> | undefined> {
-    this.#validateAccess(request.access);
+    validateAccess(request.access);
     this.#validateLifecycleSelection(request.access, request.lifecycle);
     const record = this.#records.get(request.id);
     if (!record) return undefined;
@@ -79,13 +162,13 @@ export class MemoryCrudRepository<
   }
 
   async create(request: CreateRequest<TCreate>): Promise<CrudRecord<TData>> {
-    this.#validateAccess(request.access);
+    validateAccess(request.access);
     const record = this.#options.create(
       request.input,
       this.#options.clock.now(),
     );
     if (this.#records.has(record.id))
-      throw this.#failure('conflict', `Record ${record.id} already exists`);
+      throw failure('conflict', `Record ${record.id} already exists`);
     this.#records.set(record.id, record);
     return record;
   }
@@ -95,8 +178,8 @@ export class MemoryCrudRepository<
     input: TUpdate,
   ): Promise<CrudRecord<TData>> {
     const record = this.#requireRecord(request);
-    this.#requireRevision(record, request);
-    this.#requireNotDeleted(record);
+    requireRevision(record, request);
+    requireNotDeleted(record);
     const replacement = this.#withUpdatedMetadata(record, request.access);
     const updated = {
       ...replacement,
@@ -109,8 +192,8 @@ export class MemoryCrudRepository<
   async markForDeletion(request: RecordCommand): Promise<CrudRecord<TData>> {
     this.#requireLifecycleRole(request.access);
     const record = this.#requireRecord(request);
-    this.#requireRevision(record, request);
-    this.#requireNotDeleted(record);
+    requireRevision(record, request);
+    requireNotDeleted(record);
     const updated = this.#withUpdatedMetadata(record, request.access, {
       status: 'marked-for-deletion',
     });
@@ -121,57 +204,53 @@ export class MemoryCrudRepository<
   async restore(request: RecordCommand): Promise<CrudRecord<TData>> {
     this.#requireLifecycleRole(request.access);
     const record = this.#requireRecord(request);
-    this.#requireRevision(record, request);
-    if (record.lifecycle.status !== 'marked-for-deletion')
-      throw this.#failure(
+    requireRevision(record, request);
+    if (record.lifecycle.status === 'marked-for-deletion') {
+      const updated = this.#withUpdatedMetadata(record, request.access, {
+        status: 'active',
+      });
+      this.#records.set(record.id, updated);
+      return updated;
+    }
+    else {
+      throw failure(
         'lifecycle',
         `Record ${record.id} is not marked for deletion`,
       );
-    const updated = this.#withUpdatedMetadata(record, request.access, {
-      status: 'active',
-    });
-    this.#records.set(record.id, updated);
-    return updated;
+    }
   }
 
   async delete(request: RecordCommand): Promise<void> {
     this.#requireLifecycleRole(request.access);
     const record = this.#requireRecord(request);
-    this.#requireRevision(record, request);
-    if (record.lifecycle.status !== 'marked-for-deletion')
-      throw this.#failure(
+    requireRevision(record, request);
+    if (record.lifecycle.status === 'marked-for-deletion') {
+      this.#records.delete(record.id);
+    }
+    else {
+      throw failure(
         'lifecycle',
         `Record ${record.id} must be marked for deletion`,
       );
-    this.#records.delete(record.id);
-  }
-
-  #failure(code: DataAccessErrorCode, message: string): DataAccessError {
-    return new DataAccessError(code, message, {
-      retryable: code === 'transient',
-    });
-  }
-
-  #validateAccess(access: Parameters<typeof createAccessContext>[0]): void {
-    createAccessContext(access);
+    }
   }
 
   #requireLifecycleRole(
     access: Parameters<typeof createAccessContext>[0],
   ): void {
-    this.#validateAccess(access);
+    validateAccess(access);
     if (!access.roles.some((role) => this.#elevatedRoles.has(role)))
-      throw this.#failure(
+      throw failure(
         'forbidden',
         'Lifecycle operations require an elevated role',
       );
   }
 
   #requireRecord(request: RecordCommand): CrudRecord<TData> {
-    this.#validateAccess(request.access);
+    validateAccess(request.access);
     const record = this.#records.get(request.id);
     if (!record)
-      throw this.#failure('not-found', `Record ${request.id} was not found`);
+      throw failure('not-found', `Record ${request.id} was not found`);
     return record;
   }
 
@@ -181,24 +260,6 @@ export class MemoryCrudRepository<
   ): void {
     if (lifecycle?.some((status) => !this.#visibleByDefault.has(status)))
       this.#requireLifecycleRole(access);
-  }
-
-  #requireRevision(record: CrudRecord<TData>, request: RecordCommand): void {
-    if (!Number.isInteger(request.expectedRevision))
-      throw this.#failure(
-        'validation',
-        'Record commands require an integer expectedRevision',
-      );
-    if (request.expectedRevision !== record.revision)
-      throw this.#failure('conflict', `Record ${record.id} revision is stale`);
-  }
-
-  #requireNotDeleted(record: CrudRecord<TData>): void {
-    if (record.lifecycle.status === 'deleted')
-      throw this.#failure(
-        'lifecycle',
-        `Record ${record.id} is terminally deleted`,
-      );
   }
 
   #withUpdatedMetadata(
@@ -229,65 +290,12 @@ export class MemoryCrudRepository<
   ): CrudRecord<TData>[] {
     const matcher = this.#options.matches;
     if (request.filter !== undefined && matcher === undefined)
-      throw this.#failure('validation', 'A filter requires a matcher');
+      throw failure('validation', 'A filter requires a matcher');
     return [...this.#records.values()].filter(
       (record) =>
         lifecycle.has(record.lifecycle.status) &&
         (request.filter === undefined ||
           matcher?.(record, request.filter) === true),
     );
-  }
-
-  #sortRecords(
-    records: CrudRecord<TData>[],
-    orderBy: ListRequest<TFilter>['page']['orderBy'],
-  ): void {
-    records.sort((left, right) => {
-      for (const order of orderBy) {
-        const leftValue = this.#orderValue(left, order.field);
-        const rightValue = this.#orderValue(right, order.field);
-        if (leftValue === rightValue) continue;
-        const comparison = leftValue < rightValue ? -1 : 1;
-        return order.direction === 'asc' ? comparison : -comparison;
-      }
-      return left.id.localeCompare(right.id);
-    });
-  }
-
-  #cursorStart(
-    records: readonly CrudRecord<TData>[],
-    after: string | undefined,
-    orderBy: ListRequest<TFilter>['page']['orderBy'],
-  ): number {
-    if (!after) return 0;
-    const cursor = JSON.parse(after) as
-      { id?: string; orderBy?: unknown } | undefined;
-    if (
-      !cursor ||
-      typeof cursor.id !== 'string' ||
-      JSON.stringify(cursor.orderBy) !== JSON.stringify(orderBy)
-    )
-      throw this.#failure('validation', 'Invalid in-memory page cursor');
-    const index = records.findIndex((record) => record.id === cursor.id);
-    if (index < 0)
-      throw this.#failure('validation', 'Cursor record was not found');
-    return index + 1;
-  }
-
-  #nextCursor(
-    items: readonly CrudRecord<TData>[],
-    orderBy: ListRequest<TFilter>['page']['orderBy'],
-  ): PageCursor {
-    return createPageCursor(
-      JSON.stringify({ id: items[items.length - 1].id, orderBy }),
-    );
-  }
-
-  #orderValue(record: CrudRecord<TData>, field: string): string | number {
-    const value = field.split('.').reduce<unknown>((current, segment) => {
-      if (!current || typeof current !== 'object') return undefined;
-      return (current as Record<string, unknown>)[segment];
-    }, record);
-    return value as string | number;
   }
 }

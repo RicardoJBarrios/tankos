@@ -11,7 +11,7 @@
       "fallbackCurrentVersionResolver": "disk"
     }
   },
-  "tags": ["scope:tankos", "type:adapter", "npm:public"],
+  "tags": ["scope:shared", "scope:tankos", "type:adapter", "npm:public"],
   "targets": {
     "build": {
       "executor": "@nx/angular:ng-packagr-lite",

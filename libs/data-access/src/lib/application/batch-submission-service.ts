@@ -93,12 +93,7 @@ export function resolveSubmissionConfiguration<TPayload, TFilter>(
   return configuration;
 }
 
-function assertIntegerRange(
-  value: number,
-  minimum: number,
-  maximum: number,
-  message: string,
-): void {
+function assertIntegerRange(value: number, minimum: number, maximum: number, message: string): void {
   if (!Number.isInteger(value) || value < minimum || value > maximum)
     throw new RangeError(message);
 }

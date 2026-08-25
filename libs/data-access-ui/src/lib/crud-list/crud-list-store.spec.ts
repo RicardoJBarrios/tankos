@@ -165,6 +165,17 @@ describe('createCrudListStore', () => {
     expect(store.batch()?.status).toBe('completed');
   });
 
+  it('Given every batch lifecycle status, When checking running state, Then only active statuses are running', () => {
+    for (const status of ['materializing', 'queued', 'running'] as const) {
+      const store = createStore();
+      store.updateBatch({ ...progress, status });
+      expect(store.hasRunningBatch()).toBe(true);
+    }
+    const store = createStore();
+    store.updateBatch({ ...progress, status: 'failed' });
+    expect(store.hasRunningBatch()).toBe(false);
+  });
+
   it('Given no batch capability, When submitted, Then rejects with a capability error', async () => {
     const store = createStore();
     await expect(

@@ -67,14 +67,16 @@ export async function authorizeFirestoreLifecycleRead<
   operation: 'list' | 'get',
 ): Promise<void> {
   validateLifecycleSelection(lifecycle);
-  if (
-    lifecycle?.some((status) => status !== 'active' && status !== 'inactive') &&
-    !options.authorize
-  )
-    throw createDataAccessError(
-      'forbidden',
-      `Firestore ${operation} requires an authorization policy for hidden lifecycle states`,
-    );
+  const hasHiddenLifecycle =
+    lifecycle?.some((status) => status !== 'active' && status !== 'inactive') ??
+    false;
+  if (hasHiddenLifecycle) {
+    if (!options.authorize)
+      throw createDataAccessError(
+        'forbidden',
+        `Firestore ${operation} requires an authorization policy for hidden lifecycle states`,
+      );
+  }
   await authorizeFirestoreAccess(options, access, operation, lifecycle);
 }
 

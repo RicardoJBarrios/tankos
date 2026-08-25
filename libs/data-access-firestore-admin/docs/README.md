@@ -42,6 +42,12 @@ or execute it twice after cleanup. Every worker write carries its worker lease
 token, and every materializer summary/chunk write carries its materialization
 lease token; expired or reclaimed hosts are rejected transactionally.
 
+The durable store is physically composed from focused modules: its public
+factory, shared Firestore context and DTO mapping, submission operations,
+lease operations, chunk/result operations, and cancellation/removal operations
+are separate files. The factory only composes these capabilities and fences
+them into the three public ports; it does not contain persistence workflows.
+
 The package does not configure Firebase, indexes, Security Rules, IAM/service
 accounts or a worker runtime. Those are application/server composition
 responsibilities. Admin SDK operations bypass Firestore Security Rules; the

@@ -26,6 +26,10 @@ function stableJson(value: unknown): string {
   });
 }
 
+function isCacheFirst(options?: CacheReadOptions): boolean {
+  return (options?.mode ?? 'cache-first') === 'cache-first';
+}
+
 /** Stateful cache decorator implementation. */
 export class CachedCrudRepositoryImplementation<
   TData,
@@ -62,7 +66,7 @@ export class CachedCrudRepositoryImplementation<
   ): Promise<Page<CrudRecord<TData>>> {
     const key = this.#listKey(request);
     const cached = await this.#read<Page<CrudRecord<TData>>>(key, readOptions);
-    if (cached !== undefined && this.#isCacheFirst(readOptions)) return cached;
+    if (cached !== undefined && isCacheFirst(readOptions)) return cached;
     const existing = this.#inFlight.get(key) as
       Promise<Page<CrudRecord<TData>>> | undefined;
     if (existing) return existing;
@@ -77,7 +81,7 @@ export class CachedCrudRepositoryImplementation<
   ): Promise<CrudRecord<TData> | undefined> {
     const key = this.#getKey(request);
     const cached = await this.#read<CrudRecord<TData>>(key, readOptions);
-    if (cached !== undefined && this.#isCacheFirst(readOptions)) return cached;
+    if (cached !== undefined && isCacheFirst(readOptions)) return cached;
     const existing = this.#inFlight.get(key) as
       Promise<CrudRecord<TData> | undefined> | undefined;
     if (existing) return existing;
@@ -129,10 +133,6 @@ export class CachedCrudRepositoryImplementation<
       this.#options.onCacheError?.(error);
       return undefined;
     }
-  }
-
-  #isCacheFirst(options?: CacheReadOptions): boolean {
-    return (options?.mode ?? 'cache-first') === 'cache-first';
   }
 
   #listKey(request: ListRequest<TFilter>): string {

@@ -61,39 +61,54 @@ type CrudListStoreSource<TData, TFilter> = StateSignals<
 > &
   WritableStateSource<CrudListState<TData, TFilter>>;
 
+function pageRequest<TData, TCreate, TUpdate, TFilter, TPayload>(
+  options: CrudListStoreOptions<TData, TCreate, TUpdate, TFilter, TPayload>,
+  after?: PageCursor,
+) {
+  return { ...options.page, ...(after ? { after } : {}) };
+}
+
+async function loadCrudList<TData, TCreate, TUpdate, TFilter, TPayload>(
+  store: CrudListStoreSource<TData, TFilter>,
+  options: CrudListStoreOptions<TData, TCreate, TUpdate, TFilter, TPayload>,
+  access: AccessContext,
+  filter?: TFilter,
+  append = false,
+): Promise<void> {
+  patchState(store, { status: 'loading', error: undefined });
+  try {
+    const page = await options.service.list({
+      access,
+      filter,
+      page: pageRequest(options, append ? store.nextCursor() : undefined),
+    });
+    patchState(store, {
+      status: 'ready',
+      items: append ? [...store.items(), ...page.items] : page.items,
+      filter,
+      nextCursor: page.nextCursor,
+      hasMore: page.hasMore,
+    });
+  } catch (error) {
+    patchState(store, { status: 'error', error });
+  }
+}
+
+async function reloadCrudList<TData, TCreate, TUpdate, TFilter, TPayload>(
+  store: CrudListStoreSource<TData, TFilter>,
+  options: CrudListStoreOptions<TData, TCreate, TUpdate, TFilter, TPayload>,
+  access: AccessContext,
+): Promise<void> {
+  await loadCrudList(store, options, access, store.filter());
+}
+
 function createCrudListLoadMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
   store: CrudListStoreSource<TData, TFilter>,
   options: CrudListStoreOptions<TData, TCreate, TUpdate, TFilter, TPayload>,
 ) {
-  const pageRequest = (after?: PageCursor) => ({
-    ...options.page,
-    ...(after ? { after } : {}),
-  });
-  const load = async (
-    access: AccessContext,
-    filter?: TFilter,
-    append = false,
-  ): Promise<void> => {
-    patchState(store, { status: 'loading', error: undefined });
-    try {
-      const page = await options.service.list({
-        access,
-        filter,
-        page: pageRequest(append ? store.nextCursor() : undefined),
-      });
-      patchState(store, {
-        status: 'ready',
-        items: append ? [...store.items(), ...page.items] : page.items,
-        filter,
-        nextCursor: page.nextCursor,
-        hasMore: page.hasMore,
-      });
-    } catch (error) {
-      patchState(store, { status: 'error', error });
-    }
-  };
   return {
-    load: (access: AccessContext, filter?: TFilter) => load(access, filter),
+    load: (access: AccessContext, filter?: TFilter) =>
+      loadCrudList(store, options, access, filter),
     loadMore: async (access: AccessContext): Promise<void> => {
       if (
         !store.hasMore() ||
@@ -101,7 +116,7 @@ function createCrudListLoadMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
         store.status() === 'loading'
       )
         return;
-      await load(access, store.filter(), true);
+      await loadCrudList(store, options, access, store.filter(), true);
     },
   };
 }
@@ -132,16 +147,14 @@ function createCrudListLifecycleMethods<
   store: CrudListStoreSource<TData, TFilter>,
   options: CrudListStoreOptions<TData, TCreate, TUpdate, TFilter, TPayload>,
 ) {
-  const reload = async (access: AccessContext) =>
-    createCrudListLoadMethods(store, options).load(access, store.filter());
   return {
     markForDeletion: async (request: CrudListLifecycleRequest) => {
       await options.service.markForDeletion(request);
-      await reload(request.access);
+      await reloadCrudList(store, options, request.access);
     },
     restore: async (request: CrudListLifecycleRequest) => {
       await options.service.restore(request);
-      await reload(request.access);
+      await reloadCrudList(store, options, request.access);
     },
   };
 }
@@ -173,19 +186,21 @@ function createCrudListBatchMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
   };
 }
 
-const createInitialState = (): CrudListState<unknown, unknown> => ({
-  status: 'idle',
-  items: [],
-  filter: undefined,
-  nextCursor: undefined,
-  hasMore: Boolean(0),
-  /* c8 ignore next -- V8 maps the erased generic argument as a synthetic branch. */
-  selectedIds: new Array<EntityId>(),
-  batch: undefined,
-  /* c8 ignore next -- V8 reports the object-literal closing token as a synthetic branch. */
-  error: undefined,
-  /* c8 ignore next -- V8 maps the object-literal closing token as a synthetic branch. */
-});
+function createInitialState(): CrudListState<unknown, unknown> {
+  return {
+    status: 'idle',
+    items: [],
+    filter: undefined,
+    nextCursor: undefined,
+    hasMore: Boolean(0),
+    /* c8 ignore next -- V8 maps the erased generic argument as a synthetic branch. */
+    selectedIds: new Array<EntityId>(),
+    batch: undefined,
+    /* c8 ignore next -- V8 reports the object-literal closing token as a synthetic branch. */
+    error: undefined,
+    /* c8 ignore next -- V8 maps the object-literal closing token as a synthetic branch. */
+  };
+}
 
 /** Creates a Signal Store for the standard paginated CRUD list flow. */
 export function createCrudListStore<

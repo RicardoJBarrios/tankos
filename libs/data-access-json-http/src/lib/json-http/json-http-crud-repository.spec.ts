@@ -143,4 +143,22 @@ describe('createJsonHttpCrudRepository', () => {
       expect.objectContaining({ idempotencyKey: 'create-unit-1' }),
     );
   });
+
+  it('Given a mutation without a request id, When sent over HTTP, Then rejects before transport access', async () => {
+    const request = vi.fn().mockResolvedValue(record);
+    const repository = createJsonHttpCrudRepository({
+      client: { request },
+      baseUrl: '/api',
+      schemas: { record: schema, page: pageSchema },
+      serializeCreate: (input) => input,
+      serializeUpdate: (input) => input,
+      listUrl: () => '/units',
+      recordUrl: (id) => `/units/${id}`,
+    });
+
+    await expect(
+      repository.create({ access, input: { name: 'litre' } }),
+    ).rejects.toThrow('requestId');
+    expect(request).not.toHaveBeenCalled();
+  });
 });
