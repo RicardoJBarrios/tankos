@@ -3,10 +3,18 @@ import type { CrudRecord, ListRequest, Page } from '../core';
 import { createCrudService } from './crud-service';
 
 describe('createCrudService', () => {
-  interface Data { readonly name: string }
-  interface Create { readonly name: string }
-  interface Update { readonly name: string }
-  interface Filter { readonly name?: string }
+  interface Data {
+    readonly name: string;
+  }
+  interface Create {
+    readonly name: string;
+  }
+  interface Update {
+    readonly name: string;
+  }
+  interface Filter {
+    readonly name?: string;
+  }
 
   const id = createEntityId('record-1');
   const instant = { kind: 'instant' as const, epochMilliseconds: 0 };

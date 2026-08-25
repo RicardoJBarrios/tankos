@@ -15,9 +15,12 @@ describe('stableJson', () => {
     ['number', 42],
     ['boolean', true],
     ['array', [1, 'two']],
-  ])('Given a %s, When serializing it, Then it produces stable JSON', (_kind, value) => {
-    expect(() => stableJson(value)).not.toThrow();
-  });
+  ])(
+    'Given a %s, When serializing it, Then it produces stable JSON',
+    (_kind, value) => {
+      expect(() => stableJson(value)).not.toThrow();
+    },
+  );
 
   it('Given an unserializable circular value, When serializing it, Then it raises a validation error', () => {
     const circular: { self?: unknown } = {};

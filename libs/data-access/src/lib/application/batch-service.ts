@@ -21,7 +21,9 @@ export function createBatchService<TPayload = unknown, TFilter = unknown>(
 ): BatchService<TPayload, TFilter> {
   return {
     submit: (request) =>
-      Promise.resolve().then(() => execution.submit(createBatchRequest(request))),
+      Promise.resolve().then(() =>
+        execution.submit(createBatchRequest(request)),
+      ),
     materialize: (batchId) => execution.materialize(batchId),
     get: (batchId) => execution.get(batchId),
     resume: (batchId) => execution.resume(batchId),

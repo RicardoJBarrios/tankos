@@ -15,10 +15,7 @@ export function createTtlCache<TValue>(clock: CacheClock): CachePort<TValue> {
   const entries = new Map<string, CacheEntry<TValue>>();
 
   return {
-    get(
-      key: string,
-      options?: CacheReadOptions,
-    ): Promise<TValue | undefined> {
+    get(key: string, options?: CacheReadOptions): Promise<TValue | undefined> {
       if (options?.mode === 'network-only' || options?.mode === 'refresh') {
         return Promise.resolve(undefined);
       }

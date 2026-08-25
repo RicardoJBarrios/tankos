@@ -181,7 +181,10 @@ describe('createJsonHttpCrudRepository', () => {
       repositoryWith(request).get({ access, id: record.id }),
     ).resolves.toEqual(record);
     expect(request).toHaveBeenCalledWith(
-      expect.objectContaining({ method: 'GET', url: `/api/units/${record.id}` }),
+      expect.objectContaining({
+        method: 'GET',
+        url: `/api/units/${record.id}`,
+      }),
     );
   });
 
@@ -189,7 +192,11 @@ describe('createJsonHttpCrudRepository', () => {
     const request = vi.fn().mockResolvedValue(record);
 
     await repositoryWith(request).replace(
-      { access: { ...access, requestId: 'replace-unit-1' }, id: record.id, expectedRevision: 1 },
+      {
+        access: { ...access, requestId: 'replace-unit-1' },
+        id: record.id,
+        expectedRevision: 1,
+      },
       { name: 'litre' },
     );
 
@@ -244,17 +251,36 @@ describe('createJsonHttpCrudRepository', () => {
   });
 
   it.each([
-    ['replace', (repository: ReturnType<typeof repositoryWith>) => repository.replace(
-      { access: { ...access, requestId: 'replace-unit-2' }, id: record.id, expectedRevision: 0.5 },
-      { name: 'litre' },
-    )],
-    ['delete', (repository: ReturnType<typeof repositoryWith>) => repository.delete(
-      { access: { ...access, requestId: 'delete-unit-2' }, id: record.id, expectedRevision: Number.NaN },
-    )],
-  ] as const)('Given an invalid revision, When %s is sent, Then rejects before transport access', async (_method, operation) => {
-    const request = vi.fn().mockResolvedValue(record);
+    [
+      'replace',
+      (repository: ReturnType<typeof repositoryWith>) =>
+        repository.replace(
+          {
+            access: { ...access, requestId: 'replace-unit-2' },
+            id: record.id,
+            expectedRevision: 0.5,
+          },
+          { name: 'litre' },
+        ),
+    ],
+    [
+      'delete',
+      (repository: ReturnType<typeof repositoryWith>) =>
+        repository.delete({
+          access: { ...access, requestId: 'delete-unit-2' },
+          id: record.id,
+          expectedRevision: Number.NaN,
+        }),
+    ],
+  ] as const)(
+    'Given an invalid revision, When %s is sent, Then rejects before transport access',
+    async (_method, operation) => {
+      const request = vi.fn().mockResolvedValue(record);
 
-    await expect(operation(repositoryWith(request))).rejects.toThrow('expectedRevision');
-    expect(request).not.toHaveBeenCalled();
-  });
+      await expect(operation(repositoryWith(request))).rejects.toThrow(
+        'expectedRevision',
+      );
+      expect(request).not.toHaveBeenCalled();
+    },
+  );
 });

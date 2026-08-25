@@ -19,9 +19,12 @@ describe('resolveSubmissionConfiguration', () => {
     { maxRequestBytes: 999 },
     { materializerOwnerId: ' ' },
     { materializationLeaseDurationMilliseconds: 0 },
-  ])('Given invalid configuration %s, When resolving it, Then it rejects the value', (override) => {
-    expect(() =>
-      resolveSubmissionConfiguration({ ...override } as never),
-    ).toThrow(RangeError);
-  });
+  ])(
+    'Given invalid configuration %s, When resolving it, Then it rejects the value',
+    (override) => {
+      expect(() =>
+        resolveSubmissionConfiguration({ ...override } as never),
+      ).toThrow(RangeError);
+    },
+  );
 });

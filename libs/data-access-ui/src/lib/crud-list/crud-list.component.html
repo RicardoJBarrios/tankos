@@ -21,9 +21,7 @@
           [attr.aria-label]="'Select ' + label()(item)"
         />
         <span>{{ label()(item) }}</span>
-        <button type="button" (click)="editRequested.emit(item)">
-          Edit
-        </button>
+        <button type="button" (click)="editRequested.emit(item)">Edit</button>
         @if (item.lifecycle.status === 'marked-for-deletion') {
           <button type="button" (click)="restoreRequested.emit(item)">
             Restore

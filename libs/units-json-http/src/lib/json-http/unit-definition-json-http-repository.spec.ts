@@ -1,15 +1,15 @@
 import { createEntityId } from '@tankos/data-access';
 import { createJsonHttpTimeAdapter } from '@tankos/time-json-http';
 import { createNativeTimeAdapter } from '@tankos/time';
-import {
-  createStandardUnitCatalogue,
-} from '@tankos/units';
+import { createStandardUnitCatalogue } from '@tankos/units';
 import { unitDefinitionToDto } from '@tankos/units-zod';
 import { describe, expect, it, vi } from 'vitest';
 import { createUnitDefinitionJsonHttpRepository } from './unit-definition-json-http-repository';
 
 describe('createUnitDefinitionJsonHttpRepository', () => {
-  const definition = createStandardUnitCatalogue().find('UN/CEFACT:LTR' as never);
+  const definition = createStandardUnitCatalogue().find(
+    'UN/CEFACT:LTR' as never,
+  );
   if (!definition) throw new Error('Expected the standard litre definition');
   const client = { request: vi.fn() };
   const options = {

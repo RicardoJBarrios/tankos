@@ -13,5 +13,4 @@ describe('createPageCursor', () => {
       expect(() => createPageCursor(value)).toThrow(TypeError);
     },
   );
-
 });

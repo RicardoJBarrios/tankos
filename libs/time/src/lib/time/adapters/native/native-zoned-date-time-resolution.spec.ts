@@ -28,7 +28,11 @@ describe('native-zoned-date-time-resolution', () => {
   it('Given minute precision, When resolving it, Then seconds default to zero', () => {
     expect(
       nativeToUtcIsoString(
-        nativeFromZonedDateTime('2026-08-20T15:30', 'Atlantic/Canary', timeZoneDatabase),
+        nativeFromZonedDateTime(
+          '2026-08-20T15:30',
+          'Atlantic/Canary',
+          timeZoneDatabase,
+        ),
       ),
     ).toBe('2026-08-20T14:30:00.000Z');
   });

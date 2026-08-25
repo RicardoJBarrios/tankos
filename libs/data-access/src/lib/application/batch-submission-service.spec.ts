@@ -115,9 +115,11 @@ describe('createBatchSubmissionService', () => {
       createBatchId: () => createEntityId('batch-1'),
     });
 
-    await expect(service.get(createEntityId('batch-1'))).resolves.toMatchObject({
-      status: 'queued',
-    });
+    await expect(service.get(createEntityId('batch-1'))).resolves.toMatchObject(
+      {
+        status: 'queued',
+      },
+    );
   });
 
   it('Given an active request, When cancelled, Then requests cooperative cancellation from the store', async () => {
@@ -145,7 +147,9 @@ describe('createBatchSubmissionService', () => {
       createBatchId: () => createEntityId('batch-1'),
     });
 
-    await expect(service.cancel(createEntityId('batch-1'))).resolves.toMatchObject({
+    await expect(
+      service.cancel(createEntityId('batch-1')),
+    ).resolves.toMatchObject({
       status: 'completed',
     });
     expect(harness.cancellationRequested).toBe(false);
@@ -214,7 +218,9 @@ describe('createBatchSubmissionService', () => {
       createBatchId: () => createEntityId('batch-1'),
     });
 
-    await expect(service.materialize(createEntityId('batch-1'))).rejects.toMatchObject({
+    await expect(
+      service.materialize(createEntityId('batch-1')),
+    ).rejects.toMatchObject({
       code: 'conflict',
     });
   });
@@ -235,7 +241,9 @@ describe('createBatchSubmissionService', () => {
       createBatchId: () => createEntityId('batch-1'),
     });
 
-    await expect(service.materialize(createEntityId('batch-1'))).resolves.toMatchObject({
+    await expect(
+      service.materialize(createEntityId('batch-1')),
+    ).resolves.toMatchObject({
       status: 'queued',
     });
     expect(materialize).not.toHaveBeenCalled();
@@ -251,7 +259,9 @@ describe('createBatchSubmissionService', () => {
       createBatchId: () => createEntityId('batch-1'),
     });
 
-    await expect(service.materialize(createEntityId('batch-1'))).resolves.toMatchObject({
+    await expect(
+      service.materialize(createEntityId('batch-1')),
+    ).resolves.toMatchObject({
       status: 'queued',
       total: 0,
     });
@@ -378,7 +388,6 @@ describe('createBatchSubmissionService', () => {
     await expect(
       service.materialize(createEntityId('batch-1')),
     ).rejects.toMatchObject({ code: 'validation' });
-
   });
 
   it('Given missing state, When a batch is resumed, Then rejects with not-found', async () => {
@@ -467,9 +476,9 @@ describe('createBatchSubmissionService', () => {
       createBatchId: () => createEntityId('batch-1'),
     });
 
-    await expect(
-      service.resume(createEntityId('batch-1')),
-    ).rejects.toThrow('resume-failure');
+    await expect(service.resume(createEntityId('batch-1'))).rejects.toThrow(
+      'resume-failure',
+    );
   });
 
   it.each([0, 401, NaN, Infinity, -Infinity])(

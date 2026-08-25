@@ -96,9 +96,12 @@ describe('createFirestoreCrudRepository', () => {
     ['aborted', 'transient'],
     ['invalid-argument', 'validation'],
     ['unmapped', undefined],
-  ] as const)('Given a Firestore code %s, When mapping it, Then returns %s', (code, expected) => {
-    expect(firestoreErrorCode({ code })).toBe(expected);
-  });
+  ] as const)(
+    'Given a Firestore code %s, When mapping it, Then returns %s',
+    (code, expected) => {
+      expect(firestoreErrorCode({ code })).toBe(expected);
+    },
+  );
 
   it('Given a Zod error, When mapping its provider code, Then returns validation', () => {
     expect(firestoreErrorCode(new z.ZodError([]))).toBe('validation');

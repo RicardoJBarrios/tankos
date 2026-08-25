@@ -76,7 +76,9 @@ describe('createInMemoryCrudRepository', () => {
   it('Given an existing record, When fetched, Then returns it only when its lifecycle is visible', async () => {
     const service = repository();
 
-    await expect(service.get({ access, id: createEntityId('one') })).resolves.toMatchObject({
+    await expect(
+      service.get({ access, id: createEntityId('one') }),
+    ).resolves.toMatchObject({
       id: 'one',
     });
     await expect(
@@ -366,7 +368,10 @@ describe('createInMemoryCrudRepository', () => {
   });
 
   it('Given a new record, When created, Then stores and returns it', async () => {
-    const result = await repository().create({ access, input: { name: 'three' } });
+    const result = await repository().create({
+      access,
+      input: { name: 'three' },
+    });
 
     expect(result).toMatchObject({ id: 'three', data: { name: 'three' } });
   });

@@ -44,16 +44,14 @@ describe('createPageRequest', () => {
     );
   });
 
-  it.each([
-    undefined,
-    null,
-    'not-an-array',
-    [],
-  ])('Given invalid ordering %j, When validated, Then rejects the request', (orderBy) => {
-    expect(() =>
-        createPageRequest({ pageSize: 20, orderBy }),
-    ).toThrow(TypeError);
-  });
+  it.each([undefined, null, 'not-an-array', []])(
+    'Given invalid ordering %j, When validated, Then rejects the request',
+    (orderBy) => {
+      expect(() => createPageRequest({ pageSize: 20, orderBy })).toThrow(
+        TypeError,
+      );
+    },
+  );
 
   it.each([
     { field: '  ', direction: 'asc' },
@@ -61,11 +59,14 @@ describe('createPageRequest', () => {
     { field: 'id', direction: 'invalid' },
     { field: null, direction: 'asc' },
     null,
-  ])('Given an invalid ordering field %j, When validated, Then rejects it', (item) => {
-    expect(() =>
+  ])(
+    'Given an invalid ordering field %j, When validated, Then rejects it',
+    (item) => {
+      expect(() =>
         createPageRequest({ pageSize: 20, orderBy: [item] }),
-    ).toThrow(TypeError);
-  });
+      ).toThrow(TypeError);
+    },
+  );
 
   it('Given duplicate ordering fields, When validated, Then rejects the request', () => {
     expect(() =>

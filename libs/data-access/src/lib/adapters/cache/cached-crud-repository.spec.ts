@@ -20,7 +20,8 @@ describe('createCachedCrudRepository', () => {
   );
 
   it('Given a slow backing list, When the same request is read concurrently, Then shares the in-flight request', async () => {
-    let resolve: ((page: { items: never[]; hasMore: boolean }) => void) | undefined;
+    let resolve:
+      ((page: { items: never[]; hasMore: boolean }) => void) | undefined;
     const backing = {
       list: vi.fn(
         () =>
@@ -36,7 +37,10 @@ describe('createCachedCrudRepository', () => {
     );
     const request = {
       access,
-      page: { pageSize: 1, orderBy: [{ field: 'id', direction: 'asc' as const }] },
+      page: {
+        pageSize: 1,
+        orderBy: [{ field: 'id', direction: 'asc' as const }],
+      },
     };
     const first = repository.list(request);
     const second = repository.list(request);

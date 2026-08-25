@@ -52,10 +52,12 @@ export function createConversionDefinitionCrudService(
     restore: (request) => crud.restore(request),
     delete: (request) => crud.delete(request),
     create: (request) =>
-      Promise.resolve().then(() => crud.create({
-        ...request,
-        input: validateCustom(request.input, dependencies),
-      })),
+      Promise.resolve().then(() =>
+        crud.create({
+          ...request,
+          input: validateCustom(request.input, dependencies),
+        }),
+      ),
   };
 
   return createVersionedCrudService(custom, {

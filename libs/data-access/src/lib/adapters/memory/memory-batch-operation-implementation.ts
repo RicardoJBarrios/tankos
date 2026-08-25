@@ -174,6 +174,10 @@ export class MemoryBatchOperationImplementation<
   }
 }
 
-function isValidRange(value: number, minimum: number, maximum: number): boolean {
+function isValidRange(
+  value: number,
+  minimum: number,
+  maximum: number,
+): boolean {
   return Number.isInteger(value) && value >= minimum && value <= maximum;
 }

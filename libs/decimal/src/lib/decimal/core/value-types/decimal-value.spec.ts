@@ -62,9 +62,9 @@ describe('normalizeDecimalInput', () => {
   );
 
   it('Given an input at the exponent boundary, When normalized, Then accepts it without exceeding the output limit', () => {
-    expect(normalizeDecimalInput(`1e${String(MAX_DECIMAL_EXPONENT)}`)).toHaveLength(
-      MAX_DECIMAL_EXPONENT + 1,
-    );
+    expect(
+      normalizeDecimalInput(`1e${String(MAX_DECIMAL_EXPONENT)}`),
+    ).toHaveLength(MAX_DECIMAL_EXPONENT + 1);
   });
 
   it('Given an oversized decimal string, When normalized, Then rejects it before expansion', () => {

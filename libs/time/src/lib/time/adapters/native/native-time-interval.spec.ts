@@ -53,9 +53,7 @@ describe('native-time-interval', () => {
   ])(
     'Given an invalid interval %s, When querying membership, Then it rejects the interval',
     (interval) => {
-      expect(() => nativeContains(interval as never, 500)).toThrow(
-        RangeError,
-      );
+      expect(() => nativeContains(interval as never, 500)).toThrow(RangeError);
     },
   );
 

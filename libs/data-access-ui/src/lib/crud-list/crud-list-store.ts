@@ -119,7 +119,9 @@ function createCrudListLoadMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
 function shouldSkipLoadMore<TData, TFilter>(
   store: CrudListStoreSource<TData, TFilter>,
 ): boolean {
-  return !store.hasMore() || !store.nextCursor() || store.status() === 'loading';
+  return (
+    !store.hasMore() || !store.nextCursor() || store.status() === 'loading'
+  );
 }
 
 function createCrudListSelectionMethods<TData, TFilter>(
@@ -134,7 +136,9 @@ function createCrudListSelectionMethods<TData, TFilter>(
           : [...selected, id],
       });
     },
-    clearSelection: () => { patchState(store, { selectedIds: [] }); },
+    clearSelection: () => {
+      patchState(store, { selectedIds: [] });
+    },
   };
 }
 
@@ -182,8 +186,9 @@ function createCrudListBatchMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
       patchState(store, { batch: progress, selectedIds: [] });
       return progress;
     },
-    updateBatch: (progress: BatchProgress) =>
-      { patchState(store, { batch: progress }); },
+    updateBatch: (progress: BatchProgress) => {
+      patchState(store, { batch: progress });
+    },
   };
 }
 
@@ -236,7 +241,9 @@ export function createCrudListStore<
     })),
     withMethods((store) => ({
       ...createCrudListLoadMethods(store, options),
-      setFilter: (filter: TFilter | undefined) => { patchState(store, { filter }); },
+      setFilter: (filter: TFilter | undefined) => {
+        patchState(store, { filter });
+      },
       ...createCrudListSelectionMethods(store),
       ...createCrudListLifecycleMethods(store, options),
       ...createCrudListBatchMethods(store, options),

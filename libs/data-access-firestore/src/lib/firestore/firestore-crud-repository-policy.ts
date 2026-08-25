@@ -62,7 +62,7 @@ export async function authorizeFirestoreLifecycleRead<
 >(
   options: FirestoreCrudRepositoryOptions<TData, TCreate, TUpdate, TFilter>,
   access: AccessContext,
-  lifecycle: ListRequest<TFilter>['lifecycle']  ,
+  lifecycle: ListRequest<TFilter>['lifecycle'],
   operation: 'list' | 'get',
 ): Promise<void> {
   validateLifecycleSelection(lifecycle);
@@ -78,9 +78,12 @@ export async function authorizeFirestoreLifecycleRead<
 }
 
 function isLifecycleMutation(
-  operation: 'list' | 'get' | 'create' | 'replace' | 'mark' | 'restore' | 'delete',
+  operation:
+    'list' | 'get' | 'create' | 'replace' | 'mark' | 'restore' | 'delete',
 ): boolean {
-  return operation === 'mark' || operation === 'restore' || operation === 'delete';
+  return (
+    operation === 'mark' || operation === 'restore' || operation === 'delete'
+  );
 }
 
 /** Enforces optimistic concurrency for a Firestore record command. */

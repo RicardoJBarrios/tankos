@@ -66,14 +66,12 @@ describe('firestore CRUD policy', () => {
   const schema = { parse: (value: unknown) => value } as never;
 
   it('Given a matching revision, When validating a command, Then accepts it', () => {
-    expect(() =>
-      () => {
-        requireFirestoreRevision(
-          { id: record.id, access, expectedRevision: 1 },
-          record,
-        );
-      },
-    ).not.toThrow();
+    expect(() => () => {
+      requireFirestoreRevision(
+        { id: record.id, access, expectedRevision: 1 },
+        record,
+      );
+    }).not.toThrow();
   });
 
   it('Given a clock, When creating a timestamp factory, Then it converts the technical instant', () => {
@@ -100,12 +98,12 @@ describe('firestore CRUD policy', () => {
   });
 
   it('Given a stale revision, When validating a command, Then raises a conflict', () => {
-    expect(() =>
-      { requireFirestoreRevision(
+    expect(() => {
+      requireFirestoreRevision(
         { id: record.id, access, expectedRevision: 2 },
         record,
-      ); },
-    ).toThrow('Record revision is stale');
+      );
+    }).toThrow('Record revision is stale');
   });
 
   it('Given a missing expected revision, When validating a command, Then raises a validation error', () => {
@@ -189,9 +187,11 @@ describe('firestore CRUD policy', () => {
 
   it('Given a marked-for-deletion record, When deleting it, Then removes the document in the transaction', async () => {
     const transaction = {
-      get: vi.fn().mockResolvedValue(
-        snapshot({ ...dto, lifecycle: { status: 'marked-for-deletion' } }),
-      ),
+      get: vi
+        .fn()
+        .mockResolvedValue(
+          snapshot({ ...dto, lifecycle: { status: 'marked-for-deletion' } }),
+        ),
       delete: vi.fn(),
     };
 

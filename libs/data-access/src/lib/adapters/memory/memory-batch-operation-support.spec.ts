@@ -46,7 +46,11 @@ describe('memory-batch-operation-support', () => {
   });
 
   it('Given completed item outcomes, When updateProgress applies a chunk, Then it updates counters and retry metadata', () => {
-    const operation = createInitialOperation(request, now, createEntityId('batch-1'));
+    const operation = createInitialOperation(
+      request,
+      now,
+      createEntityId('batch-1'),
+    );
     expect(
       updateProgress(
         initialProgress(operation, 2, now),
@@ -67,8 +71,17 @@ describe('memory-batch-operation-support', () => {
   });
 
   it('Given an operation, When initialProgress projects it, Then it replaces only the update timestamp and total', () => {
-    const operation = createInitialOperation(request, now, createEntityId('batch-1'));
-    expect(initialProgress(operation, 3, { kind: 'instant', epochMilliseconds: 2_000 })).toMatchObject({
+    const operation = createInitialOperation(
+      request,
+      now,
+      createEntityId('batch-1'),
+    );
+    expect(
+      initialProgress(operation, 3, {
+        kind: 'instant',
+        epochMilliseconds: 2_000,
+      }),
+    ).toMatchObject({
       batchId: createEntityId('batch-1'),
       total: 3,
       updatedAt: { kind: 'instant', epochMilliseconds: 2_000 },
@@ -77,14 +90,20 @@ describe('memory-batch-operation-support', () => {
 
   it('Given a request and ids, When fingerprints are created, Then request and materialized identities are stable', () => {
     expect(requestFingerprint(request)).toContain('units');
-    expect(fingerprint(request, [createEntityId('unit-1')])).toContain('unit-1');
+    expect(fingerprint(request, [createEntityId('unit-1')])).toContain(
+      'unit-1',
+    );
     expect(fingerprint(request, [createEntityId('unit-1')])).toBe(
       fingerprint(request, [createEntityId('unit-1')]),
     );
   });
 
   it('Given implementation fields, When publicProgress projects them, Then it exposes only progress data', () => {
-    const operation = createInitialOperation(request, now, createEntityId('batch-1'));
+    const operation = createInitialOperation(
+      request,
+      now,
+      createEntityId('batch-1'),
+    );
     const progress = publicProgress({ ...operation, fingerprint: 'private' });
     expect(progress).not.toHaveProperty('request');
     expect(progress).not.toHaveProperty('fingerprint');
@@ -95,9 +114,12 @@ describe('memory-batch-operation-support', () => {
     [1, 0, 'failed'],
     [0, 1, 'completed-with-warnings'],
     [0, 0, 'completed'],
-  ] as const)('Given %s failures and %s warnings, When terminalStatus resolves them, Then it returns %s', (failures, warnings, expected) => {
-    expect(terminalStatus(failures, warnings)).toBe(expected);
-  });
+  ] as const)(
+    'Given %s failures and %s warnings, When terminalStatus resolves them, Then it returns %s',
+    (failures, warnings, expected) => {
+      expect(terminalStatus(failures, warnings)).toBe(expected);
+    },
+  );
 
   it('Given work items and a concurrency limit, When executeWithConcurrency runs them, Then it preserves input order', async () => {
     await expect(
@@ -106,7 +128,11 @@ describe('memory-batch-operation-support', () => {
   });
 
   it('Given an initial request, When createInitialOperation creates state, Then it starts materializing with empty ids', () => {
-    const operation = createInitialOperation(request, now, createEntityId('batch-1'));
+    const operation = createInitialOperation(
+      request,
+      now,
+      createEntityId('batch-1'),
+    );
     expect(operation).toMatchObject({
       batchId: createEntityId('batch-1'),
       status: 'materializing',
@@ -116,11 +142,18 @@ describe('memory-batch-operation-support', () => {
   });
 
   it('Given a batch execution with warning and failure outcomes, When executeMemoryBatch runs it, Then it persists the terminal projection', async () => {
-    const operation = createInitialOperation(request, now, createEntityId('batch-1'));
+    const operation = createInitialOperation(
+      request,
+      now,
+      createEntityId('batch-1'),
+    );
     const operations = new Map([[operation.batchId, operation]]);
     const result = await executeMemoryBatch(
       operation.batchId,
-      { ...operation, ids: [createEntityId('unit-1'), createEntityId('unit-2')] },
+      {
+        ...operation,
+        ids: [createEntityId('unit-1'), createEntityId('unit-2')],
+      },
       {
         clock: { now: () => now },
         materialize: () => [],

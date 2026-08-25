@@ -65,7 +65,7 @@ export interface FirestoreCrudRepositoryOptions<
     access: AccessContext,
     operation:
       'list' | 'get' | 'create' | 'replace' | 'mark' | 'restore' | 'delete',
-    lifecycle?: readonly CrudRecord<TData>['lifecycle']['status'][]  ,
+    lifecycle?: readonly CrudRecord<TData>['lifecycle']['status'][],
   ) => void | Promise<void>;
 }
 
@@ -91,8 +91,7 @@ export function firestoreErrorCode(
   error: unknown,
 ): DataAccessErrorCode | undefined {
   if (error instanceof z.ZodError) return 'validation';
-  if (!isProviderError(error))
-    return undefined;
+  if (!isProviderError(error)) return undefined;
   const code = String(error.code);
   return firestoreErrorCodes[code];
 }
@@ -107,16 +106,15 @@ export function validateDocumentId(id: string): string {
   if (!id.trim()) throwInvalidDocumentId();
   if (id === '.') throwInvalidDocumentId();
   if (id === '..') throwInvalidDocumentId();
-  if (id.includes('/'))
-    throwInvalidDocumentId();
+  if (id.includes('/')) throwInvalidDocumentId();
   return id;
 }
 
 function throwInvalidDocumentId(): never {
-    throw createDataAccessError(
-      'validation',
-      'Firestore document ids must be non-empty single path segments',
-    );
+  throw createDataAccessError(
+    'validation',
+    'Firestore document ids must be non-empty single path segments',
+  );
 }
 
 /** Maps a validated Firestore DTO into the provider-neutral record. */

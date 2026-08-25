@@ -39,7 +39,9 @@ describe('createDataAccessError', () => {
 
   it('Given a structured provider value, When mapped, Then retains its JSON cause', () => {
     expect(
-      createDataAccessError('validation', 'Invalid document', { reason: 'bad' }),
+      createDataAccessError('validation', 'Invalid document', {
+        reason: 'bad',
+      }),
     ).toMatchObject({ message: 'Invalid document: {"reason":"bad"}' });
   });
 
