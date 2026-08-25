@@ -65,7 +65,7 @@ function storeHarness(initial = record()) {
     }),
     update: async (_id, patch) => {
       current = { ...requireCurrent(), ...patch };
-      return current;
+      return requireCurrent();
     },
     putChunk: async (_id, chunk) => chunks.push(chunk),
     isCancellationRequested: async () => cancellationRequested,
