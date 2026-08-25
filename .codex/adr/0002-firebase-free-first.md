@@ -8,7 +8,7 @@ Accepted
 
 The application needs managed identity, persistence and hosting while keeping
 operational cost and accidental production access low. See the
-[target architecture](../archive/architecture/target-architecture.md).
+[target architecture](../ARCHITECTURE.md).
 
 ## Decision
 
@@ -21,18 +21,14 @@ integration tests. Unit tests use mocks or fakes of `data-access` contracts. CI
 uses `firebase emulators:exec`; E2E never targets production. Security Rules and
 synthetic fixtures are versioned and tested against emulators.
 
-AngularFire remains the preferred Angular integration when a stable compatible
-release exists; otherwise use the modular Firebase SDK behind the same boundary.
+The current workspace uses the modular Firebase SDK rather than AngularFire.
+AngularFire is not a dependency unless a concrete Angular integration need and
+a compatible release justify adding it behind the same boundary.
 
-For the MVP `Establish an Aquarium` path, Firebase Anonymous Auth is accepted as
-the minimal authenticated-keeper mechanism. It is an application delivery
-choice, not a domain identity model; account linking, recovery and durable
-human identity are deferred. The current implementation is emulator-backed and
-fails closed outside a configured development environment.
-
-This slice uses the modular Firebase SDK rather than adding AngularFire-specific
-integration because it needs only Auth and Firestore client APIs and keeps those
-dependencies behind the existing infrastructure adapters.
+When the private Aquarium flow is implemented, Firebase Anonymous Auth may
+provide the minimal authenticated-keeper mechanism. It is an application
+delivery choice, not a domain identity model; account linking, recovery and
+durable human identity remain separate decisions.
 
 ## Consequences
 
@@ -44,11 +40,11 @@ dependencies behind the existing infrastructure adapters.
 
 ## Implementation timing
 
-Firebase is a direction. For `Establish an Aquarium`, Authentication, Firestore,
-the local Emulator Suite, fail-closed configuration, Security Rules, a minimal
-synthetic fixture/seed and emulator-backed integration tests are required because
-the new Aquarium is private and durable. App Check and every other Firebase
-service are deferred until their use case justifies them.
+Firebase is a direction. For a private durable Aquarium slice, Authentication,
+Firestore, the local Emulator Suite, fail-closed configuration, Security Rules,
+synthetic fixtures and emulator-backed integration tests become required. App
+Check and other Firebase services remain deferred until their use case justifies
+them.
 
 ## Alternatives considered
 

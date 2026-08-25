@@ -8,7 +8,7 @@ Accepted
 
 Public content needs SEO and low-cost delivery, while authenticated content needs
 client interactivity and offline access. See the
-[target architecture](../archive/architecture/target-architecture.md).
+[target architecture](../ARCHITECTURE.md).
 
 ## Decision
 
@@ -24,6 +24,7 @@ responses and tokens are outside the service-worker cache.
 Use temporary Hosting Preview Channels for useful PR previews. A visual preview
 has a fail-closed, backend-free build. A functional preview uses only an explicitly
 isolated non-production Firebase project with synthetic, access-isolated data.
+Preview automation is deferred while repository GitHub Actions are disabled.
 
 ## Consequences
 
