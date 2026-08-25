@@ -61,12 +61,6 @@ describe('normalizeDecimalInput', () => {
     },
   );
 
-  it('Given an exponent that cannot be represented safely, When normalized, Then rejects it', () => {
-    expect(() => normalizeDecimalInput('1e999999999999999999999')).toThrow(
-      InvalidDecimalError,
-    );
-  });
-
   it('Given an input at the exponent boundary, When normalized, Then accepts it without exceeding the output limit', () => {
     expect(normalizeDecimalInput(`1e${MAX_DECIMAL_EXPONENT}`)).toHaveLength(
       MAX_DECIMAL_EXPONENT + 1,

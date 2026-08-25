@@ -32,7 +32,9 @@
   } @else if (state() === 'failure') {
   <div role="alert">
     <p>{{ errorMessage() }}</p>
-    <button mat-stroked-button (click)="retry()">Reintentar</button>
+    <button type="button" mat-stroked-button (click)="retry()">
+      Reintentar
+    </button>
   </div>
   } @else if (state() === 'empty') {
   <mat-card appearance="outlined"

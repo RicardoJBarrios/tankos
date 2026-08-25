@@ -10,7 +10,7 @@ export function stableJson(value: unknown): string {
         .sort(([left], [right]) => left.localeCompare(right))
         .map(([key, entry]) => `${JSON.stringify(key)}:${stableJson(entry)}`)
         .join(',')}}`;
-    const serialized = JSON.stringify(value);
+    const serialized = JSON.stringify(value) as string | undefined;
     if (serialized === undefined)
       throw new TypeError('Value cannot be serialized');
     return serialized;

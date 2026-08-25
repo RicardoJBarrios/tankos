@@ -42,9 +42,7 @@
   </mat-card>
 
   <h3>Accesos concedidos</h3>
-  @if (grants().length === 0) {
-  <p>No hay accesos concedidos.</p>
-  } @else { @for (grant of grants(); track grant.id) {
+  @for (grant of grants(); track grant.id) {
   <mat-card appearance="outlined" data-testid="access-grant">
     <mat-card-content>
       <p><strong>Cuenta:</strong> {{ grant.granteeUserId }}</p>
@@ -65,7 +63,12 @@
       }
     </mat-card-content>
   </mat-card>
-  } } } @if (errorMessage()) {
+  } @empty {
+  <p>No hay accesos concedidos.</p>
+  }
+
+  @if (errorMessage()) {
   <p class="error" role="alert">{{ errorMessage() }}</p>
+  }
   }
 </section>

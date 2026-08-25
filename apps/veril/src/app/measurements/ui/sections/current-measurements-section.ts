@@ -1,9 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   Input,
-  Output,
+  output,
   signal,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -35,7 +34,7 @@ export class CurrentMeasurementsSection {
   @Input() hasParameterTargets = false;
   @Input() loading = false;
   @Input() loadFailed = false;
-  @Output() readonly retryRequested = new EventEmitter<void>();
+  readonly retryRequested = output<void>();
 
   readonly now = signal(systemClock.now());
 

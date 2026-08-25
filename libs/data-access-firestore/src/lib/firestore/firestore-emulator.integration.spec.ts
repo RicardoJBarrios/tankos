@@ -13,6 +13,8 @@ import {
 } from './firestore-crud-repository';
 
 const emulatorTest = (name: string, test: () => Promise<void>): void =>
+  // The wrapper deliberately accepts scenario titles as data.
+  // eslint-disable-next-line vitest/valid-title
   it(name, async () => {
     expect(typeof test).toBe('function');
     if (!process.env['FIRESTORE_EMULATOR_HOST']) {

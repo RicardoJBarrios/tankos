@@ -24,7 +24,9 @@
       }
     </div>
     <span class="spacer"></span>
-    <button mat-button [matMenuTriggerFor]="globalMenu">Más</button>
+    <button type="button" mat-button [matMenuTriggerFor]="globalMenu">
+      Más
+    </button>
     <mat-menu #globalMenu="matMenu">
       <a mat-menu-item routerLink="/app/aquariums">Mis acuarios</a>
       <a mat-menu-item routerLink="/app/aquariums/access">Compartir acceso</a>
@@ -62,7 +64,7 @@
     </nav>
 
     <main>
-      <router-outlet></router-outlet>
+      <router-outlet />
     </main>
 
     @if (canShowRecordEntry()) {

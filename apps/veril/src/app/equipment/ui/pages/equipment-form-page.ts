@@ -74,7 +74,11 @@ export class EquipmentFormPage implements OnInit {
     model: ['', Validators.maxLength(200)],
     serialNumber: ['', Validators.maxLength(200)],
   });
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
+    void this.#loadExistingEquipment();
+  }
+
+  async #loadExistingEquipment(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) return;
     this.editingId.set(id);

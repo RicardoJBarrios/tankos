@@ -1,35 +1,11 @@
-import nx from '@nx/eslint-plugin';
 import baseConfig from '../../eslint.config.mjs';
+import { createAngularEslintConfig } from '../../tools/eslint/angular-profiles.mjs';
+import { createPlaywrightEslintConfig } from '../../tools/eslint/playwright-profiles.mjs';
+import { createVitestEslintConfig } from '../../tools/eslint/vitest-profiles.mjs';
 
 export default [
-  ...nx.configs['flat/angular'],
-  ...nx.configs['flat/angular-template'],
   ...baseConfig,
-  {
-    files: ['**/*.ts'],
-    rules: {
-      '@angular-eslint/prefer-inject': 'error',
-      '@angular-eslint/directive-selector': [
-        'error',
-        {
-          type: 'attribute',
-          prefix: 'veril',
-          style: 'camelCase',
-        },
-      ],
-      '@angular-eslint/component-selector': [
-        'error',
-        {
-          type: 'element',
-          prefix: 'veril',
-          style: 'kebab-case',
-        },
-      ],
-    },
-  },
-  {
-    files: ['**/*.html'],
-    // Override or add rules here
-    rules: {},
-  },
+  ...createAngularEslintConfig({ prefix: 'veril' }),
+  ...createVitestEslintConfig(),
+  ...createPlaywrightEslintConfig(),
 ];

@@ -24,4 +24,10 @@ describe('stableJson', () => {
     circular.self = circular;
     expect(() => stableJson(circular)).toThrow('cannot be serialized');
   });
+
+  it('Given a symbol value, When serializing it, Then it raises a validation error', () => {
+    expect(() => stableJson(Symbol('unserializable'))).toThrow(
+      'cannot be serialized',
+    );
+  });
 });
