@@ -1,5 +1,5 @@
 import nx from '@nx/eslint-plugin';
-import sheriff from '@softarc/eslint-plugin-sheriff';
+import boundaries from 'eslint-plugin-boundaries';
 import sonarjs from 'eslint-plugin-sonarjs';
 
 const workspaceSourceFiles = [
@@ -78,19 +78,84 @@ const librarySizeRules = {
   ],
 };
 
+const architecturalElements = [
+  { type: 'core', pattern: 'libs/*/src/lib/*/core/**' },
+  { type: 'application', pattern: 'libs/*/src/lib/*/application/**' },
+  { type: 'adapters', pattern: 'libs/*/src/lib/*/adapters/**' },
+  { type: 'composition', pattern: 'libs/*/src/lib/*/composition/**' },
+  { type: 'presentation', pattern: 'libs/*/src/lib/*/presentation/**' },
+];
+
+const architecturalPolicies = [
+  {
+    from: { element: { type: 'core' } },
+    allow: { to: { element: { types: { anyOf: ['core'] } } } },
+  },
+  {
+    from: { element: { type: 'application' } },
+    allow: {
+      to: {
+        element: { types: { anyOf: ['core', 'application', 'adapters'] } },
+      },
+    },
+  },
+  {
+    from: { element: { type: 'adapters' } },
+    allow: { to: { element: { types: { anyOf: ['core', 'adapters'] } } } },
+  },
+  {
+    from: { element: { type: 'presentation' } },
+    allow: {
+      to: {
+        element: { types: { anyOf: ['core', 'application', 'presentation'] } },
+      },
+    },
+  },
+  {
+    from: { element: { type: 'composition' } },
+    allow: {
+      to: {
+        element: {
+          types: {
+            anyOf: [
+              'core',
+              'application',
+              'adapters',
+              'composition',
+              'presentation',
+            ],
+          },
+        },
+      },
+    },
+  },
+];
+
 /**
  * Creates the shared workspace ESLint profile.
  *
- * This profile owns framework-independent Nx, Sheriff, SonarJS, dependency
- * boundary and library-size rules. Language-specific parsers and presets are
- * deliberately composed by the TypeScript and JavaScript profiles.
+ * This profile owns framework-independent Nx, ESLint Boundaries, SonarJS,
+ * dependency-boundary and library-size rules. Language-specific parsers and
+ * presets are deliberately composed by the TypeScript and JavaScript profiles.
  *
  * @returns The flat ESLint configuration shared by workspace projects.
  */
 export function createWorkspaceEslintConfig() {
   return [
     ...nx.configs['flat/base'],
-    sheriff.configs.all,
+    {
+      files: ['libs/**/*.ts'],
+      plugins: { boundaries },
+      settings: {
+        'boundaries/elements': architecturalElements,
+      },
+      rules: {
+        'boundaries/dependencies': [
+          'error',
+          { default: 'allow', policies: architecturalPolicies },
+        ],
+      },
+    },
     {
       ignores: [
         '**/dist',

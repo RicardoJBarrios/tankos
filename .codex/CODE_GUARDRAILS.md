@@ -122,7 +122,7 @@ test-runner aliases. Never use a secondary barrel as a substitute for physical
 bundle isolation when the adapter brings a heavy or environment-specific SDK.
 
 TankOS libraries must declare their internal modules and architectural layers
-in `sheriff.config.ts`. The default dependency direction is strict:
+in the ESLint Boundaries profile. The default dependency direction is strict:
 
 ```text
 library-root -> core, application, adapters, presentation
@@ -132,7 +132,7 @@ presentation -> application, core
 core         -> core
 ```
 
-New library layers or exceptions require an explicit Sheriff rule and a local
+New library layers or exceptions require an explicit ESLint Boundaries policy and a local
 documentation update. A library lint failure is an architectural failure, not
 an import-order issue to bypass.
 

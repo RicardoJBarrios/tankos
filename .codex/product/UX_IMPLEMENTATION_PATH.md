@@ -632,7 +632,7 @@ load every collection to render the hub.
 from `Acuario`; daily logging is not duplicated there; the page remains useful
 when optional setup is absent.
 
-**Validation:** route/page tests, Sheriff, production build and compact
+**Validation:** route/page tests, ESLint Boundaries, production build and compact
 Playwright navigation.
 
 **Suggested commit:** `feat(aquariums): add aquarium management hub`

@@ -1,9 +1,6 @@
-import vitest from 'eslint-plugin-vitest';
+import globals from 'globals';
 
 const vitestTestFiles = ['**/*.{spec,test}.{ts,tsx,mts,cts,js,jsx,mjs,cjs}'];
-
-const customTestBlockFunctions = ['emulatorTest'];
-const customAssertionFunctions = ['expect', 'expectCode'];
 
 /**
  * Creates the reusable Vitest ESLint profile.
@@ -12,6 +9,12 @@ const customAssertionFunctions = ['expect', 'expectCode'];
  * they can receive the Playwright profile without two test-framework rule
  * sets competing over the same source file.
  *
+ * Vitest semantic linting is deliberately kept out of this profile. The
+ * workspace uses Vitest's native runtime guard for focused tests, while the
+ * shared TypeScript and JavaScript profiles enforce test code. This also
+ * keeps the profile independent from a framework plugin whose ESLint peer
+ * range would constrain future ESLint upgrades.
+ *
  * @returns The flat ESLint configuration for Vitest tests.
  */
 export function createVitestEslintConfig() {
@@ -19,24 +22,40 @@ export function createVitestEslintConfig() {
     {
       files: vitestTestFiles,
       ignores: ['**/e2e/**'],
-      languageOptions: vitest.configs.env.languageOptions,
-      plugins: { vitest },
+      languageOptions: { globals: globals.vitest },
       rules: {
-        ...vitest.configs.recommended.rules,
-        'vitest/no-disabled-tests': 'error',
-        'vitest/no-focused-tests': 'error',
-        'vitest/expect-expect': [
+        'no-restricted-syntax': [
           'error',
           {
-            additionalTestBlockFunctions: customTestBlockFunctions,
-            assertFunctionNames: customAssertionFunctions,
+            selector:
+              "CallExpression[callee.type='MemberExpression'][callee.property.name='only']",
+            message:
+              'Focused tests are forbidden; Vitest must run the complete suite.',
+          },
+          {
+            selector:
+              "CallExpression[callee.type='MemberExpression'][callee.property.name='skip']",
+            message:
+              'Skipped tests are forbidden; encode the expected behavior or remove the test.',
+          },
+          {
+            selector:
+              "CallExpression[callee.type='Identifier'][callee.name=/^(xdescribe|xit|xtest)$/]",
+            message:
+              'Disabled test declarations are forbidden; encode the expected behavior or remove the test.',
           },
         ],
-        'vitest/no-standalone-expect': [
+        'no-restricted-imports': [
           'error',
-          { additionalTestBlockFunctions: customTestBlockFunctions },
+          {
+            paths: [
+              {
+                name: 'node:test',
+                message: 'Use Vitest APIs for workspace tests.',
+              },
+            ],
+          },
         ],
-        'vitest/no-identical-title': 'error',
       },
     },
   ];

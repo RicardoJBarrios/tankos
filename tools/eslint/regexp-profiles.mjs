@@ -9,6 +9,11 @@ const regexpRules = Object.fromEntries(
   ]),
 );
 
+// The workspace targets ES2022. Unicode mode is supported by that target;
+// Unicode-set mode (`v`) would require ES2024 output and a broader runtime
+// baseline, so it is intentionally not a global requirement.
+regexpRules['regexp/require-unicode-sets-regexp'] = 'off';
+
 /**
  * Creates the strict regular-expression profile.
  *

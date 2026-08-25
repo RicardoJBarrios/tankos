@@ -2,7 +2,8 @@
 
 The workspace keeps quality responsibilities separate:
 
-- Nx, ESLint, Sheriff and SonarJS enforce code quality and project boundaries.
+- Nx, ESLint, ESLint Boundaries and SonarJS enforce code quality and project
+  boundaries.
 - Vitest enforces the library coverage contract and writes machine-readable
   test and coverage reports.
 - Knip detects unused files and dependencies. It currently reports without

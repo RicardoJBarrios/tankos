@@ -78,15 +78,7 @@
         {
           "externalDependencies": ["eslint"]
         }
-      ],
-      "dependsOn": ["architecture"]
-    },
-    "architecture": {
-      "executor": "nx:run-commands",
-      "options": {
-        "command": "sheriff verify ./apps/veril/src/main.ts",
-        "cwd": "{workspaceRoot}"
-      }
+      ]
     },
     "test": {
       "executor": "@angular/build:unit-test",

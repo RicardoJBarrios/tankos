@@ -18,8 +18,8 @@ scope and by `feature`, `data-access`, `ui` or `util` type.
 
 Enforce allowed dependencies with Nx tags and ESLint module boundaries once
 contexts are Nx projects. While the code remains inside the single `tankos`
-application, use Sheriff to enforce the same context/layer policy at file and
-directory level. Domain UI cannot import infrastructure. Domains depend on
+application, use ESLint Boundaries to enforce the same context/layer policy at
+file and directory level. Domain UI cannot import infrastructure. Domains depend on
 themselves and narrowly owned shared-kernel capabilities; cross-domain
 presentation orchestration belongs under `composition`, while concrete adapter
 wiring belongs to shell composition-root providers grouped by consuming

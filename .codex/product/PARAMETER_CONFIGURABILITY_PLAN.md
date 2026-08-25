@@ -884,7 +884,7 @@ Every selected phase should use the layers it changes.
 | Firestore Rules      | Owner/guest scope, known/authorized definitions, malformed shapes, cross-Aquarium denial and selected lifecycle rules                            |
 | Emulator integration | Real persistence/query behavior, target/profile concurrency, corrected history and index requirements                                            |
 | Playwright           | A keeper configures the selected behavior, records/reviews data and sees the expected state after refresh; guest coverage if shared reads change |
-| Architecture         | `sheriff` boundaries remain valid; domain does not acquire Angular/Firebase/Zod dependencies                                                     |
+| Architecture         | ESLint Boundaries remain valid; domain does not acquire Angular/Firebase/Zod dependencies                                                     |
 | Regression           | Existing five-Parameter record, target, status, correction, owner-history and guest-history journeys still pass                                  |
 
 The current workspace exposes `tankos` targets for `test`, `lint`, `architecture`,

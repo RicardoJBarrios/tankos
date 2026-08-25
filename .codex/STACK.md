@@ -5,13 +5,13 @@
 | Node                    | 24                   | Runtime and CI baseline                                |
 | pnpm                    | 11.17.0              | Workspace package manager                              |
 | Nx                      | 23.1.1               | Workspace projects, generators, targets and boundaries |
-| Angular                 | 20.3.27              | Application framework                                  |
-| Angular Material/CDK    | 20.2.14              | Accessible UI foundation                               |
-| TypeScript              | 5.8.3                | Application language                                   |
-| Vitest                  | 3.2.4                | Unit test runner                                       |
+| Angular                 | 22.1.3               | Application framework                                  |
+| Angular Material/CDK    | 22.1.3               | Accessible UI foundation                               |
+| TypeScript              | 6.0.2                | Application language                                   |
+| Vitest                  | 4.1.11               | Unit test runner                                       |
 | Spectator               | 20.0.0               | Angular test ergonomics                                |
 | Zod                     | 4.4.3                | Runtime boundary validation                            |
-| NgRx Signals            | 20.1.0               | Shared/complex feature state                           |
+| NgRx Signals            | 22.0.0               | Shared/complex feature state                           |
 | Firebase JS SDK         | 12.17.1              | Auth and Firestore client                              |
 | AngularFire             | 20.0.1               | Angular integration boundary                           |
 | Firebase Emulator Suite | Firebase CLI tooling | Local and integration backend                          |

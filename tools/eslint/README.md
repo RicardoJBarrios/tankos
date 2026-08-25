@@ -18,7 +18,7 @@ profiles. Project configurations consume this composition as `baseConfig`.
 Every project receives the workspace profile through the root configuration:
 
 - Nx `flat/base`.
-- Sheriff `configs.all`.
+- ESLint Boundaries architectural policies for library layers.
 - Workspace module-boundary constraints.
 - SonarJS recommended rules for library TypeScript, plus complexity limits of
   10 cyclomatic and 15 cognitive complexity.
@@ -82,8 +82,11 @@ export default createJavaScriptEslintConfig();
 
 Test frameworks are separate profiles:
 
-- `createVitestEslintConfig()` applies `eslint-plugin-vitest` to unit and
-  integration test files, excluding `e2e` directories.
+- `createVitestEslintConfig()` applies the workspace Vitest profile to unit
+  and integration test files, excluding `e2e` directories. It rejects focused
+  and skipped test declarations and imports from `node:test`. Vitest itself
+  also runs with `allowOnly: false`, so focused tests fail at runtime even
+  when ESLint is not run.
 - `createPlaywrightEslintConfig()` applies `eslint-plugin-playwright` only to
   `apps/**/e2e/**`.
 

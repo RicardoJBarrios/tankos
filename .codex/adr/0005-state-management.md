@@ -24,7 +24,7 @@ not become a second persistence layer or a duplicate pending-write queue.
 
 - Most state stays local and short-lived.
 - Stores are scoped to the smallest useful injector.
-- The store library is aligned with Angular 20 and must be upgraded together with
+- The store library is aligned with Angular 22 and must be upgraded together with
   the Angular major without changing persistence ownership.
 
 ## Alternatives considered

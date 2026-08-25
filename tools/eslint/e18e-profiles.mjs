@@ -26,7 +26,8 @@ const compatibleRules = Object.fromEntries(
  * Creates the strict e18e modernization and performance profile.
  *
  * Rules requiring APIs newer than the workspace runtime target are excluded
- * deliberately. The selected rules are not duplicated by Nx, Sheriff,
+ * deliberately. The selected rules are not duplicated by Nx, ESLint
+ * Boundaries,
  * SonarJS, TypeScript ESLint or the regular-expression profile.
  *
  * @returns The flat ESLint configuration for e18e rules.

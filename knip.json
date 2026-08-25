@@ -33,7 +33,6 @@
     "@tankos/*",
     "@angular/cli",
     "@angular/language-service",
-    "@angular/platform-browser-dynamic",
     "@eslint/js",
     "@nx/devkit",
     "@nx/js",

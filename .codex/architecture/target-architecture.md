@@ -40,9 +40,9 @@ This table governs timing. It does not weaken the accepted directions in ADRs.
 
 Observed workspace baseline:
 
-- Node 24, pnpm 11.17.0, Nx 23.1.1, Angular 20.3.27 and TypeScript 5.8.3.
-- Angular Material/CDK 20.2.14, Service Worker and SSR 20.3.27.
-- AngularFire 20.0.1, Firebase JS SDK 12.17.1 and NgRx Signals 20.1.0.
+- Node 24, pnpm 11.17.0, Nx 23.1.1, Angular 22.1.3 and TypeScript 6.0.2.
+- Angular Material/CDK 22.1.3, Service Worker and SSR 22.1.3.
+- AngularFire 20.0.1, Firebase JS SDK 12.17.1 and NgRx Signals 22.0.0.
 - One application, `tankos`, with standalone routing and public/private shells.
 - Static output with public prerendering and private CSR.
 - Build, serve, lint, test, serve-static and inferred Playwright `e2e` targets.
@@ -387,12 +387,10 @@ their own scope and narrowly owned shared libraries. ESLint module boundaries
 must enforce the policy. `shared` must have explicit ownership and must not become
 a global dumping ground.
 
-Until contexts become separate Nx projects, [Sheriff](../../sheriff.config.ts)
-enforces the equivalent intra-application boundary. It assigns context and
-layer tags to the current screaming-architecture directories, checks the
-explicit context dependency map, and runs as the `tankos:architecture` target.
-The `tankos:lint` target depends on that target, so a normal lint run cannot
-silently bypass the architectural check. No bounded context is allowed to
+Until contexts become separate Nx projects, ESLint Boundaries enforces the
+equivalent intra-application boundary. It classifies the current library layer
+directories and checks the explicit context dependency policies as part of the
+normal lint target. No bounded context is allowed to
 import another bounded context directly. Cross-context pages live under
 `composition`; adapters are bound to consumer-owned ports in shell composition
 providers. A new context dependency is a design failure unless it is first

@@ -1,9 +1,11 @@
 import { Duration, DurationInput } from '../../core';
 import { truncateMilliseconds } from '../../core/validation';
 
-const DURATION_PATTERN = /^([-+]?)P(?<date>\d+D)?(?<time>T.*)?$/;
-const DATE_PATTERN = /^(\d+)D$/;
-const TIME_PATTERN = /^T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)(?:\.(\d+))?S)?$/;
+const DURATION_PATTERN = /^[\x2b\x2d]?P(?:\d+D)?(?:T.*)?$/u;
+const DATE_PATTERN = /^(?<days>\d+)D$/u;
+const TIME_PATTERN =
+  /^T(?:(?<hours>\d+)H)?(?:(?<minutes>\d+)M)?(?:(?<seconds>\d+)(?:\.(?<fraction>\d+))?S)?$/u;
+const TIME_UNIT_PATTERN = /[HMS]/u;
 const MILLISECONDS_PER_SECOND = 1_000;
 const MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND;
 const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
@@ -20,7 +22,11 @@ export function nativeParseDuration(value: DurationInput): Duration {
   }
 
   const match = DURATION_PATTERN.exec(value);
-  const parts = match ? durationPartsFromMatch(match) : undefined;
+  if (!match) {
+    throw new RangeError('Invalid ISO 8601 duration');
+  }
+
+  const parts = durationPartsFromValue(value);
   if (!parts) {
     throw new RangeError('Invalid ISO 8601 duration');
   }
@@ -31,7 +37,9 @@ export function nativeParseDuration(value: DurationInput): Duration {
     parts.minutes * MILLISECONDS_PER_MINUTE +
     parts.seconds * MILLISECONDS_PER_SECOND +
     fractionToMilliseconds(parts.fraction);
-  const signedMilliseconds = match[1] === '-' ? -milliseconds : milliseconds;
+  const signedMilliseconds = value.startsWith('-')
+    ? -milliseconds
+    : milliseconds;
 
   return {
     kind: 'duration',
@@ -39,27 +47,49 @@ export function nativeParseDuration(value: DurationInput): Duration {
   };
 }
 
-function durationPartsFromMatch(match: RegExpExecArray) {
-  const groups = match.groups as {
-    readonly date?: string;
-    readonly time?: string;
-  };
-  return durationParts(groups.date, groups.time);
+function durationPartsFromValue(value: string) {
+  const unsignedValue =
+    value.startsWith('-') || value.startsWith('+') ? value.slice(1) : value;
+  const body = unsignedValue.slice(1);
+  const timeSeparator = body.indexOf('T');
+  const datePart = timeSeparator === -1 ? body : body.slice(0, timeSeparator);
+  const date = datePart === '' ? undefined : datePart;
+  const time =
+    timeSeparator === -1 ? undefined : `T${body.slice(timeSeparator + 1)}`;
+  return durationParts(date, time);
 }
 
 function durationParts(date: string | undefined, time: string | undefined) {
   if (!hasDateOrTime(date, time)) return undefined;
   const dateMatch = matchDate(date);
   const timeMatch = matchTime(time);
-  if (!validDate(date, dateMatch)) return undefined;
-  if (!validTime(time, timeMatch)) return undefined;
+  if (!validDurationParts(date, time, dateMatch, timeMatch)) return undefined;
+  const dateGroups = dateMatch?.groups as
+    { readonly days?: string } | undefined;
+  const timeGroups = timeMatch?.groups as
+    | {
+        readonly hours?: string;
+        readonly minutes?: string;
+        readonly seconds?: string;
+        readonly fraction?: string;
+      }
+    | undefined;
   return {
-    days: toInteger(dateMatch?.[1]),
-    hours: toInteger(timeMatch?.[1]),
-    minutes: toInteger(timeMatch?.[2]),
-    seconds: toInteger(timeMatch?.[3]),
-    fraction: timeMatch?.[4],
+    days: toInteger(dateGroups?.days),
+    hours: toInteger(timeGroups?.hours),
+    minutes: toInteger(timeGroups?.minutes),
+    seconds: toInteger(timeGroups?.seconds),
+    fraction: timeGroups?.fraction,
   };
+}
+
+function validDurationParts(
+  date: string | undefined,
+  time: string | undefined,
+  dateMatch: RegExpExecArray | undefined,
+  timeMatch: RegExpExecArray | undefined,
+): boolean {
+  return validDate(date, dateMatch) && validTime(time, timeMatch);
 }
 
 function matchDate(date: string | undefined): RegExpExecArray | undefined {
@@ -110,7 +140,9 @@ function validTime(
   time: string | undefined,
   match: RegExpExecArray | undefined,
 ): boolean {
-  return time === undefined || (match !== undefined && /[HMS]/.test(time));
+  return (
+    time === undefined || (match !== undefined && TIME_UNIT_PATTERN.test(time))
+  );
 }
 
 function toInteger(value: string | undefined): number {

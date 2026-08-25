@@ -418,10 +418,10 @@ implement the composed temporal ports without changing application consumers. Th
 native temporal adapter is an infrastructure detail; the port is the stable
 dependency direction for the rest of TankOS.
 
-## Sheriff boundaries
+## ESLint Boundaries
 
-TankOS libraries are registered in the repository Sheriff configuration with
-isolated `tankos:layer:*` tags. The standard dependency direction is:
+TankOS libraries are classified in the repository ESLint Boundaries profile with
+isolated architectural layer types. The standard dependency direction is:
 
 ```text
 library-root -> core, application, adapters, presentation
@@ -431,12 +431,10 @@ presentation -> application, core
 core         -> core
 ```
 
-Each library registers its actual internal directories explicitly because
-Sheriff does not support repeating the same path placeholder to express a
-library directory and its homonymous source directory. A different layer or
-dependency requires an explicit Sheriff rule and an update to this document
-(or the corresponding library documentation). The library's lint target is
-the enforcement point for these boundaries.
+Each library layer is classified by the shared profile. A different layer or
+dependency requires an explicit ESLint Boundaries policy and an update to this
+document (or the corresponding library documentation). The library's lint
+target is the enforcement point for these boundaries.
 
 ## Build, test and coverage boundary
 
