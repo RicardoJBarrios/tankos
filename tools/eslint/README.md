@@ -6,12 +6,23 @@ presets or rule blocks.
 
 ```js
 import { createAngularEslintConfig } from '../../tools/eslint/angular-profiles.mjs';
+import { createVitestEslintConfig } from '../../tools/eslint/vitest-profiles.mjs';
 
-export default [...baseConfig, ...createAngularEslintConfig({ prefix: 'tankos' })];
+export default [
+  ...createAngularEslintConfig({ prefix: 'tankos' }),
+  ...createVitestEslintConfig(),
+];
 ```
 
-The root `eslint.config.mjs` composes the workspace, TypeScript and JavaScript
-profiles. Project configurations consume this composition as `baseConfig`.
+`createAngularEslintConfig()` is the single entry point for Angular projects. It
+composes the workspace, TypeScript, JavaScript-tooling, regular-expression,
+security, TSDoc, e18e and Angular profiles. Angular project configurations must
+not also import or spread the root `baseConfig`, because that would duplicate
+the shared profiles.
+
+The root `eslint.config.mjs` remains the shared composition for non-Angular
+projects. Those projects can consume it as `baseConfig` and add only the
+framework profiles they actually need.
 
 ## Effective profile composition
 
@@ -67,8 +78,9 @@ Specialized strict profiles are also composed globally:
 - `eslint-plugin-security` uses its complete preset, promoted to errors, for
   Node-oriented tooling, server code and Firebase Admin code.
 
-Angular projects additionally receive the complete Nx `flat/angular` and
-`flat/angular-template` presets through `createAngularEslintConfig`. The
+Angular projects receive all common profiles plus the complete Nx
+`flat/angular` and `flat/angular-template` presets through
+`createAngularEslintConfig`. The
 current Nx Angular TypeScript rules are `contextual-lifecycle`,
 `no-empty-lifecycle-method`, `no-input-rename`, `no-inputs-metadata-property`,
 `no-output-native`, `no-output-on-prefix`, `no-output-rename`,
@@ -108,13 +120,14 @@ library normally composes only the Vitest profile.
 The profile accepts:
 
 - `prefix`: the selector prefix required by the project (`tankos`).
-- `profile`: `recommended` by default, or `strict` for additional focused
-  component rules such as OnPush and inline-declaration limits.
+- `profile`: `strict` by default. `recommended` is available only when a
+  project explicitly opts out of the strict component rules.
 
 The Angular profile additionally enables Angular rules for dependency
 injection, standalone declarations, lifecycle contracts, output contracts,
-duplicate metadata entries, and uncalled signals. The `strict` profile adds
-OnPush and inline-declaration limits.
+duplicate metadata entries, and uncalled signals. Nx already supplies the
+OnPush rule in its Angular preset; the `strict` profile adds inline-declaration
+limits.
 
 The shared profiles intentionally exclude rules that conflict with current
 workspace architecture:

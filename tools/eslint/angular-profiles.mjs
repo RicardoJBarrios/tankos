@@ -1,5 +1,13 @@
 import nx from '@nx/eslint-plugin';
 
+import { createE18eEslintConfig } from './e18e-profiles.mjs';
+import { createJavaScriptEslintConfig } from './javascript-profiles.mjs';
+import { createRegexpEslintConfig } from './regexp-profiles.mjs';
+import { createSecurityEslintConfig } from './security-profiles.mjs';
+import { createTSDocEslintConfig } from './tsdoc-profiles.mjs';
+import { createTypeScriptEslintConfig } from './typescript-profiles.mjs';
+import { createWorkspaceEslintConfig } from './workspace-profiles.mjs';
+
 const recommendedTypeScriptRules = {
   '@angular-eslint/prefer-inject': 'error',
   '@angular-eslint/prefer-standalone': 'error',
@@ -49,7 +57,13 @@ const strictTypeScriptRules = {
 };
 
 /**
- * Creates the reusable Angular ESLint profile for a TankOS workspace project.
+ * Creates the complete reusable Angular ESLint profile for a TankOS project.
+ *
+ * This is the single source-facing entry point for Angular project configs. It
+ * composes the workspace, TypeScript, JavaScript-tooling, regular-expression,
+ * security, TSDoc and e18e profiles before adding Angular rules. Vitest and
+ * Playwright remain separate because their globals and rules are restricted to
+ * test files and must not affect production code.
  *
  * The profile deliberately does not enable `template/no-call-expression` or
  * `no-pipe-impure`: signals are functions in templates and TankOS time pipes
@@ -58,12 +72,19 @@ const strictTypeScriptRules = {
  */
 export function createAngularEslintConfig({
   prefix = 'tankos',
-  profile = 'recommended',
+  profile = 'strict',
 } = {}) {
   const typeScriptRules =
     profile === 'strict' ? strictTypeScriptRules : recommendedTypeScriptRules;
 
   return [
+    ...createWorkspaceEslintConfig(),
+    ...createE18eEslintConfig(),
+    ...createTypeScriptEslintConfig(),
+    ...createJavaScriptEslintConfig(),
+    ...createRegexpEslintConfig(),
+    ...createSecurityEslintConfig(),
+    ...createTSDocEslintConfig(),
     ...nx.configs['flat/angular'],
     ...nx.configs['flat/angular-template'],
     {
