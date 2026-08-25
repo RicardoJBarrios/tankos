@@ -35,8 +35,9 @@ TypeScript files additionally receive:
 The strict preset objects are explicitly scoped to TypeScript-family files so
 type-aware rules cannot accidentally execute against JavaScript configuration
 files. Formatting remains owned by Prettier, so the separate stylistic
-typescript-eslint preset is intentionally not composed: enabling both would
-make the quality tools compete over formatting decisions.
+typescript-eslint preset is composed after removing only rules already owned by
+e18e or the regular-expression profile. Formatting-only decisions remain owned
+by Prettier.
 
 JavaScript-family files additionally receive Nx `flat/javascript` and
 `@eslint/js` `configs.all`. This is limited to tooling and configuration;
