@@ -12,7 +12,9 @@ destructive changes, secret access, pushes or production mutations.
 - **SonarCloud:** external quality analysis and quality gate. It is not a
   runtime dependency or domain authority. Run `pnpm quality:sonar` or
   `pnpm quality:all`; credentials come only from the ignored root `.env` as
-  `SONARQUBE_TOKEN` and `SONARQUBE_ORG`.
+  `SONARQUBE_TOKEN` and `SONARQUBE_ORG`. The SonarQube MCP server is registered
+  in `.codex/config.toml` and runs through the official Docker image without
+  persisting credentials in the repository.
 
 The SonarCloud runner analyzes the active TankOS working tree but publishes to
 the configured main branch `master`, because branch analysis is not enabled for

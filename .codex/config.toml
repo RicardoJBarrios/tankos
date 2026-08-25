@@ -18,6 +18,15 @@ args = [ "--graph-only", "--workspace", "/Users/ricardo/Documents/github/veril",
 [mcp_servers.codegraph.env]
 CODEGRAPH_TELEMETRY = "off"
 
+[mcp_servers.sonarqube]
+command = "/bin/zsh"
+args = [ "-lc", "set -a; source .env; set +a; exec docker run --init --pull=always --rm -i -e SONARQUBE_TOKEN -e SONARQUBE_ORG -e SONARQUBE_TOOLSETS -e TELEMETRY_DISABLED mcp/sonarqube" ]
+cwd = "."
+
+[mcp_servers.sonarqube.env]
+SONARQUBE_TOOLSETS = "analysis,issues,quality-gates,coverage,dependency-risks"
+TELEMETRY_DISABLED = "true"
+
 [features]
 multi_agent = true
 
