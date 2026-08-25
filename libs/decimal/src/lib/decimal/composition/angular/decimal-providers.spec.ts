@@ -1,7 +1,21 @@
 import { TestBed } from '@angular/core/testing';
 import { DecimalService } from '../../application';
 import type { DecimalArithmeticPort } from '../../core';
-import { provideTankOsDecimal } from './decimal-providers';
+import {
+  provideDecimalArithmetic,
+  provideTankOsDecimal,
+} from './decimal-providers';
+
+describe('provideDecimalArithmetic', () => {
+  it('Given an arithmetic port, When creating the provider, Then binds the port value', () => {
+    const arithmetic = {} as DecimalArithmeticPort;
+
+    expect(provideDecimalArithmetic(arithmetic)).toEqual({
+      provide: expect.anything(),
+      useValue: arithmetic,
+    });
+  });
+});
 
 describe('decimal providers', () => {
   it('Given an arithmetic port, When the selected providers are registered, Then DecimalService is usable', () => {

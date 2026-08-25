@@ -1,5 +1,18 @@
-export * from './batch-service';
-export * from './batch-submission-service';
-export * from './batch-worker';
-export * from './crud-service';
-export * from './versioned-crud-service';
+export { createBatchService } from './batch-service';
+export type { BatchService } from './batch-service';
+export {
+  createBatchSubmissionService,
+} from './batch-submission-service';
+export type { BatchSubmissionServiceOptions } from './batch-submission-service';
+export { createAuthorizedBatchWorker } from './batch-worker';
+export type {
+  BatchAuthorizationPort,
+  BatchExecutionPort,
+} from './batch-worker';
+export { createCrudService } from './crud-service';
+export type { CrudService } from './crud-service';
+export { createVersionedCrudService } from './versioned-crud-service';
+export type {
+  VersionedCrudService,
+  VersionedCrudServiceOptions,
+} from './versioned-crud-service';

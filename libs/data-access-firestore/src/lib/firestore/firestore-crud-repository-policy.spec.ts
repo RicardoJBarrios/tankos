@@ -1,13 +1,28 @@
 import { createEntityId } from '@tankos/data-access';
-import { vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { FirestoreCrudRepositoryOptions } from './firestore-crud-repository';
 import {
   authorizeFirestoreAccess,
   authorizeFirestoreLifecycleRead,
   createFirestoreTimestampFactory,
+  deleteFirestoreRecord,
   handleFirestoreError,
   requireFirestoreRevision,
+  transactFirestoreUpdate,
 } from './firestore-crud-repository-policy';
+
+const firestoreMocks = vi.hoisted(() => ({
+  doc: vi.fn((_firestore, _collection, id) => ({ id })),
+  runTransaction: vi.fn(),
+}));
+
+vi.mock('firebase/firestore', () => ({
+  ...firestoreMocks,
+  Timestamp: {
+    now: vi.fn(() => ({ toMillis: () => 0 })),
+    fromMillis: vi.fn((value: number) => ({ toMillis: () => value })),
+  },
+}));
 
 describe('firestore CRUD policy', () => {
   const access = { principalId: createEntityId('keeper'), roles: [] };
@@ -30,6 +45,25 @@ describe('firestore CRUD policy', () => {
     unknown,
     unknown
   >;
+
+  const snapshot = (value: Record<string, unknown>) => ({
+    exists: () => true,
+    id: 'record',
+    data: () => value,
+  });
+
+  const dto = {
+    data: { name: 'litre' },
+    lifecycle: { status: 'active' },
+    revision: 1,
+    metadata: {
+      schemaVersion: 1,
+      createdAt: { toMillis: () => 0 },
+      updatedAt: { toMillis: () => 0 },
+    },
+  };
+
+  const schema = { parse: (value: unknown) => value } as never;
 
   it('Given a matching revision, When validating a command, Then accepts it', () => {
     expect(() =>
@@ -140,5 +174,55 @@ describe('firestore CRUD policy', () => {
     await expect(
       authorizeFirestoreLifecycleRead(options, access, undefined, 'get'),
     ).resolves.toBeUndefined();
+  });
+
+  it('Given a marked-for-deletion record, When deleting it, Then removes the document in the transaction', async () => {
+    const transaction = {
+      get: vi.fn().mockResolvedValue(
+        snapshot({ ...dto, lifecycle: { status: 'marked-for-deletion' } }),
+      ),
+      delete: vi.fn(),
+    };
+
+    await deleteFirestoreRecord(
+      transaction as never,
+      { id: createEntityId('record'), access, expectedRevision: 1 },
+      {
+        firestore: {} as never,
+        collectionPath: 'units',
+        recordSchema: schema,
+      } as never,
+    );
+
+    expect(transaction.delete).toHaveBeenCalledWith({ id: 'record' });
+  });
+
+  it('Given an active record, When updating it transactionally, Then increments revision and returns the changed record', async () => {
+    const transaction = {
+      get: vi.fn().mockResolvedValue(snapshot(dto)),
+      update: vi.fn(),
+    };
+    firestoreMocks.runTransaction.mockImplementation(
+      async (_firestore, callback) => callback(transaction),
+    );
+
+    const result = await transactFirestoreUpdate(
+      {
+        firestore: {} as never,
+        collectionPath: 'units',
+        recordSchema: schema,
+      } as never,
+      () => ({ toMillis: () => 0 }) as never,
+      { id: createEntityId('record'), access, expectedRevision: 1 },
+      'replace',
+      (current) => ({
+        data: { name: 'gallon' },
+        lifecycle: current.lifecycle,
+      }),
+    );
+
+    expect(result.data).toEqual({ name: 'gallon' });
+    expect(result.revision).toBe(2);
+    expect(transaction.update).toHaveBeenCalled();
   });
 });

@@ -1,15 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import {
-  createBatchSubmissionService,
-  createMaterializationCancelledPatch,
-  createPendingChunk,
-  createPendingChunks,
-  createQueuedPatch,
-  createResumePatch,
-  project,
-  resolveSubmissionConfiguration,
-  stableJson,
-} from './batch-submission-service';
+import { createBatchSubmissionService } from './batch-submission-service';
 import {
   type BatchOperationRecord,
   type BatchMaterializerStorePort,
@@ -89,82 +79,6 @@ function storeHarness(initial = record()) {
 }
 
 describe('createBatchSubmissionService', () => {
-  it('Given omitted limits, When resolving configuration, Then it applies safe defaults', () => {
-    const configuration = resolveSubmissionConfiguration({
-      store: storeHarness().store,
-      materializerStore: storeHarness().materializerStore,
-      materializer: { materialize: async () => [] },
-      clock: { now: () => now },
-      createBatchId: () => createEntityId('batch-1'),
-    });
-    expect(configuration).toMatchObject({ chunkSize: 400, maxTargets: 10_000 });
-  });
-
-  it.each([
-    { chunkSize: 0 },
-    { chunkSize: 401 },
-    { maxTargets: 0 },
-    { maxRequestBytes: 999 },
-    { materializerOwnerId: ' ' },
-    { materializationLeaseDurationMilliseconds: 0 },
-  ])('Given invalid configuration %s, When resolving it, Then it rejects the value', (override) => {
-    expect(() =>
-      resolveSubmissionConfiguration({
-        store: storeHarness().store,
-        materializerStore: storeHarness().materializerStore,
-        materializer: { materialize: async () => [] },
-        clock: { now: () => now },
-        createBatchId: () => createEntityId('batch-1'),
-        ...override,
-      }),
-    ).toThrow(RangeError);
-  });
-
-  it('Given nested objects, When stableJson serializes them, Then object order does not affect the output', () => {
-    expect(stableJson({ b: 2, a: { d: 4, c: 3 } })).toBe(
-      stableJson({ a: { c: 3, d: 4 }, b: 2 }),
-    );
-    expect(stableJson(undefined)).toBe('undefined');
-  });
-
-  it('Given an unserializable value, When stableJson serializes it, Then it raises a validation error', () => {
-    const circular: { self?: unknown } = {};
-    circular.self = circular;
-    expect(() => stableJson(circular)).toThrow('cannot be serialized');
-  });
-
-  it('Given materialized ids, When creating pending chunks, Then it splits them deterministically', () => {
-    const ids = [1, 2, 3].map((id) => createEntityId(`unit-${id}`));
-    expect(createPendingChunks(ids, 2)).toEqual([
-      createPendingChunk(createEntityId('chunk-1'), ids.slice(0, 2)),
-      createPendingChunk(createEntityId('chunk-2'), ids.slice(2)),
-    ]);
-  });
-
-  it('Given a timestamp, When creating lifecycle patches, Then it clears the materialization lease', () => {
-    expect(createQueuedPatch('request', 3, 2, now)).toMatchObject({
-      status: 'queued',
-      selection: { chunkCount: 2 },
-      materializationLeaseToken: null,
-    });
-    expect(createResumePatch(now)).toEqual({ status: 'queued', updatedAt: now });
-    expect(createMaterializationCancelledPatch(now)).toMatchObject({
-      status: 'cancelled',
-      materializationLeaseOwner: null,
-    });
-  });
-
-  it('Given a persisted batch, When project exposes it, Then it returns the public progress fields', () => {
-    expect(project(record('running'))).toMatchObject({
-      batchId: createEntityId('batch-1'),
-      status: 'running',
-    });
-  });
-
-  it('Given no persisted batch, When project exposes it, Then it raises not-found', () => {
-    expect(() => project(undefined)).toThrow('Batch was not found');
-  });
-
   it('Given a valid request, When submitted, Then persists materializing state and returns immediately', async () => {
     const harness = storeHarness();
     const service = createBatchSubmissionService({

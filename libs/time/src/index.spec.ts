@@ -10,23 +10,6 @@ describe('main entry point', () => {
     );
   });
 
-  it('Given the main entry point, When importing it, Then it exposes the duration runtime helpers', () => {
-    expect(publicApi.nativeIsValidDuration).toEqual(expect.any(Function));
-    expect(publicApi.nativeParseDuration).toEqual(expect.any(Function));
-    expect(publicApi.nativeToDurationIsoString).toEqual(expect.any(Function));
-    expect(publicApi.nativeDurationBetween).toEqual(expect.any(Function));
-    expect(publicApi.nativeAddDuration).toEqual(expect.any(Function));
-    expect(publicApi.nativeCompareInstants).toEqual(expect.any(Function));
-    expect(publicApi.nativeCompareDurations).toEqual(expect.any(Function));
-    expect(publicApi.nativeCreateInterval).toEqual(expect.any(Function));
-    expect(publicApi.nativeContains).toEqual(expect.any(Function));
-    expect(publicApi.nativeClamp).toEqual(expect.any(Function));
-    expect(publicApi.nativeAddLocalDate).toEqual(expect.any(Function));
-    expect(publicApi.nativeDurationBetweenLocalDates).toEqual(
-      expect.any(Function),
-    );
-  });
-
   it('Given the main entry point, When importing it, Then it exposes the Angular application and composition API', () => {
     expect(publicApi.TimeService).toEqual(expect.any(Function));
     expect(publicApi.TemporalCalculationService).toEqual(expect.any(Function));

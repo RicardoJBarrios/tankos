@@ -8,15 +8,13 @@ import type {
 import { createBatchRequest, createDataAccessError } from '../core';
 import type { BatchSubmissionServiceOptions } from './batch-submission-service';
 import type { BatchLease } from '../core';
-import {
-  createMaterializationCancelledPatch,
-  createPendingChunks,
-  createQueuedPatch,
-  createResumePatch,
-  project,
-  resolveSubmissionConfiguration,
-  stableJson,
-} from './batch-submission-service';
+import { createMaterializationCancelledPatch } from './batch-submission-cancelled-patch';
+import { createPendingChunks } from './batch-submission-pending-chunks';
+import { createQueuedPatch } from './batch-submission-queued-patch';
+import { createResumePatch } from './batch-submission-resume-patch';
+import { project } from './batch-submission-progress';
+import { resolveSubmissionConfiguration } from './batch-submission-service-configuration';
+import { stableJson } from './batch-submission-stable-json';
 
 /** Stateful implementation behind the public batch submission factory. */
 export class BatchSubmissionServiceImplementation<

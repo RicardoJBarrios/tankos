@@ -9,10 +9,6 @@ import {
   validateDocumentId,
   type FirestoreRecordDto,
 } from './firestore-crud-repository';
-import {
-  deleteFirestoreRecord,
-  transactFirestoreUpdate,
-} from './firestore-crud-repository-policy';
 
 const firestoreMocks = vi.hoisted(() => ({
   collection: vi.fn(() => ({})),
@@ -128,55 +124,6 @@ describe('createFirestoreCrudRepository', () => {
         updatedAt: { epochMilliseconds: 0 },
       },
     });
-  });
-
-  it('Given a marked-for-deletion record, When deleteFirestoreRecord runs, Then it deletes the document in the transaction', async () => {
-    const transaction = {
-      get: vi.fn().mockResolvedValue(
-        snapshot(true, 'unit-1', {
-          ...dto,
-          lifecycle: { status: 'marked-for-deletion' },
-        }),
-      ),
-      delete: vi.fn(),
-    };
-    await deleteFirestoreRecord(
-      transaction as never,
-      { id: createEntityId('unit-1'), access, expectedRevision: 1 },
-      {
-        firestore: {} as never,
-        collectionPath: 'units',
-        recordSchema: schema,
-      } as never,
-    );
-    expect(transaction.delete).toHaveBeenCalled();
-  });
-
-  it('Given an existing active record, When transactFirestoreUpdate replaces it, Then it writes the next revision and returns it', async () => {
-    const transaction = {
-      get: vi.fn().mockResolvedValue(snapshot(true)),
-      update: vi.fn(),
-    };
-    firestoreMocks.runTransaction.mockImplementation(
-      async (_firestore, callback) => callback(transaction),
-    );
-    const result = await transactFirestoreUpdate(
-      {
-        firestore: {} as never,
-        collectionPath: 'units',
-        recordSchema: schema,
-      } as never,
-      () => ({ toMillis: () => 0 }) as never,
-      { id: createEntityId('unit-1'), access, expectedRevision: 1 },
-      'replace',
-      (current) => ({
-        data: { name: 'gallon' },
-        lifecycle: current.lifecycle,
-      }),
-    );
-    expect(result.data).toEqual({ name: 'gallon' });
-    expect(result.revision).toBe(2);
-    expect(transaction.update).toHaveBeenCalled();
   });
 
   it('Given a valid Firestore page, When listed, Then maps records and returns a cursor', async () => {
