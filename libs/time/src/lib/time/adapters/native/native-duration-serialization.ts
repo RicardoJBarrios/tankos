@@ -6,6 +6,7 @@ const MILLISECONDS_PER_SECOND = 1_000;
 const MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND;
 const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
 const MILLISECONDS_PER_DAY = 24 * MILLISECONDS_PER_HOUR;
+const FRACTION_DIGITS = 3;
 
 /** Serializes a duration as canonical fixed-unit ISO 8601. */
 export function nativeToDurationIsoString(value: DurationInput): string {
@@ -22,7 +23,7 @@ export function nativeToDurationIsoString(value: DurationInput): string {
   const millis = remainder % MILLISECONDS_PER_SECOND;
   const datePart = days > 0 ? `${String(days)}D` : '';
   const timePart =
-    days > 0 && hours === 0 && minutes === 0 && seconds === 0 && millis === 0
+    days > 0 && isZeroTime(hours, minutes, seconds, millis)
       ? ''
       : formatTimePart(hours, minutes, seconds, millis);
 
@@ -35,7 +36,7 @@ function formatTimePart(
   seconds: number,
   milliseconds: number,
 ): string {
-  if (hours === 0 && minutes === 0 && seconds === 0 && milliseconds === 0) {
+  if (isZeroTime(hours, minutes, seconds, milliseconds)) {
     return 'T0S';
   }
 
@@ -47,11 +48,22 @@ function formatTimePart(
     timeParts.push(`${String(minutes)}M`);
   }
   if (seconds > 0 || milliseconds > 0) {
-    const fractionalSeconds =
-      milliseconds > 0
-        ? `.${trimTrailingZeros(padLeft(milliseconds.toString(), 3))}`
-        : '';
+    const fractionalSeconds = formatFractionalSeconds(milliseconds);
     timeParts.push(`${String(seconds)}${fractionalSeconds}S`);
   }
   return `T${timeParts.join('')}`;
+}
+
+function formatFractionalSeconds(milliseconds: number): string {
+  if (milliseconds === 0) return '';
+  return `.${trimTrailingZeros(padLeft(milliseconds.toString(), FRACTION_DIGITS))}`;
+}
+
+function isZeroTime(
+  hours: number,
+  minutes: number,
+  seconds: number,
+  milliseconds: number,
+): boolean {
+  return hours === 0 && minutes === 0 && seconds === 0 && milliseconds === 0;
 }

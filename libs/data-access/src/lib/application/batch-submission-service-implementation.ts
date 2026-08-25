@@ -90,13 +90,11 @@ export class BatchSubmissionServiceImplementation<
     );
     if (await this.#options.materializerStore.isCancellationRequested(batchId))
       return this.#cancelMaterialization(batchId, claim.lease);
-    for (const chunk of createPendingChunks(ids, this.#configuration.chunkSize)) {
-      await this.#options.materializerStore.putChunk(
+    await Promise.all(createPendingChunks(ids, this.#configuration.chunkSize).map(async (chunk) => { await this.#options.materializerStore.putChunk(
         batchId,
         chunk,
         claim.lease,
-      );
-    }
+      ); }));
     const queuedPatch = createQueuedPatch(
       current.requestFingerprint,
       ids.length,

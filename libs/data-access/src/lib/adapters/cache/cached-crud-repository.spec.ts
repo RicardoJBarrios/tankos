@@ -40,7 +40,9 @@ describe('createCachedCrudRepository', () => {
     };
     const first = repository.list(request);
     const second = repository.list(request);
-    await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(backing.list).toHaveBeenCalledOnce();
+    });
     resolve?.({ items: [], hasMore: false });
     await expect(Promise.all([first, second])).resolves.toHaveLength(2);
     expect(backing.list).toHaveBeenCalledTimes(1);
@@ -64,7 +66,9 @@ describe('createCachedCrudRepository', () => {
     const request = { access, id: 'unit-1' as never };
     const first = repository.get(request);
     const second = repository.get(request);
-    await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(backing.get).toHaveBeenCalledOnce();
+    });
     resolve?.(undefined);
     await expect(Promise.all([first, second])).resolves.toEqual([
       undefined,
@@ -414,7 +418,9 @@ describe('createCachedCrudRepository', () => {
     const request = { access, page: { pageSize: 20, orderBy: [] } };
 
     const pending = repository.list(request);
-    await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(backing.list).toHaveBeenCalledOnce();
+    });
     await repository.create({});
     resolveRead({ items: [], hasMore: false });
     await pending;
@@ -448,7 +454,9 @@ describe('createCachedCrudRepository', () => {
 
     const first = repository.list(request);
     const second = repository.list(request);
-    await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(backing.list).toHaveBeenCalledOnce();
+    });
     resolveRead({ items: [], hasMore: false });
 
     await expect(Promise.all([first, second])).resolves.toEqual([

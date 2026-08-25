@@ -40,8 +40,10 @@ export function createUnitDefinitionCrudService(
     markForDeletion: (request) => crud.markForDeletion(request),
     restore: (request) => crud.restore(request),
     delete: (request) => crud.delete(request),
-    create: async (request) =>
-      crud.create({ ...request, input: requireCustom(request.input) }),
+    create: (request) =>
+      Promise.resolve().then(() =>
+        crud.create({ ...request, input: requireCustom(request.input) }),
+      ),
   };
   return createVersionedCrudService(custom, {
     toCreateInput: (input) => requireCustom(input),

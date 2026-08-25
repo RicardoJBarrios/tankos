@@ -91,27 +91,32 @@ export function firestoreErrorCode(
   error: unknown,
 ): DataAccessErrorCode | undefined {
   if (error instanceof z.ZodError) return 'validation';
-  const code =
-    typeof error === 'object' && error !== null && 'code' in error
-      ? String((error as { readonly code: unknown }).code)
-      : undefined;
-  return code === undefined ? undefined : firestoreErrorCodes[code];
+  if (!isProviderError(error))
+    return undefined;
+  const code = String(error.code);
+  return firestoreErrorCodes[code];
+}
+
+function isProviderError(error: unknown): error is { readonly code: unknown } {
+  return typeof error === 'object' && error !== null && 'code' in error;
 }
 
 /** Validates a single Firestore document identifier. */
 export function validateDocumentId(id: string): string {
-  if (
-    typeof id !== 'string' ||
-    !id.trim() ||
-    id === '.' ||
-    id === '..' ||
-    id.includes('/')
-  )
+  if (typeof id !== 'string') throwInvalidDocumentId();
+  if (!id.trim()) throwInvalidDocumentId();
+  if (id === '.') throwInvalidDocumentId();
+  if (id === '..') throwInvalidDocumentId();
+  if (id.includes('/'))
+    throwInvalidDocumentId();
+  return id;
+}
+
+function throwInvalidDocumentId(): never {
     throw createDataAccessError(
       'validation',
       'Firestore document ids must be non-empty single path segments',
     );
-  return id;
 }
 
 /** Maps a validated Firestore DTO into the provider-neutral record. */

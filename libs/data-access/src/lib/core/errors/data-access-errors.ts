@@ -39,16 +39,16 @@ export function createDataAccessError(
     retryable: code === 'transient',
   });
   if (cause !== undefined) {
-    const serializedCause = JSON.stringify(cause);
-    const causeMessage =
-      cause instanceof Error
-        ? cause.message
-        : typeof cause === 'string'
-          ? cause
-          : typeof serializedCause === 'string'
-            ? serializedCause
-            : '<unserializable cause>';
-    error.message = `${error.message}: ${causeMessage}`;
+    error.message = `${error.message}: ${causeMessage(cause)}`;
   }
   return error;
+}
+
+function causeMessage(cause: unknown): string {
+  if (cause instanceof Error) return cause.message;
+  if (typeof cause === 'string') return cause;
+  const serializedCause = JSON.stringify(cause);
+  return typeof serializedCause === 'string'
+    ? serializedCause
+    : '<unserializable cause>';
 }

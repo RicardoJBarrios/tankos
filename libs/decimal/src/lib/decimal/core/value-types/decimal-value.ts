@@ -7,8 +7,7 @@ export type DecimalValue = string & { readonly __decimalValue: unique symbol };
 /** Values accepted at the decimal input boundary. */
 export type DecimalInput = number | string;
 
-const DECIMAL_PATTERN =
-  /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/iu;
+const DECIMAL_PATTERN = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/iu;
 const DECIMAL_PARTS_PATTERN =
   /^(?<sign>[+-]?)(?<integerPart>\d*)(?:\.(?<fractionalPart>\d*))?(?:e(?<exponent>[+-]?\d+))?$/iu;
 const LEADING_ZERO_PATTERN = /^0+$/u;
@@ -22,12 +21,15 @@ function assertDecimalText(
   value: DecimalInput,
   source: unknown,
 ): asserts source is string {
-  if (
-    typeof source !== 'string' ||
-    source.length > MAX_DECIMAL_STRING_LENGTH ||
-    !DECIMAL_PATTERN.test(source)
-  )
-    throw new InvalidDecimalError(value);
+  if (!isValidDecimalText(source)) throw new InvalidDecimalError(value);
+}
+
+function isValidDecimalText(source: unknown): source is string {
+  return (
+    typeof source === 'string' &&
+    source.length <= MAX_DECIMAL_STRING_LENGTH &&
+    DECIMAL_PATTERN.test(source)
+  );
 }
 
 function parseDecimalParts(
@@ -37,7 +39,7 @@ function parseDecimalParts(
   readonly sign: string;
   readonly digits: string;
   readonly decimalPosition: number;
-  } {
+} {
   const match = DECIMAL_PARTS_PATTERN.exec(source);
   /* c8 ignore next -- assertDecimalText guarantees that the canonical pattern matches. */
   if (!match) throw new InvalidDecimalError(value);
@@ -73,12 +75,13 @@ export function normalizeDecimalInput(value: DecimalInput): DecimalValue {
   const { sign, digits, decimalPosition } = parseDecimalParts(value, source);
   const unsigned = formatDigits(digits, decimalPosition);
 
-  /* c8 ignore next */
-  if (unsigned !== '0') {
-    if (sign === '-') return `-${unsigned}` as DecimalValue;
-    return unsigned as DecimalValue;
-  }
-  return '0' as DecimalValue;
+  return addSign(sign, unsigned);
+}
+
+function addSign(sign: string, unsigned: string): DecimalValue {
+  if (unsigned === '0') return '0' as DecimalValue;
+  if (sign === '-') return `-${unsigned}` as DecimalValue;
+  return unsigned as DecimalValue;
 }
 
 function normalizeNumber(value: number): string {
@@ -103,7 +106,10 @@ function formatDigits(digits: string, decimalPosition: number): string {
   }
 
   const [integerPart, fractionalPart = ''] = formatted.split('.');
-  const normalizedInteger = integerPart.replace(NORMALIZABLE_INTEGER_PATTERN, '');
+  const normalizedInteger = integerPart.replace(
+    NORMALIZABLE_INTEGER_PATTERN,
+    '',
+  );
   const normalizedFractional = trimTrailingZeros(fractionalPart);
 
   return normalizedFractional

@@ -42,13 +42,8 @@ export function nativeClamp(
   return instant;
 }
 
-function normalizeInterval(interval: TimeInterval): TimeInterval {
-  if (
-    interval === null ||
-    typeof interval !== 'object' ||
-    !('start' in interval) ||
-    !('end' in interval)
-  ) {
+function normalizeInterval(interval: TimeInterval | null): TimeInterval {
+  if (!isValidIntervalShape(interval)) {
     throw new RangeError('Invalid time interval');
   }
 
@@ -60,4 +55,15 @@ function normalizeInterval(interval: TimeInterval): TimeInterval {
     throw new RangeError('An interval cannot end before it starts');
   }
   return normalized;
+}
+
+function isValidIntervalShape(
+  interval: TimeInterval | null,
+): interval is TimeInterval {
+  return (
+    interval !== null &&
+    typeof interval === 'object' &&
+    'start' in interval &&
+    'end' in interval
+  );
 }

@@ -11,4 +11,11 @@ describe('createQuantityKind', () => {
       expect(() => createQuantityKind(value)).toThrow(TypeError);
     },
   );
+
+  it.each([null, undefined, 42, Number.NaN])(
+    'Given a non-string category %s, When created, Then throws a type error',
+    (value) => {
+      expect(() => createQuantityKind(value as never)).toThrow(TypeError);
+    },
+  );
 });

@@ -43,7 +43,7 @@ export interface FirestoreAdminBatchExecutorOptions<TPayload> {
   readonly cleanup?: Pick<BatchSubmissionStorePort<TPayload>, 'remove'>;
 }
 
-function validateExecutorOptions<TPayload>(
+export function validateExecutorOptions<TPayload>(
   options: FirestoreAdminBatchExecutorOptions<TPayload>,
   values: {
     readonly concurrency: number;
@@ -73,7 +73,7 @@ function assertCleanupConfiguration(
 }
 
 function assertConcurrency(concurrency: number): void {
-  if (!Number.isInteger(concurrency) || concurrency < 1 || concurrency > 32) {
+  if (!isValidBoundedInteger(concurrency, 1, 32)) {
     throw new RangeError(
       'Batch executor concurrency must be an integer between 1 and 32',
     );
@@ -86,11 +86,7 @@ function assertWorkerConfiguration(
   maxChunks: number,
 ): void {
   if (
-    !workerId.trim() ||
-    !Number.isInteger(leaseDurationMilliseconds) ||
-    leaseDurationMilliseconds < 1 ||
-    !Number.isInteger(maxChunks) ||
-    maxChunks < 1
+    !isValidWorkerConfiguration(workerId, leaseDurationMilliseconds, maxChunks)
   ) {
     throw new RangeError(
       'Batch worker identity and lease duration are invalid',
@@ -98,7 +94,23 @@ function assertWorkerConfiguration(
   }
 }
 
-async function executeClaimedChunks<TPayload>(
+function isValidWorkerConfiguration(
+  workerId: string,
+  leaseDurationMilliseconds: number,
+  maxChunks: number,
+): boolean {
+  return (
+    workerId.trim() !== '' &&
+    isValidBoundedInteger(
+      leaseDurationMilliseconds,
+      1,
+      Number.MAX_SAFE_INTEGER,
+    ) &&
+    isValidBoundedInteger(maxChunks, 1, Number.MAX_SAFE_INTEGER)
+  );
+}
+
+export async function executeClaimedChunks<TPayload>(
   options: FirestoreAdminBatchExecutorOptions<TPayload>,
   batchId: EntityId,
   claim: {
@@ -153,7 +165,7 @@ async function executeClaimedChunks<TPayload>(
     },
     lease,
   );
-  if (cleanupTerminal && current.failures === 0 && cleanup)
+  if (shouldCleanup(cleanupTerminal, current.failures, cleanup))
     await cleanup.remove(batchId);
   return terminal;
 }
@@ -249,7 +261,7 @@ async function completeChunk<TPayload>(
   );
 }
 
-async function executeChunkItems<TPayload>(
+function executeChunkItems<TPayload>(
   options: FirestoreAdminBatchExecutorOptions<TPayload>,
   current: BatchOperationRecord<TPayload>,
   ids: readonly EntityId[],
@@ -264,55 +276,18 @@ async function executeChunkItems<TPayload>(
   });
 }
 
-/** Creates the trusted worker that executes persisted Firestore batch chunks. */
-export function createFirestoreAdminBatchExecutor<TPayload = unknown>(
-  options: FirestoreAdminBatchExecutorOptions<TPayload>,
-): {
-  run(
-    batchId: EntityId,
-    callerPrincipalId: EntityId,
-  ): Promise<BatchOperationRecord<TPayload>>;
-} {
-  const concurrency = options.concurrency ?? 8;
-  const leaseDurationMilliseconds = options.leaseDurationMilliseconds ?? 60_000;
-  const maxChunks = options.maxChunks ?? 1_000;
-  const cleanupTerminal = options.cleanupTerminal ?? false;
-  const cleanup = options.cleanup;
-  validateExecutorOptions(options, {
-    concurrency,
-    leaseDurationMilliseconds,
-    maxChunks,
-    cleanupTerminal,
-  });
-  return {
-    async run(batchId, callerPrincipalId) {
-      const stored = await options.store.get(batchId);
-      if (!stored) {
-        throw createDataAccessError('not-found', 'Batch was not found');
-      }
-      await options.authorize(batchId, callerPrincipalId, stored.principalId);
-      const claim = await options.store.claim(batchId, {
-        ownerId: options.workerId,
-        now: options.clock.now(),
-        leaseDurationMilliseconds,
-      });
-      if (!claim.claimed) return claim.record;
-      if (!claim.lease) {
-        throw createDataAccessError(
-          'conflict',
-          'A claimed batch must include a fencing lease',
-        );
-      }
-      return executeClaimedChunks(
-        options,
-        batchId,
-        { record: claim.record, lease: claim.lease },
-        concurrency,
-        leaseDurationMilliseconds,
-        maxChunks,
-        cleanupTerminal,
-        cleanup,
-      );
-    },
-  };
+function isValidBoundedInteger(
+  value: number,
+  minimum: number,
+  maximum: number,
+): boolean {
+  return Number.isInteger(value) && value >= minimum && value <= maximum;
+}
+
+function shouldCleanup(
+  cleanupTerminal: boolean,
+  failures: number,
+  cleanup: FirestoreAdminBatchExecutorOptions<unknown>['cleanup'],
+): cleanup is Pick<BatchSubmissionStorePort, 'remove'> {
+  return cleanupTerminal && failures === 0 && cleanup !== undefined;
 }

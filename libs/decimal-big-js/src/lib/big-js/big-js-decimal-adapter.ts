@@ -195,10 +195,24 @@ function toBigRoundingMode(
     case 'up':
       return 3;
     case 'ceil':
-      return isNegative(left, right) ? 0 : 3;
+      return roundingModeForPositiveDirection(left, right);
     case 'floor':
-      return isNegative(left, right) ? 3 : 0;
+      return roundingModeForNegativeDirection(left, right);
   }
+}
+
+function roundingModeForPositiveDirection(
+  left: DecimalValue,
+  right: DecimalValue,
+): Big.RoundingMode {
+  return isNegative(left, right) ? 0 : 3;
+}
+
+function roundingModeForNegativeDirection(
+  left: DecimalValue,
+  right: DecimalValue,
+): Big.RoundingMode {
+  return isNegative(left, right) ? 3 : 0;
 }
 
 function isNegative(left: DecimalValue, right: DecimalValue): boolean {

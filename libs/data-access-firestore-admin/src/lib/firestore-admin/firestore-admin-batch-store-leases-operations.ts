@@ -35,7 +35,7 @@ function createClaimMaterializationOperation<TPayload>(
           current.materializationLeaseUntil !== undefined &&
           current.materializationLeaseUntil.epochMilliseconds >
             request.now.epochMilliseconds;
-        if (current.status !== 'materializing' || active) {
+        if (active || current.status !== 'materializing') {
           return { claimed: false, record: current };
         }
         const leaseUntil = {
@@ -84,13 +84,7 @@ function createClaimOperation<TPayload>(
         const leaseActive =
           current.leaseUntil !== undefined &&
           current.leaseUntil.epochMilliseconds > request.now.epochMilliseconds;
-        if (
-          current.status === 'materializing' ||
-          current.status === 'cancelled' ||
-          current.status === 'completed' ||
-          current.status === 'completed-with-warnings' ||
-          (current.status === 'running' && leaseActive)
-        )
+        if (isClaimBlocked(current.status, leaseActive))
           return { claimed: false, record: current };
         const leaseUntil = {
           kind: 'instant' as const,
@@ -136,19 +130,14 @@ function createUpdateOperation<TPayload>(
       const reference = context.batchReference(batchId);
       const encoded = context.encodePatch(patch);
       if (lease) {
-        return await context.firestore.runTransaction(async (transaction) => {
-          const snapshot = await transaction.get(reference);
-          if (!snapshot.exists)
-            throw createDataAccessError('not-found', 'Batch was not found');
-          const current = snapshot.data() as BatchDto;
-          context.requireLease(current, lease, leaseKind);
-          transaction.update(reference, encoded as never);
-          return fromDto<TPayload>({
-            ...current,
-            ...encoded,
-            ...updatedLeaseFields(current, patch),
-          });
-        });
+        return await updateWithLease(
+          context,
+          reference,
+          encoded,
+          patch,
+          lease,
+          leaseKind,
+        );
       }
       const snapshot = await reference.get();
       if (!snapshot.exists)
@@ -162,6 +151,42 @@ function createUpdateOperation<TPayload>(
       return mapError(error, 'Firestore Admin batch update failed');
     }
   };
+}
+
+function isClaimBlocked(
+  status: BatchDto['status'],
+  leaseActive: boolean,
+): boolean {
+  return (
+    status === 'materializing' ||
+    status === 'cancelled' ||
+    status === 'completed' ||
+    status === 'completed-with-warnings' ||
+    (status === 'running' && leaseActive)
+  );
+}
+
+function updateWithLease<TPayload>(
+  context: FirestoreAdminBatchStoreContext,
+  reference: ReturnType<FirestoreAdminBatchStoreContext['batchReference']>,
+  encoded: Record<string, unknown>,
+  patch: BatchSubmissionPatch | BatchMaterializerPatch | BatchWorkerPatch,
+  lease: Parameters<FirestoreAdminBatchStoreContext['requireLease']>[1],
+  leaseKind: LeaseKind,
+): Promise<Awaited<ReturnType<BatchWorkerStorePort<TPayload>['update']>>> {
+  return context.firestore.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(reference);
+    if (!snapshot.exists)
+      throw createDataAccessError('not-found', 'Batch was not found');
+    const current = snapshot.data() as BatchDto;
+    context.requireLease(current, lease, leaseKind);
+    transaction.update(reference, encoded as never);
+    return fromDto<TPayload>({
+      ...current,
+      ...encoded,
+      ...updatedLeaseFields(current, patch),
+    });
+  });
 }
 
 /** Creates the leases operations for the Admin batch store. */

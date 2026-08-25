@@ -18,6 +18,10 @@ const MILLISECONDS_PER_SECOND = 1_000;
 const MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND;
 const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
 const MILLISECONDS_PER_DAY = 24 * MILLISECONDS_PER_HOUR;
+const HOURS_PER_DAY = 24;
+const DAYS_PER_APPROXIMATE_MONTH = 30;
+const DAYS_PER_APPROXIMATE_YEAR = 365;
+const DIGITAL_UNIT_WIDTH = 2;
 
 /**
  * Creates a display adapter that delegates localized output to Angular's
@@ -174,12 +178,12 @@ function calendarUnitFor(
 ) {
   if (
     calendarUnits !== 'approximate' ||
-    milliseconds < 30 * MILLISECONDS_PER_DAY
+    milliseconds < DAYS_PER_APPROXIMATE_MONTH * MILLISECONDS_PER_DAY
   )
     return undefined;
-  if (milliseconds >= 365 * MILLISECONDS_PER_DAY)
-    return ['year', 365 * MILLISECONDS_PER_DAY] as const;
-  return ['month', 30 * MILLISECONDS_PER_DAY] as const;
+  if (milliseconds >= DAYS_PER_APPROXIMATE_YEAR * MILLISECONDS_PER_DAY)
+    return ['year', DAYS_PER_APPROXIMATE_YEAR * MILLISECONDS_PER_DAY] as const;
+  return ['month', DAYS_PER_APPROXIMATE_MONTH * MILLISECONDS_PER_DAY] as const;
 }
 
 function relativeUnitFor(milliseconds: number) {
@@ -217,9 +221,9 @@ function durationParts(milliseconds: number): {
 }
 
 function formatDigital(parts: ReturnType<typeof durationParts>): string {
-  const totalHours = parts.days * 24 + parts.hours;
+  const totalHours = parts.days * HOURS_PER_DAY + parts.hours;
   return [totalHours, parts.minutes, parts.seconds]
-    .map((value) => padLeft(value.toString(), 2))
+    .map((value) => padLeft(value.toString(), DIGITAL_UNIT_WIDTH))
     .join(':');
 }
 

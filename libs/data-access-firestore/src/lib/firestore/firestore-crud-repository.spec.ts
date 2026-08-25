@@ -111,6 +111,15 @@ describe('createFirestoreCrudRepository', () => {
     },
   );
 
+  it.each([null, undefined, 42, {}, []])(
+    'Given a non-string document id %s, When validating it, Then rejects it',
+    (id) => {
+      expect(() => validateDocumentId(id as never)).toThrow(
+        'single path segments',
+      );
+    },
+  );
+
   it('Given a valid document id, When validating it, Then it preserves the id', () => {
     expect(validateDocumentId('unit-1')).toBe('unit-1');
   });

@@ -20,6 +20,14 @@ const typedParserOptions = {
   tsconfigRootDir: repositoryRoot,
 };
 
+const typedBaselineRules = {
+  eqeqeq: ['error', 'always'],
+  'no-console': 'error',
+  'no-eval': 'error',
+  'no-implicit-coercion': 'error',
+  'no-new-func': 'error',
+};
+
 const duplicatedStylisticRules = new Set([
   '@typescript-eslint/prefer-includes',
   '@typescript-eslint/prefer-nullish-coalescing',
@@ -93,6 +101,28 @@ export function createTypeScriptEslintConfig() {
       files: typedTypeScriptFiles,
       languageOptions: {
         parserOptions: typedParserOptions,
+      },
+      rules: typedBaselineRules,
+    },
+    {
+      files: typedTypeScriptFiles,
+      ignores: ['**/*.spec.ts', '**/*.test.ts'],
+      plugins: { '@typescript-eslint': tseslint.plugin },
+      rules: {
+        '@typescript-eslint/no-magic-numbers': [
+          'error',
+          {
+            ignore: [
+              -1, 0, 1, 2, 3, 4, 6, 8, 9, 11, 12, 23, 24, 28, 29, 30, 31, 32,
+              48, 59, 60, 100, 365, 400, 500, 1_000, 10_000, 60_000, 900_000,
+              1_000_000,
+            ],
+            ignoreArrayIndexes: true,
+            ignoreEnums: true,
+            ignoreNumericLiteralTypes: true,
+            ignoreReadonlyClassProperties: true,
+          },
+        ],
       },
     },
     {

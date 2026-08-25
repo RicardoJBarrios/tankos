@@ -107,10 +107,7 @@ export function toDto<TPayload>(
 /** Converts Firestore failures into the data-access error contract. */
 export function mapError(error: unknown, message: string): never {
   if (error instanceof DataAccessError) throw error;
-  const code =
-    typeof error === 'object' && error !== null && 'code' in error
-      ? String((error as { readonly code: unknown }).code)
-      : undefined;
+  const code = readProviderCode(error);
   throw createDataAccessError(mapFirestoreCode(code), message, error);
 }
 
@@ -127,16 +124,36 @@ export function validateClaimRequest(
   request: BatchClaimRequest,
   subject: 'worker' | 'materializer',
 ): void {
-  const invalid =
-    typeof request.ownerId !== 'string' ||
-    !request.ownerId.trim() ||
-    !Number.isInteger(request.leaseDurationMilliseconds) ||
-    request.leaseDurationMilliseconds < 1;
+  const invalid = !isValidClaimRequest(request);
   if (invalid)
     throw createDataAccessError(
       'validation',
-      `${subject === 'worker' ? 'Batch worker' : 'Materializer'} identity and lease duration are invalid`,
+      `${claimSubjectLabel(subject)} identity and lease duration are invalid`,
     );
+}
+
+function claimSubjectLabel(subject: 'worker' | 'materializer'): string {
+  if (subject === 'worker') return 'Batch worker';
+  return 'Materializer';
+}
+
+function readProviderCode(error: unknown): string | undefined {
+  if (!isProviderError(error))
+    return undefined;
+  return String(error.code);
+}
+
+function isProviderError(error: unknown): error is { readonly code: unknown } {
+  return typeof error === 'object' && error !== null && 'code' in error;
+}
+
+function isValidClaimRequest(request: BatchClaimRequest): boolean {
+  return (
+    typeof request.ownerId === 'string' &&
+    request.ownerId.trim().length > 0 &&
+    Number.isInteger(request.leaseDurationMilliseconds) &&
+    request.leaseDurationMilliseconds >= 1
+  );
 }
 
 /** Produces the record fields that remain after a lease patch. */
@@ -186,17 +203,27 @@ function createLeaseGuard(timestampNow: () => Timestamp) {
       kind === 'worker'
         ? current.leaseUntil
         : current.materializationLeaseUntil;
-    if (
-      owner !== lease.owner ||
-      token !== lease.token ||
-      !until ||
-      until.toMillis() <= timestampNow().toMillis()
-    )
+    if (!isLeaseValid(owner, token, until, lease, timestampNow))
       throw createDataAccessError(
         'conflict',
         `The batch ${kind} lease is no longer valid`,
       );
   };
+}
+
+function isLeaseValid(
+  owner: string | undefined,
+  token: string | undefined,
+  until: Timestamp | undefined,
+  lease: BatchLease,
+  timestampNow: () => Timestamp,
+): boolean {
+  return (
+    owner === lease.owner &&
+    token === lease.token &&
+    until !== undefined &&
+    until.toMillis() > timestampNow().toMillis()
+  );
 }
 
 function createPatchEncoder() {

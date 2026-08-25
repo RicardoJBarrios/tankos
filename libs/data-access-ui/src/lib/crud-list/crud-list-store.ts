@@ -110,15 +110,16 @@ function createCrudListLoadMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
     load: (access: AccessContext, filter?: TFilter) =>
       loadCrudList(store, options, access, filter),
     loadMore: async (access: AccessContext): Promise<void> => {
-      if (
-        !store.hasMore() ||
-        !store.nextCursor() ||
-        store.status() === 'loading'
-      )
-        return;
+      if (shouldSkipLoadMore(store)) return;
       await loadCrudList(store, options, access, store.filter(), true);
     },
   };
+}
+
+function shouldSkipLoadMore<TData, TFilter>(
+  store: CrudListStoreSource<TData, TFilter>,
+): boolean {
+  return !store.hasMore() || !store.nextCursor() || store.status() === 'loading';
 }
 
 function createCrudListSelectionMethods<TData, TFilter>(

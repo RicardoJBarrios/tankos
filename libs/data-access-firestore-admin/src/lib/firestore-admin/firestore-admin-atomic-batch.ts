@@ -64,11 +64,7 @@ export function createFirestoreAdminAtomicBatch<
   TDocument extends DocumentData = DocumentData,
 >(options: FirestoreAdminAtomicBatchOptions): AtomicBatchPort<TDocument> {
   const maxOperations = options.maxOperations ?? 400;
-  if (
-    !Number.isInteger(maxOperations) ||
-    maxOperations < 1 ||
-    maxOperations > 400
-  ) {
+  if (!isValidOperationLimit(maxOperations)) {
     throw new RangeError(
       'Atomic batch operation limit must be an integer between 1 and 400',
     );
@@ -87,4 +83,8 @@ export function createFirestoreAdminAtomicBatch<
       }
     },
   };
+}
+
+function isValidOperationLimit(value: number): boolean {
+  return Number.isInteger(value) && value >= 1 && value <= 400;
 }

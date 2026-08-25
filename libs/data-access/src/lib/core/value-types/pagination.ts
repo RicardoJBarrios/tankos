@@ -32,14 +32,7 @@ export function createPageRequest(request: unknown): PageRequest {
     readonly pageSize?: unknown;
     readonly orderBy?: unknown;
   };
-  if (typeof candidate.pageSize !== 'number') {
-    throw new RangeError('Page size must be an integer between 1 and 500');
-  }
-  if (
-    !Number.isInteger(candidate.pageSize) ||
-    candidate.pageSize < 1 ||
-    candidate.pageSize > 500
-  ) {
+  if (!isValidPageSizeValue(candidate.pageSize)) {
     throw new RangeError('Page size must be an integer between 1 and 500');
   }
   if (!Array.isArray(candidate.orderBy) || candidate.orderBy.length === 0) {
@@ -56,12 +49,24 @@ export function createPageRequest(request: unknown): PageRequest {
   return request as PageRequest;
 }
 
+function isValidPageSizeValue(value: unknown): value is number {
+  return typeof value === 'number' && isValidPageSize(value);
+}
+
 function isOrderBy(value: unknown): value is OrderBy {
   if (!value || typeof value !== 'object') return false;
-  const candidate = value as { readonly field?: unknown; readonly direction?: unknown };
-  return (
-    typeof candidate.field === 'string' &&
-    candidate.field.trim().length > 0 &&
-    (candidate.direction === 'asc' || candidate.direction === 'desc')
-  );
+  const candidate = value as {
+    readonly field?: unknown;
+    readonly direction?: unknown;
+  };
+  if (
+    typeof candidate.field !== 'string' ||
+    candidate.field.trim().length === 0
+  )
+    return false;
+  return candidate.direction === 'asc' || candidate.direction === 'desc';
+}
+
+function isValidPageSize(value: number): boolean {
+  return Number.isInteger(value) && value >= 1 && value <= 500;
 }

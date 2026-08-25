@@ -12,34 +12,59 @@ export function isValidCalendarDate(
   month: number,
   day: number,
 ): boolean {
-  if (
-    !Number.isInteger(year) ||
-    year < 1 ||
-    year > 9999 ||
-    !Number.isInteger(month) ||
-    month < 1 ||
-    month > 12 ||
-    !Number.isInteger(day) ||
-    day < 1
-  ) {
-    return false;
-  }
+  if (!isValidCalendarDateFields(year, month, day)) return false;
 
   const daysInMonth = [
-    31,
-    isLeapYear(year) ? 29 : 28,
-    31,
-    30,
-    31,
-    30,
-    31,
-    31,
-    30,
-    31,
-    30,
-    31,
+    DAYS_IN_LONG_MONTH,
+    isLeapYear(year) ? DAYS_IN_LEAP_FEBRUARY : DAYS_IN_COMMON_FEBRUARY,
+    DAYS_IN_LONG_MONTH,
+    DAYS_IN_SHORT_MONTH,
+    DAYS_IN_LONG_MONTH,
+    DAYS_IN_SHORT_MONTH,
+    DAYS_IN_LONG_MONTH,
+    DAYS_IN_LONG_MONTH,
+    DAYS_IN_SHORT_MONTH,
+    DAYS_IN_LONG_MONTH,
+    DAYS_IN_SHORT_MONTH,
+    DAYS_IN_LONG_MONTH,
   ];
   return day <= daysInMonth[month - 1];
+}
+
+const DAYS_IN_LONG_MONTH = 31;
+const DAYS_IN_SHORT_MONTH = 30;
+const DAYS_IN_LEAP_FEBRUARY = 29;
+const DAYS_IN_COMMON_FEBRUARY = 28;
+const MIN_CALENDAR_VALUE = 1;
+const MAX_CALENDAR_YEAR = 9999;
+const MAX_CALENDAR_MONTH = 12;
+
+function isValidCalendarDateFields(
+  year: number,
+  month: number,
+  day: number,
+): boolean {
+  return isValidYear(year) && isValidMonth(month) && isValidDay(day);
+}
+
+function isValidYear(value: number): boolean {
+  return (
+    Number.isInteger(value) &&
+    value >= MIN_CALENDAR_VALUE &&
+    value <= MAX_CALENDAR_YEAR
+  );
+}
+
+function isValidMonth(value: number): boolean {
+  return (
+    Number.isInteger(value) &&
+    value >= MIN_CALENDAR_VALUE &&
+    value <= MAX_CALENDAR_MONTH
+  );
+}
+
+function isValidDay(value: number): boolean {
+  return Number.isInteger(value) && value >= MIN_CALENDAR_VALUE;
 }
 
 function isLeapYear(year: number): boolean {

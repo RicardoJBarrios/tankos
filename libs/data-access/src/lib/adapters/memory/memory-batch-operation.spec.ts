@@ -159,6 +159,23 @@ describe('createInMemoryBatchOperation', () => {
     });
   });
 
+  it('Given a materialized batch, When cancelled, Then persists the cancelled status', async () => {
+    const adapter = createInMemoryBatchOperation({
+      clock: { now: () => now },
+      materialize: () => ids,
+      execute: async (id) => ({ id, outcome: 'succeeded' }),
+    });
+    const submitted = await adapter.submit({
+      ...request,
+      idempotencyKey: 'cancel-only',
+    });
+    await adapter.materialize(submitted.batchId);
+
+    await expect(adapter.cancel(submitted.batchId)).resolves.toMatchObject({
+      status: 'cancelled',
+    });
+  });
+
   it('Given an unknown batch or invalid chunk size, When operated, Then returns a typed error', async () => {
     expect(() =>
       createInMemoryBatchOperation({

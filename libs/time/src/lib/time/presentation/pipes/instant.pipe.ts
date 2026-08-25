@@ -15,13 +15,15 @@ export class InstantPipe implements PipeTransform {
     locale?: string,
     options?: TimeDisplayOptions,
   ): string {
-    return value == null
-      ? ''
-      : this.#display.formatInstant(value, {
-          ...options,
-          ...(format === undefined ? {} : { format }),
-          ...(timeZone === undefined ? {} : { timeZone }),
-          ...(locale === undefined ? {} : { locale }),
-        });
+    if (value === null || value === undefined) return '';
+    const displayOptions: {
+      format?: string;
+      timeZone?: string;
+      locale?: string;
+    } = { ...options };
+    if (format !== undefined) displayOptions.format = format;
+    if (timeZone !== undefined) displayOptions.timeZone = timeZone;
+    if (locale !== undefined) displayOptions.locale = locale;
+    return this.#display.formatInstant(value, displayOptions);
   }
 }

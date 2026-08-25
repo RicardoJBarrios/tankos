@@ -56,6 +56,14 @@ function assertIntegerRange(
   maximum: number,
   message: string,
 ): void {
-  if (!Number.isInteger(value) || value < minimum || value > maximum)
+  if (!isValidIntegerRange(value, minimum, maximum))
     throw new RangeError(message);
+}
+
+function isValidIntegerRange(
+  value: number,
+  minimum: number,
+  maximum: number,
+): boolean {
+  return Number.isInteger(value) && value >= minimum && value <= maximum;
 }

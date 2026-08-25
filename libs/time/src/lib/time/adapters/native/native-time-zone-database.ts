@@ -8,6 +8,8 @@ import {
 import { getLocalParts, sameDateTime } from './native-time-zone-local-parts';
 import { nativeIsValidTimeZone } from './native-time-zone-validation';
 
+const MILLISECONDS_PER_MINUTE = 60_000;
+
 /** Creates the IANA database adapter backed by the runtime's `Intl` TZDB. */
 export function createNativeTimeZoneDatabase(): TimeZoneDatabasePort {
   return {
@@ -46,7 +48,10 @@ export function createNativeTimeZoneDatabase(): TimeZoneDatabasePort {
       if (!nativeIsValidTimeZone(timeZone)) {
         throw new RangeError(`Invalid time zone: ${String(timeZone)}`);
       }
-      return getTimeZoneOffset(instant.epochMilliseconds, timeZone) / 60_000;
+      return (
+        getTimeZoneOffset(instant.epochMilliseconds, timeZone) /
+        MILLISECONDS_PER_MINUTE
+      );
     },
   };
 }

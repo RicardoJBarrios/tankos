@@ -13,11 +13,13 @@ export class DurationPipe implements PipeTransform {
     style?: DurationDisplayOptions['style'],
     locale?: string,
   ): string {
-    return value == null
-      ? ''
-      : this.#display.formatDuration(value, {
-          ...(style === undefined ? {} : { style }),
-          ...(locale === undefined ? {} : { locale }),
-        });
+    if (value === null || value === undefined) return '';
+    const options: {
+      style?: NonNullable<DurationDisplayOptions['style']>;
+      locale?: string;
+    } = {};
+    if (style !== undefined) options.style = style;
+    if (locale !== undefined) options.locale = locale;
+    return this.#display.formatDuration(value, options);
   }
 }

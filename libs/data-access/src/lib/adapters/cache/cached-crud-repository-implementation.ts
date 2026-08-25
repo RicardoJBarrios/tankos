@@ -16,14 +16,17 @@ import type {
 
 function stableJson(value: unknown): string {
   return JSON.stringify(value, (_key, child: unknown) => {
-    if (!child || typeof child !== 'object' || Array.isArray(child))
-      return child;
+    if (isStableJsonLeaf(child)) return child;
     return Object.fromEntries(
       Object.entries(child as Record<string, unknown>).sort(([a], [b]) =>
         a.localeCompare(b),
       ),
-    );
+    ) as Record<string, unknown>;
   });
+}
+
+function isStableJsonLeaf(value: unknown): boolean {
+  return !value || typeof value !== 'object' || Array.isArray(value);
 }
 
 function isCacheFirst(options?: CacheReadOptions): boolean {
@@ -60,34 +63,40 @@ export class CachedCrudRepositoryImplementation<
     this.#namespace = createCacheNamespace(this.#options.scope);
   }
 
-  async list(
+  list(
     request: ListRequest<TFilter>,
     readOptions?: CacheReadOptions,
   ): Promise<Page<CrudRecord<TData>>> {
     const key = this.#listKey(request);
-    const cached = await this.#read<Page<CrudRecord<TData>>>(key, readOptions);
-    if (cached !== undefined && isCacheFirst(readOptions)) return cached;
     const existing = this.#inFlight.get(key) as
       Promise<Page<CrudRecord<TData>>> | undefined;
     if (existing) return existing;
-    const pending = this.#loadList(key, request);
+    const pending = this.#read<Page<CrudRecord<TData>>>(key, readOptions).then(
+      (cached) => {
+        if (cached !== undefined && isCacheFirst(readOptions)) return cached;
+        return this.#loadList(key, request);
+      },
+    );
     this.#inFlight.set(key, pending);
-    return pending;
+    return pending.finally(() => this.#inFlight.delete(key));
   }
 
-  async get(
+  get(
     request: GetRequest,
     readOptions?: CacheReadOptions,
   ): Promise<CrudRecord<TData> | undefined> {
     const key = this.#getKey(request);
-    const cached = await this.#read<CrudRecord<TData>>(key, readOptions);
-    if (cached !== undefined && isCacheFirst(readOptions)) return cached;
     const existing = this.#inFlight.get(key) as
       Promise<CrudRecord<TData> | undefined> | undefined;
     if (existing) return existing;
-    const pending = this.#loadGet(key, request);
+    const pending = this.#read<CrudRecord<TData>>(key, readOptions).then(
+      (cached) => {
+        if (cached !== undefined && isCacheFirst(readOptions)) return cached;
+        return this.#loadGet(key, request);
+      },
+    );
     this.#inFlight.set(key, pending);
-    return pending;
+    return pending.finally(() => this.#inFlight.delete(key));
   }
 
   async create(
@@ -184,6 +193,7 @@ export class CachedCrudRepositoryImplementation<
 
   async #invalidate(): Promise<void> {
     this.#invalidationGeneration += 1;
+    this.#inFlight.clear();
     try {
       await this.#cache.clearNamespace(this.#namespace);
     } catch (error) {

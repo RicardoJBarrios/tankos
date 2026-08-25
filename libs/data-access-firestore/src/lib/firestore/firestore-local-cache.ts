@@ -38,8 +38,7 @@ export function createFirestoreLocalCache(
 
   if (
     options.cacheSizeBytes !== undefined &&
-    (!Number.isFinite(options.cacheSizeBytes) ||
-      options.cacheSizeBytes < 1_000_000)
+    !isValidCacheSize(options.cacheSizeBytes)
   ) {
     throw new RangeError('Firestore cache size must be at least 1 MB');
   }
@@ -51,4 +50,9 @@ export function createFirestoreLocalCache(
         ? persistentMultipleTabManager()
         : persistentSingleTabManager(undefined),
   });
+}
+
+function isValidCacheSize(value: number): boolean {
+  if (!Number.isFinite(value)) return false;
+  return value >= 1_000_000;
 }

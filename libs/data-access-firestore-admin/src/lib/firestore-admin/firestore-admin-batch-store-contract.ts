@@ -58,7 +58,7 @@ export interface BatchDto extends DocumentData {
   readonly createdAt: Timestamp;
   readonly updatedAt: Timestamp;
   readonly selection: BatchOperationRecord['selection'];
-  readonly requestedSelection?: BatchOperationRecord['requestedSelection'];
+  readonly requestedSelection: BatchOperationRecord['requestedSelection'];
   readonly payload?: unknown;
   readonly requestFingerprint: string;
   readonly cancellationRequested?: boolean;

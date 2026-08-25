@@ -83,20 +83,29 @@ export function createConversionDefinition(
   });
 }
 
+// eslint-disable-next-line sonarjs/function-return-type -- The public offset is intentionally a scalar or rational value.
 function normalizeOffset(
   offset: DecimalInput | ConversionFactorInput,
 ): DecimalValue | ConversionFactor {
-  if (typeof offset === 'object' && offset !== null) {
-    const denominator = normalizeDecimalInput(offset.denominator);
-    if (denominator === '0') {
-      throw new TypeError('Conversion offset denominator must not be zero');
-    }
-
-    return Object.freeze({
-      numerator: normalizeDecimalInput(offset.numerator),
-      denominator,
-    });
-  }
-
+  if (isConversionFactorInput(offset)) return normalizeConversionFactor(offset);
   return normalizeDecimalInput(offset);
+}
+
+function normalizeConversionFactor(
+  offset: ConversionFactorInput,
+): ConversionFactor {
+  const denominator = normalizeDecimalInput(offset.denominator);
+  if (denominator === '0') {
+    throw new TypeError('Conversion offset denominator must not be zero');
+  }
+  return Object.freeze({
+    numerator: normalizeDecimalInput(offset.numerator),
+    denominator,
+  });
+}
+
+function isConversionFactorInput(
+  value: DecimalInput | ConversionFactorInput,
+): value is ConversionFactorInput {
+  return typeof value === 'object';
 }

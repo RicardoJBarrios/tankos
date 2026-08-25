@@ -2,6 +2,10 @@ import { padLeft } from '@tankos/formatting';
 import { Instant, TimeZoneDatabasePort } from '../../core';
 
 const OFFSET_PATTERN = /^(?<sign>[+-])(?<hours>\d{2}):?(?<minutes>\d{2})$/u;
+const MINUTES_PER_HOUR = 60;
+const MAX_OFFSET_HOURS = 23;
+const MAX_OFFSET_MINUTES = 59;
+const OFFSET_COMPONENT_WIDTH = 2;
 
 /**
  * Converts a time zone identifier into the numeric offset accepted by
@@ -23,21 +27,31 @@ export function toDatePipeTimeZone(
 
   const offsetMatch = OFFSET_PATTERN.exec(timeZone);
   if (offsetMatch) {
-    const groups = offsetMatch.groups as Record<string, string>;
-    const { sign, hours: hourText, minutes: minuteText } = groups;
-    const hours = Number(hourText);
-    const minutes = Number(minuteText);
-    if (hours > 23 || minutes > 59) {
-      throw new RangeError(`Invalid fixed time-zone offset: ${timeZone}`);
-    }
-    return `${sign}${hourText}${minuteText}`;
+    return formatFixedOffset(timeZone, offsetMatch);
   }
 
   const instant: Instant = { kind: 'instant', epochMilliseconds };
   const offsetMinutes = timeZoneDatabase.getOffsetMinutes(instant, timeZone);
   const sign = offsetMinutes < 0 ? '-' : '+';
   const absoluteMinutes = Math.abs(offsetMinutes);
-  const hours = padLeft(Math.floor(absoluteMinutes / 60).toString(), 2);
-  const minutes = padLeft((absoluteMinutes % 60).toString(), 2);
+  const hours = padLeft(
+    Math.floor(absoluteMinutes / MINUTES_PER_HOUR).toString(),
+    OFFSET_COMPONENT_WIDTH,
+  );
+  const minutes = padLeft(
+    (absoluteMinutes % MINUTES_PER_HOUR).toString(),
+    OFFSET_COMPONENT_WIDTH,
+  );
   return `${sign}${hours}${minutes}`;
+}
+
+function formatFixedOffset(timeZone: string, match: RegExpExecArray): string {
+  const groups = match.groups as Record<string, string>;
+  const { sign, hours: hourText, minutes: minuteText } = groups;
+  const hours = Number(hourText);
+  const minutes = Number(minuteText);
+  if (hours > MAX_OFFSET_HOURS || minutes > MAX_OFFSET_MINUTES) {
+    throw new RangeError(`Invalid fixed time-zone offset: ${timeZone}`);
+  }
+  return `${sign}${hourText}${minuteText}`;
 }

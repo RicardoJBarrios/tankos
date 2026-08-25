@@ -46,7 +46,7 @@ export async function authorizeFirestoreAccess<
     await options.authorize(access, operation, lifecycle);
     return;
   }
-  if (operation === 'mark' || operation === 'restore' || operation === 'delete')
+  if (isLifecycleMutation(operation))
     throw createDataAccessError(
       'forbidden',
       `Firestore ${operation} requires an authorization policy`,
@@ -69,14 +69,18 @@ export async function authorizeFirestoreLifecycleRead<
   const hasHiddenLifecycle =
     lifecycle?.some((status) => status !== 'active' && status !== 'inactive') ??
     false;
-  if (hasHiddenLifecycle) {
-    if (!options.authorize)
-      throw createDataAccessError(
-        'forbidden',
-        `Firestore ${operation} requires an authorization policy for hidden lifecycle states`,
-      );
-  }
+  if (hasHiddenLifecycle && !options.authorize)
+    throw createDataAccessError(
+      'forbidden',
+      `Firestore ${operation} requires an authorization policy for hidden lifecycle states`,
+    );
   await authorizeFirestoreAccess(options, access, operation, lifecycle);
+}
+
+function isLifecycleMutation(
+  operation: 'list' | 'get' | 'create' | 'replace' | 'mark' | 'restore' | 'delete',
+): boolean {
+  return operation === 'mark' || operation === 'restore' || operation === 'delete';
 }
 
 /** Enforces optimistic concurrency for a Firestore record command. */

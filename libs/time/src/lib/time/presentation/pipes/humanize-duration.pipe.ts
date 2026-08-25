@@ -12,7 +12,7 @@ export class HumanizeDurationPipe implements PipeTransform {
     value: DurationInput | null | undefined,
     options?: HumanizeDurationOptions,
   ): string {
-    return value == null
+    return value === null || value === undefined
       ? ''
       : this.#display.formatHumanizedDuration(value, options);
   }

@@ -13,6 +13,24 @@ describe('createAngularEslintConfig', () => {
 
     expect(rules['@nx/enforce-module-boundaries']).toBeDefined();
     expect(rules['@typescript-eslint/no-floating-promises']).toBeDefined();
+    expect(rules.eqeqeq).toEqual(['error', 'always']);
+    expect(rules['no-console']).toBe('error');
+    expect(rules['no-eval']).toBe('error');
+    expect(rules['no-implicit-coercion']).toBe('error');
+    expect(rules['no-new-func']).toBe('error');
+    expect(rules['@typescript-eslint/no-magic-numbers']).toEqual([
+      'error',
+      {
+        ignore: [
+          -1, 0, 1, 2, 3, 4, 6, 8, 9, 11, 12, 23, 24, 28, 29, 30, 31, 32, 48,
+          59, 60, 100, 365, 400, 500, 1_000, 10_000, 60_000, 900_000, 1_000_000,
+        ],
+        ignoreArrayIndexes: true,
+        ignoreEnums: true,
+        ignoreNumericLiteralTypes: true,
+        ignoreReadonlyClassProperties: true,
+      },
+    ]);
     expect(rules['regexp/no-super-linear-backtracking']).toBe('error');
     expect(rules['tsdoc/syntax']).toBe('error');
     expect(rules['@angular-eslint/prefer-inject']).toBe('error');
@@ -23,9 +41,7 @@ describe('createAngularEslintConfig', () => {
   });
 
   it('uses the configured selector prefix', () => {
-    const rules = flattenRules(
-      createAngularEslintConfig({ prefix: 'custom' }),
-    );
+    const rules = flattenRules(createAngularEslintConfig({ prefix: 'custom' }));
 
     expect(rules['@angular-eslint/component-selector']).toEqual([
       'error',

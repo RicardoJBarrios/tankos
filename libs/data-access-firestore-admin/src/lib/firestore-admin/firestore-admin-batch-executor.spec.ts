@@ -4,7 +4,7 @@ import {
   type BatchOperationRecord,
   type BatchWorkerStorePort,
 } from '@tankos/data-access';
-import { createFirestoreAdminBatchExecutor } from './firestore-admin-batch-executor';
+import { createFirestoreAdminBatchExecutor } from './firestore-admin-batch-executor-factory';
 
 const now = { kind: 'instant' as const, epochMilliseconds: 0 };
 const authorize = () => undefined;

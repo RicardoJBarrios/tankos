@@ -34,6 +34,17 @@ describe('native-local-date-parsing', () => {
   });
 
   it.each([
+    { kind: 'local-date', month: 8, day: 20 },
+    { kind: 'local-date', year: 2026, day: 20 },
+    { kind: 'local-date', year: 2026, month: 8 },
+  ])(
+    'Given a structured local date with a missing numeric field (%s), When parsing it, Then it raises a range error',
+    (value) => {
+      expect(() => nativeParseLocalDate(value as never)).toThrow(RangeError);
+    },
+  );
+
+  it.each([
     {},
     { year: 2026, month: 8, day: 20 },
     { kind: 'instant', year: 2026, month: 8, day: 20 },

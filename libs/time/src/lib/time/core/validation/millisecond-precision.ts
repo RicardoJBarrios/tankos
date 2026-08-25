@@ -26,5 +26,10 @@ export function truncateTimestampMilliseconds(
   seconds: number,
   nanoseconds: number,
 ): number {
-  return truncateMilliseconds(seconds * 1_000 + nanoseconds / 1_000_000);
+  return truncateMilliseconds(
+    seconds * MILLISECONDS_PER_SECOND +
+      nanoseconds / NANOSECONDS_PER_MILLISECOND,
+  );
 }
+const NANOSECONDS_PER_MILLISECOND = 1_000_000;
+const MILLISECONDS_PER_SECOND = 1_000;

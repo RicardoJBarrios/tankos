@@ -7,7 +7,7 @@ export function createAuthorizedBatchWorker(
   execution: BatchExecutionPort,
 ): BatchWorkerPort {
   return {
-    async run(batchId, access) {
+    run(batchId, access) {
       return execution.run(batchId, access.principalId);
     },
   };

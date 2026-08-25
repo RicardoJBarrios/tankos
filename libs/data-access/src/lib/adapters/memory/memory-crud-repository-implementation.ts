@@ -89,17 +89,39 @@ function cursorStart<TData, TFilter>(
   orderBy: ListRequest<TFilter>['page']['orderBy'],
 ): number {
   if (!after) return 0;
-  const cursor = JSON.parse(after) as
-    { id?: string; orderBy?: unknown } | undefined;
-  if (
-    !cursor ||
-    typeof cursor.id !== 'string' ||
-    JSON.stringify(cursor.orderBy) !== JSON.stringify(orderBy)
-  )
+  const cursor = JSON.parse(after) as { id?: string; orderBy?: unknown } | null;
+  if (!isValidCursor(cursor, orderBy))
     throw failure('validation', 'Invalid in-memory page cursor');
   const index = records.findIndex((record) => record.id === cursor.id);
   if (index < 0) throw failure('validation', 'Cursor record was not found');
   return index + 1;
+}
+
+function isValidCursor<TFilter>(
+  cursor: { id?: string; orderBy?: unknown } | null,
+  orderBy: ListRequest<TFilter>['page']['orderBy'],
+): boolean {
+  return (
+    cursor !== null &&
+    typeof cursor.id === 'string' &&
+    JSON.stringify(cursor.orderBy) === JSON.stringify(orderBy)
+  );
+}
+
+function matchesFilter<TData, TCreate, TUpdate, TFilter>(
+  record: CrudRecord<TData>,
+  request: ListRequest<TFilter>,
+  lifecycle: Set<string>,
+  matcher: InMemoryCrudRepositoryOptions<
+    TData,
+    TCreate,
+    TUpdate,
+    TFilter
+  >['matches'],
+): boolean {
+  if (!lifecycle.has(record.lifecycle.status)) return false;
+  if (request.filter === undefined) return true;
+  return matcher?.(record, request.filter) === true;
 }
 
 /** Stateful in-memory implementation used by the public factory. */
@@ -211,8 +233,7 @@ export class MemoryCrudRepository<
       });
       this.#records.set(record.id, updated);
       return updated;
-    }
-    else {
+    } else {
       throw failure(
         'lifecycle',
         `Record ${record.id} is not marked for deletion`,
@@ -226,8 +247,7 @@ export class MemoryCrudRepository<
     requireRevision(record, request);
     if (record.lifecycle.status === 'marked-for-deletion') {
       this.#records.delete(record.id);
-    }
-    else {
+    } else {
       throw failure(
         'lifecycle',
         `Record ${record.id} must be marked for deletion`,
@@ -289,13 +309,10 @@ export class MemoryCrudRepository<
     lifecycle: Set<string>,
   ): CrudRecord<TData>[] {
     const matcher = this.#options.matches;
-    if (request.filter !== undefined && matcher === undefined)
+    if (matcher === undefined && request.filter !== undefined)
       throw failure('validation', 'A filter requires a matcher');
-    return [...this.#records.values()].filter(
-      (record) =>
-        lifecycle.has(record.lifecycle.status) &&
-        (request.filter === undefined ||
-          matcher?.(record, request.filter) === true),
+    return [...this.#records.values()].filter((record) =>
+      matchesFilter(record, request, lifecycle, matcher),
     );
   }
 }

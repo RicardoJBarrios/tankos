@@ -51,11 +51,11 @@ export function createConversionDefinitionCrudService(
     markForDeletion: (request) => crud.markForDeletion(request),
     restore: (request) => crud.restore(request),
     delete: (request) => crud.delete(request),
-    create: async (request) =>
-      crud.create({
+    create: (request) =>
+      Promise.resolve().then(() => crud.create({
         ...request,
         input: validateCustom(request.input, dependencies),
-      }),
+      })),
   };
 
   return createVersionedCrudService(custom, {

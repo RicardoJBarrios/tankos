@@ -6,22 +6,34 @@ import {
 
 function authorizationFailure(error: unknown): DataAccessError {
   if (error instanceof DataAccessError) return error;
-  const code =
-    typeof error === 'object' && error !== null && 'code' in error
-      ? String((error as { readonly code: unknown }).code)
-      : '';
-  const transient =
-    code.includes('internal') ||
-    code.includes('unavailable') ||
-    code.includes('network') ||
-    code.includes('deadline');
+  const transient = isTransientCode(readProviderCode(error));
   return new DataAccessError(
     transient ? 'transient' : 'forbidden',
-    transient
-      ? 'Firebase authorization provider is temporarily unavailable'
-      : 'The Firebase principal is not authorized',
+    authorizationMessage(transient),
     { retryable: transient },
   );
+}
+
+function readProviderCode(error: unknown): string {
+  if (!isProviderError(error)) return '';
+  return String(error.code);
+}
+
+function isProviderError(error: unknown): error is { readonly code: unknown } {
+  return typeof error === 'object' && error !== null && 'code' in error;
+}
+
+function isTransientCode(code: string): boolean {
+  return ['internal', 'unavailable', 'network', 'deadline'].some((part) =>
+    code.includes(part),
+  );
+}
+
+function authorizationMessage(transient: boolean): string {
+  if (transient) {
+    return 'Firebase authorization provider is temporarily unavailable';
+  }
+  return 'The Firebase principal is not authorized';
 }
 
 /** Minimal Firebase Admin Auth surface required by the server adapter. */
@@ -71,9 +83,13 @@ export function createFirebaseAdminBatchAuthorization(
       const claims = user.customClaims?.[rolesClaim];
       const roles = Array.isArray(claims) ? claims : [];
       if (
-        user.uid !== callerPrincipalId ||
-        callerPrincipalId !== submittedPrincipalId ||
-        !roles.includes(requiredRole)
+        !isAuthorizedPrincipal(
+          user.uid,
+          callerPrincipalId,
+          submittedPrincipalId,
+          roles,
+          requiredRole,
+        )
       ) {
         throw new DataAccessError(
           'forbidden',
@@ -82,4 +98,18 @@ export function createFirebaseAdminBatchAuthorization(
       }
     },
   };
+}
+
+function isAuthorizedPrincipal(
+  userId: string,
+  callerPrincipalId: EntityId,
+  submittedPrincipalId: EntityId,
+  roles: unknown[],
+  requiredRole: string,
+): boolean {
+  return (
+    userId === callerPrincipalId &&
+    callerPrincipalId === submittedPrincipalId &&
+    roles.includes(requiredRole)
+  );
 }

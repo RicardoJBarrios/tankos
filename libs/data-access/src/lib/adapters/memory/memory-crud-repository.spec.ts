@@ -118,6 +118,26 @@ describe('createInMemoryCrudRepository', () => {
     await expect(
       service.list({
         access,
+        page: {
+          pageSize: 20,
+          after: 'null' as never,
+          orderBy: [{ field: 'id', direction: 'asc' }],
+        },
+      }),
+    ).rejects.toMatchObject({ code: 'validation' });
+    await expect(
+      service.list({
+        access,
+        page: {
+          pageSize: 20,
+          after: '{}' as never,
+          orderBy: [{ field: 'id', direction: 'asc' }],
+        },
+      }),
+    ).rejects.toMatchObject({ code: 'validation' });
+    await expect(
+      service.list({
+        access,
         page: { pageSize: 20, orderBy: [{ field: 'id', direction: 'asc' }] },
         filter: { name: 'missing' },
       }),

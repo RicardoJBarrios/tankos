@@ -6,6 +6,9 @@ const DATE_PATTERN = /^(?<days>\d+)D$/u;
 const TIME_PATTERN =
   /^T(?:(?<hours>\d+)H)?(?:(?<minutes>\d+)M)?(?:(?<seconds>\d+)(?:\.(?<fraction>\d+))?S)?$/u;
 const TIME_UNIT_PATTERN = /[HMS]/u;
+const BODY_START_INDEX = 1;
+const NO_INDEX = -1;
+const FRACTION_DIGITS = 3;
 const MILLISECONDS_PER_SECOND = 1_000;
 const MILLISECONDS_PER_MINUTE = 60 * MILLISECONDS_PER_SECOND;
 const MILLISECONDS_PER_HOUR = 60 * MILLISECONDS_PER_MINUTE;
@@ -50,12 +53,15 @@ export function nativeParseDuration(value: DurationInput): Duration {
 function durationPartsFromValue(value: string) {
   const unsignedValue =
     value.startsWith('-') || value.startsWith('+') ? value.slice(1) : value;
-  const body = unsignedValue.slice(1);
+  const body = unsignedValue.slice(BODY_START_INDEX);
   const timeSeparator = body.indexOf('T');
-  const datePart = timeSeparator === -1 ? body : body.slice(0, timeSeparator);
+  const datePart =
+    timeSeparator === NO_INDEX ? body : body.slice(0, timeSeparator);
   const date = datePart === '' ? undefined : datePart;
   const time =
-    timeSeparator === -1 ? undefined : `T${body.slice(timeSeparator + 1)}`;
+    timeSeparator === NO_INDEX
+      ? undefined
+      : `T${body.slice(timeSeparator + BODY_START_INDEX)}`;
   return durationParts(date, time);
 }
 
@@ -110,16 +116,21 @@ function parseNumericDuration(value: number): Duration {
 
 function parseObjectDuration(value: DurationInput & object): Duration {
   const candidate = value as Partial<Duration>;
-  if (
-    candidate.kind !== 'duration' ||
-    typeof candidate.milliseconds !== 'number' ||
-    !Number.isSafeInteger(Math.trunc(candidate.milliseconds))
-  )
+  if (!isValidDurationCandidate(candidate)) {
     throw new RangeError('Invalid duration');
+  }
   return {
     kind: 'duration',
     milliseconds: truncateMilliseconds(candidate.milliseconds),
   };
+}
+
+function isValidDurationCandidate(candidate: Partial<Duration>): boolean {
+  return (
+    candidate.kind === 'duration' &&
+    typeof candidate.milliseconds === 'number' &&
+    Number.isSafeInteger(Math.trunc(candidate.milliseconds))
+  );
 }
 
 function hasDateOrTime(
@@ -150,5 +161,7 @@ function toInteger(value: string | undefined): number {
 }
 
 function fractionToMilliseconds(value: string | undefined): number {
-  return value === undefined ? 0 : Number(value.slice(0, 3).padEnd(3, '0'));
+  return value === undefined
+    ? 0
+    : Number(value.slice(0, FRACTION_DIGITS).padEnd(FRACTION_DIGITS, '0'));
 }

@@ -21,11 +21,11 @@ export function getFormatter(timeZone: string): Intl.DateTimeFormat {
     year: 'numeric',
   });
   formatterCache.set(timeZone, formatter);
-  if (formatterCache.size > FORMATTER_CACHE_LIMIT) {
-    const oldestTimeZone = formatterCache.keys().next().value;
-    /* c8 ignore next -- a non-empty cache always has a first key. */
-    if (oldestTimeZone === undefined) return formatter;
-    formatterCache.delete(oldestTimeZone);
-  }
+  evictOldestFormatter();
   return formatter;
+}
+
+function evictOldestFormatter(): void {
+  if (formatterCache.size <= FORMATTER_CACHE_LIMIT) return;
+  formatterCache.delete(String(formatterCache.keys().next().value));
 }

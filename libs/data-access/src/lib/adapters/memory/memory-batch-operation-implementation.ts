@@ -50,89 +50,91 @@ export class MemoryBatchOperationImplementation<
     return Promise.resolve().then(() => this.#submit(request));
   }
 
-  async materialize(batchId: EntityId): Promise<BatchProgress> {
-    const operation = this.#require(batchId);
-    if (operation.status !== 'materializing') return publicProgress(operation);
-    const ids = [...this.#options.materialize(operation.request.selection)];
-    const updated = {
-      ...operation,
-      ids,
-      total: ids.length,
-      status: 'queued' as const,
-      fingerprint: fingerprint(operation.request, ids),
-      updatedAt: this.#options.clock.now(),
-    };
-    this.#operations.set(batchId, updated);
-    return publicProgress(updated);
+  materialize(batchId: EntityId): Promise<BatchProgress> {
+    return Promise.resolve().then(() => {
+      const operation = this.#require(batchId);
+      if (operation.status !== 'materializing') {
+        return publicProgress(operation);
+      }
+      const ids = [...this.#options.materialize(operation.request.selection)];
+      const updated = {
+        ...operation,
+        ids,
+        total: ids.length,
+        status: 'queued' as const,
+        fingerprint: fingerprint(operation.request, ids),
+        updatedAt: this.#options.clock.now(),
+      };
+      this.#operations.set(batchId, updated);
+      return publicProgress(updated);
+    });
   }
 
-  async get(batchId: EntityId): Promise<BatchProgress | undefined> {
+  get(batchId: EntityId): Promise<BatchProgress | undefined> {
     const operation = this.#operations.get(batchId);
-    return operation ? publicProgress(operation) : undefined;
+    return Promise.resolve(operation ? publicProgress(operation) : undefined);
   }
 
-  async resume(batchId: EntityId): Promise<BatchProgress> {
-    const operation = this.#require(batchId);
-    const updated = {
-      ...operation,
-      status: 'queued' as const,
-      updatedAt: this.#options.clock.now(),
-    };
-    this.#operations.set(batchId, updated);
-    return publicProgress(updated);
+  resume(batchId: EntityId): Promise<BatchProgress> {
+    return Promise.resolve().then(() => {
+      const operation = this.#require(batchId);
+      const updated = {
+        ...operation,
+        status: 'queued' as const,
+        updatedAt: this.#options.clock.now(),
+      };
+      this.#operations.set(batchId, updated);
+      return publicProgress(updated);
+    });
   }
 
-  async cancel(batchId: EntityId): Promise<BatchProgress> {
-    const operation = this.#require(batchId);
-    const updated = {
-      ...operation,
-      status: 'cancelled' as const,
-      updatedAt: this.#options.clock.now(),
-    };
-    this.#operations.set(batchId, updated);
-    return publicProgress(updated);
+  cancel(batchId: EntityId): Promise<BatchProgress> {
+    return Promise.resolve().then(() => {
+      const operation = this.#require(batchId);
+      const updated = {
+        ...operation,
+        status: 'cancelled' as const,
+        updatedAt: this.#options.clock.now(),
+      };
+      this.#operations.set(batchId, updated);
+      return publicProgress(updated);
+    });
   }
 
-  async run(
+  run(
     batchId: EntityId,
     access: Parameters<typeof createAccessContext>[0],
   ): Promise<BatchProgress> {
-    const workerAccess = createAccessContext(access);
-    if (!workerAccess.roles.some((role) => this.#workerRoles.has(role)))
-      throw batchError('forbidden', 'Only a trusted worker may run a batch');
-    if (this.#running.has(batchId))
-      throw batchError('conflict', 'Batch is already running');
-    const operation = this.#require(batchId);
-    if (operation.status === 'materializing')
-      throw batchError(
-        'validation',
-        'Batch must be materialized before execution',
-      );
-    this.#running.add(batchId);
-    return executeMemoryBatch(
-      batchId,
-      operation,
-      this.#options,
-      this.#chunkSize,
-      this.#concurrency,
-      this.#operations,
-    ).finally(() => this.#running.delete(batchId));
+    return Promise.resolve().then(() => {
+      const workerAccess = createAccessContext(access);
+      if (!workerAccess.roles.some((role) => this.#workerRoles.has(role)))
+        throw batchError('forbidden', 'Only a trusted worker may run a batch');
+      if (this.#running.has(batchId))
+        throw batchError('conflict', 'Batch is already running');
+      const operation = this.#require(batchId);
+      if (operation.status === 'materializing')
+        throw batchError(
+          'validation',
+          'Batch must be materialized before execution',
+        );
+      this.#running.add(batchId);
+      return executeMemoryBatch(
+        batchId,
+        operation,
+        this.#options,
+        this.#chunkSize,
+        this.#concurrency,
+        this.#operations,
+      ).finally(() => this.#running.delete(batchId));
+    });
   }
 
   #validateConfiguration(): void {
-    if (
-      !Number.isInteger(this.#chunkSize) ||
-      this.#chunkSize < 1 ||
-      this.#chunkSize > 400
-    )
+    if (!isValidRange(this.#chunkSize, 1, 400))
       throw new RangeError(
         'Batch chunk size must be an integer between 1 and 400',
       );
-    if (
-      !Number.isInteger(this.#concurrency) ||
-      this.#concurrency < 1 ||
-      this.#concurrency > 32
-    )
+    if (!isValidRange(this.#concurrency, 1, 32))
       throw new RangeError(
         'Batch concurrency must be an integer between 1 and 32',
       );
@@ -170,4 +172,8 @@ export class MemoryBatchOperationImplementation<
     this.#idempotency.set(key, batchId);
     return publicProgress(operation);
   }
+}
+
+function isValidRange(value: number, minimum: number, maximum: number): boolean {
+  return Number.isInteger(value) && value >= minimum && value <= maximum;
 }

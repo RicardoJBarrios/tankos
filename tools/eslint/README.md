@@ -8,10 +8,7 @@ presets or rule blocks.
 import { createAngularEslintConfig } from '../../tools/eslint/angular-profiles.mjs';
 import { createVitestEslintConfig } from '../../tools/eslint/vitest-profiles.mjs';
 
-export default [
-  ...createAngularEslintConfig({ prefix: 'tankos' }),
-  ...createVitestEslintConfig(),
-];
+export default [...createAngularEslintConfig({ prefix: 'tankos' }), ...createVitestEslintConfig()];
 ```
 
 `createAngularEslintConfig()` is the single entry point for Angular projects. It
@@ -44,6 +41,9 @@ Every project receives the workspace profile through the root configuration:
 - The local `tankos/no-multiple-comparisons-in-condition` rule rejects more
   than two atomic terms in a single conditional test; extract a named predicate
   or comparator instead. The maximum is configurable.
+- The local `tankos/no-consecutive-same-return-guards` rule rejects adjacent
+  guards with the same return or throw outcome; combine their conditions in a
+  named predicate instead of repeating separate `if` statements.
 - `class-methods-use-this` and the workspace function-declaration guardrails.
 - Library limits of 300 lines per file and 60 lines per function.
 
@@ -51,6 +51,10 @@ TypeScript files additionally receive:
 
 - Nx `flat/typescript`.
 - `typescript-eslint` `strictTypeChecked`.
+- Additional TypeScript baseline guardrails for strict equality, console and
+  dynamic-code usage, implicit coercion, and magic numbers. Test files are
+  excluded from these source-quality checks so fixtures can express exact
+  protocol values.
 - TypeScript ESLint `projectService`, rooted at the workspace, for every
   TypeScript file. Typed linting is mandatory; it is not an opt-in flag.
 
