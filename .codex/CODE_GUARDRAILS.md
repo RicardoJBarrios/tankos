@@ -77,7 +77,17 @@ worker writes must require their own fencing lease at the type boundary; a
 public submission capability must never expose claim, chunk or result writes.
 Cleanup remains a separate explicit capability. New batch capabilities must
 preserve this separation in every provider adapter and in their tests.
-files.
+
+## Store composition symmetry
+
+Every store, regardless of its current size, must use the same physical
+composition pattern: provider-independent contracts, a shared adapter context,
+focused operation modules grouped by capability, and a small public factory
+that composes and fences those capabilities. Size limits are an additional
+guardrail, not the reason to apply this structure. A small store must not
+remain monolithic merely because it currently passes the line-count rules.
+Each operation module must preserve the same port boundary and must have its
+corresponding contract scenarios in tests.
 
 Angular library packaging must use `ng-packagr` through the Nx
 `@nx/angular:ng-packagr-lite` executor. Do not replace this build boundary with
@@ -188,11 +198,35 @@ cohesive private functions with paired tests; do not suppress the rule or
 raise the threshold. The public contract and observable error behavior must
 remain unchanged during this refactoring.
 
-Production files must also stay below 300 non-comment, non-blank lines and
-production functions below 60 non-comment, non-blank lines. These limits are
-enforced by ESLint and apply only to executable application/library source;
-tests, type-only declarations and barrels are not size targets. When a limit
-is reached, split the implementation and its paired tests by responsibility.
+Production files must also stay below 300 non-comment, non-blank lines,
+production classes below 200 logical lines, and production functions below 60
+non-comment, non-blank lines. Angular's style guide uses approximately 400
+lines as a general upper consideration; TankOS deliberately adopts stricter
+limits. The 200-line class limit is an architectural target: ESLint enforces
+the file and function limits directly, while class size is reviewed together
+with responsibility boundaries. These limits apply only to executable
+application/library source; tests, type-only declarations and barrels are not
+size targets. When a limit is reached, split the implementation and its paired
+tests by responsibility.
+
+Methods that do not use `this` must not remain instance methods. Extract them as
+module-level functions (or make them explicitly static when the class API is
+the intentional boundary). ESLint enforces this with `class-methods-use-this`;
+do not silence the rule to preserve accidental class coupling.
+
+In library production code, named functions assigned to variables must use
+function declarations. ESLint enforces this for every variable declarator
+whose value is an arrow function. The legacy application is outside this
+library guardrail and has its own migration scope.
+Arrow functions remain appropriate for returned port callbacks and inline
+callbacks; they should be returned directly from a named factory or kept
+inline at the call site rather than assigned to a named variable.
+
+Named function declarations must also remain at module scope. Do not declare a
+`function` inside another function. If a helper needs factory state, pass that
+state explicitly through a module-level factory or return an anonymous callback
+from the composition function. This keeps responsibilities independently
+testable and prevents hidden closure coupling.
 
 Use focused tests for pure logic and Angular tests for Angular behavior. Tests
 must cover successful behavior, invalid input, boundary values and relevant
@@ -202,6 +236,15 @@ use-case coverage. A feature is incomplete when its statements are covered but
 one of its user-visible flows, failure modes or compatibility contracts is not
 tested. Avoid lowering thresholds, excluding source files or adding unreachable
 branches merely to make coverage pass.
+
+Each public function and each non-trivial module-level helper must have its own
+focused test specification. That specification owns the happy path, invalid
+inputs, boundaries, edge cases and relevant failures for that function. Tests
+for factories, services or adapters that compose those functions should only
+verify composition, delegation and the relevant integration happy path; they
+must not duplicate the helper's exhaustive matrix. Test files should mirror
+the production responsibility so that reading a spec explains the behavior of
+the corresponding function or module.
 
 Angular integration tests must use `@ngneat/spectator/vitest` for components,
 directives, rendered pipes, fixtures and Angular DI contexts. Use Spectator

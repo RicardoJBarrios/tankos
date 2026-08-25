@@ -44,26 +44,37 @@ export default [
     },
   },
   {
-    files: ['**/*.ts'],
-    ignores: ['apps/veril/**', '**/*.spec.ts', '**/*.test.ts'],
+    files: ['libs/**/*.ts'],
+    ignores: ['**/*.spec.ts', '**/*.test.ts'],
     plugins: { sonarjs },
     rules: {
       ...sonarjs.configs.recommended.rules,
       complexity: ['error', 10],
       'sonarjs/cognitive-complexity': ['error', 15],
+      // Methods without instance state belong outside the class as functions.
+      'class-methods-use-this': ['error', { exceptMethods: [] }],
       // AccessRole is a deliberate ubiquitous-language alias for a role string.
       // The rule cannot distinguish that semantic contract from a redundant alias.
       'sonarjs/redundant-type-aliases': 'off',
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            'VariableDeclarator[id.type="Identifier"] > ArrowFunctionExpression',
+          message:
+            'Named functions assigned to variables must use function declarations; reserve arrows for returned or inline callbacks.',
+        },
+        {
+          selector: 'FunctionDeclaration FunctionDeclaration',
+          message:
+            'Named functions must be declared at module scope; do not nest function declarations inside functions.',
+        },
+      ],
     },
   },
   {
-    files: ['**/*.ts'],
-    ignores: [
-      'apps/veril/**',
-      '**/*.spec.ts',
-      '**/*.test.ts',
-      '**/*.config.ts',
-    ],
+    files: ['libs/**/*.ts'],
+    ignores: ['**/*.spec.ts', '**/*.test.ts', '**/*.config.ts'],
     rules: {
       'max-lines': [
         'error',
