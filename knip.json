@@ -22,7 +22,6 @@
     "tools/**/*.ts"
   ],
   "ignore": [
-    "apps/veril/**",
     "**/dist/**",
     "**/coverage/**",
     "**/test-results/**",

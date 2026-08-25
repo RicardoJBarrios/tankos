@@ -96,7 +96,7 @@ library normally composes only the Vitest profile.
 
 The profile accepts:
 
-- `prefix`: the selector prefix required by the project (`tankos` or `veril`).
+- `prefix`: the selector prefix required by the project (`tankos`).
 - `profile`: `recommended` by default, or `strict` for additional focused
   component rules such as OnPush and inline-declaration limits.
 

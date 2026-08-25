@@ -41,7 +41,7 @@
       "executor": "nx:run-commands",
       "options": {
         "cwd": "",
-        "command": "pnpm exec firebase emulators:exec --config libs/data-access-firestore/emulator/emulator.firebase.json --project demo-veril --only firestore,auth \"REQUIRE_FIRESTORE_EMULATOR=true FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 pnpm exec vitest run --config libs/data-access-firestore/vite.config.mts libs/data-access-firestore/src/lib/firestore/firestore-emulator.integration.spec.ts\""
+        "command": "pnpm exec firebase emulators:exec --config libs/data-access-firestore/emulator/emulator.firebase.json --project demo-tankos --only firestore,auth \"REQUIRE_FIRESTORE_EMULATOR=true FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 pnpm exec vitest run --config libs/data-access-firestore/vite.config.mts libs/data-access-firestore/src/lib/firestore/firestore-emulator.integration.spec.ts\""
       }
     }
   }

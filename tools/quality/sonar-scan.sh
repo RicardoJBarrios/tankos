@@ -30,7 +30,7 @@ if ! git diff --quiet || [[ -n "$(git ls-files --others --exclude-standard)" ]];
   sonar_scm_options+=('-Dsonar.scm.disabled=true')
 fi
 
-pnpm exec nx run-many -t lint test build --exclude=veril --parallel=3 --skipNxCache
+pnpm exec nx run-many -t lint test build --parallel=3 --skipNxCache
 
 sonar_lcov_dir="$(mktemp -d "$workspace_root/.sonar-lcov.XXXXXX")"
 cleanup() {

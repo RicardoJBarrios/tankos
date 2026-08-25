@@ -47,7 +47,7 @@ describe('Firestore CRUD adapter against Firebase Emulator Suite', () => {
   beforeAll(async () => {
     if (!process.env['FIRESTORE_EMULATOR_HOST']) return;
     testEnvironment = await initializeTestEnvironment({
-      projectId: 'demo-veril',
+      projectId: 'demo-tankos',
       firestore: {
         rules: readFileSync(
           'libs/data-access-firestore/emulator/emulator.rules',

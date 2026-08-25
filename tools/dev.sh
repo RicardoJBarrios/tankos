@@ -49,7 +49,7 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
-./node_modules/.bin/firebase emulators:start --project demo-veril --only auth,firestore &
+./node_modules/.bin/firebase emulators:start --project demo-tankos --only auth,firestore &
 firebase_pid=$!
 
 emulators_ready=false
@@ -76,4 +76,4 @@ if [[ "$emulators_ready" != true ]]; then
 fi
 
 echo "Firebase Auth and Firestore emulators are ready."
-pnpm nx serve veril
+pnpm nx serve tankos

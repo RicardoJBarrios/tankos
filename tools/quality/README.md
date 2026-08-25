@@ -47,8 +47,8 @@ of the local Git branch. This is intentional because the current SonarCloud
 organization plan does not provide branch analysis. The organization is
 supplied by `SONARQUBE_ORG` from `.env`, so local configuration and the
 checked-in project definition cannot diverge.
-The legacy `veril` application is intentionally excluded from the `tankos`
-SonarCloud project.
+The `legacy/` tree is intentionally excluded from the `tankos` SonarCloud
+project.
 
 Semgrep is a Python CLI and is intentionally not added as an npm dependency.
 Use the pinned version in `semgrep-requirements.txt` for local and CI runs.

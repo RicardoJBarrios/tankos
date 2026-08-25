@@ -10,7 +10,6 @@ rules:
         - /apps/**/src/**
         - /libs/**/src/**
       exclude:
-        - /apps/veril/src/app/**/infrastructure/fixtures/**
         - /libs/data-access-firestore-admin/**
         - /libs/data-access-server/**
     pattern-regex: 'from ["'']firebase-admin(?:/[^"'']*)?["'']'
