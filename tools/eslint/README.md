@@ -43,6 +43,18 @@ JavaScript-family files additionally receive Nx `flat/javascript` and
 product and test code remains TypeScript. Node globals are declared explicitly
 for those configuration and tooling files.
 
+Specialized strict profiles are also composed globally:
+
+- `@e18e/eslint-plugin` enables compatible modernization, dependency and
+  performance rules. Rules requiring APIs newer than the workspace target are
+  intentionally excluded.
+- `eslint-plugin-regexp` uses its complete preset and promotes warnings to
+  errors for every source-language file.
+- `eslint-plugin-tsdoc` validates every TypeScript documentation comment with
+  `tsdoc/syntax`.
+- `eslint-plugin-security` uses its complete preset, promoted to errors, for
+  Node-oriented tooling, server code and Firebase Admin code.
+
 Angular projects additionally receive the complete Nx `flat/angular` and
 `flat/angular-template` presets through `createAngularEslintConfig`. The
 current Nx Angular TypeScript rules are `contextual-lifecycle`,
