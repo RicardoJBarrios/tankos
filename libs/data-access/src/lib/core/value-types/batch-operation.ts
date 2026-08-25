@@ -103,7 +103,7 @@ export interface BatchOperationRecord<
   /** Fingerprint of the complete request, excluding the idempotency key. */
   readonly requestFingerprint: string;
   /** Host lease preventing concurrent filter materialization. */
-  readonly materializationLeaseOwner?: string;
-  readonly materializationLeaseToken?: string;
-  readonly materializationLeaseUntil?: TechnicalTimestamp;
+  readonly materializationLeaseOwner?: string | null;
+  readonly materializationLeaseToken?: string | null;
+  readonly materializationLeaseUntil?: TechnicalTimestamp | null;
 }

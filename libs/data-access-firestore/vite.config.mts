@@ -1,36 +1,6 @@
-/// <reference types='vitest' />
-import { createVitestReporting } from '../../tools/testing/vitest-reporting';
-import { defineConfig } from 'vite';
-import angular from '@analogjs/vite-plugin-angular';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
+import { createVitestConfig } from '../../tools/testing/vitest-config';
 
-export default defineConfig(() => ({
+export default createVitestConfig({
+  projectName: 'data-access-firestore',
   root: __dirname,
-  cacheDir: '../../node_modules/.vite/libs/data-access-firestore',
-  resolve: { tsconfigPaths: true },
-  plugins: [
-    angular(),
-    viteStaticCopy({ targets: [{ src: '*.md', dest: '.' }] }),
-  ],
-  test: {
-    name: 'data-access-firestore',
-    watch: false,
-    globals: true,
-    environment: 'jsdom',
-    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    setupFiles: ['src/test-setup.ts'],
-    reporters: ['default'],
-    ...createVitestReporting('data-access-firestore', '../../'),
-    coverage: {
-      ...createVitestReporting('data-access-firestore', '../../').coverage,
-      reportsDirectory: '../../coverage/libs/data-access-firestore',
-      provider: 'v8' as const,
-      thresholds: {
-        lines: 100,
-        statements: 100,
-        functions: 100,
-        branches: 100,
-      },
-    },
-  },
-}));
+});
