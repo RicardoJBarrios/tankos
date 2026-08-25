@@ -29,7 +29,7 @@ not be pulled into an immediate phase by implication.
 
 It complements, and does not replace:
 
-- [`../VISION.md`](../VISION.md);
+- [`../VISION.md`](../core/VISION.md));
 - [`MENTAL_MODEL.md`](MENTAL_MODEL.md);
 - [`PRODUCT_PRINCIPLES.md`](PRODUCT_PRINCIPLES.md);
 - [`UX_PHILOSOPHY.md`](UX_PHILOSOPHY.md);
@@ -46,7 +46,7 @@ a phase:
    task.
 2. Treat every phase marked `candidate` as discovery work until its use-case
    specification is accepted.
-3. Read [`.codex/AGENT.md`](../AGENT.md), the documents named by the selected
+3. Read [`.codex/AGENT.md`](../../AGENT.md)), the documents named by the selected
    phase and the current files listed by that phase before editing.
 4. Inspect the current implementation and Git status. File lists in this plan
    are starting points, not permission to overwrite concurrent work.
@@ -55,7 +55,7 @@ a phase:
 6. Implement the smallest end-to-end result. Do not combine adjacent phases to
    save time.
 7. Run the focused validation listed by the phase plus the repository-wide
-   checks required by [`../DEFINITION_OF_DONE.md`](../DEFINITION_OF_DONE.md).
+   checks required by [`../DEFINITION_OF_DONE.md`](../core/DEFINITION_OF_DONE.md)).
 8. Append a completion record to section 12. Never rewrite the audit evidence
    to make a later implementation appear cleaner.
 

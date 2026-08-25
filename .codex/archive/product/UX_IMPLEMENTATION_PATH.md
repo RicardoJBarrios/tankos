@@ -9,14 +9,14 @@ a time without redefining the product, domain model or persistence.
 
 It complements, and does not replace:
 
-- [`../VISION.md`](../VISION.md);
+- [`../VISION.md`](../core/VISION.md));
 - [`MENTAL_MODEL.md`](MENTAL_MODEL.md);
 - [`PRODUCT_PRINCIPLES.md`](PRODUCT_PRINCIPLES.md);
 - [`UX_PHILOSOPHY.md`](UX_PHILOSOPHY.md);
 - [`USER_JOURNEYS.md`](USER_JOURNEYS.md);
 - accepted use-case specifications under [`../specifications/`](../specifications/);
-- [`../DEFINITION_OF_READY.md`](../DEFINITION_OF_READY.md) and
-  [`../DEFINITION_OF_DONE.md`](../DEFINITION_OF_DONE.md).
+- [`../DEFINITION_OF_READY.md`](../core/DEFINITION_OF_READY.md)) and
+  [`../DEFINITION_OF_DONE.md`](../core/DEFINITION_OF_DONE.md)).
 
 ## 1. Outcome
 
@@ -72,7 +72,7 @@ subphase, per task unless the user authorizes a broader scope.
 
 Before editing:
 
-1. Read [`.codex/AGENT.md`](../AGENT.md).
+1. Read [`.codex/AGENT.md`](../../AGENT.md)).
 2. Read this document completely.
 3. Read only the product documents and specifications named by the selected
    phase.

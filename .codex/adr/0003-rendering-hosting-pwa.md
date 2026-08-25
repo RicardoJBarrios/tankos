@@ -8,7 +8,7 @@ Accepted
 
 Public content needs SEO and low-cost delivery, while authenticated content needs
 client interactivity and offline access. See the
-[target architecture](../architecture/target-architecture.md).
+[target architecture](../archive/architecture/target-architecture.md).
 
 ## Decision
 

@@ -224,4 +224,4 @@ scope materialization and terminal cleanup before implementation.
 
 - [`PARAMETER_CONFIGURABILITY_PLAN.md`](PARAMETER_CONFIGURABILITY_PLAN.md)
 - [`PRODUCT_IDEA_REGISTER.md`](PRODUCT_IDEA_REGISTER.md)
-- [`../DOMAIN_RULES.md`](../DOMAIN_RULES.md)
+- [`../DOMAIN_RULES.md`](../core/DOMAIN_RULES.md))

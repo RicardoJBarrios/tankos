@@ -149,7 +149,7 @@ Create only the type required by a real feature.
 
 ## 4. Public/private rendering
 
-Decision: [ADR-0003](../adr/0003-rendering-hosting-pwa.md).
+Decision: [ADR-0003](../../adr/0003-rendering-hosting-pwa.md).
 
 Public routes expose public capabilities and contain no session-specific data.
 They are explicitly eligible for Angular prerendering. Public and private routes
@@ -204,7 +204,7 @@ must still receive the application without installation or offline caching.
 
 ## 6. Firebase integration
 
-Decision: [ADR-0002](../adr/0002-firebase-free-first.md).
+Decision: [ADR-0002](../../adr/0002-firebase-free-first.md).
 
 Firebase Authentication, Cloud Firestore, Hosting, App Check and the Local
 Emulator Suite are accepted directions. The current slice requires only
@@ -299,7 +299,7 @@ Firestore DTOs must never be exposed directly to the domain or UI.
 
 ## 8. State management
 
-Decision: [ADR-0005](../adr/0005-state-management.md).
+Decision: [ADR-0005](../../adr/0005-state-management.md).
 
 - Use Angular Signals and `computed()` for local component/view state.
 - Use NgRx Signals 20.1.0 `signalStore` in a scoped facade when state is shared,
@@ -312,7 +312,7 @@ Store scope must be the smallest injector that owns the state.
 
 ## 9. Offline policy
 
-Decision: [ADR-0006](../adr/0006-offline-persistence.md).
+Decision: [ADR-0006](../../adr/0006-offline-persistence.md).
 
 The first `Establish Aquarium` command is `online-required`; no domain offline
 creation, queue or conflict behavior is required for this slice.
@@ -379,7 +379,7 @@ scope:app  type:app
 
 Future scopes and library types are chosen only when an accepted feature creates
 a real ownership or reuse boundary. The naming and tag conventions are defined
-in [`CODING.md`](../CODING.md); this document does not authorize predicted
+in [`CODING.md`](../core/CODING.md)); this document does not authorize predicted
 libraries.
 
 The app may depend on shared and its own scope. Domain libraries may depend on
@@ -443,14 +443,14 @@ service or generic RAG layer is part of this architecture.
 
 ## 15. Accepted decisions and sources
 
-- [ADR-0001: Angular, Nx and Angular Material](../adr/0001-angular-nx-material.md)
-- [ADR-0002: Firebase free-first](../adr/0002-firebase-free-first.md)
-- [ADR-0003: Static rendering, Hosting and PWA](../adr/0003-rendering-hosting-pwa.md)
-- [ADR-0004: Gradual Nx modularity](../adr/0004-nx-modularity.md)
-- [ADR-0005: Signals-first state](../adr/0005-state-management.md)
-- [ADR-0006: Offline persistence](../adr/0006-offline-persistence.md)
-- [ADR-0007: Testing and runtime data boundaries](../adr/0007-testing-and-runtime-boundaries.md)
-- [ADR-0008: Local structural CodeGraph retrieval](../adr/0008-local-codegraph-retrieval.md)
+- [ADR-0001: Angular, Nx and Angular Material](../../adr/0001-angular-nx-material.md)
+- [ADR-0002: Firebase free-first](../../adr/0002-firebase-free-first.md)
+- [ADR-0003: Static rendering, Hosting and PWA](../../adr/0003-rendering-hosting-pwa.md)
+- [ADR-0004: Gradual Nx modularity](../../adr/0004-nx-modularity.md)
+- [ADR-0005: Signals-first state](../../adr/0005-state-management.md)
+- [ADR-0006: Offline persistence](../../adr/0006-offline-persistence.md)
+- [ADR-0007: Testing and runtime data boundaries](../../adr/0007-testing-and-runtime-boundaries.md)
+- [ADR-0008: Local structural CodeGraph retrieval](../../adr/0008-local-codegraph-retrieval.md)
 
 Official references include [Angular Service Worker](https://angular.dev/ecosystem/service-workers),
 [Angular prerendering](https://angular.dev/guide/prerendering),

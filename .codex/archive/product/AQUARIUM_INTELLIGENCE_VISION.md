@@ -25,13 +25,13 @@ silently discarding the user's choice.
 
 It complements:
 
-- [`../VISION.md`](../VISION.md);
+- [`../VISION.md`](../core/VISION.md));
 - [`MENTAL_MODEL.md`](MENTAL_MODEL.md);
 - [`PRODUCT_PRINCIPLES.md`](PRODUCT_PRINCIPLES.md);
 - [`UX_PHILOSOPHY.md`](UX_PHILOSOPHY.md);
 - [`CORAL_MASTERY_IMPROVEMENT_PLAN.md`](CORAL_MASTERY_IMPROVEMENT_PLAN.md);
-- [`../DOMAIN_RULES.md`](../DOMAIN_RULES.md);
-- [`../DEFINITION_OF_READY.md`](../DEFINITION_OF_READY.md).
+- [`../DOMAIN_RULES.md`](../core/DOMAIN_RULES.md));
+- [`../DEFINITION_OF_READY.md`](../core/DEFINITION_OF_READY.md)).
 
 ## 1. Product thesis
 

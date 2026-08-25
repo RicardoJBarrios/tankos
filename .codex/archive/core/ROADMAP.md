@@ -2,35 +2,35 @@
 
 This roadmap sequences product capabilities and their enabling technical work.
 It is not a feature commitment. Each step is conditional on a real requirement
-and should add only the boundaries it needs. See the [capability map](product/CAPABILITY_MAP.md)
+and should add only the boundaries it needs. See the [capability map](../product/CAPABILITY_MAP.md)
 for the product grouping; this document does not define bounded contexts.
 
 The cross-capability, mobile-first presentation migration is sequenced in the
-[UX implementation path](product/UX_IMPLEMENTATION_PATH.md). That path may
+[UX implementation path](../product/UX_IMPLEMENTATION_PATH.md). That path may
 reorganize navigation and composition, but it does not authorize deferred domain
 capabilities.
 
 The candidate improvements identified through the Coral Mastery comparison are
 sequenced in the
-[Coral Mastery improvement plan](product/CORAL_MASTERY_IMPROVEMENT_PLAN.md).
+[Coral Mastery improvement plan](../product/CORAL_MASTERY_IMPROVEMENT_PLAN.md).
 Each candidate still requires an accepted use-case specification before it may
 change domain behavior, persistence, notifications, image handling or AI.
 
 Longer-horizon ideas involving an Aquarium Digital Model, evidence
 relationships, vision, quantitative scenarios, IoT and spatial planning are
 classified in the
-[Aquarium Intelligence strategic vision](product/AQUARIUM_INTELLIGENCE_VISION.md).
+[Aquarium Intelligence strategic vision](../product/AQUARIUM_INTELLIGENCE_VISION.md).
 That document preserves research proposals and their consequences. Its
 classifications and sequence are agent analysis, not product-owner decisions.
 
 No idea is removed by those plans. The exhaustive
-[product idea register](product/PRODUCT_IDEA_REGISTER.md) preserves all gathered
+[product idea register](../product/PRODUCT_IDEA_REGISTER.md) preserves all gathered
 proposals, including conflicting, commercial, experimental and previously
 agent-filtered alternatives, until the user/product owner explicitly decides
 their status and scope.
 
 The current planning priority is configurable measurable properties. The
-[Parameter configurability master plan](product/PARAMETER_CONFIGURABILITY_PLAN.md)
+[Parameter configurability master plan](../product/PARAMETER_CONFIGURABILITY_PLAN.md)
 consolidates the public `ParameterDefinition` catalogue, Aquarium profile,
 custom-definition lifecycle and dependent-consumer work. Its accepted
 direction supersedes the legacy closed-catalogue wording in older Measurement
@@ -85,9 +85,9 @@ Parameter Status.
 
 `Configure Parameter Targets` is implemented as optional Aquarium-owned
 operating intervals without product-wide biological defaults; see
-[`configure-parameter-targets.md`](specifications/configure-parameter-targets.md).
+[`configure-parameter-targets.md`](../specifications/configure-parameter-targets.md).
 `Review Parameter Status` is implemented in
-[`review-parameter-status.md`](specifications/review-parameter-status.md). It
+[`review-parameter-status.md`](../specifications/review-parameter-status.md). It
 compares latest evidence with keeper-owned targets without freshness thresholds
 or biological interpretation; the result remains derived in the Workspace
 Store and is not persisted.

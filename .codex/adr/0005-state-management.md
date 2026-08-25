@@ -8,7 +8,7 @@ Accepted
 
 UI and feature state need a predictable model without introducing a global store
 before its coordination cost is justified. See the
-[target architecture](../architecture/target-architecture.md).
+[target architecture](../archive/architecture/target-architecture.md).
 
 ## Decision
 

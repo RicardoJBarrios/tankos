@@ -28,9 +28,9 @@ Prefer calm, explainable workflows over feature volume. Use the domain language
 consistently, make uncertainty visible and preserve an understandable history
 when the product requirements call for it. Accessibility, recovery and clarity
 are product qualities. The canonical priority rules are in
-[`product/PRODUCT_PRINCIPLES.md`](product/PRODUCT_PRINCIPLES.md) and the
+[`product/PRODUCT_PRINCIPLES.md`](../product/PRODUCT_PRINCIPLES.md) and the
 interaction and visual direction is in
-[`product/UX_PHILOSOPHY.md`](product/UX_PHILOSOPHY.md).
+[`product/UX_PHILOSOPHY.md`](../product/UX_PHILOSOPHY.md).
 
 ## AI and automation philosophy
 
