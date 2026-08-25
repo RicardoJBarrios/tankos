@@ -1,8 +1,6 @@
-import { createNativeTimeAdapter } from './native-time-adapter';
+import { nativeDurationBetween } from './native-duration-between';
 
 describe('native-duration-between', () => {
-  const adapter = createNativeTimeAdapter();
-
   it.each([
     [0, 1_000],
     [0, '1970-01-01T00:00:01Z'],
@@ -19,7 +17,7 @@ describe('native-duration-between', () => {
   ] as const)(
     'Given instants in any supported representation %s and %s, When calculating their duration, Then it returns end minus start in milliseconds',
     (start, end) => {
-      expect(adapter.durationBetween(start, end)).toEqual({
+      expect(nativeDurationBetween(start, end)).toEqual({
         kind: 'duration',
         milliseconds: 1_000,
       });
@@ -27,14 +25,14 @@ describe('native-duration-between', () => {
   );
 
   it('Given equal instants, When calculating duration, Then it returns zero', () => {
-    expect(adapter.durationBetween('1970-01-01T00:00:01Z', 1_000)).toEqual({
+    expect(nativeDurationBetween('1970-01-01T00:00:01Z', 1_000)).toEqual({
       kind: 'duration',
       milliseconds: 0,
     });
   });
 
   it('Given a reverse range, When calculating duration, Then it returns a negative duration', () => {
-    expect(adapter.durationBetween(1_000, 0)).toEqual({
+    expect(nativeDurationBetween(1_000, 0)).toEqual({
       kind: 'duration',
       milliseconds: -1_000,
     });

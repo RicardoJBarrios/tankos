@@ -1,7 +1,14 @@
 import { TestBed } from '@angular/core/testing';
-import { createNativeTimeAdapter } from '../../adapters/native';
+import {
+  createNativeTimeAdapter,
+  createNativeTimeZoneDatabase,
+} from '../../adapters/native';
 import { TimeService } from '../../application';
-import { provideTimePort, provideTimeClock } from './time-port-provider';
+import {
+  provideTimeClock,
+  provideTimePort,
+  provideTimeZoneDatabase,
+} from './time-port-provider';
 
 describe('time-port-provider', () => {
   it('Given a replacement temporal port, When configuring Angular, Then TimeService uses it', () => {
@@ -32,6 +39,14 @@ describe('time-port-provider', () => {
     expect(TestBed.inject(TimeService).now()).toEqual({
       kind: 'instant',
       epochMilliseconds: 1234,
+    });
+  });
+
+  it('Given a replacement time-zone database, When configuring Angular, Then the provider exposes it', () => {
+    const database = createNativeTimeZoneDatabase();
+    expect(provideTimeZoneDatabase(database)).toMatchObject({
+      provide: expect.anything(),
+      useValue: database,
     });
   });
 });

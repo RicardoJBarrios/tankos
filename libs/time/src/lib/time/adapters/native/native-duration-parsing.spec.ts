@@ -6,6 +6,8 @@ describe('native-duration-parsing', () => {
     [-1500, -1500],
     ['P1D', 86_400_000],
     ['PT1H30M', 5_400_000],
+    ['P1DT1S', 86_400_000 + 1_000],
+    ['PT1S', 1_000],
     ['-PT0.001S', -1],
     ['PT1.000999S', 1_000],
     [1.9, 1],
@@ -32,6 +34,8 @@ describe('native-duration-parsing', () => {
     'P1Y',
     'P1W',
     { kind: 'duration', milliseconds: NaN },
+    { kind: 'duration' },
+    { kind: 'duration', milliseconds: '2_000' },
     { kind: 'instant', epochMilliseconds: 1 },
   ])(
     'Given an unsupported duration %s, When parsing it, Then it raises a range error',

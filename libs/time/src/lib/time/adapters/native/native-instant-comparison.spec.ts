@@ -1,8 +1,6 @@
-import { createNativeTimeAdapter } from './native-time-adapter';
+import { nativeCompareInstants } from './native-instant-comparison';
 
 describe('native-instant-comparison', () => {
-  const adapter = createNativeTimeAdapter();
-
   it.each([
     [0, 1, -1],
     [0, '1970-01-01T00:00:01Z', -1],
@@ -15,7 +13,7 @@ describe('native-instant-comparison', () => {
   ] as const)(
     'Given instants %s and %s, When comparing them, Then it returns %s',
     (left, right, expected) => {
-      expect(adapter.compareInstants(left, right)).toBe(expected);
+      expect(nativeCompareInstants(left, right)).toBe(expected);
     },
   );
 });

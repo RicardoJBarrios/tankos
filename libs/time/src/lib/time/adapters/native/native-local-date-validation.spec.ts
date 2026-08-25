@@ -1,15 +1,13 @@
-import { createNativeTimeAdapter } from './native-time-adapter';
+import { nativeIsValidLocalDate } from './native-local-date-validation';
 
 describe('native-local-date-validation', () => {
-  const adapter = createNativeTimeAdapter();
-
   it('Given a valid calendar date, When validating it, Then it returns true', () => {
-    expect(adapter.isValidLocalDate('2026-08-20')).toBe(true);
+    expect(nativeIsValidLocalDate('2026-08-20')).toBe(true);
   });
 
   it('Given a valid structured local date, When validating it, Then it returns true', () => {
     expect(
-      adapter.isValidLocalDate({
+      nativeIsValidLocalDate({
         kind: 'local-date',
         year: 2026,
         month: 8,
@@ -37,7 +35,7 @@ describe('native-local-date-validation', () => {
   ])(
     'Given invalid value %s, When validating it, Then it returns false',
     (value) => {
-      expect(adapter.isValidLocalDate(value)).toBe(false);
+      expect(nativeIsValidLocalDate(value)).toBe(false);
     },
   );
 });

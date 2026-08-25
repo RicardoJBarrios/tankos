@@ -1,8 +1,6 @@
-import { createNativeTimeAdapter } from './native-time-adapter';
+import { nativeAddDuration } from './native-add-duration';
 
 describe('native-add-duration', () => {
-  const adapter = createNativeTimeAdapter();
-
   it.each([
     [0, 1_500, 1_500],
     [0, 'PT1.5S', 1_500],
@@ -20,7 +18,7 @@ describe('native-add-duration', () => {
   ] as const)(
     'Given start %s and duration %s, When adding them, Then it returns instant %s',
     (start, duration, epochMilliseconds) => {
-      expect(adapter.addDuration(start, duration)).toEqual({
+      expect(nativeAddDuration(start, duration)).toEqual({
         kind: 'instant',
         epochMilliseconds,
       });

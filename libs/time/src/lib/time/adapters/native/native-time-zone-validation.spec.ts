@@ -1,10 +1,8 @@
-import { createNativeTimeAdapter } from './native-time-adapter';
+import { nativeIsValidTimeZone } from './native-time-zone-validation';
 
 describe('native-time-zone-validation', () => {
-  const adapter = createNativeTimeAdapter();
-
   it('Given a recognized IANA identifier, When validating it, Then it returns true', () => {
-    expect(adapter.isValidTimeZone('Atlantic/Canary')).toBe(true);
+    expect(nativeIsValidTimeZone('Atlantic/Canary')).toBe(true);
   });
 
   it.each([
@@ -20,7 +18,7 @@ describe('native-time-zone-validation', () => {
   ])(
     'Given invalid zone %s, When validating it, Then it returns false',
     (timeZone) => {
-      expect(adapter.isValidTimeZone(timeZone as never)).toBe(false);
+      expect(nativeIsValidTimeZone(timeZone as never)).toBe(false);
     },
   );
 });

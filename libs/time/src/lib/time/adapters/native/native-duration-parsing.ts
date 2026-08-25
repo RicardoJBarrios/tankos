@@ -20,9 +20,7 @@ export function nativeParseDuration(value: DurationInput): Duration {
   }
 
   const match = DURATION_PATTERN.exec(value);
-  const parts = match
-    ? durationParts(match.groups?.['date'], match.groups?.['time'])
-    : undefined;
+  const parts = match ? durationPartsFromMatch(match) : undefined;
   if (!parts) {
     throw new RangeError('Invalid ISO 8601 duration');
   }
@@ -33,12 +31,20 @@ export function nativeParseDuration(value: DurationInput): Duration {
     parts.minutes * MILLISECONDS_PER_MINUTE +
     parts.seconds * MILLISECONDS_PER_SECOND +
     fractionToMilliseconds(parts.fraction);
-  const signedMilliseconds = match?.[1] === '-' ? -milliseconds : milliseconds;
+  const signedMilliseconds = match[1] === '-' ? -milliseconds : milliseconds;
 
   return {
     kind: 'duration',
     milliseconds: truncateMilliseconds(signedMilliseconds),
   };
+}
+
+function durationPartsFromMatch(match: RegExpExecArray) {
+  const groups = match.groups as {
+    readonly date?: string;
+    readonly time?: string;
+  };
+  return durationParts(groups.date, groups.time);
 }
 
 function durationParts(date: string | undefined, time: string | undefined) {

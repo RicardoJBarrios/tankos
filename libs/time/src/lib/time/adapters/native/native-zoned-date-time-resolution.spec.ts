@@ -1,35 +1,53 @@
-import { createNativeTimeAdapter } from './native-time-adapter';
+import {
+  nativeFromZonedDateTime,
+  nativeResolveOffsetDateTime,
+  nativeResolveZonedDateTime,
+} from './native-zoned-date-time-resolution';
+import { nativeToUtcIsoString } from './native-instant-serialization';
+import { createNativeTimeZoneDatabase } from './native-time-zone-database';
 
 describe('native-zoned-date-time-resolution', () => {
-  const adapter = createNativeTimeAdapter();
+  const timeZoneDatabase = createNativeTimeZoneDatabase();
 
   it('Given a local date-time and IANA zone, When resolving it, Then it returns the corresponding instant', () => {
     expect(
-      adapter.toUtcIsoString(
-        adapter.fromZonedDateTime('2026-08-20T15:30:00', 'Atlantic/Canary'),
+      nativeToUtcIsoString(
+        nativeFromZonedDateTime(
+          '2026-08-20T15:30:00',
+          'Atlantic/Canary',
+          timeZoneDatabase,
+        ),
       ),
     ).toBe('2026-08-20T14:30:00.000Z');
   });
 
   it('Given minute precision, When resolving it, Then seconds default to zero', () => {
     expect(
-      adapter.toUtcIsoString(
-        adapter.fromZonedDateTime('2026-08-20T15:30', 'Atlantic/Canary'),
+      nativeToUtcIsoString(
+        nativeFromZonedDateTime('2026-08-20T15:30', 'Atlantic/Canary', timeZoneDatabase),
       ),
     ).toBe('2026-08-20T14:30:00.000Z');
   });
 
   it('Given milliseconds, When resolving it, Then millisecond precision is preserved', () => {
     expect(
-      adapter.toUtcIsoString(
-        adapter.fromZonedDateTime('2026-08-20T15:30:01.250', 'Atlantic/Canary'),
+      nativeToUtcIsoString(
+        nativeFromZonedDateTime(
+          '2026-08-20T15:30:01.250',
+          'Atlantic/Canary',
+          timeZoneDatabase,
+        ),
       ),
     ).toBe('2026-08-20T14:30:01.250Z');
   });
 
   it('Given a local date-time and IANA zone, When resolving with origin, Then it returns the instant and the applicable source offset', () => {
     expect(
-      adapter.resolveZonedDateTime('2026-08-20T15:30:00', 'Atlantic/Canary'),
+      nativeResolveZonedDateTime(
+        '2026-08-20T15:30:00',
+        'Atlantic/Canary',
+        timeZoneDatabase,
+      ),
     ).toEqual({
       instant: {
         kind: 'instant',
@@ -43,7 +61,7 @@ describe('native-zoned-date-time-resolution', () => {
   });
 
   it('Given a local date-time and explicit offset, When resolving with origin, Then it retains the source offset', () => {
-    expect(adapter.resolveOffsetDateTime('2026-08-20T15:30:00', 60)).toEqual({
+    expect(nativeResolveOffsetDateTime('2026-08-20T15:30:00', 60)).toEqual({
       instant: {
         kind: 'instant',
         epochMilliseconds: Date.parse('2026-08-20T14:30:00.000Z'),
@@ -57,31 +75,43 @@ describe('native-zoned-date-time-resolution', () => {
 
   it('Given an invalid explicit offset, When resolving it, Then it raises a range error', () => {
     expect(() =>
-      adapter.resolveOffsetDateTime('2026-08-20T15:30:00', 1.5),
+      nativeResolveOffsetDateTime('2026-08-20T15:30:00', 1.5),
     ).toThrow(RangeError);
   });
 
   it('Given a nonexistent DST local time, When resolving it, Then it raises a range error', () => {
     expect(() =>
-      adapter.fromZonedDateTime('2026-03-08T02:30:00', 'America/New_York'),
+      nativeFromZonedDateTime(
+        '2026-03-08T02:30:00',
+        'America/New_York',
+        timeZoneDatabase,
+      ),
     ).toThrow(/does not exist/);
   });
 
   it('Given an ambiguous DST local time, When resolving it, Then it raises a range error', () => {
     expect(() =>
-      adapter.fromZonedDateTime('2026-11-01T01:30:00', 'America/New_York'),
+      nativeFromZonedDateTime(
+        '2026-11-01T01:30:00',
+        'America/New_York',
+        timeZoneDatabase,
+      ),
     ).toThrow(/ambiguous/);
   });
 
   it('Given an invalid local clock value, When resolving it, Then it raises a range error', () => {
     expect(() =>
-      adapter.fromZonedDateTime('2026-08-20T24:00:00', 'UTC'),
+      nativeFromZonedDateTime('2026-08-20T24:00:00', 'UTC', timeZoneDatabase),
     ).toThrow(RangeError);
   });
 
   it('Given an invalid zone, When resolving a local date-time, Then it raises a range error', () => {
     expect(() =>
-      adapter.fromZonedDateTime('2026-08-20T15:30:00', 'Not/A_Time_Zone'),
+      nativeFromZonedDateTime(
+        '2026-08-20T15:30:00',
+        'Not/A_Time_Zone',
+        timeZoneDatabase,
+      ),
     ).toThrow(/Invalid time zone/);
   });
 });

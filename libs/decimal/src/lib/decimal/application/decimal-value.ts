@@ -8,6 +8,18 @@ import {
   type DecimalValue,
 } from '../core';
 
+function toDecimalValue(operand: DecimalOperand): DecimalValue {
+  if (typeof operand === 'object' && operand !== null) {
+    return operand.value;
+  }
+
+  return normalizeDecimalInput(operand);
+}
+
+function toDecimalValues(operands: readonly DecimalOperand[]): DecimalValue[] {
+  return operands.map(toDecimalValue);
+}
+
 /** Internal runtime implementation of the public fluent Decimal contract. */
 class DecimalValueObject implements Decimal {
   readonly #arithmetic: DecimalArithmeticPort;
@@ -42,22 +54,22 @@ class DecimalValueObject implements Decimal {
     return this.#create(
       this.#arithmetic.divide(
         this.#value,
-        this.#valueOf(right),
+        toDecimalValue(right),
         context,
-        ...this.#values(additionalDivisors),
+        ...toDecimalValues(additionalDivisors),
       ),
     );
   }
 
   remainder(right: DecimalOperand): Decimal {
     return this.#create(
-      this.#arithmetic.remainder(this.#value, this.#valueOf(right)),
+      this.#arithmetic.remainder(this.#value, toDecimalValue(right)),
     );
   }
 
   power(exponent: DecimalOperand, context?: DecimalContext): Decimal {
     return this.#create(
-      this.#arithmetic.power(this.#value, this.#valueOf(exponent), context),
+      this.#arithmetic.power(this.#value, toDecimalValue(exponent), context),
     );
   }
 
@@ -66,7 +78,7 @@ class DecimalValueObject implements Decimal {
   }
 
   compare(other: DecimalOperand): -1 | 0 | 1 {
-    return this.#arithmetic.compare(this.#value, this.#valueOf(other));
+    return this.#arithmetic.compare(this.#value, toDecimalValue(other));
   }
 
   toString(): string {
@@ -91,26 +103,14 @@ class DecimalValueObject implements Decimal {
     return createDecimal(value, this.#arithmetic);
   }
 
-  #values(operands: readonly DecimalOperand[]): DecimalValue[] {
-    return operands.map((operand) => this.#valueOf(operand));
-  }
-
   #operands(
     operands: readonly [DecimalOperand, ...DecimalOperand[]],
   ): [DecimalValue, DecimalValue, ...DecimalValue[]] {
-    return [this.#value, ...this.#values(operands)] as [
+    return [this.#value, ...toDecimalValues(operands)] as [
       DecimalValue,
       DecimalValue,
       ...DecimalValue[],
     ];
-  }
-
-  #valueOf(operand: DecimalOperand): DecimalValue {
-    if (typeof operand === 'object' && operand !== null) {
-      return operand.value;
-    }
-
-    return normalizeDecimalInput(operand);
   }
 }
 

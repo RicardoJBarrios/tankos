@@ -1,10 +1,8 @@
-import { createNativeTimeAdapter } from './native-time-adapter';
+import { nativeParseLocalDate } from './native-local-date-parsing';
 
 describe('native-local-date-parsing', () => {
-  const adapter = createNativeTimeAdapter();
-
   it('Given a valid calendar date, When parsing it, Then it preserves the calendar fields', () => {
-    expect(adapter.parseLocalDate('2026-08-20')).toEqual({
+    expect(nativeParseLocalDate('2026-08-20')).toEqual({
       kind: 'local-date',
       year: 2026,
       month: 8,
@@ -20,13 +18,13 @@ describe('native-local-date-parsing', () => {
       day: 20,
     };
 
-    expect(adapter.parseLocalDate(value)).toEqual(value);
-    expect(adapter.parseLocalDate(value)).not.toBe(value);
+    expect(nativeParseLocalDate(value)).toEqual(value);
+    expect(nativeParseLocalDate(value)).not.toBe(value);
   });
 
   it('Given a structured local date with invalid fields, When parsing it, Then it raises a range error', () => {
     expect(() =>
-      adapter.parseLocalDate({
+      nativeParseLocalDate({
         kind: 'local-date',
         year: 2026,
         month: 2,
@@ -48,21 +46,21 @@ describe('native-local-date-parsing', () => {
   ])(
     'Given a structurally invalid local date object %s, When parsing it, Then it raises a range error',
     (value) => {
-      expect(() => adapter.parseLocalDate(value as never)).toThrow(RangeError);
+      expect(() => nativeParseLocalDate(value as never)).toThrow(RangeError);
     },
   );
 
   it.each(['2026-13-01', '2026-02-29', 'not-a-date', ''])(
     'Given invalid date %s, When parsing it, Then it raises a range error',
     (value) => {
-      expect(() => adapter.parseLocalDate(value)).toThrow(RangeError);
+      expect(() => nativeParseLocalDate(value)).toThrow(RangeError);
     },
   );
 
   it.each([' 2026-08-20', '2026-08-20 ', '2026/08/20', '2026-08-20✨'])(
     'Given a date string with whitespace or special characters (%s), When parsing it, Then it raises a range error',
     (value) => {
-      expect(() => adapter.parseLocalDate(value)).toThrow(RangeError);
+      expect(() => nativeParseLocalDate(value)).toThrow(RangeError);
     },
   );
 });
