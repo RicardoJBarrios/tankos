@@ -135,7 +135,9 @@ export class FirestoreCrudRepositoryImplementation<
   async create(request: CreateRequest<TCreate>) {
     const access = createAccessContext(request.access);
     await authorizeFirestoreAccess(this.#options, access, 'create');
-    const target = this.#recordReference(this.#options.createId(request.input));
+    const target = this.#recordReference(
+      this.#options.createId(request.input, access),
+    );
     const createdAt = this.#timestampNow();
     const dto: FirestoreRecordDto<TData> = {
       data: this.#options.createData(request.input),

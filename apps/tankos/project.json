@@ -13,7 +13,7 @@
       "options": {
         "outputPath": "dist/apps/tankos",
         "browser": "apps/tankos/src/main.ts",
-        "polyfills": ["zone.js"],
+        "polyfills": [],
         "tsConfig": "apps/tankos/tsconfig.app.json",
         "assets": [
           {

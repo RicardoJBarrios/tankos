@@ -24,7 +24,7 @@ export type UnitDefinitionFirestoreRepositoryOptions = Omit<
   'recordSchema' | 'createData' | 'updateData'
 >;
 
-/** Creates a provider-neutral unit CRUD port backed by Firestore. */
+/** Creates the unit CRUD port implementation backed by Firestore. */
 export function createUnitDefinitionFirestoreRepository(
   options: UnitDefinitionFirestoreRepositoryOptions,
 ): CrudRepositoryPort<

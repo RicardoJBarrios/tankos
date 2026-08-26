@@ -9,4 +9,13 @@ export default createVitestConfig({
     '@tankos/decimal': '../decimal/src/index.ts',
     '@tankos/data-access': '../data-access/src/index.ts',
   },
+  dedupe: [
+    '@angular/common',
+    '@angular/compiler',
+    '@angular/core',
+    '@angular/forms',
+    '@angular/platform-browser',
+    '@angular/platform-browser-dynamic',
+  ],
+  inlineAngularDependencies: true,
 });

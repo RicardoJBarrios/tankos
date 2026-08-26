@@ -5,6 +5,7 @@ describe('Units Firestore adapter barrel', () => {
     expect(Object.keys(publicApi).sort()).toEqual([
       'conversionDefinitionRecordSchema',
       'createConversionDefinitionFirestoreRepository',
+      'createDefaultUnitDefinitionFirestoreRepository',
       'createUnitDefinitionFirestoreRepository',
       'unitDefinitionRecordSchema',
     ]);

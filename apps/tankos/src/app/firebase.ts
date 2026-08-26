@@ -1,12 +1,10 @@
 import { getApps, initializeApp } from 'firebase/app';
+import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import {
-  connectAuthEmulator,
-  createUserWithEmailAndPassword,
-  getAuth,
-  signInWithEmailAndPassword,
-  type User,
-} from 'firebase/auth';
-import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
+  connectFirestoreEmulator,
+  initializeFirestore,
+} from 'firebase/firestore';
+import { createLocalFirebaseAuthSession } from '@tankos/auth';
 
 const FIRESTORE_EMULATOR_PORT = 8080;
 
@@ -22,7 +20,13 @@ const firebaseApp =
   });
 
 export const tankosAuth = getAuth(firebaseApp);
-export const tankosFirestore = getFirestore(firebaseApp);
+export const tankosAuthSession = createLocalFirebaseAuthSession(tankosAuth);
+// WebKit can keep Firestore's WebChannel request open against the local
+// emulator. Long polling keeps the same emulator integration reliable in all
+// supported E2E browsers.
+export const tankosFirestore = initializeFirestore(firebaseApp, {
+  experimentalForceLongPolling: true,
+});
 
 if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
   connectAuthEmulator(tankosAuth, 'http://127.0.0.1:9099', {
@@ -32,30 +36,5 @@ if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
     tankosFirestore,
     '127.0.0.1',
     FIRESTORE_EMULATOR_PORT,
-  );
-}
-
-/** Signs the local development user in, creating it in the Auth emulator once. */
-export async function ensureTankOsLocalUser(): Promise<User> {
-  if (tankosAuth.currentUser) return tankosAuth.currentUser;
-  const email = 'developer@tankos.local';
-  // This credential exists only in the local Auth emulator.
-  // eslint-disable-next-line ai-guard/no-hardcoded-secret, sonarjs/no-hardcoded-passwords
-  const password = 'tankos-local-dev';
-  try {
-    return (await signInWithEmailAndPassword(tankosAuth, email, password)).user;
-  } catch (error) {
-    if (!isMissingUser(error)) throw error;
-    return (await createUserWithEmailAndPassword(tankosAuth, email, password))
-      .user;
-  }
-}
-
-function isMissingUser(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code?: unknown }).code === 'auth/user-not-found'
   );
 }

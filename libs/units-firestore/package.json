@@ -6,6 +6,7 @@
     "@tankos/data-access-firestore": "^0.0.0",
     "@tankos/units": "^0.0.0",
     "@tankos/units-zod": "^0.0.0",
+    "@tankos/time": "^0.0.0",
     "firebase": "^12.17.1",
     "zod": "^4.4.3"
   },

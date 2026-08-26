@@ -119,11 +119,19 @@ const intentionallyPromiseShapedAdapters = [
 ];
 
 const architecturalElements = [
-  { type: 'core', pattern: 'libs/*/src/lib/*/core/**' },
-  { type: 'application', pattern: 'libs/*/src/lib/*/application/**' },
-  { type: 'adapters', pattern: 'libs/*/src/lib/*/adapters/**' },
-  { type: 'composition', pattern: 'libs/*/src/lib/*/composition/**' },
-  { type: 'presentation', pattern: 'libs/*/src/lib/*/presentation/**' },
+  { type: 'core', pattern: 'libs/auth/src/lib/core/*' },
+  { type: 'composition', pattern: 'libs/auth/src/lib/composition/*' },
+  { type: 'adapters', pattern: 'libs/auth/src/lib/adapters/*' },
+  { type: 'core', pattern: 'libs/*/src/lib/*/core/*' },
+  { type: 'application', pattern: 'libs/*/src/lib/*/application/*' },
+  { type: 'adapters', pattern: 'libs/*/src/lib/*/adapters/*' },
+  { type: 'adapters', pattern: 'libs/*/src/lib/firestore/*' },
+  { type: 'adapters', pattern: 'libs/*/src/lib/zod/*' },
+  { type: 'composition', pattern: 'libs/*/src/lib/*/composition/*' },
+  { type: 'presentation', pattern: 'libs/*/src/lib/*/presentation/*' },
+  { type: 'presentation', pattern: 'libs/data-access-ui/src/lib/*' },
+  { type: 'presentation', pattern: 'libs/*/src/lib/*-ui/*' },
+  { type: 'core', pattern: 'libs/data-access/src/*' },
 ];
 
 const architecturalPolicies = [
@@ -188,8 +196,15 @@ export function createWorkspaceEslintConfig() {
       plugins: { boundaries },
       settings: {
         'boundaries/elements': architecturalElements,
+        'boundaries/files': [
+          { category: 'entry-point', pattern: 'libs/*/src/index.ts' },
+        ],
       },
       rules: {
+        // Every local import must belong to a declared architectural element.
+        // This closes the gap where an unclassified folder could bypass the
+        // layer policies below.
+        'boundaries/no-unknown-dependencies': ['error', { require: 'any' }],
         'boundaries/dependencies': [
           'error',
           { default: 'allow', policies: architecturalPolicies },
@@ -227,6 +242,12 @@ export function createWorkspaceEslintConfig() {
         // Keeping the async boundary preserves rejected-Promise semantics.
         'ai-guard/no-async-without-await': 'off',
       },
+    },
+    {
+      // Package entry points are public barrels: their exports intentionally
+      // cross the internal layer folders and are checked by Nx project tags.
+      files: ['libs/*/src/index.ts'],
+      rules: { 'boundaries/no-unknown-dependencies': 'off' },
     },
     {
       files: ['**/cached-crud-repository-implementation.ts'],

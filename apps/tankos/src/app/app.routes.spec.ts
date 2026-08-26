@@ -3,12 +3,12 @@ import { appRoutes } from './app.routes';
 
 vi.mock('./units/units-page.component', () => ({
   UnitsPageComponent: class UnitsPageComponent {
-    readonly marker = true;
+    public readonly marker = true;
   },
 }));
 vi.mock('./dashboard/dashboard.component', () => ({
   DashboardComponent: class DashboardComponent {
-    readonly marker = true;
+    public readonly marker = true;
   },
 }));
 

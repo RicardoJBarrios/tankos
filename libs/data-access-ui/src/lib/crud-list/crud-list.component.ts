@@ -9,6 +9,16 @@ import type { CrudRecord, EntityId } from '@tankos/data-access';
 /** Batch operation that a neutral CRUD list can request from its host. */
 export type CrudListBatchOperation = 'update' | 'mark-for-deletion' | 'delete';
 
+/** Presentation selected by a CRUD shell without changing its data source. */
+export type CrudListView = 'table' | 'cards';
+
+/** Declarative column definition for the Material table presentation. */
+export interface CrudListColumn<TData> {
+  readonly id: string;
+  readonly header: string;
+  readonly value: (item: CrudRecord<TData>) => string;
+}
+
 /** Headless-friendly CRUD list surface with standard lifecycle actions. */
 @Component({
   selector: 'tankos-crud-list',
@@ -17,37 +27,41 @@ export type CrudListBatchOperation = 'update' | 'mark-for-deletion' | 'delete';
   templateUrl: './crud-list.component.html',
 })
 export class CrudListComponent<TData> {
+  /** Rendering strategy; table is the default for data-dense CRUD screens. */
+  public readonly view = input<CrudListView>('table');
   /** Records currently visible in the list. */
-  readonly items = input.required<readonly CrudRecord<TData>[]>();
+  public readonly items = input.required<readonly CrudRecord<TData>[]>();
   /** Whether the host is loading a page. */
-  readonly loading = input(false);
+  public readonly loading = input(false);
   /** Whether the host has a recoverable loading error. */
-  readonly error = input<unknown>(undefined);
+  public readonly error = input<unknown>(undefined);
   /** Whether another page can be requested. */
-  readonly hasMore = input(false);
+  public readonly hasMore = input(false);
   /** Selected record identifiers controlled by the host store. */
-  readonly selectedIds = input<readonly EntityId[]>([]);
+  public readonly selectedIds = input<readonly EntityId[]>([]);
   /** Domain-specific display label supplied by the host. */
-  readonly label = input<(item: CrudRecord<TData>) => string>(
+  public readonly label = input<(item: CrudRecord<TData>) => string>(
     (item) => item.id,
   );
+  /** Columns rendered by the table view. */
+  public readonly columns = input<readonly CrudListColumn<TData>[]>([]);
   /** Emitted when the host should start creation. */
-  readonly createRequested = output();
+  public readonly createRequested = output();
   /** Emitted when the host should start editing. */
-  readonly editRequested = output<CrudRecord<TData>>();
+  public readonly editRequested = output<CrudRecord<TData>>();
   /** Emitted when a record should be logically deleted. */
-  readonly markForDeletionRequested = output<CrudRecord<TData>>();
+  public readonly markForDeletionRequested = output<CrudRecord<TData>>();
   /** Emitted when a record should be restored. */
-  readonly restoreRequested = output<CrudRecord<TData>>();
+  public readonly restoreRequested = output<CrudRecord<TData>>();
   /** Emitted when selection changes. */
-  readonly selectionToggled = output<EntityId>();
+  public readonly selectionToggled = output<EntityId>();
   /** Emitted when another page is requested. */
-  readonly loadMoreRequested = output();
+  public readonly loadMoreRequested = output();
   /** Emitted when the host should open batch confirmation. */
-  readonly batchRequested = output<CrudListBatchOperation>();
+  public readonly batchRequested = output<CrudListBatchOperation>();
 
   /** Whether the list has no records and is not currently loading. */
-  isEmpty(): boolean {
+  public isEmpty(): boolean {
     return this.items().length === 0 && !this.loading() && !this.error();
   }
 }

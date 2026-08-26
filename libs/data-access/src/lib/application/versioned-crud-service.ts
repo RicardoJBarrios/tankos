@@ -42,7 +42,10 @@ export function createVersionedCrudService<
       input: TUpdate,
     ): Promise<CrudRecord<TData>> => {
       const created = await service.create({
-        access: request.access,
+        access: {
+          ...request.access,
+          requestId: `${request.id}:replacement:${request.expectedRevision}`,
+        },
         input: options.toCreateInput(input),
       } satisfies CreateRequest<TCreate>);
       await service.markForDeletion(request);

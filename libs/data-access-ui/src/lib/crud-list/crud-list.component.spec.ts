@@ -36,7 +36,9 @@ describe('CrudListComponent', () => {
 
   it('Given records, When rendered, Then displays the supplied label and actions', () => {
     const spectator = render();
-    expect(spectator.query('li')?.textContent).toContain('One');
+    expect(spectator.query('[data-testid="crud-row"]')?.textContent).toContain(
+      'One',
+    );
     expect(
       spectator.queryAll('button').map((button) => button.textContent.trim()),
     ).toContain('Edit');
@@ -48,7 +50,7 @@ describe('CrudListComponent', () => {
     spectator
       .output('markForDeletionRequested')
       .subscribe((value) => (emitted = value));
-    spectator.click('li button:last-of-type');
+    spectator.click('[data-testid="mark-for-deletion"]');
     expect(emitted).toEqual(record);
   });
 
@@ -97,7 +99,7 @@ describe('CrudListComponent', () => {
       .output('restoreRequested')
       .subscribe((value) => (restored = value));
     spectator.output('loadMoreRequested').subscribe(() => (loadMore = true));
-    spectator.click('li button:last-of-type');
+    spectator.click('[data-testid="restore"]');
     spectator.click('[data-testid="load-more"]');
     expect(restored).toEqual(marked);
     expect(loadMore).toBe(true);
@@ -111,9 +113,19 @@ describe('CrudListComponent', () => {
     spectator
       .output('selectionToggled')
       .subscribe((value) => (selected = value));
-    spectator.click('li button:first-of-type');
+    spectator.click('[data-testid="edit-unit"]');
     spectator.click('input[type="checkbox"]');
     expect(edited).toEqual(record);
     expect(selected).toBe(record.id);
+  });
+
+  it('Given the cards view, When rendered, Then uses the same record actions', () => {
+    const spectator = render();
+    spectator.setInput('view', 'cards');
+    spectator.detectChanges();
+    expect(spectator.query('[data-testid="crud-cards"]')).toBeTruthy();
+    expect(spectator.query('[data-testid="crud-row"]')?.textContent).toContain(
+      'One',
+    );
   });
 });

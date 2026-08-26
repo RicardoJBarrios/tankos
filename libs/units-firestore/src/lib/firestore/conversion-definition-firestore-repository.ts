@@ -27,7 +27,7 @@ export type ConversionDefinitionFirestoreRepositoryOptions = Omit<
   'recordSchema' | 'createData' | 'updateData'
 >;
 
-/** Creates a provider-neutral conversion CRUD port backed by Firestore. */
+/** Creates the conversion CRUD port implementation backed by Firestore. */
 export function createConversionDefinitionFirestoreRepository(
   options: ConversionDefinitionFirestoreRepositoryOptions,
 ): CrudRepositoryPort<

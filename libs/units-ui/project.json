@@ -1,0 +1,19 @@
+{
+  "name": "units-ui",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/units-ui/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:feature"],
+  "targets": {
+    "test": {
+      "options": {
+        "coverage": true,
+        "coverage.reportsDirectory": "../../coverage/libs/units-ui"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

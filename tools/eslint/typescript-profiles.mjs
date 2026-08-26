@@ -13,6 +13,7 @@ const typedParserOptions = {
       '*.config.ts',
       '*.config.mts',
       'apps/*/playwright.config.mts',
+      'apps/*/e2e/*.ts',
       'apps/*/vitest.integration.config.ts',
       'tools/testing/vitest-reporting.ts',
     ],
@@ -26,6 +27,28 @@ const typedBaselineRules = {
   'no-eval': 'error',
   'no-implicit-coercion': 'error',
   'no-new-func': 'error',
+  '@typescript-eslint/explicit-member-accessibility': [
+    'error',
+    { accessibility: 'explicit' },
+  ],
+  '@typescript-eslint/prefer-readonly': 'error',
+  '@typescript-eslint/member-ordering': [
+    'error',
+    {
+      default: [
+        'public-static-field',
+        'protected-static-field',
+        'private-static-field',
+        'public-instance-field',
+        'protected-instance-field',
+        'private-instance-field',
+        'constructor',
+        'public-instance-method',
+        'protected-instance-method',
+        'private-instance-method',
+      ],
+    },
+  ],
 };
 
 const duplicatedStylisticRules = new Set([

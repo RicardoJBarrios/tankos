@@ -78,6 +78,7 @@ export function createVitestConfig(options: VitestConfigOptions) {
                   '@angular/core',
                   '@angular/common',
                   '@angular/compiler',
+                  '@angular/forms',
                   '@angular/platform-browser',
                   '@angular/platform-browser-dynamic',
                   '@ngneat/spectator',

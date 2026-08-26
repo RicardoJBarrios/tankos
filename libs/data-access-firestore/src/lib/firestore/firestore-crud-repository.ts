@@ -50,7 +50,7 @@ export interface FirestoreCrudRepositoryOptions<
   readonly schemaVersion?: number;
   /** Clock used for technical metadata; normally supplied by `TimeService`. */
   readonly clock?: ClockPort;
-  readonly createId: (input: TCreate) => string;
+  readonly createId: (input: TCreate, access?: AccessContext) => string;
   readonly createData: (input: TCreate) => TData;
   readonly updateData: (data: TData, input: TUpdate) => TData;
   readonly buildQuery: (
