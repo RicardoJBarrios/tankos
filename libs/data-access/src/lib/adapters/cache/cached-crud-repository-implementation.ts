@@ -47,7 +47,7 @@ export class CachedCrudRepositoryImplementation<
   readonly #inFlight = new Map<string, Promise<unknown>>();
   #invalidationGeneration = 0;
 
-  constructor(
+  public constructor(
     backing: CrudRepositoryPort<TData, TCreate, TUpdate, TFilter>,
     cache: CachePort<unknown>,
     options: CachedCrudRepositoryOptions,
@@ -63,7 +63,7 @@ export class CachedCrudRepositoryImplementation<
     this.#namespace = createCacheNamespace(this.#options.scope);
   }
 
-  list(
+  public list(
     request: ListRequest<TFilter>,
     readOptions?: CacheReadOptions,
   ): Promise<Page<CrudRecord<TData>>> {
@@ -81,7 +81,7 @@ export class CachedCrudRepositoryImplementation<
     return pending.finally(() => this.#inFlight.delete(key));
   }
 
-  get(
+  public get(
     request: GetRequest,
     readOptions?: CacheReadOptions,
   ): Promise<CrudRecord<TData> | undefined> {
@@ -99,7 +99,7 @@ export class CachedCrudRepositoryImplementation<
     return pending.finally(() => this.#inFlight.delete(key));
   }
 
-  async create(
+  public async create(
     input: Parameters<
       CrudRepositoryPort<TData, TCreate, TUpdate, TFilter>['create']
     >[0],
@@ -109,25 +109,25 @@ export class CachedCrudRepositoryImplementation<
     return result;
   }
 
-  async replace(request: RecordCommand, input: TUpdate) {
+  public async replace(request: RecordCommand, input: TUpdate) {
     const result = await this.#backing.replace(request, input);
     await this.#invalidate();
     return result;
   }
 
-  async markForDeletion(request: RecordCommand) {
+  public async markForDeletion(request: RecordCommand) {
     const result = await this.#backing.markForDeletion(request);
     await this.#invalidate();
     return result;
   }
 
-  async restore(request: RecordCommand) {
+  public async restore(request: RecordCommand) {
     const result = await this.#backing.restore(request);
     await this.#invalidate();
     return result;
   }
 
-  async delete(request: RecordCommand): Promise<void> {
+  public async delete(request: RecordCommand): Promise<void> {
     await this.#backing.delete(request);
     await this.#invalidate();
   }

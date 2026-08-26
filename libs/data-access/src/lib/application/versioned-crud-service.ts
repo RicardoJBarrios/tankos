@@ -44,7 +44,7 @@ export function createVersionedCrudService<
       const created = await service.create({
         access: {
           ...request.access,
-          requestId: `${request.id}:replacement:${request.expectedRevision}`,
+          requestId: `${request.id}:replacement:${String(request.expectedRevision)}`,
         },
         input: options.toCreateInput(input),
       } satisfies CreateRequest<TCreate>);

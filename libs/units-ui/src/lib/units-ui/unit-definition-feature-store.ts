@@ -203,11 +203,11 @@ function runLifecycle(
         id: record.id,
         expectedRevision: record.revision,
       };
-      if (operation === 'delete') {
-        await list.markForDeletion(request);
-      } else {
-        await list.restore(request);
-      }
+      const result =
+        operation === 'delete'
+          ? await list.markForDeletion(request)
+          : await list.restore(request);
+      if (!result.ok) throw result.error;
       lifecycleStatus.set('idle');
     } catch (error) {
       lifecycleStatus.set('error');

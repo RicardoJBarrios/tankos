@@ -11,10 +11,10 @@ export class DecimalService {
   readonly #arithmetic = inject(DECIMAL_ARITHMETIC);
 
   /** Creates an immutable, validated context for division and rounding. */
-  readonly context = createDecimalContext;
+  public readonly context = createDecimalContext;
 
   /** Creates an immutable Decimal value for fluent arithmetic. */
-  decimal(value: DecimalInput): Decimal {
+  public decimal(value: DecimalInput): Decimal {
     return createDecimal(value, this.#arithmetic);
   }
 }

@@ -25,28 +25,28 @@ class DecimalValueObject implements Decimal {
   readonly #arithmetic: DecimalArithmeticPort;
   readonly #value: DecimalValue;
 
-  constructor(value: DecimalInput, arithmetic: DecimalArithmeticPort) {
+  public constructor(value: DecimalInput, arithmetic: DecimalArithmeticPort) {
     this.#value = normalizeDecimalInput(value);
     this.#arithmetic = arithmetic;
   }
 
-  get value(): DecimalValue {
+  public get value(): DecimalValue {
     return this.#value;
   }
 
-  add(...operands: [DecimalOperand, ...DecimalOperand[]]): Decimal {
+  public add(...operands: [DecimalOperand, ...DecimalOperand[]]): Decimal {
     return this.#create(this.#arithmetic.add(...this.#operands(operands)));
   }
 
-  subtract(...operands: [DecimalOperand, ...DecimalOperand[]]): Decimal {
+  public subtract(...operands: [DecimalOperand, ...DecimalOperand[]]): Decimal {
     return this.#create(this.#arithmetic.subtract(...this.#operands(operands)));
   }
 
-  multiply(...operands: [DecimalOperand, ...DecimalOperand[]]): Decimal {
+  public multiply(...operands: [DecimalOperand, ...DecimalOperand[]]): Decimal {
     return this.#create(this.#arithmetic.multiply(...this.#operands(operands)));
   }
 
-  divide(
+  public divide(
     right: DecimalOperand,
     context: DecimalContext,
     ...additionalDivisors: DecimalOperand[]
@@ -61,35 +61,35 @@ class DecimalValueObject implements Decimal {
     );
   }
 
-  remainder(right: DecimalOperand): Decimal {
+  public remainder(right: DecimalOperand): Decimal {
     return this.#create(
       this.#arithmetic.remainder(this.#value, toDecimalValue(right)),
     );
   }
 
-  power(exponent: DecimalOperand, context?: DecimalContext): Decimal {
+  public power(exponent: DecimalOperand, context?: DecimalContext): Decimal {
     return this.#create(
       this.#arithmetic.power(this.#value, toDecimalValue(exponent), context),
     );
   }
 
-  negate(): Decimal {
+  public negate(): Decimal {
     return this.#create(this.#arithmetic.negate(this.#value));
   }
 
-  compare(other: DecimalOperand): -1 | 0 | 1 {
+  public compare(other: DecimalOperand): -1 | 0 | 1 {
     return this.#arithmetic.compare(this.#value, toDecimalValue(other));
   }
 
-  toString(): string {
+  public toString(): string {
     return this.#value;
   }
 
-  toJSON(): string {
+  public toJSON(): string {
     return this.#value;
   }
 
-  [Symbol.toPrimitive](hint: string): string {
+  public [Symbol.toPrimitive](hint: string): string {
     if (hint === 'string') {
       return this.#value;
     }

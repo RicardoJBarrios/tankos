@@ -50,13 +50,13 @@ export class JsonHttpCrudRepositoryImplementation<
     TFilter
   >;
 
-  constructor(
+  public constructor(
     options: JsonHttpCrudRepositoryOptions<TData, TCreate, TUpdate, TFilter>,
   ) {
     this.#options = options;
   }
 
-  async list(request: ListRequest<TFilter>) {
+  public async list(request: ListRequest<TFilter>) {
     const access = validatedAccess(request.access);
     createPageRequest(request.page);
     const response = await this.#request({
@@ -67,7 +67,7 @@ export class JsonHttpCrudRepositoryImplementation<
     return this.#options.schemas.page.parse(response);
   }
 
-  async get(request: GetRequest) {
+  public async get(request: GetRequest) {
     const response = await this.#request({
       method: 'GET',
       url: this.#url(this.#options.recordUrl(request.id)),
@@ -78,7 +78,7 @@ export class JsonHttpCrudRepositoryImplementation<
       : this.#options.schemas.record.parse(response);
   }
 
-  async create(request: CreateRequest<TCreate>) {
+  public async create(request: CreateRequest<TCreate>) {
     const response = await this.#request({
       method: 'POST',
       url: this.#url(this.#options.recordUrl('')),
@@ -89,7 +89,7 @@ export class JsonHttpCrudRepositoryImplementation<
     return this.#options.schemas.record.parse(response);
   }
 
-  async replace(request: RecordCommand, input: TUpdate) {
+  public async replace(request: RecordCommand, input: TUpdate) {
     const response = await this.#request({
       method: 'PUT',
       url: this.#url(this.#options.recordUrl(request.id)),
@@ -103,15 +103,15 @@ export class JsonHttpCrudRepositoryImplementation<
     return this.#options.schemas.record.parse(response);
   }
 
-  async markForDeletion(request: RecordCommand) {
+  public async markForDeletion(request: RecordCommand) {
     return this.#lifecycleCommand(request, 'mark-for-deletion');
   }
 
-  async restore(request: RecordCommand) {
+  public async restore(request: RecordCommand) {
     return this.#lifecycleCommand(request, 'restore');
   }
 
-  async delete(request: RecordCommand): Promise<void> {
+  public async delete(request: RecordCommand): Promise<void> {
     await this.#request({
       method: 'DELETE',
       url: this.#url(this.#options.recordUrl(request.id)),

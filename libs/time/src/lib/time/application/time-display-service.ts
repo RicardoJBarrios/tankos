@@ -15,17 +15,23 @@ export class TimeDisplayService {
   readonly #adapter = inject(TIME_DISPLAY_ADAPTER);
 
   /** Formats an instant for user-facing display. */
-  formatInstant(value: InstantInput, options?: TimeDisplayOptions): string {
+  public formatInstant(
+    value: InstantInput,
+    options?: TimeDisplayOptions,
+  ): string {
     return this.#adapter.formatInstant(value, options);
   }
 
   /** Formats a calendar date without time-zone conversion. */
-  formatLocalDate(value: LocalDateInput, options?: TimeDisplayOptions): string {
+  public formatLocalDate(
+    value: LocalDateInput,
+    options?: TimeDisplayOptions,
+  ): string {
     return this.#adapter.formatLocalDate(value, options);
   }
 
   /** Formats an elapsed duration for user-facing display. */
-  formatDuration(
+  public formatDuration(
     value: DurationInput,
     options?: DurationDisplayOptions,
   ): string {
@@ -33,7 +39,7 @@ export class TimeDisplayService {
   }
 
   /** Formats an elapsed duration as localized relative text. */
-  formatHumanizedDuration(
+  public formatHumanizedDuration(
     value: DurationInput,
     options?: HumanizeDurationOptions,
   ): string {

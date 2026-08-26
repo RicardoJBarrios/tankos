@@ -8,7 +8,7 @@ export class InstantPipe implements PipeTransform {
   readonly #display = inject(TimeDisplayService);
 
   /** Formats a present value or returns an empty string for absent input. */
-  transform(
+  public transform(
     value: InstantInput | null | undefined,
     format?: string,
     timeZone?: string,

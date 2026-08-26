@@ -1,10 +1,10 @@
 /** Base error for the Decimal public boundary. */
 export class DecimalError extends Error {
   /** Stable error code for boundary mapping. */
-  readonly code: string;
+  public readonly code: string;
 
   /** Creates a typed decimal error. */
-  constructor(code: string, message: string) {
+  public constructor(code: string, message: string) {
     super(message);
     this.name = 'DecimalError';
     this.code = code;
@@ -14,7 +14,7 @@ export class DecimalError extends Error {
 /** Indicates that an input is not a supported finite decimal. */
 export class InvalidDecimalError extends DecimalError {
   /** Creates an invalid-input error. */
-  constructor(value: unknown) {
+  public constructor(value: unknown) {
     super('INVALID_DECIMAL', `Invalid decimal input: ${String(value)}`);
     this.name = 'InvalidDecimalError';
   }
@@ -23,7 +23,7 @@ export class InvalidDecimalError extends DecimalError {
 /** Indicates that a decimal operation context is invalid. */
 export class DecimalContextError extends DecimalError {
   /** Creates a context-validation error. */
-  constructor(message: string) {
+  public constructor(message: string) {
     super('INVALID_DECIMAL_CONTEXT', message);
     this.name = 'DecimalContextError';
   }
@@ -32,7 +32,7 @@ export class DecimalContextError extends DecimalError {
 /** Indicates that an operation attempted to divide by zero. */
 export class DecimalDivisionByZeroError extends DecimalError {
   /** Creates a division-by-zero error. */
-  constructor() {
+  public constructor() {
     super('DECIMAL_DIVISION_BY_ZERO', 'Cannot divide a decimal by zero');
     this.name = 'DecimalDivisionByZeroError';
   }
@@ -41,7 +41,7 @@ export class DecimalDivisionByZeroError extends DecimalError {
 /** Indicates that an arithmetic result exceeds the Decimal contract limits. */
 export class DecimalRangeError extends DecimalError {
   /** Creates a result-range error for the delegated operation. */
-  constructor(operation: string) {
+  public constructor(operation: string) {
     super(
       'DECIMAL_RANGE_EXCEEDED',
       `Decimal result exceeds the supported range during ${operation}`,
@@ -53,10 +53,10 @@ export class DecimalRangeError extends DecimalError {
 /** Indicates that a configured arithmetic adapter failed at its boundary. */
 export class DecimalAdapterError extends DecimalError {
   /** The operation delegated to the adapter. */
-  readonly operation: string;
+  public readonly operation: string;
 
   /** Creates an adapter-boundary error without exposing provider semantics. */
-  constructor(operation: string) {
+  public constructor(operation: string) {
     super(
       'DECIMAL_ADAPTER_FAILURE',
       `Decimal adapter failed during ${operation}`,

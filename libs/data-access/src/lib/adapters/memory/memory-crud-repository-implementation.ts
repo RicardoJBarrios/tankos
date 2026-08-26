@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- repository implementation and lifecycle helpers stay cohesive. */
 import { DataAccessError } from '../../core/errors';
 import type {
   CrudRecord,
@@ -141,7 +142,7 @@ export class MemoryCrudRepository<
   readonly #visibleByDefault = new Set(['active', 'inactive']);
   readonly #elevatedRoles: Set<string>;
 
-  constructor(
+  public constructor(
     options: InMemoryCrudRepositoryOptions<TData, TCreate, TUpdate, TFilter>,
   ) {
     this.#options = options;
@@ -153,7 +154,9 @@ export class MemoryCrudRepository<
     );
   }
 
-  async list(request: ListRequest<TFilter>): Promise<Page<CrudRecord<TData>>> {
+  public async list(
+    request: ListRequest<TFilter>,
+  ): Promise<Page<CrudRecord<TData>>> {
     validateAccess(request.access);
     createPageRequest(request.page);
     this.#validateLifecycleSelection(request.access, request.lifecycle);
@@ -174,7 +177,9 @@ export class MemoryCrudRepository<
     };
   }
 
-  async get(request: GetRequest): Promise<CrudRecord<TData> | undefined> {
+  public async get(
+    request: GetRequest,
+  ): Promise<CrudRecord<TData> | undefined> {
     validateAccess(request.access);
     this.#validateLifecycleSelection(request.access, request.lifecycle);
     const record = this.#records.get(request.id);
@@ -183,7 +188,9 @@ export class MemoryCrudRepository<
     return lifecycle.has(record.lifecycle.status) ? record : undefined;
   }
 
-  async create(request: CreateRequest<TCreate>): Promise<CrudRecord<TData>> {
+  public async create(
+    request: CreateRequest<TCreate>,
+  ): Promise<CrudRecord<TData>> {
     validateAccess(request.access);
     const record = this.#options.create(
       request.input,
@@ -195,7 +202,7 @@ export class MemoryCrudRepository<
     return record;
   }
 
-  async replace(
+  public async replace(
     request: RecordCommand,
     input: TUpdate,
   ): Promise<CrudRecord<TData>> {
@@ -211,7 +218,9 @@ export class MemoryCrudRepository<
     return updated;
   }
 
-  async markForDeletion(request: RecordCommand): Promise<CrudRecord<TData>> {
+  public async markForDeletion(
+    request: RecordCommand,
+  ): Promise<CrudRecord<TData>> {
     this.#requireLifecycleRole(request.access);
     const record = this.#requireRecord(request);
     requireRevision(record, request);
@@ -223,7 +232,7 @@ export class MemoryCrudRepository<
     return updated;
   }
 
-  async restore(request: RecordCommand): Promise<CrudRecord<TData>> {
+  public async restore(request: RecordCommand): Promise<CrudRecord<TData>> {
     this.#requireLifecycleRole(request.access);
     const record = this.#requireRecord(request);
     requireRevision(record, request);
@@ -241,7 +250,7 @@ export class MemoryCrudRepository<
     }
   }
 
-  async delete(request: RecordCommand): Promise<void> {
+  public async delete(request: RecordCommand): Promise<void> {
     this.#requireLifecycleRole(request.access);
     const record = this.#requireRecord(request);
     requireRevision(record, request);

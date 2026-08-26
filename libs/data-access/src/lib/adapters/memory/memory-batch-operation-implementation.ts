@@ -36,7 +36,9 @@ export class MemoryBatchOperationImplementation<
   readonly #workerRoles: Set<string>;
   #sequence = 0;
 
-  constructor(options: InMemoryBatchOperationOptions<TPayload, TFilter>) {
+  public constructor(
+    options: InMemoryBatchOperationOptions<TPayload, TFilter>,
+  ) {
     this.#options = options;
     this.#chunkSize = options.chunkSize ?? 400;
     this.#concurrency = options.concurrency ?? 8;
@@ -46,11 +48,13 @@ export class MemoryBatchOperationImplementation<
     this.#validateConfiguration();
   }
 
-  submit(request: BatchRequest<TPayload, TFilter>): Promise<BatchProgress> {
+  public submit(
+    request: BatchRequest<TPayload, TFilter>,
+  ): Promise<BatchProgress> {
     return Promise.resolve().then(() => this.#submit(request));
   }
 
-  materialize(batchId: EntityId): Promise<BatchProgress> {
+  public materialize(batchId: EntityId): Promise<BatchProgress> {
     return Promise.resolve().then(() => {
       const operation = this.#require(batchId);
       if (operation.status !== 'materializing') {
@@ -70,12 +74,12 @@ export class MemoryBatchOperationImplementation<
     });
   }
 
-  get(batchId: EntityId): Promise<BatchProgress | undefined> {
+  public get(batchId: EntityId): Promise<BatchProgress | undefined> {
     const operation = this.#operations.get(batchId);
     return Promise.resolve(operation ? publicProgress(operation) : undefined);
   }
 
-  resume(batchId: EntityId): Promise<BatchProgress> {
+  public resume(batchId: EntityId): Promise<BatchProgress> {
     return Promise.resolve().then(() => {
       const operation = this.#require(batchId);
       const updated = {
@@ -88,7 +92,7 @@ export class MemoryBatchOperationImplementation<
     });
   }
 
-  cancel(batchId: EntityId): Promise<BatchProgress> {
+  public cancel(batchId: EntityId): Promise<BatchProgress> {
     return Promise.resolve().then(() => {
       const operation = this.#require(batchId);
       const updated = {
@@ -101,7 +105,7 @@ export class MemoryBatchOperationImplementation<
     });
   }
 
-  run(
+  public run(
     batchId: EntityId,
     access: Parameters<typeof createAccessContext>[0],
   ): Promise<BatchProgress> {

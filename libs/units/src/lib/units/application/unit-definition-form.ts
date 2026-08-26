@@ -19,9 +19,7 @@ export interface UnitDefinitionFormControls {
 
 export type UnitDefinitionForm = FormGroup<UnitDefinitionFormControls>;
 
-function requiredValidator(
-  control: AbstractControl,
-): ValidationErrors | null {
+function requiredValidator(control: AbstractControl): ValidationErrors | null {
   return Validators.required(control);
 }
 

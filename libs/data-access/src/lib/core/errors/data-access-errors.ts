@@ -11,13 +11,13 @@ export type DataAccessErrorCode =
 /** Base error for provider-independent data-access failures. */
 export class DataAccessError extends Error {
   /** Stable machine-readable error code. */
-  readonly code: DataAccessErrorCode;
+  public readonly code: DataAccessErrorCode;
 
   /** Whether retrying the same operation may succeed. */
-  readonly retryable: boolean;
+  public readonly retryable: boolean;
 
   /** Creates a structured data-access error. */
-  constructor(
+  public constructor(
     code: DataAccessErrorCode,
     message: string,
     options: { readonly retryable?: boolean } = {},

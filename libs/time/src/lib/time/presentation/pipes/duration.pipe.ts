@@ -8,7 +8,7 @@ export class DurationPipe implements PipeTransform {
   readonly #display = inject(TimeDisplayService);
 
   /** Formats a present duration or returns an empty string for absent input. */
-  transform(
+  public transform(
     value: DurationInput | null | undefined,
     style?: DurationDisplayOptions['style'],
     locale?: string,

@@ -8,7 +8,7 @@ export class HumanizeDurationPipe implements PipeTransform {
   readonly #display = inject(TimeDisplayService);
 
   /** Formats a duration as relative text or returns an empty string when absent. */
-  transform(
+  public transform(
     value: DurationInput | null | undefined,
     options?: HumanizeDurationOptions,
   ): string {

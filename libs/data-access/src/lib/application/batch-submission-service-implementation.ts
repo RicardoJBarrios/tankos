@@ -24,12 +24,16 @@ export class BatchSubmissionServiceImplementation<
   readonly #options: BatchSubmissionServiceOptions<TPayload, TFilter>;
   readonly #configuration;
 
-  constructor(options: BatchSubmissionServiceOptions<TPayload, TFilter>) {
+  public constructor(
+    options: BatchSubmissionServiceOptions<TPayload, TFilter>,
+  ) {
     this.#options = options;
     this.#configuration = resolveSubmissionConfiguration(options);
   }
 
-  async submit(input: BatchRequest<TPayload, TFilter>): Promise<BatchProgress> {
+  public async submit(
+    input: BatchRequest<TPayload, TFilter>,
+  ): Promise<BatchProgress> {
     const request = createBatchRequest(input);
     const requestFingerprint = stableJson({
       schema: request.schema,
@@ -62,7 +66,7 @@ export class BatchSubmissionServiceImplementation<
     );
   }
 
-  async materialize(batchId: EntityId): Promise<BatchProgress> {
+  public async materialize(batchId: EntityId): Promise<BatchProgress> {
     const claim = await this.#options.materializerStore.claimMaterialization(
       batchId,
       {
@@ -112,11 +116,11 @@ export class BatchSubmissionServiceImplementation<
     return project(queued);
   }
 
-  async get(batchId: EntityId): Promise<BatchProgress> {
+  public async get(batchId: EntityId): Promise<BatchProgress> {
     return project(await this.#options.store.get(batchId));
   }
 
-  async resume(batchId: EntityId): Promise<BatchProgress> {
+  public async resume(batchId: EntityId): Promise<BatchProgress> {
     const current = await this.#require(batchId);
     switch (current.status) {
       case 'queued':
@@ -137,7 +141,7 @@ export class BatchSubmissionServiceImplementation<
     return project(resumed);
   }
 
-  async cancel(batchId: EntityId): Promise<BatchProgress> {
+  public async cancel(batchId: EntityId): Promise<BatchProgress> {
     const current = await this.#require(batchId);
     if (current.status === 'completed' || current.status === 'cancelled')
       return project(current);

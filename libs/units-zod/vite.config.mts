@@ -4,5 +4,4 @@ export default createVitestConfig({
   projectName: 'units-zod',
   root: __dirname,
   angular: false,
-  setupFiles: false,
 });

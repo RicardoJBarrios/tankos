@@ -49,7 +49,7 @@ export class FirestoreCrudRepositoryImplementation<
   readonly #schemaVersion: number;
   readonly #timestampNow: () => firestoreSdk.Timestamp;
 
-  constructor(
+  public constructor(
     options: FirestoreCrudRepositoryOptions<TData, TCreate, TUpdate, TFilter>,
   ) {
     this.#options = options;
@@ -65,7 +65,9 @@ export class FirestoreCrudRepositoryImplementation<
     this.#timestampNow = createFirestoreTimestampFactory(options.clock);
   }
 
-  async list(request: ListRequest<TFilter>): Promise<Page<CrudRecord<TData>>> {
+  public async list(
+    request: ListRequest<TFilter>,
+  ): Promise<Page<CrudRecord<TData>>> {
     const access = createAccessContext(request.access);
     createPageRequest(request.page);
     await authorizeFirestoreLifecycleRead(
@@ -104,7 +106,7 @@ export class FirestoreCrudRepositoryImplementation<
     }
   }
 
-  async get(request: GetRequest) {
+  public async get(request: GetRequest) {
     const access = createAccessContext(request.access);
     await authorizeFirestoreLifecycleRead(
       this.#options,
@@ -132,7 +134,7 @@ export class FirestoreCrudRepositoryImplementation<
     }
   }
 
-  async create(request: CreateRequest<TCreate>) {
+  public async create(request: CreateRequest<TCreate>) {
     const access = createAccessContext(request.access);
     await authorizeFirestoreAccess(this.#options, access, 'create');
     const target = this.#recordReference(
@@ -187,7 +189,7 @@ export class FirestoreCrudRepositoryImplementation<
     }
   }
 
-  async replace(request: RecordCommand, input: TUpdate) {
+  public async replace(request: RecordCommand, input: TUpdate) {
     await authorizeFirestoreAccess(
       this.#options,
       createAccessContext(request.access),
@@ -205,7 +207,7 @@ export class FirestoreCrudRepositoryImplementation<
     );
   }
 
-  async markForDeletion(request: RecordCommand) {
+  public async markForDeletion(request: RecordCommand) {
     await authorizeFirestoreAccess(
       this.#options,
       createAccessContext(request.access),
@@ -223,7 +225,7 @@ export class FirestoreCrudRepositoryImplementation<
     );
   }
 
-  async restore(request: RecordCommand) {
+  public async restore(request: RecordCommand) {
     await authorizeFirestoreAccess(
       this.#options,
       createAccessContext(request.access),
@@ -241,7 +243,7 @@ export class FirestoreCrudRepositoryImplementation<
     );
   }
 
-  async delete(request: RecordCommand): Promise<void> {
+  public async delete(request: RecordCommand): Promise<void> {
     await authorizeFirestoreAccess(
       this.#options,
       createAccessContext(request.access),
