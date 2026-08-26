@@ -3,8 +3,23 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/authz/src",
   "projectType": "library",
-  "tags": ["scope:shared", "type:infrastructure"],
+  "tags": ["scope:shared", "scope:tankos", "type:infrastructure"],
   "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "dependsOn": ["data-access:build"],
+      "outputs": ["{workspaceRoot}/dist/libs/authz"],
+      "options": {
+        "project": "libs/authz/ng-package.json",
+        "tsConfig": "libs/authz/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/authz/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
     "lint": { "executor": "@nx/eslint:lint" },
     "test": {
       "options": {

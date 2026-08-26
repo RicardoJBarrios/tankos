@@ -36,6 +36,10 @@ export function createLocalFirebaseAuthSession(
 
   return {
     ...session,
+    access: async () => {
+      await ensureLocalKeeperClaim(auth);
+      return session.access();
+    },
     signIn: async (credentials) => {
       const passwordCredentials = requirePasswordCredentials(credentials);
       try {
@@ -49,7 +53,40 @@ export function createLocalFirebaseAuthSession(
         );
       }
     },
+    refresh: async () => {
+      await ensureLocalKeeperClaim(auth);
+      return session.refresh();
+    },
   };
+}
+
+/** Synchronizes the local-only role claim with the Auth emulator. */
+async function ensureLocalKeeperClaim(auth: Auth): Promise<void> {
+  // Unit tests and server-side consumers do not have the emulator endpoint.
+  if (typeof window === 'undefined' || !auth.currentUser) return;
+  const response = await fetch(
+    'http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/projects/demo-tankos/accounts:update',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer owner',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        localId: auth.currentUser.uid,
+        customAttributes: JSON.stringify({ roles: ['keeper'] }),
+      }),
+    },
+  );
+  if (!response.ok) {
+    throw new Error('Unable to configure the local Firebase Auth role claim');
+  }
+  const getIdToken = (
+    auth.currentUser as unknown as {
+      readonly getIdToken?: (forceRefresh?: boolean) => Promise<string>;
+    }
+  ).getIdToken;
+  if (getIdToken) await getIdToken.call(auth.currentUser, true);
 }
 
 export function createFirebaseAuthSession(

@@ -158,6 +158,73 @@ describe('Firebase auth session', () => {
     );
   });
 
+  it('synchronizes the local keeper claim before reading access', async () => {
+    vi.stubGlobal('window', {});
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal('fetch', fetchMock);
+    const getIdToken = vi.fn().mockResolvedValue('token');
+    const auth = {
+      currentUser: {
+        uid: 'local-keeper',
+        getIdToken,
+        getIdTokenResult: vi.fn().mockResolvedValue({ claims: {} }),
+      },
+    } as Auth;
+    const session = createLocalFirebaseAuthSession(auth, {
+      autoSignIn: false,
+    });
+
+    await expect(session.access()).resolves.toMatchObject({
+      principalId: 'local-keeper',
+      roles: ['keeper'],
+    });
+    expect(getIdToken).toHaveBeenCalledWith(true);
+    const authWithoutTokenRefresh = {
+      currentUser: {
+        uid: 'local-keeper-without-refresh',
+        getIdTokenResult: vi.fn().mockResolvedValue({ claims: {} }),
+      },
+    } as Auth;
+    const sessionWithoutTokenRefresh = createLocalFirebaseAuthSession(
+      authWithoutTokenRefresh,
+      { autoSignIn: false },
+    );
+    await expect(session.refresh()).resolves.toMatchObject({
+      principalId: 'local-keeper',
+      roles: ['keeper'],
+    });
+    await expect(sessionWithoutTokenRefresh.refresh()).resolves.toMatchObject({
+      principalId: 'local-keeper-without-refresh',
+      roles: ['keeper'],
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/projects/demo-tankos/accounts:update'),
+      expect.objectContaining({
+        method: 'POST',
+        // Vitest's asymmetric matcher is intentionally untyped here.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        headers: expect.objectContaining({ Authorization: 'Bearer owner' }),
+      }),
+    );
+    vi.unstubAllGlobals();
+  });
+
+  it('reports a local claim synchronization failure', async () => {
+    vi.stubGlobal('window', {});
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }));
+    const auth = {
+      currentUser: { uid: 'local-keeper' },
+    } as Auth;
+    const session = createLocalFirebaseAuthSession(auth, {
+      autoSignIn: false,
+    });
+
+    await expect(session.access()).rejects.toThrow(
+      'Unable to configure the local Firebase Auth role claim',
+    );
+    vi.unstubAllGlobals();
+  });
+
   it('propagates authentication failures unrelated to a missing user', async () => {
     const failure = new Error('offline');
     signInWithEmailAndPassword.mockRejectedValueOnce(failure);

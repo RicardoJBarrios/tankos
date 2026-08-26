@@ -4,10 +4,14 @@ const uniqueCode = () =>
   `TANKOS:E2E-000-${String(Date.now())}-${Math.random().toString(36).slice(2, 8)}`;
 const unitsUrl = /\/units$/u;
 
-async function login(page: Page): Promise<void> {
+async function login(
+  page: Page,
+  email = 'developer@tankos.local',
+  password = 'tankos-local-dev',
+): Promise<void> {
   await page.goto('/login?returnUrl=%2Funits');
-  await page.getByTestId('login-email').fill('developer@tankos.local');
-  await page.getByTestId('login-password').fill('tankos-local-dev');
+  await page.getByTestId('login-email').fill(email);
+  await page.getByTestId('login-password').fill(password);
   await page.getByTestId('login-submit').click();
   await expect(page).toHaveURL(unitsUrl);
 }
@@ -113,5 +117,31 @@ test.describe('custom units', () => {
     await expect(page.getByRole('alert')).toHaveText(
       'Unable to save the unit.',
     );
+  });
+
+  test('does not show a private unit owned by another keeper', async ({
+    browser,
+    page,
+  }) => {
+    const code = uniqueCode();
+    await login(page);
+    await openCreateForm(page);
+    await fillUnit(page, code, 'private');
+    await expect(
+      page.getByTestId('crud-row').filter({ hasText: code }),
+    ).toBeVisible();
+
+    const otherContext = await browser.newContext();
+    const otherPage = await otherContext.newPage();
+    await login(
+      otherPage,
+      `other-${String(Date.now())}@tankos.local`,
+      'tankos-local-dev',
+    );
+    await expect(otherPage.getByTestId('unit-list-status')).toHaveText('ready');
+    await expect(
+      otherPage.getByTestId('crud-row').filter({ hasText: code }),
+    ).toHaveCount(0);
+    await otherContext.close();
   });
 });

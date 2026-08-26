@@ -25,6 +25,8 @@ describe('createUnitDefinitionManagementService', () => {
     expect(result.data).toMatchObject({
       code: 'TANKOS:CUSTOM-ALK',
       system: 'custom',
+      ownerId: access.principalId,
+      visibility: 'private',
       quantityKind: 'alkalinity',
       conversionFamily: 'alkalinity',
     });

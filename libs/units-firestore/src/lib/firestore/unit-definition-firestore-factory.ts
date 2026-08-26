@@ -1,12 +1,15 @@
 import {
+  and,
   orderBy,
+  or,
   query,
+  where,
   type CollectionReference,
   type Firestore,
 } from 'firebase/firestore';
-import { createPageCursor } from '@tankos/data-access';
+import { createPageCursor, type ListRequest } from '@tankos/data-access';
 import type { ClockPort } from '@tankos/time';
-import type { UnitDefinition } from '@tankos/units';
+import type { UnitDefinition, UnitDefinitionFilter } from '@tankos/units';
 import {
   createUnitDefinitionFirestoreRepository,
   type UnitDefinitionFirestoreRepositoryOptions,
@@ -34,12 +37,32 @@ export function createDefaultUnitDefinitionFirestoreRepository(
         .toLowerCase();
       return replacement ? `${code}-${replacement}` : code;
     },
-    buildQuery: (reference: CollectionReference) =>
-      query(reference, orderBy('data.code', 'asc')),
+    buildQuery: (
+      reference: CollectionReference,
+      request: ListRequest<UnitDefinitionFilter>,
+    ) => {
+      const ordering = orderBy('data.code', 'asc');
+      if (request.access.roles.includes('admin')) {
+        return query(reference, ordering);
+      }
+      return query(
+        reference,
+        or(
+          where('data.visibility', '==', 'global'),
+          and(
+            where('data.visibility', '==', 'private'),
+            where('data.ownerId', '==', request.access.principalId),
+          ),
+        ),
+        ordering,
+      );
+    },
     encodeCursor: (snapshot) => createPageCursor(snapshot.id),
     authorize: (access) => {
-      if (!access.roles.includes('keeper')) {
-        throw new Error('Custom unit catalogue requires keeper access');
+      if (!access.roles.includes('keeper') && !access.roles.includes('admin')) {
+        throw new Error(
+          'Custom unit catalogue requires keeper or admin access',
+        );
       }
     },
   };

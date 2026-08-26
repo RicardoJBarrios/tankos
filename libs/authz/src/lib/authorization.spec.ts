@@ -1,6 +1,8 @@
 import {
+  AUTHORIZATION_ROLES,
   AuthorizationDeniedError,
   createAuthorizationPort,
+  hasAuthorizationRole,
   type AuthorizationRequest,
 } from './authorization';
 
@@ -38,5 +40,15 @@ describe('createAuthorizationPort', () => {
     const authorization = createAuthorizationPort(policy);
     await authorization.can(request);
     expect(policy).toHaveBeenCalledWith(request);
+  });
+
+  it('exposes the two general roles and checks them without interpreting domains', () => {
+    expect(AUTHORIZATION_ROLES).toEqual({ KEEPER: 'keeper', ADMIN: 'admin' });
+    expect(
+      hasAuthorizationRole(request.subject, AUTHORIZATION_ROLES.KEEPER),
+    ).toBe(true);
+    expect(
+      hasAuthorizationRole(request.subject, AUTHORIZATION_ROLES.ADMIN),
+    ).toBe(false);
   });
 });

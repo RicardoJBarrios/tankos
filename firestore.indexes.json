@@ -1,6 +1,23 @@
 {
   "indexes": [
     {
+      "collectionGroup": "units",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "data.visibility", "order": "ASCENDING" },
+        { "fieldPath": "data.code", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "units",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "data.visibility", "order": "ASCENDING" },
+        { "fieldPath": "data.ownerId", "order": "ASCENDING" },
+        { "fieldPath": "data.code", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "waterChanges",
       "queryScope": "COLLECTION",
       "fields": [

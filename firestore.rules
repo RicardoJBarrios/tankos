@@ -2,9 +2,74 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Temporary global custom-unit catalogue for the TankOS local route.
+    function hasRole(role) {
+      return isPersistentUser()
+        && request.auth.token.keys().hasAll(['roles'])
+        && request.auth.token.roles is list
+        && request.auth.token.roles.hasAll([role]);
+    }
+
+    function isAdmin() {
+      return isPersistentUser()
+        && (
+          hasRole('admin')
+          || (
+            request.auth.token.keys().hasAll(['admin'])
+            && request.auth.token.admin == true
+          )
+        );
+    }
+
+    function isValidUnitDefinition(data) {
+      return data is map
+        && data.keys().hasAll(['ownerId', 'visibility'])
+        && data.visibility in ['private', 'global']
+        && isBoundedText(data.ownerId, 128);
+    }
+
+    function isPrivateUnitOwner(data) {
+      return isKeeper()
+        && isValidUnitDefinition(data)
+        && data.visibility == 'private'
+        && data.ownerId == request.auth.uid;
+    }
+
+    function isGlobalUnit(data) {
+      return isKeeper()
+        && isValidUnitDefinition(data)
+        && data.visibility == 'global';
+    }
+
+    // Unit definitions are private to their keeper until an admin globalizes
+    // them. Firebase Rules remains the authoritative resource boundary.
     match /units/{unitId} {
-      allow read, write: if isKeeper();
+      // The create transaction reads a non-existent generated id first to
+      // enforce idempotent conflict detection. That probe must not expose
+      // existing unit data.
+      allow get: if (
+          !exists(/databases/$(database)/documents/units/$(unitId))
+          && isKeeper()
+        )
+        || isPrivateUnitOwner(resource.data.data)
+        || isGlobalUnit(resource.data.data);
+      allow list: if isKeeper()
+        && (
+          resource.data.data.visibility == 'global'
+          || (
+            resource.data.data.visibility == 'private'
+            && resource.data.data.ownerId == request.auth.uid
+          )
+        );
+      allow create: if isPrivateUnitOwner(request.resource.data.data)
+        && request.resource.data.data.visibility == 'private';
+      allow update: if isAdmin()
+        || (
+          isPrivateUnitOwner(resource.data.data)
+          && isPrivateUnitOwner(request.resource.data.data)
+          && request.resource.data.data.ownerId == resource.data.data.ownerId
+          && request.resource.data.data.visibility == resource.data.data.visibility
+        );
+      allow delete: if isAdmin() || isPrivateUnitOwner(resource.data.data);
     }
 
     function isAuthenticated() {
@@ -35,7 +100,9 @@ service cloud.firestore {
     }
 
     function isKeeper() {
-      return isPersistentUser() && keeperAccessIsNotRevoked();
+      return isPersistentUser()
+        && (hasRole('keeper') || isAdmin())
+        && keeperAccessIsNotRevoked();
     }
 
     function isEditorialKeeper() {

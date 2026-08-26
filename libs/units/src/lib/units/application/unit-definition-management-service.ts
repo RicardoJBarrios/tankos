@@ -68,7 +68,10 @@ export function createUnitDefinitionManagementService(
   return {
     ...crud,
     save: (request) => {
-      const definition = createCustomUnitDefinition(request.draft);
+      const definition = createCustomUnitDefinition(
+        request.draft,
+        request.access.principalId,
+      );
       if ('id' in request) {
         return crud.replace(
           {
@@ -87,9 +90,13 @@ export function createUnitDefinitionManagementService(
 /** Maps the custom-unit application input into the validated domain value. */
 export function createCustomUnitDefinition(
   draft: CustomUnitDefinitionDraft,
+  ownerId?: string,
 ): UnitDefinition {
   return createUnitDefinition({
     code: createUnitCode(draft.code),
+    ...(ownerId === undefined
+      ? {}
+      : { ownerId, visibility: 'private' as const }),
     system: 'custom',
     dimension: createDimensionSignature(),
     quantityKind: createQuantityKind(draft.quantityKind),

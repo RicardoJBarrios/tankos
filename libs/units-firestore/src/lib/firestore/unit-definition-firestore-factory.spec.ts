@@ -5,7 +5,10 @@ import { createDefaultUnitDefinitionFirestoreRepository } from './unit-definitio
 const mocks = vi.hoisted(() => ({
   createRepository: vi.fn(),
   orderBy: vi.fn(() => ({ field: 'data.code', direction: 'asc' })),
-  query: vi.fn((reference, ordering) => ({ reference, ordering })),
+  where: vi.fn((field, operator, value) => ({ field, operator, value })),
+  and: vi.fn((...filters) => ({ and: filters })),
+  or: vi.fn((...filters) => ({ or: filters })),
+  query: vi.fn((reference, ...constraints) => ({ reference, constraints })),
 }));
 
 vi.mock('./unit-definition-firestore-repository', () => ({
@@ -13,6 +16,9 @@ vi.mock('./unit-definition-firestore-repository', () => ({
 }));
 vi.mock('firebase/firestore', () => ({
   orderBy: mocks.orderBy,
+  where: mocks.where,
+  and: mocks.and,
+  or: mocks.or,
   query: mocks.query,
 }));
 
@@ -38,14 +44,46 @@ describe('createDefaultUnitDefinitionFirestoreRepository', () => {
         { requestId: 'units-1:replacement:1' },
       ),
     ).toBe('tankos-custom-dkh-units-1-replacement-1');
-    expect(options.buildQuery({})).toEqual({
+    expect(
+      options.buildQuery(
+        {},
+        {
+          access: { principalId: 'keeper-1', roles: ['keeper'] },
+        },
+      ),
+    ).toEqual({
       reference: {},
-      ordering: { field: 'data.code', direction: 'asc' },
+      constraints: [
+        {
+          or: [
+            { field: 'data.visibility', operator: '==', value: 'global' },
+            {
+              and: [
+                { field: 'data.visibility', operator: '==', value: 'private' },
+                { field: 'data.ownerId', operator: '==', value: 'keeper-1' },
+              ],
+            },
+          ],
+        },
+        { field: 'data.code', direction: 'asc' },
+      ],
+    });
+    expect(
+      options.buildQuery(
+        {},
+        {
+          access: { principalId: 'admin-1', roles: ['admin'] },
+        },
+      ),
+    ).toEqual({
+      reference: {},
+      constraints: [{ field: 'data.code', direction: 'asc' }],
     });
     expect(options.encodeCursor({ id: 'unit-1' })).toContain('unit-1');
     expect(options.authorize({ roles: ['keeper'] }, 'mark')).toBeUndefined();
+    expect(options.authorize({ roles: ['admin'] }, 'mark')).toBeUndefined();
     expect(() => options.authorize({ roles: ['viewer'] }, 'mark')).toThrow(
-      'Custom unit catalogue requires keeper access',
+      'Custom unit catalogue requires keeper or admin access',
     );
   });
 });

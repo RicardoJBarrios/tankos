@@ -25,6 +25,12 @@
       },
       "configurations": {
         "production": {
+          "fileReplacements": [
+            {
+              "replace": "apps/tankos/src/app/firebase.ts",
+              "with": "apps/tankos/src/app/firebase.production.ts"
+            }
+          ],
           "budgets": [
             {
               "type": "initial",

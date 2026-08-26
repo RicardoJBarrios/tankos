@@ -18,6 +18,12 @@ Auth and Firestore emulators. The application is available at
 The development environment requires a supported Java runtime for the
 Firebase emulators. Press `Ctrl+C` to stop the application and emulators.
 
+The emulator integration is development-only. The production Angular build
+replaces the local Firebase composition with `firebase.production.ts`, which
+does not import or connect to any emulator. Its Firebase Web SDK configuration
+is public project metadata kept in `firebase.production.config.ts`; private
+service-account credentials must never be added to the frontend.
+
 ## Useful commands
 
 ```bash

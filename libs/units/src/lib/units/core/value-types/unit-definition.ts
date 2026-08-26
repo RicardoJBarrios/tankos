@@ -10,9 +10,15 @@ export type UnitSystem =
 /** Availability state of a versioned unit definition. */
 export type UnitDefinitionStatus = 'active' | 'deprecated' | 'retired';
 
+/** Visibility of a unit definition in the shared technical catalogue. */
+export type UnitDefinitionVisibility = 'private' | 'global';
+
 /** Immutable, value-free definition of a physical unit. */
 export interface UnitDefinition {
   readonly code: UnitCode;
+  /** Owner identity for private custom definitions. */
+  readonly ownerId?: string;
+  readonly visibility?: UnitDefinitionVisibility;
   readonly system: UnitSystem;
   readonly dimension: DimensionSignature;
   readonly quantityKind: QuantityKind;
@@ -48,6 +54,12 @@ export function createUnitDefinition(
 
   return Object.freeze({
     code: definition.code,
+    ...(definition.ownerId === undefined
+      ? {}
+      : { ownerId: definition.ownerId }),
+    ...(definition.visibility === undefined
+      ? {}
+      : { visibility: definition.visibility }),
     system: definition.system,
     dimension: Object.freeze({ ...definition.dimension }),
     quantityKind: definition.quantityKind,

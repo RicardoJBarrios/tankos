@@ -1,5 +1,21 @@
 import type { EntityId } from '@tankos/data-access';
 
+/** General roles understood by the authorization layer. */
+export const AUTHORIZATION_ROLES = {
+  KEEPER: 'keeper',
+  ADMIN: 'admin',
+} as const;
+
+export type AuthorizationRole =
+  (typeof AUTHORIZATION_ROLES)[keyof typeof AUTHORIZATION_ROLES];
+
+export function hasAuthorizationRole(
+  subject: AuthorizationSubject,
+  role: AuthorizationRole,
+): boolean {
+  return subject.roles.includes(role);
+}
+
 export interface AuthorizationSubject {
   readonly id: EntityId;
   readonly roles: readonly string[];

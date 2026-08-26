@@ -15,15 +15,6 @@ describe('appConfig', () => {
     expect(appConfig.providers).toHaveLength(13);
   });
 
-  it('Given a non-local host, When Firebase is initialized, Then emulators are not connected', async () => {
-    vi.resetModules();
-    vi.stubGlobal('location', { hostname: 'tankos.example' });
-
-    await expect(import('./firebase')).resolves.toBeDefined();
-
-    vi.unstubAllGlobals();
-  });
-
   it('provides the units service through the application composition', () => {
     TestBed.configureTestingModule({ providers: appConfig.providers });
 

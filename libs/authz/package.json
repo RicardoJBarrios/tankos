@@ -1,0 +1,9 @@
+{
+  "name": "@tankos/authz",
+  "version": "0.0.0",
+  "private": true,
+  "sideEffects": false,
+  "peerDependencies": {
+    "@tankos/data-access": "^0.0.0"
+  }
+}

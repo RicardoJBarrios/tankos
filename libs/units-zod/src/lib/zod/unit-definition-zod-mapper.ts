@@ -7,6 +7,12 @@ export function unitDefinitionToDto(
 ): UnitDefinitionDto {
   return {
     code: definition.code,
+    ...(definition.ownerId === undefined
+      ? {}
+      : { ownerId: definition.ownerId }),
+    ...(definition.visibility === undefined
+      ? {}
+      : { visibility: definition.visibility }),
     system: definition.system,
     dimension: { ...definition.dimension },
     quantityKind: definition.quantityKind,

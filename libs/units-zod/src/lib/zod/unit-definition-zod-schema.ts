@@ -28,6 +28,8 @@ const representationSchema = z.strictObject({
 /** External JSON shape accepted for a unit definition. */
 export const unitDefinitionDtoSchema = z.strictObject({
   code: z.string(),
+  ownerId: z.string().min(1).optional(),
+  visibility: z.enum(['private', 'global']).optional(),
   system: z.enum([
     'si',
     'metric',
@@ -52,6 +54,10 @@ export const unitDefinitionSchema = unitDefinitionDtoSchema.transform(
     try {
       return createUnitDefinition({
         code: createUnitCode(value.code),
+        ...(value.ownerId === undefined ? {} : { ownerId: value.ownerId }),
+        ...(value.visibility === undefined
+          ? {}
+          : { visibility: value.visibility }),
         system: value.system,
         dimension: createDimensionSignature(value.dimension),
         quantityKind: createQuantityKind(value.quantityKind),

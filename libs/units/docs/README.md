@@ -26,6 +26,13 @@ Units owns:
 - the standard catalogue composition;
 - the global custom-unit CRUD application boundary.
 
+The first authorization slice is provider-neutral and lives in the application
+layer. A `keeper` can create, use and manage a private unit they own, and can
+use global units. An `admin` can manage global units and globalize a private
+unit. The policy evaluates `ownerId` and `visibility` attributes; persistence
+records must expose those attributes before the policy is wired into every CRUD
+operation and Firestore rule.
+
 Units does not own:
 
 - `Measurement`, `Observation` or numeric values paired with units as domain

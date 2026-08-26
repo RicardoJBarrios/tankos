@@ -6,3 +6,4 @@ export * from './unit-definition-record';
 export * from './conversion-definition-crud-service';
 export * from './conversion-definition-validator';
 export * from './effective-unit-catalogue';
+export * from './unit-definition-authorization';

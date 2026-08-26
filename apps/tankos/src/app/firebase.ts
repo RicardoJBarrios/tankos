@@ -30,13 +30,7 @@ export const tankosFirestore = initializeFirestore(firebaseApp, {
   experimentalForceLongPolling: true,
 });
 
-if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-  connectAuthEmulator(tankosAuth, 'http://127.0.0.1:9099', {
-    disableWarnings: true,
-  });
-  connectFirestoreEmulator(
-    tankosFirestore,
-    '127.0.0.1',
-    FIRESTORE_EMULATOR_PORT,
-  );
-}
+connectAuthEmulator(tankosAuth, 'http://127.0.0.1:9099', {
+  disableWarnings: true,
+});
+connectFirestoreEmulator(tankosFirestore, '127.0.0.1', FIRESTORE_EMULATOR_PORT);
