@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  effect,
-  input,
-  output,
-} from '@angular/core';
+import { Component, effect, input, output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import {
   createUnitDefinitionForm,
@@ -19,55 +13,8 @@ import type {
 /** Reusable typed editor for custom unit definitions. */
 @Component({
   selector: 'tankos-unit-definition-form',
-  standalone: true,
   imports: [ReactiveFormsModule],
-  template: `
-    <form
-      data-testid="unit-definition-form"
-      [formGroup]="form"
-      (ngSubmit)="submit()"
-    >
-      <label
-        >Code
-        <input
-          data-testid="unit-code"
-          formControlName="code"
-          [readOnly]="record() !== undefined"
-      /></label>
-      <label
-        >Symbol <input data-testid="unit-symbol" formControlName="symbol"
-      /></label>
-      <label
-        >ASCII fallback
-        <input
-          data-testid="unit-ascii-fallback"
-          formControlName="asciiFallback"
-      /></label>
-      <label
-        >Quantity kind
-        <input data-testid="unit-quantity-kind" formControlName="quantityKind"
-      /></label>
-      <label
-        >Conversion family
-        <input
-          data-testid="unit-conversion-family"
-          formControlName="conversionFamily"
-      /></label>
-      <button data-testid="save-unit" type="submit">
-        {{ record() ? 'Update' : 'Save' }}
-      </button>
-      @if (record()) {
-        <button
-          data-testid="cancel-unit"
-          type="button"
-          (click)="cancelled.emit()"
-        >
-          Cancel
-        </button>
-      }
-    </form>
-  `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './unit-definition-form.component.html',
 })
 export class UnitDefinitionFormComponent {
   public readonly record = input<UnitDefinitionRecord>();

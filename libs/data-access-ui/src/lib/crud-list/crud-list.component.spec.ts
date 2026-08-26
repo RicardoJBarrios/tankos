@@ -2,10 +2,12 @@ import {
   createComponentFactory,
   type Spectator,
 } from '@ngneat/spectator/vitest';
+import { signal } from '@angular/core';
 import { setupTestBed } from '@analogjs/vitest-angular/setup-testbed';
 import { createEntityId, type CrudRecord } from '@tankos/data-access';
 import { describe, expect, it } from 'vitest';
 import { CrudListComponent } from './crud-list.component';
+import { createCrudUiLabels } from './crud-ui-labels';
 
 setupTestBed({ zoneless: false });
 
@@ -25,6 +27,24 @@ describe('CrudListComponent', () => {
       updatedAt: { kind: 'instant', epochMilliseconds: 0 },
     },
   };
+
+  it('Given localized values, When creating UI labels, Then preserves strings and signals', () => {
+    const labels = createCrudUiLabels({
+      create: 'Crear',
+      edit: signal('Editar'),
+      delete: 'Eliminar',
+      restore: 'Restaurar',
+      loading: 'Cargando',
+      error: 'No se pudieron cargar los registros',
+      empty: 'Vacío',
+      select: 'Seleccionar',
+      actions: 'Acciones',
+      loadMore: 'Cargar más',
+      deleteSelected: 'Eliminar seleccionados',
+    });
+    expect(labels.create()).toBe('Crear');
+    expect(labels.edit()).toBe('Editar');
+  });
 
   function render(): Spectator<CrudListComponent<{ name: string }>> {
     const spectator = createComponent();

@@ -102,6 +102,48 @@ describe('createCrudListStore', () => {
     expect(store.error()).toBeInstanceOf(Error);
   });
 
+  it('Given a failed lifecycle command, When executed, Then exposes the error state without rejecting', async () => {
+    const failure = new Error('permission denied');
+    const failing = {
+      ...service,
+      markForDeletion: vi.fn(async () => {
+        throw failure;
+      }),
+    } as unknown as typeof service;
+    const store = new (createCrudListStore({
+      service: failing,
+      schema: 'units',
+      page: { pageSize: 10, orderBy: [{ field: 'id', direction: 'asc' }] },
+    }))();
+
+    await store.markForDeletion({ access, id: record.id, expectedRevision: 1 });
+
+    expect(store.error()).toBe(failure);
+  });
+
+  it('Given a failed refresh after a lifecycle command, When executed, Then returns the refresh error', async () => {
+    const failure = new Error('refresh failed');
+    const failing = {
+      ...service,
+      list: vi.fn(async () => {
+        throw failure;
+      }),
+    } as unknown as typeof service;
+    const store = new (createCrudListStore({
+      service: failing,
+      schema: 'units',
+      page: { pageSize: 10, orderBy: [{ field: 'id', direction: 'asc' }] },
+    }))();
+
+    const result = await store.restore({
+      access,
+      id: record.id,
+      expectedRevision: 1,
+    });
+
+    expect(result).toEqual({ ok: false, error: failure });
+  });
+
   it('Given a next cursor, When loading more, Then appends the next page', async () => {
     const nextPage = {
       items: [{ ...record, id: createEntityId('two') }],
@@ -155,7 +197,7 @@ describe('createCrudListStore', () => {
       idempotencyKey: 'request-1',
       selection: { kind: 'ids', ids: [record.id] },
     });
-    expect(result).toEqual(progress);
+    expect(result).toEqual({ ok: true, value: progress });
     expect(store.hasRunningBatch()).toBe(true);
     store.updateBatch({ ...progress, status: 'materializing' });
     expect(store.hasRunningBatch()).toBe(true);
@@ -187,5 +229,30 @@ describe('createCrudListStore', () => {
         selection: { kind: 'filter', filter: { query: 'one' } },
       }),
     ).rejects.toThrow('no batch capability');
+  });
+
+  it('Given a failed batch request, When submitted, Then exposes and rethrows the error', async () => {
+    const failure = new Error('batch unavailable');
+    const store = new (createCrudListStore({
+      service,
+      batch: {
+        submit: vi.fn(async () => {
+          throw failure;
+        }),
+      },
+      schema: 'units',
+      page: { pageSize: 10, orderBy: [{ field: 'id', direction: 'asc' }] },
+    }))();
+
+    await expect(
+      store.submitBatch({
+        access,
+        operation: 'mark-for-deletion',
+        confirmationToken: 'confirmed',
+        idempotencyKey: 'request-2',
+        selection: { kind: 'ids', ids: [record.id] },
+      }),
+    ).resolves.toEqual({ ok: false, error: failure });
+    expect(store.error()).toBe(failure);
   });
 });

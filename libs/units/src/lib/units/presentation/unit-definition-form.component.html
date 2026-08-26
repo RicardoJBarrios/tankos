@@ -1,0 +1,38 @@
+<form
+  data-testid="unit-definition-form"
+  [formGroup]="form"
+  (ngSubmit)="submit()"
+>
+  <label
+    >Code
+    <input
+      data-testid="unit-code"
+      formControlName="code"
+      [readOnly]="record() !== undefined"
+  /></label>
+  <label
+    >Symbol <input data-testid="unit-symbol" formControlName="symbol"
+  /></label>
+  <label
+    >ASCII fallback
+    <input data-testid="unit-ascii-fallback" formControlName="asciiFallback"
+  /></label>
+  <label
+    >Quantity kind
+    <input data-testid="unit-quantity-kind" formControlName="quantityKind"
+  /></label>
+  <label
+    >Conversion family
+    <input
+      data-testid="unit-conversion-family"
+      formControlName="conversionFamily"
+  /></label>
+  <button data-testid="save-unit" type="submit">
+    {{ record() ? 'Update' : 'Save' }}
+  </button>
+  @if (record()) {
+    <button data-testid="cancel-unit" type="button" (click)="cancelled.emit()">
+      Cancel
+    </button>
+  }
+</form>

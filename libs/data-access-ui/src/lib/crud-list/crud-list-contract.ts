@@ -13,6 +13,11 @@ import type {
 /** State status exposed by the reusable CRUD list store. */
 export type CrudListStatus = 'idle' | 'loading' | 'ready' | 'error';
 
+/** Consistent outcome returned by every recoverable CRUD-list operation. */
+export type CrudOperationResult<TValue = void> =
+  | { readonly ok: true; readonly value: TValue }
+  | { readonly ok: false; readonly error: unknown };
+
 /** State owned by one paginated CRUD list flow. */
 export interface CrudListState<TData, TFilter> {
   readonly status: CrudListStatus;

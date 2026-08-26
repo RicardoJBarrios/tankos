@@ -54,12 +54,12 @@ test.describe('custom units', () => {
     await expect(versions.filter({ hasText: `${code} (u2)` })).toHaveCount(1);
     await expect(
       versions.filter({ hasText: `${code} (u2)` }).getByRole('button', {
-        name: 'Delete',
+        name: 'Eliminar',
       }),
     ).toBeVisible();
     await expect(
       versions.filter({ hasText: `${code} (u1)` }).getByRole('button', {
-        name: 'Restore',
+        name: 'Restaurar',
       }),
     ).toBeVisible();
     const versionIds = await versions.evaluateAll((elements) =>
@@ -77,8 +77,8 @@ test.describe('custom units', () => {
     const deletedRow = page
       .getByTestId('crud-row')
       .filter({ hasText: `${code} (u2)` });
-    await expect(deletedRow).toContainText('Restore');
-    await deletedRow.getByRole('button', { name: 'Restore' }).click();
+    await expect(deletedRow).toContainText('Restaurar');
+    await deletedRow.getByRole('button', { name: 'Restaurar' }).click();
     await expect(page.getByTestId('lifecycle-status')).toHaveText('pending');
     await expect(page.getByTestId('lifecycle-status')).toHaveText('idle');
     await page.reload();

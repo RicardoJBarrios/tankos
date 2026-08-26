@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en-US" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="crud.create" datatype="html">
+        <source>Crear</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">apps/tankos/src/app/app.config.ts</context>
+          <context context-type="linenumber">28</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="crud.edit" datatype="html">
+        <source>Editar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">apps/tankos/src/app/app.config.ts</context>
+          <context context-type="linenumber">29</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="crud.delete" datatype="html">
+        <source>Eliminar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">apps/tankos/src/app/app.config.ts</context>
+          <context context-type="linenumber">30</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="crud.restore" datatype="html">
+        <source>Restaurar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">apps/tankos/src/app/app.config.ts</context>
+          <context context-type="linenumber">31</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="crud.loading" datatype="html">
+        <source>Cargando</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">apps/tankos/src/app/app.config.ts</context>
+          <context context-type="linenumber">32</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="crud.empty" datatype="html">
+        <source>No hay registros</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">apps/tankos/src/app/app.config.ts</context>
+          <context context-type="linenumber">33</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="crud.select" datatype="html">
+        <source>Seleccionar</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">apps/tankos/src/app/app.config.ts</context>
+          <context context-type="linenumber">34</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="crud.actions" datatype="html">
+        <source>Acciones</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">apps/tankos/src/app/app.config.ts</context>
+          <context context-type="linenumber">35</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="crud.loadMore" datatype="html">
+        <source>Cargar más</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">apps/tankos/src/app/app.config.ts</context>
+          <context context-type="linenumber">36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="crud.deleteSelected" datatype="html">
+        <source>Eliminar seleccionados</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">apps/tankos/src/app/app.config.ts</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

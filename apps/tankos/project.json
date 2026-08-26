@@ -13,7 +13,7 @@
       "options": {
         "outputPath": "dist/apps/tankos",
         "browser": "apps/tankos/src/main.ts",
-        "polyfills": [],
+        "polyfills": ["@angular/localize/init"],
         "tsConfig": "apps/tankos/tsconfig.app.json",
         "assets": [
           {

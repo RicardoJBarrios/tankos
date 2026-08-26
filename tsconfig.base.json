@@ -35,7 +35,8 @@
       "@tankos/data-access-ui": ["./libs/data-access-ui/src/index.ts"],
       "@tankos/formatting": ["./libs/formatting/src/index.ts"],
       "@tankos/units-ui": ["./libs/units-ui/src/index.ts"],
-      "@tankos/auth": ["./libs/auth/src/index.ts"]
+      "@tankos/auth": ["./libs/auth/src/index.ts"],
+      "@tankos/error-handling": ["./libs/error-handling/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

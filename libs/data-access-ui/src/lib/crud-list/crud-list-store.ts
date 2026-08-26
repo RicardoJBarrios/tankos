@@ -16,6 +16,7 @@ import type {
 import type { BatchProgress } from '@tankos/data-access';
 import type {
   CrudListBatchRequest,
+  CrudOperationResult,
   CrudListStatus,
   CrudListState,
   CrudListStoreOptions,
@@ -34,18 +35,23 @@ export interface CrudListStoreInstance<TData, TFilter, TPayload> {
   readonly isEmpty: Signal<boolean>;
   readonly canLoadMore: Signal<boolean>;
   readonly hasRunningBatch: Signal<boolean>;
-  readonly load: (access: AccessContext, filter?: TFilter) => Promise<void>;
-  readonly loadMore: (access: AccessContext) => Promise<void>;
+  readonly load: (
+    access: AccessContext,
+    filter?: TFilter,
+  ) => Promise<CrudOperationResult>;
+  readonly loadMore: (access: AccessContext) => Promise<CrudOperationResult>;
   readonly setFilter: (filter: TFilter | undefined) => void;
   readonly toggleSelection: (id: EntityId) => void;
   readonly clearSelection: () => void;
   readonly markForDeletion: (
     request: CrudListLifecycleRequest,
-  ) => Promise<void>;
-  readonly restore: (request: CrudListLifecycleRequest) => Promise<void>;
+  ) => Promise<CrudOperationResult>;
+  readonly restore: (
+    request: CrudListLifecycleRequest,
+  ) => Promise<CrudOperationResult>;
   readonly submitBatch: (
     request: CrudListBatchRequest<TFilter, TPayload>,
-  ) => Promise<BatchProgress>;
+  ) => Promise<CrudOperationResult<BatchProgress>>;
   readonly updateBatch: (progress: BatchProgress) => void;
 }
 
@@ -74,7 +80,7 @@ async function loadCrudList<TData, TCreate, TUpdate, TFilter, TPayload>(
   access: AccessContext,
   filter?: TFilter,
   append = false,
-): Promise<void> {
+): Promise<CrudOperationResult> {
   patchState(store, { status: 'loading', error: undefined });
   try {
     const page = await options.service.list({
@@ -89,8 +95,10 @@ async function loadCrudList<TData, TCreate, TUpdate, TFilter, TPayload>(
       nextCursor: page.nextCursor,
       hasMore: page.hasMore,
     });
+    return { ok: true, value: undefined };
   } catch (error) {
     patchState(store, { status: 'error', error });
+    return { ok: false, error };
   }
 }
 
@@ -99,7 +107,8 @@ async function reloadCrudList<TData, TCreate, TUpdate, TFilter, TPayload>(
   options: CrudListStoreOptions<TData, TCreate, TUpdate, TFilter, TPayload>,
   access: AccessContext,
 ): Promise<void> {
-  await loadCrudList(store, options, access, store.filter());
+  const result = await loadCrudList(store, options, access, store.filter());
+  if (!result.ok) throw result.error;
 }
 
 function createCrudListLoadMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
@@ -109,9 +118,10 @@ function createCrudListLoadMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
   return {
     load: (access: AccessContext, filter?: TFilter) =>
       loadCrudList(store, options, access, filter),
-    loadMore: async (access: AccessContext): Promise<void> => {
-      if (shouldSkipLoadMore(store)) return;
-      await loadCrudList(store, options, access, store.filter(), true);
+    loadMore: (access: AccessContext): Promise<CrudOperationResult> => {
+      if (shouldSkipLoadMore(store))
+        return Promise.resolve({ ok: true, value: undefined });
+      return loadCrudList(store, options, access, store.filter(), true);
     },
   };
 }
@@ -153,15 +163,37 @@ function createCrudListLifecycleMethods<
   options: CrudListStoreOptions<TData, TCreate, TUpdate, TFilter, TPayload>,
 ) {
   return {
-    markForDeletion: async (request: CrudListLifecycleRequest) => {
-      await options.service.markForDeletion(request);
-      await reloadCrudList(store, options, request.access);
+    markForDeletion: (
+      request: CrudListLifecycleRequest,
+    ): Promise<CrudOperationResult> => {
+      return runCrudOperation(store, async () => {
+        await options.service.markForDeletion(request);
+        await reloadCrudList(store, options, request.access);
+      });
     },
-    restore: async (request: CrudListLifecycleRequest) => {
-      await options.service.restore(request);
-      await reloadCrudList(store, options, request.access);
+    restore: (
+      request: CrudListLifecycleRequest,
+    ): Promise<CrudOperationResult> => {
+      return runCrudOperation(store, async () => {
+        await options.service.restore(request);
+        await reloadCrudList(store, options, request.access);
+      });
     },
   };
+}
+
+async function runCrudOperation<TData, TFilter>(
+  store: CrudListStoreSource<TData, TFilter>,
+  operation: () => Promise<void>,
+): Promise<CrudOperationResult> {
+  patchState(store, { error: undefined });
+  try {
+    await operation();
+  } catch (error) {
+    patchState(store, { error });
+    return { ok: false, error };
+  }
+  return { ok: true, value: undefined };
 }
 
 function createCrudListBatchMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
@@ -171,20 +203,26 @@ function createCrudListBatchMethods<TData, TCreate, TUpdate, TFilter, TPayload>(
   return {
     submitBatch: async (
       request: CrudListBatchRequest<TFilter, TPayload>,
-    ): Promise<BatchProgress> => {
+    ): Promise<CrudOperationResult<BatchProgress>> => {
       if (!options.batch)
         throw new Error('This CRUD list has no batch capability');
-      const progress = await options.batch.submit({
-        access: request.access,
-        schema: options.schema,
-        operation: request.operation,
-        confirmationToken: request.confirmationToken,
-        idempotencyKey: request.idempotencyKey,
-        selection: request.selection,
-        payload: request.payload,
-      });
-      patchState(store, { batch: progress, selectedIds: [] });
-      return progress;
+      patchState(store, { error: undefined });
+      try {
+        const progress = await options.batch.submit({
+          access: request.access,
+          schema: options.schema,
+          operation: request.operation,
+          confirmationToken: request.confirmationToken,
+          idempotencyKey: request.idempotencyKey,
+          selection: request.selection,
+          payload: request.payload,
+        });
+        patchState(store, { batch: progress, selectedIds: [] });
+        return { ok: true, value: progress };
+      } catch (error) {
+        patchState(store, { error });
+        return { ok: false, error };
+      }
     },
     updateBatch: (progress: BatchProgress) => {
       patchState(store, { batch: progress });

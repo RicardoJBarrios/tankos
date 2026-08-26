@@ -7,6 +7,7 @@ import { createSecurityEslintConfig } from './security-profiles.mjs';
 import { createTSDocEslintConfig } from './tsdoc-profiles.mjs';
 import { createTypeScriptEslintConfig } from './typescript-profiles.mjs';
 import { createWorkspaceEslintConfig } from './workspace-profiles.mjs';
+import noRedundantAngularComponentDefaults from './rules/no-redundant-angular-component-defaults.mjs';
 
 const recommendedTypeScriptRules = {
   '@angular-eslint/prefer-inject': 'error',
@@ -49,7 +50,6 @@ const recommendedTemplateRules = {
 
 const strictTypeScriptRules = {
   ...recommendedTypeScriptRules,
-  '@angular-eslint/prefer-on-push-component-change-detection': 'error',
   '@angular-eslint/component-max-inline-declarations': [
     'error',
     { template: 20, styles: 20, animations: 20 },
@@ -89,8 +89,17 @@ export function createAngularEslintConfig({
     ...nx.configs['flat/angular-template'],
     {
       files: ['**/*.ts'],
+      plugins: {
+        'tankos-angular': {
+          rules: {
+            'no-redundant-component-defaults':
+              noRedundantAngularComponentDefaults,
+          },
+        },
+      },
       rules: {
         ...typeScriptRules,
+        'tankos-angular/no-redundant-component-defaults': 'error',
         '@angular-eslint/directive-selector': [
           'error',
           { type: 'attribute', prefix, style: 'camelCase' },

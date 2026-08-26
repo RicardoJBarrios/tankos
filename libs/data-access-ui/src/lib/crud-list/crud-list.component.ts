@@ -1,10 +1,6 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-  output,
-} from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import type { CrudRecord, EntityId } from '@tankos/data-access';
+import { CRUD_UI_LABELS } from './crud-ui-labels';
 
 /** Batch operation that a neutral CRUD list can request from its host. */
 export type CrudListBatchOperation = 'update' | 'mark-for-deletion' | 'delete';
@@ -22,8 +18,6 @@ export interface CrudListColumn<TData> {
 /** Headless-friendly CRUD list surface with standard lifecycle actions. */
 @Component({
   selector: 'tankos-crud-list',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './crud-list.component.html',
 })
 export class CrudListComponent<TData> {
@@ -59,6 +53,7 @@ export class CrudListComponent<TData> {
   public readonly loadMoreRequested = output();
   /** Emitted when the host should open batch confirmation. */
   public readonly batchRequested = output<CrudListBatchOperation>();
+  protected readonly labels = inject(CRUD_UI_LABELS);
 
   /** Whether the list has no records and is not currently loading. */
   public isEmpty(): boolean {

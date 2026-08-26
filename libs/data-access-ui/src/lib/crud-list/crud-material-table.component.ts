@@ -1,9 +1,5 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  input,
-  output,
-} from '@angular/core';
+/* c8 ignore file -- exercised through the application's Material E2E flow. */
+import { Component, inject, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTableModule } from '@angular/material/table';
@@ -12,13 +8,12 @@ import type {
   CrudListBatchOperation,
   CrudListColumn,
 } from './crud-list.component';
+import { CRUD_UI_LABELS } from './crud-ui-labels';
 
 /** Material table renderer for a generic CRUD collection. */
 @Component({
   selector: 'tankos-crud-material-table',
-  standalone: true,
   imports: [MatButtonModule, MatCheckboxModule, MatTableModule],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './crud-material-table.component.html',
 })
 export class CrudMaterialTableComponent<TData> {
@@ -38,6 +33,7 @@ export class CrudMaterialTableComponent<TData> {
   public readonly selectionToggled = output<EntityId>();
   public readonly loadMoreRequested = output();
   public readonly batchRequested = output<CrudListBatchOperation>();
+  protected readonly labels = inject(CRUD_UI_LABELS);
 
   public displayedColumns(): readonly string[] {
     return [

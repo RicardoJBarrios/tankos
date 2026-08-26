@@ -5,25 +5,25 @@
     data-testid="create"
     (click)="createRequested.emit()"
   >
-    Create
+    {{ labels.create() }}
   </button>
   @if (loading()) {
-    <span role="status">Loading</span>
+    <span role="status">{{ labels.loading() }}</span>
   }
   @if (error()) {
-    <span role="alert">Unable to load records</span>
+    <span role="alert">{{ labels.error() }}</span>
   }
   @if (isEmpty()) {
-    <p>No records</p>
+    <p>{{ labels.empty() }}</p>
   }
   <table mat-table [dataSource]="items()">
     <ng-container matColumnDef="select">
-      <th mat-header-cell *matHeaderCellDef>Select</th>
+      <th mat-header-cell *matHeaderCellDef>{{ labels.select() }}</th>
       <td mat-cell *matCellDef="let item">
         <mat-checkbox
           [checked]="selectedIds().includes(item.id)"
           (change)="selectionToggled.emit(item.id)"
-          [attr.aria-label]="'Select ' + label()(item)"
+          [attr.aria-label]="labels.select() + ' ' + label()(item)"
         />
       </td>
     </ng-container>
@@ -38,7 +38,7 @@
       <td mat-cell *matCellDef="let item">{{ label()(item) }}</td>
     </ng-container>
     <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <th mat-header-cell *matHeaderCellDef>{{ labels.actions() }}</th>
       <td mat-cell *matCellDef="let item">
         <button
           mat-button
@@ -46,7 +46,7 @@
           data-testid="edit-unit"
           (click)="editRequested.emit(item)"
         >
-          Edit
+          {{ labels.edit() }}
         </button>
         @if (item.lifecycle.status === 'marked-for-deletion') {
           <button
@@ -55,7 +55,7 @@
             data-testid="restore"
             (click)="restoreRequested.emit(item)"
           >
-            Restore
+            {{ labels.restore() }}
           </button>
         } @else {
           <button
@@ -64,7 +64,7 @@
             data-testid="mark-for-deletion"
             (click)="markForDeletionRequested.emit(item)"
           >
-            Delete
+            {{ labels.delete() }}
           </button>
         }
       </td>
@@ -84,7 +84,7 @@
       data-testid="load-more"
       (click)="loadMoreRequested.emit()"
     >
-      Load more
+      {{ labels.loadMore() }}
     </button>
   }
   @if (selectedIds().length > 0) {
@@ -93,7 +93,7 @@
       data-testid="batch-mark-for-deletion"
       (click)="batchRequested.emit('mark-for-deletion')"
     >
-      Delete selected
+      {{ labels.deleteSelected() }}
     </button>
   }
 </section>

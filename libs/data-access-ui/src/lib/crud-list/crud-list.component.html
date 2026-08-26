@@ -8,27 +8,27 @@
     data-testid="create"
     (click)="createRequested.emit()"
   >
-    Create
+    {{ labels.create() }}
   </button>
   @if (loading()) {
-    <span role="status">Loading</span>
+    <span role="status">{{ labels.loading() }}</span>
   }
   @if (error()) {
-    <span role="alert">Unable to load records</span>
+    <span role="alert">{{ labels.error() }}</span>
   }
   @if (isEmpty()) {
-    <p>No records</p>
+    <p>{{ labels.empty() }}</p>
   }
   @if (view() === 'table') {
     <table class="mat-mdc-table crud-table">
       <thead>
         <tr>
-          <th scope="col">Select</th>
+          <th scope="col">{{ labels.select() }}</th>
           @for (column of columns(); track column.id) {
             <th scope="col">{{ column.header }}</th>
           }
           <th scope="col">Record</th>
-          <th scope="col">Actions</th>
+          <th scope="col">{{ labels.actions() }}</th>
         </tr>
       </thead>
       <tbody>
@@ -43,7 +43,7 @@
                 type="checkbox"
                 [checked]="selectedIds().includes(item.id)"
                 (change)="selectionToggled.emit(item.id)"
-                [attr.aria-label]="'Select ' + label()(item)"
+                [attr.aria-label]="labels.select() + ' ' + label()(item)"
               />
             </td>
             @for (column of columns(); track column.id) {
@@ -57,7 +57,7 @@
                 data-testid="edit-unit"
                 (click)="editRequested.emit(item)"
               >
-                Edit
+                {{ labels.edit() }}
               </button>
               @if (item.lifecycle.status === 'marked-for-deletion') {
                 <button
@@ -66,7 +66,7 @@
                   data-testid="restore"
                   (click)="restoreRequested.emit(item)"
                 >
-                  Restore
+                  {{ labels.restore() }}
                 </button>
               } @else {
                 <button
@@ -75,7 +75,7 @@
                   data-testid="mark-for-deletion"
                   (click)="markForDeletionRequested.emit(item)"
                 >
-                  Delete
+                  {{ labels.delete() }}
                 </button>
               }
             </td>
@@ -100,7 +100,7 @@
               data-testid="edit-unit"
               (click)="editRequested.emit(item)"
             >
-              Edit
+              {{ labels.edit() }}
             </button>
             @if (item.lifecycle.status === 'marked-for-deletion') {
               <button
@@ -108,7 +108,7 @@
                 type="button"
                 (click)="restoreRequested.emit(item)"
               >
-                Restore
+                {{ labels.restore() }}
               </button>
             } @else {
               <button
@@ -117,7 +117,7 @@
                 data-testid="mark-for-deletion"
                 (click)="markForDeletionRequested.emit(item)"
               >
-                Delete
+                {{ labels.delete() }}
               </button>
             }
           </div>
@@ -131,7 +131,7 @@
       data-testid="load-more"
       (click)="loadMoreRequested.emit()"
     >
-      Load more
+      {{ labels.loadMore() }}
     </button>
   }
   @if (selectedIds().length > 0) {
@@ -140,7 +140,7 @@
       data-testid="batch-mark-for-deletion"
       (click)="batchRequested.emit('mark-for-deletion')"
     >
-      Delete selected
+      {{ labels.deleteSelected() }}
     </button>
   }
 </section>
