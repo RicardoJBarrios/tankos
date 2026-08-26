@@ -1,5 +1,6 @@
 import type { Signal } from '@angular/core';
 import type { AuthSessionPort } from '@tankos/auth';
+import type { Logger } from '@tankos/observability';
 import type {
   CustomUnitDefinitionDraft,
   UnitDefinitionManagementService,
@@ -28,10 +29,12 @@ export class UnitDefinitionFeatureService {
   public constructor(
     managementService: UnitDefinitionManagementService,
     authSession: AuthSessionPort,
+    logger?: Logger,
   ) {
     this.#store = createUnitDefinitionFeatureStore(
       managementService,
       authSession,
+      logger,
     );
     this.list = this.#store.list;
     this.editingRecord = this.#store.editingRecord;

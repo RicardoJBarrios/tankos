@@ -1,9 +1,16 @@
 import {
   ApplicationConfig,
+  InjectionToken,
   inject,
+  isDevMode,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
+import {
+  createConsoleLogSink,
+  createObservability,
+  type Logger,
+} from '@tankos/observability';
 import { provideTankOsTime, TIME_CLOCK } from '@tankos/time';
 import { DecimalError } from '@tankos/decimal';
 import { DataAccessError } from '@tankos/data-access';
@@ -33,6 +40,15 @@ declare const $localize: (
   messageParts: TemplateStringsArray,
   ...expressions: readonly unknown[]
 ) => string;
+
+/** App composition token; libraries only receive the neutral Logger contract. */
+export const TANKOS_LOGGER = new InjectionToken<Logger>('TANKOS_LOGGER');
+
+/* c8 ignore next -- the production branch is selected by the host environment. */
+const tankosObservability = createObservability({
+  minimumLogLevel: isDevMode() ? 'debug' : 'warn',
+  logSinks: [createConsoleLogSink()],
+});
 
 const tankosErrorReporter: ErrorReporter = {
   report: (error) => {
@@ -131,8 +147,10 @@ export const appConfig: ApplicationConfig = {
         new UnitDefinitionFeatureService(
           inject(UNIT_DEFINITION_MANAGEMENT_SERVICE),
           inject(AUTH_SESSION),
+          inject(TANKOS_LOGGER),
         ),
     },
+    { provide: TANKOS_LOGGER, useValue: tankosObservability.logger },
     provideRouter(appRoutes),
   ],
 };

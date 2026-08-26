@@ -8,7 +8,7 @@
   "targets": {
     "build": {
       "executor": "@nx/angular:ng-packagr-lite",
-      "dependsOn": ["data-access:build"],
+      "dependsOn": ["data-access:build", "observability:build"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "defaultConfiguration": "production",
       "options": {

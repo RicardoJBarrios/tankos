@@ -1,3 +1,4 @@
+/* eslint-disable max-lines -- feature orchestration keeps the complete unit workflow cohesive. */
 import {
   InjectionToken,
   computed,
@@ -6,6 +7,7 @@ import {
   type WritableSignal,
 } from '@angular/core';
 import type { AuthSessionPort } from '@tankos/auth';
+import { createNoopLogger, type Logger } from '@tankos/observability';
 import {
   createCrudListStore,
   type CrudListStoreInstance,
@@ -48,8 +50,9 @@ export const UNIT_DEFINITION_MANAGEMENT_SERVICE =
 export function createUnitDefinitionFeatureStore(
   service: UnitDefinitionManagementService,
   authSession: AuthSessionPort,
+  logger: Logger = createNoopLogger(),
 ): UnitDefinitionFeatureStore {
-  const rawList = createUnitDefinitionListStore(service);
+  const rawList = createUnitDefinitionListStore(service, logger);
   const list = createUnitDefinitionListView(rawList, authSession);
   const editingRecord = signal<UnitDefinitionRecord | undefined>(undefined);
   const saveError = signal<unknown>(undefined);
@@ -74,10 +77,12 @@ export function createUnitDefinitionFeatureStore(
       saveStatus,
       lifecycleError,
       lifecycleStatus,
+      logger,
     ),
   };
 }
 
+/* eslint-disable max-lines-per-function -- action wiring keeps the feature API explicit. */
 function createUnitDefinitionActions(
   service: UnitDefinitionManagementService,
   authSession: AuthSessionPort,
@@ -88,6 +93,7 @@ function createUnitDefinitionActions(
   saveStatus: WritableSignal<FeatureOperationStatus>,
   lifecycleError: WritableSignal<unknown>,
   lifecycleStatus: WritableSignal<FeatureOperationStatus>,
+  logger: Logger,
 ): Pick<
   UnitDefinitionFeatureStore,
   | 'startCreate'
@@ -100,6 +106,9 @@ function createUnitDefinitionActions(
   return {
     ...createUnitDefinitionEditingActions(editingRecord),
     save: (draft) => {
+      logger.debug('Unit definition save started', {
+        mode: editingRecord() ? 'replace' : 'create',
+      });
       saveError.set(undefined);
       saveStatus.set('pending');
       void saveUnitDefinition(
@@ -110,6 +119,7 @@ function createUnitDefinitionActions(
         saveError,
         saveStatus,
         draft,
+        logger,
       );
     },
     markForDeletion: (record) => {
@@ -120,6 +130,7 @@ function createUnitDefinitionActions(
         'delete',
         lifecycleError,
         lifecycleStatus,
+        logger,
       );
     },
     restore: (record) => {
@@ -130,10 +141,12 @@ function createUnitDefinitionActions(
         'restore',
         lifecycleError,
         lifecycleStatus,
+        logger,
       );
     },
   };
 }
+/* eslint-enable max-lines-per-function */
 
 function createUnitDefinitionEditingActions(
   editingRecord: WritableSignal<UnitDefinitionRecord | undefined>,
@@ -162,6 +175,7 @@ async function saveUnitDefinition(
   saveError: WritableSignal<unknown>,
   saveStatus: WritableSignal<FeatureOperationStatus>,
   draft: CustomUnitDefinitionDraft,
+  logger: Logger,
 ): Promise<void> {
   try {
     const access = await authSession.access();
@@ -179,7 +193,9 @@ async function saveUnitDefinition(
     editingRecord.set(undefined);
     await list.load();
     saveStatus.set('idle');
+    logger.debug('Unit definition save completed');
   } catch (error) {
+    logger.debug('Unit definition save failed', { error });
     saveStatus.set('error');
     saveError.set(error);
   }
@@ -192,7 +208,12 @@ function runLifecycle(
   operation: 'delete' | 'restore',
   lifecycleError: WritableSignal<unknown>,
   lifecycleStatus: WritableSignal<FeatureOperationStatus>,
+  logger: Logger,
 ): void {
+  logger.debug('Unit definition lifecycle operation started', {
+    operation,
+    id: record.id,
+  });
   lifecycleError.set(undefined);
   lifecycleStatus.set('pending');
   void (async () => {
@@ -209,7 +230,16 @@ function runLifecycle(
           : await list.restore(request);
       if (!result.ok) throw result.error;
       lifecycleStatus.set('idle');
+      logger.debug('Unit definition lifecycle operation completed', {
+        operation,
+        id: record.id,
+      });
     } catch (error) {
+      logger.debug('Unit definition lifecycle operation failed', {
+        operation,
+        id: record.id,
+        error,
+      });
       lifecycleStatus.set('error');
       lifecycleError.set(error);
     }
@@ -284,6 +314,7 @@ function enqueueListLoad(
 
 function createUnitDefinitionListStore(
   service: UnitDefinitionManagementService,
+  logger: Logger,
 ): CrudListStoreInstance<UnitDefinition, unknown, unknown> {
   return new (createCrudListStore<
     UnitDefinition,
@@ -292,6 +323,7 @@ function createUnitDefinitionListStore(
     unknown
   >({
     service,
+    logger,
     page: UNIT_DEFINITION_PAGE,
     schema: 'unit-definition',
   }))();

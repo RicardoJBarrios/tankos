@@ -9,6 +9,7 @@ import type {
   PageRequest,
   PageCursor,
 } from '@tankos/data-access';
+import type { Logger } from '@tankos/observability';
 
 /** State status exposed by the reusable CRUD list store. */
 export type CrudListStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -42,6 +43,8 @@ export interface CrudListStoreOptions<
   readonly page: PageRequest;
   readonly schema: string;
   readonly batch?: BatchService<TPayload, TFilter>;
+  /** Optional host logger; absent means no logging. */
+  readonly logger?: Logger;
 }
 
 /** Request used by a list store to submit a confirmed batch operation. */

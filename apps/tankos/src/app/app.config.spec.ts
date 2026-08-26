@@ -12,7 +12,7 @@ import { appConfig } from './app.config';
 
 describe('appConfig', () => {
   it('Given the application configuration, When its providers are inspected, Then the TankOS platform providers are registered', () => {
-    expect(appConfig.providers).toHaveLength(12);
+    expect(appConfig.providers).toHaveLength(13);
   });
 
   it('Given a non-local host, When Firebase is initialized, Then emulators are not connected', async () => {

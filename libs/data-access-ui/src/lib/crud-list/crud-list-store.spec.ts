@@ -5,6 +5,7 @@ import {
   type CrudRecord,
   type CrudService,
 } from '@tankos/data-access';
+import type { Logger } from '@tankos/observability';
 import { describe, expect, it, vi } from 'vitest';
 import { createCrudListStore } from './crud-list-store';
 
@@ -64,6 +65,40 @@ describe('createCrudListStore', () => {
     expect(store.status()).toBe('ready');
     expect(store.items()).toEqual([record]);
     expect(store.isEmpty()).toBe(false);
+  });
+
+  it('uses the host logger for diagnostic list events', async () => {
+    const logger: Logger = {
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+    };
+    const store = new (createCrudListStore({
+      service,
+      logger,
+      schema: 'units',
+      page: { pageSize: 10, orderBy: [{ field: 'id', direction: 'asc' }] },
+    }))();
+
+    await store.load(access);
+    await store.markForDeletion({
+      access,
+      id: record.id,
+      expectedRevision: 1,
+    });
+
+    expect(logger.debug).toHaveBeenCalledWith('CRUD list load started', {
+      append: false,
+    });
+    expect(logger.debug).toHaveBeenCalledWith('CRUD list load completed', {
+      append: false,
+      itemCount: 1,
+      hasMore: false,
+    });
+    expect(logger.debug).toHaveBeenCalledWith('CRUD list deletion requested', {
+      id: record.id,
+    });
   });
 
   it('Given selected records, When toggled twice, Then selection is reversible', async () => {

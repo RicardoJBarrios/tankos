@@ -14,6 +14,7 @@ import type {
   PageCursor,
 } from '@tankos/data-access';
 import type { BatchProgress } from '@tankos/data-access';
+import { createNoopLogger } from '@tankos/observability';
 import type {
   CrudListBatchRequest,
   CrudOperationResult,
@@ -81,6 +82,8 @@ async function loadCrudList<TData, TCreate, TUpdate, TFilter, TPayload>(
   filter?: TFilter,
   append = false,
 ): Promise<CrudOperationResult> {
+  const logger = options.logger ?? createNoopLogger();
+  logger.debug('CRUD list load started', { append });
   patchState(store, { status: 'loading', error: undefined });
   try {
     const page = await options.service.list({
@@ -95,8 +98,14 @@ async function loadCrudList<TData, TCreate, TUpdate, TFilter, TPayload>(
       nextCursor: page.nextCursor,
       hasMore: page.hasMore,
     });
+    logger.debug('CRUD list load completed', {
+      append,
+      itemCount: page.items.length,
+      hasMore: page.hasMore,
+    });
     return { ok: true, value: undefined };
   } catch (error) {
+    logger.debug('CRUD list load failed', { append, error });
     patchState(store, { status: 'error', error });
     return { ok: false, error };
   }
@@ -166,6 +175,8 @@ function createCrudListLifecycleMethods<
     markForDeletion: (
       request: CrudListLifecycleRequest,
     ): Promise<CrudOperationResult> => {
+      const logger = options.logger ?? createNoopLogger();
+      logger.debug('CRUD list deletion requested', { id: request.id });
       return runCrudOperation(store, async () => {
         await options.service.markForDeletion(request);
         await reloadCrudList(store, options, request.access);
@@ -174,6 +185,8 @@ function createCrudListLifecycleMethods<
     restore: (
       request: CrudListLifecycleRequest,
     ): Promise<CrudOperationResult> => {
+      const logger = options.logger ?? createNoopLogger();
+      logger.debug('CRUD list restoration requested', { id: request.id });
       return runCrudOperation(store, async () => {
         await options.service.restore(request);
         await reloadCrudList(store, options, request.access);
