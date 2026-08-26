@@ -1,13 +1,14 @@
-.app-shell {
-  min-height: 100vh;
-  display: grid;
-  place-content: center;
-  gap: 0.5rem;
-  padding: 2rem;
-  text-align: center;
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0 1rem;
 }
 
-.app-shell h1,
-.app-shell p {
-  margin: 0;
+.brand {
+  font-weight: 600;
+}
+
+.toolbar-spacer {
+  flex: 1;
 }

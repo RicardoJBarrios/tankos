@@ -1,0 +1,45 @@
+<main class="dashboard">
+  <section class="welcome" aria-labelledby="dashboard-title">
+    <p class="eyebrow">Aquarium operations</p>
+    <h1 id="dashboard-title">{{ greeting }}</h1>
+    <p class="intro">Keep the essential technical catalogues close at hand.</p>
+  </section>
+
+  <section class="summary-grid" aria-label="Workspace summary">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-subtitle>Workspace</mat-card-subtitle>
+        <mat-card-title>Ready</mat-card-title>
+      </mat-card-header>
+      <mat-card-content
+        >TankOS is ready for the next operation.</mat-card-content
+      >
+    </mat-card>
+    <mat-card>
+      <mat-card-header>
+        <mat-card-subtitle>Catalogue</mat-card-subtitle>
+        <mat-card-title>Units</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>Standard and custom unit definitions.</mat-card-content>
+    </mat-card>
+  </section>
+
+  <section aria-labelledby="quick-access-title">
+    <div class="section-heading">
+      <p class="eyebrow">Quick access</p>
+      <h2 id="quick-access-title">Your tools</h2>
+    </div>
+    <mat-card class="tool-card">
+      <mat-card-header>
+        <mat-card-title>Units</mat-card-title>
+        <mat-card-subtitle>Global technical catalogue</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        Browse fixed definitions or manage your custom units.
+      </mat-card-content>
+      <mat-card-actions>
+        <a mat-flat-button routerLink="/units">Open units</a>
+      </mat-card-actions>
+    </mat-card>
+  </section>
+</main>

@@ -2,6 +2,11 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Temporary global custom-unit catalogue for the TankOS local route.
+    match /units/{unitId} {
+      allow read, write: if isKeeper();
+    }
+
     function isAuthenticated() {
       return request.auth != null;
     }

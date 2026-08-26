@@ -1,0 +1,75 @@
+<main class="units-page">
+  <a routerLink="/">Back to TankOS</a>
+  <h2>Units</h2>
+  <p>Temporary custom-unit CRUD backed by the local Firebase Emulator Suite.</p>
+  @if (authError()) {
+    <p role="alert">Unable to connect to local Firebase.</p>
+  }
+
+  <form (ngSubmit)="save()">
+    <label
+      >Code
+      <input
+        name="code"
+        [ngModel]="draft().code"
+        (ngModelChange)="updateDraft('code', $event)"
+    /></label>
+    <label
+      >Symbol
+      <input
+        name="symbol"
+        [ngModel]="draft().symbol"
+        (ngModelChange)="updateDraft('symbol', $event)"
+    /></label>
+    <label
+      >ASCII fallback
+      <input
+        name="asciiFallback"
+        [ngModel]="draft().asciiFallback"
+        (ngModelChange)="updateDraft('asciiFallback', $event)"
+    /></label>
+    <label
+      >Quantity kind
+      <input
+        name="quantityKind"
+        [ngModel]="draft().quantityKind"
+        (ngModelChange)="updateDraft('quantityKind', $event)"
+    /></label>
+    <label
+      >Conversion family
+      <input
+        name="conversionFamily"
+        [ngModel]="draft().conversionFamily"
+        (ngModelChange)="updateDraft('conversionFamily', $event)"
+    /></label>
+    <button type="submit">{{ editingId() ? 'Update' : 'Save' }}</button>
+    @if (editingId()) {
+      <button type="button" (click)="cancelEdit()">Cancel</button>
+    }
+  </form>
+  @if (saveError()) {
+    <p role="alert">Unable to save the unit.</p>
+  }
+
+  <section aria-labelledby="standard-units-title">
+    <h3 id="standard-units-title">Standard units</h3>
+    <p>These catalogue entries are fixed and read-only.</p>
+    <ul>
+      @for (unit of standardUnits; track unit.code) {
+        <li>{{ unit.code }} ({{ unit.representation.symbol }})</li>
+      }
+    </ul>
+  </section>
+
+  <h3>Custom units</h3>
+  <tankos-crud-list
+    [items]="store.items()"
+    [loading]="store.status() === 'loading'"
+    [error]="store.error()"
+    [label]="label"
+    (createRequested)="cancelEdit()"
+    (editRequested)="edit($event)"
+    (markForDeletionRequested)="markForDeletion($event)"
+    (restoreRequested)="restore($event)"
+  />
+</main>

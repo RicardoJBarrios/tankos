@@ -1,0 +1,27 @@
+.units-page {
+  display: grid;
+  gap: 1rem;
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+input {
+  max-width: 32rem;
+  padding: 0.5rem;
+}
+
+button {
+  width: fit-content;
+  padding: 0.5rem 0.75rem;
+}
