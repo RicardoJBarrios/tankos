@@ -1,5 +1,5 @@
 import type { Signal } from '@angular/core';
-import type { AuthSessionPort } from '@tankos/auth';
+import type { AuthSessionPort } from '@tankos/authn';
 import type { Logger } from '@tankos/observability';
 import type {
   CustomUnitDefinitionDraft,

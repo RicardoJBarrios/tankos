@@ -119,9 +119,9 @@ const intentionallyPromiseShapedAdapters = [
 ];
 
 const architecturalElements = [
-  { type: 'core', pattern: 'libs/auth/src/lib/core/*' },
-  { type: 'composition', pattern: 'libs/auth/src/lib/composition/*' },
-  { type: 'adapters', pattern: 'libs/auth/src/lib/adapters/*' },
+  { type: 'core', pattern: 'libs/authn/src/lib/core/*' },
+  { type: 'composition', pattern: 'libs/authn/src/lib/composition/*' },
+  { type: 'adapters', pattern: 'libs/authn/src/lib/adapters/*' },
   { type: 'core', pattern: 'libs/*/src/lib/*/core/*' },
   { type: 'application', pattern: 'libs/*/src/lib/*/application/*' },
   { type: 'adapters', pattern: 'libs/*/src/lib/*/adapters/*' },

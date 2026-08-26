@@ -8,8 +8,8 @@ export interface CacheScope {
   readonly entity?: string;
   /** Optional authenticated principal owning the value. */
   readonly principalId?: string;
-  /** Optional Aquarium scope owning the value. */
-  readonly aquariumId?: string;
+  /** Optional domain-owned resource partition. */
+  readonly resourceScope?: string;
 }
 
 /** Converts a scope into a stable hierarchical cache namespace. */
@@ -19,7 +19,7 @@ export function createCacheNamespace(scope: CacheScope): string {
     scope.domain,
     scope.entity,
     scope.principalId,
-    scope.aquariumId,
+    scope.resourceScope,
   ].filter((value): value is string => value !== undefined);
 
   if (values.some((value) => !value.trim() || value.includes(':'))) {

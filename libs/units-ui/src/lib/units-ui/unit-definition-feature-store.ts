@@ -6,7 +6,7 @@ import {
   type Signal,
   type WritableSignal,
 } from '@angular/core';
-import type { AuthSessionPort } from '@tankos/auth';
+import type { AuthSessionPort } from '@tankos/authn';
 import { createNoopLogger, type Logger } from '@tankos/observability';
 import {
   createCrudListStore,
@@ -326,6 +326,7 @@ function createUnitDefinitionListStore(
     logger,
     page: UNIT_DEFINITION_PAGE,
     schema: 'unit-definition',
+    lifecycle: ['active', 'inactive', 'marked-for-deletion'],
   }))();
 }
 

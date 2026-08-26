@@ -1,0 +1,16 @@
+{
+  "name": "authz",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/authz/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:infrastructure"],
+  "targets": {
+    "lint": { "executor": "@nx/eslint:lint" },
+    "test": {
+      "options": {
+        "coverage": true,
+        "coverage.reportsDirectory": "../../coverage/libs/authz"
+      }
+    }
+  }
+}

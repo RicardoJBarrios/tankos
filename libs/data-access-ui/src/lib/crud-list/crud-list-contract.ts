@@ -6,6 +6,7 @@ import type {
   CrudRecord,
   CrudService,
   EntityId,
+  LifecycleStatus,
   PageRequest,
   PageCursor,
 } from '@tankos/data-access';
@@ -42,6 +43,8 @@ export interface CrudListStoreOptions<
   readonly service: CrudService<TData, TCreate, TUpdate, TFilter>;
   readonly page: PageRequest;
   readonly schema: string;
+  /** Lifecycle states that the feature wants to show in the list. */
+  readonly lifecycle?: readonly LifecycleStatus[];
   readonly batch?: BatchService<TPayload, TFilter>;
   /** Optional host logger; absent means no logging. */
   readonly logger?: Logger;

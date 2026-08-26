@@ -15,7 +15,7 @@ import { provideTankOsTime, TIME_CLOCK } from '@tankos/time';
 import { DecimalError } from '@tankos/decimal';
 import { DataAccessError } from '@tankos/data-access';
 import { UnitError } from '@tankos/units';
-import { AUTH_SESSION, provideAuthSession } from '@tankos/auth';
+import { AUTH_SESSION, provideAuthSession } from '@tankos/authn';
 import { createUnitDefinitionManagementService } from '@tankos/units';
 import { createDefaultUnitDefinitionFirestoreRepository } from '@tankos/units-firestore';
 import { CRUD_UI_LABELS, createCrudUiLabels } from '@tankos/data-access-ui';

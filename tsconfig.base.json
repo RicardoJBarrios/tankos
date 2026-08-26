@@ -35,9 +35,12 @@
       "@tankos/data-access-ui": ["./libs/data-access-ui/src/index.ts"],
       "@tankos/formatting": ["./libs/formatting/src/index.ts"],
       "@tankos/units-ui": ["./libs/units-ui/src/index.ts"],
-      "@tankos/auth": ["./libs/auth/src/index.ts"],
+      "@tankos/authn": ["./libs/authn/src/index.ts"],
       "@tankos/error-handling": ["./libs/error-handling/src/index.ts"],
-      "@tankos/observability": ["./libs/observability/src/index.ts"]
+      "@tankos/observability": ["./libs/observability/src/index.ts"],
+      "@tankos/authn-firebase": ["./libs/authn-firebase/src/index.ts"],
+      "@tankos/authz": ["./libs/authz/src/index.ts"],
+      "@tankos/authz-firestore": ["./libs/authz-firestore/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

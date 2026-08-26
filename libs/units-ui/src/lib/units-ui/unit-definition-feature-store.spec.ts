@@ -26,7 +26,12 @@ const draft = {
   conversionFamily: 'alkalinity',
 };
 
-const authSession = { access: vi.fn(() => Promise.resolve(access)) };
+const authSession = {
+  access: vi.fn(() => Promise.resolve(access)),
+  refresh: vi.fn(() => Promise.resolve(access)),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+};
 
 describe('unit definition feature store', () => {
   it('saves a new definition and reloads the list', async () => {
@@ -134,6 +139,9 @@ describe('unit definition feature store', () => {
     const failure = new Error('session expired');
     const failingAuthSession = {
       access: vi.fn(() => Promise.reject(failure)),
+      refresh: vi.fn(() => Promise.reject(failure)),
+      signIn: vi.fn(),
+      signOut: vi.fn(),
     };
     const feature = createUnitDefinitionFeatureStore(
       createService(),

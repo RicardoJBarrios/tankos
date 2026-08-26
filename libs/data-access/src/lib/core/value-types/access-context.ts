@@ -7,7 +7,6 @@ export type AccessRole = string;
 export interface AccessContext {
   readonly principalId: EntityId;
   readonly roles: readonly AccessRole[];
-  readonly aquariumId?: EntityId;
   /** Stable idempotency key for one mutating command, when available. */
   readonly requestId?: string;
 }
@@ -39,10 +38,6 @@ export function createAccessContext(context: AccessContext): AccessContext {
     'Access principal id must be a non-empty string',
   );
   validateRoles(context.roles);
-  validateOptionalString(
-    context.aquariumId,
-    'Aquarium scope must be a non-empty string',
-  );
   validateOptionalString(
     context.requestId,
     'Request id must be a non-empty string',

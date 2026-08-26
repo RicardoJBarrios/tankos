@@ -169,7 +169,7 @@ Neither mode changes the policy for later reads.
 Cache namespaces are created from a `CacheScope`:
 
 ```ts
-{ version: 'v1', domain: 'units', principalId: 'keeper-1', aquariumId: 'tank-1' }
+{ version: 'v1', domain: 'units', principalId: 'keeper-1', resourceScope: 'resource-1' }
 ```
 
 The version is part of the namespace and must be incremented when the cached

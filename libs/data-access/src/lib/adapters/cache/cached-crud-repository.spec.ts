@@ -485,7 +485,7 @@ describe('createCachedCrudRepository', () => {
       scope: {
         domain: 'measurements',
         principalId: 'user-1',
-        aquariumId: 'aquarium-1',
+        resourceScope: 'resource-1',
       },
       ttlMilliseconds: 100,
     });

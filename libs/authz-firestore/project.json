@@ -1,0 +1,16 @@
+{
+  "name": "authz-firestore",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/authz-firestore/src",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:adapter"],
+  "targets": {
+    "lint": { "executor": "@nx/eslint:lint" },
+    "test": {
+      "options": {
+        "coverage": true,
+        "coverage.reportsDirectory": "../../coverage/libs/authz-firestore"
+      }
+    }
+  }
+}

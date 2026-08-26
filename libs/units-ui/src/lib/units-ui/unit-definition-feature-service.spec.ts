@@ -18,6 +18,9 @@ describe('UnitDefinitionFeatureService', () => {
           roles: ['keeper'],
         }),
       ),
+      refresh: vi.fn(),
+      signIn: vi.fn(),
+      signOut: vi.fn(),
     };
     const service = new UnitDefinitionFeatureService(management, authSession);
 

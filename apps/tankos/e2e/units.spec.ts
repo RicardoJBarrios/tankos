@@ -2,6 +2,15 @@ import { expect, test, type Page } from '@playwright/test';
 
 const uniqueCode = () =>
   `TANKOS:E2E-000-${String(Date.now())}-${Math.random().toString(36).slice(2, 8)}`;
+const unitsUrl = /\/units$/u;
+
+async function login(page: Page): Promise<void> {
+  await page.goto('/login?returnUrl=%2Funits');
+  await page.getByTestId('login-email').fill('developer@tankos.local');
+  await page.getByTestId('login-password').fill('tankos-local-dev');
+  await page.getByTestId('login-submit').click();
+  await expect(page).toHaveURL(unitsUrl);
+}
 
 async function openCreateForm(page: Page) {
   await page.getByTestId('create').click();
@@ -30,7 +39,7 @@ test.describe('custom units', () => {
     page,
   }) => {
     const code = uniqueCode();
-    await page.goto('/units');
+    await login(page);
     await expect(page.getByTestId('unit-list-status')).toHaveText('ready');
 
     await openCreateForm(page);
@@ -91,7 +100,7 @@ test.describe('custom units', () => {
     page,
   }) => {
     const code = uniqueCode();
-    await page.goto('/units');
+    await login(page);
     await expect(page.getByTestId('unit-list-status')).toHaveText('ready');
     await openCreateForm(page);
     await fillUnit(page, code);

@@ -11,6 +11,11 @@ vi.mock('./dashboard/dashboard.component', () => ({
     public readonly marker = true;
   },
 }));
+vi.mock('./login/login-page.component', () => ({
+  LoginPageComponent: class LoginPageComponent {
+    public readonly marker = true;
+  },
+}));
 
 describe('appRoutes', () => {
   it('Given TankOS routes, When the units route is read, Then it is lazy and owns the units path', () => {
@@ -27,5 +32,11 @@ describe('appRoutes', () => {
     const dashboardRoute = appRoutes.find((route) => route.path === '');
     expect(dashboardRoute?.loadComponent).toBeTypeOf('function');
     await expect(dashboardRoute?.loadComponent?.()).resolves.toBeDefined();
+  });
+
+  it('loads the public login route without authentication', async () => {
+    const loginRoute = appRoutes.find((route) => route.path === 'login');
+    expect(loginRoute?.canActivate).toBeUndefined();
+    await expect(loginRoute?.loadComponent?.()).resolves.toBeDefined();
   });
 });

@@ -1,7 +1,14 @@
 import { Route } from '@angular/router';
-import { authGuard } from '@tankos/auth';
+import { authGuard } from '@tankos/authn';
 
 export const appRoutes: Route[] = [
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('./login/login-page.component').then(
+        ({ LoginPageComponent }) => LoginPageComponent,
+      ),
+  },
   {
     path: '',
     loadComponent: () =>

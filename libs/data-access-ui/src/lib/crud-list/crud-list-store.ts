@@ -90,6 +90,7 @@ async function loadCrudList<TData, TCreate, TUpdate, TFilter, TPayload>(
       access,
       filter,
       page: pageRequest(options, append ? store.nextCursor() : undefined),
+      ...(options.lifecycle ? { lifecycle: options.lifecycle } : {}),
     });
     patchState(store, {
       status: 'ready',

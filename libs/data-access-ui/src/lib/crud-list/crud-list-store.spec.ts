@@ -4,6 +4,7 @@ import {
   type BatchProgress,
   type CrudRecord,
   type CrudService,
+  type LifecycleStatus,
 } from '@tankos/data-access';
 import type { Logger } from '@tankos/observability';
 import { describe, expect, it, vi } from 'vitest';
@@ -37,11 +38,12 @@ describe('createCrudListStore', () => {
     { query: string }
   >;
 
-  function createStore() {
+  function createStore(lifecycle?: readonly LifecycleStatus[]) {
     return new (createCrudListStore({
       service,
       schema: 'units',
       page: { pageSize: 10, orderBy: [{ field: 'id', direction: 'asc' }] },
+      ...(lifecycle ? { lifecycle } : {}),
     }))();
   }
 
@@ -99,6 +101,17 @@ describe('createCrudListStore', () => {
     expect(logger.debug).toHaveBeenCalledWith('CRUD list deletion requested', {
       id: record.id,
     });
+  });
+
+  it('passes the configured lifecycle visibility to the service', async () => {
+    const store = createStore(['active', 'marked-for-deletion']);
+    await store.load(access);
+
+    expect(service.list).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        lifecycle: ['active', 'marked-for-deletion'],
+      }),
+    );
   });
 
   it('Given selected records, When toggled twice, Then selection is reversible', async () => {

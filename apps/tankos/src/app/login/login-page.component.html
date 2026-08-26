@@ -1,0 +1,56 @@
+<main class="login-page">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Sign in to TankOS</mat-card-title>
+      <mat-card-subtitle>Access your aquarium workspace</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <form
+        (submit)="submit(); $event.preventDefault()"
+        data-testid="login-form"
+      >
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input
+            matInput
+            type="email"
+            [formControl]="email"
+            autocomplete="username"
+            data-testid="login-email"
+          />
+          @if (email.hasError('required') && email.touched) {
+            <mat-error>Email is required.</mat-error>
+          } @else if (email.hasError('email') && email.touched) {
+            <mat-error>Enter a valid email.</mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            type="password"
+            [formControl]="password"
+            autocomplete="current-password"
+            data-testid="login-password"
+          />
+          @if (password.hasError('required') && password.touched) {
+            <mat-error>Password is required.</mat-error>
+          }
+        </mat-form-field>
+        @if (error()) {
+          <p role="alert" data-testid="login-error">
+            Unable to sign in. Check your credentials and try again.
+          </p>
+        }
+        <button
+          mat-flat-button
+          type="submit"
+          [disabled]="pending()"
+          data-testid="login-submit"
+        >
+          {{ pending() ? 'Signing in…' : 'Sign in' }}
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</main>

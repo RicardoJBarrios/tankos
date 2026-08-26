@@ -4,7 +4,7 @@ import {
   connectFirestoreEmulator,
   initializeFirestore,
 } from 'firebase/firestore';
-import { createLocalFirebaseAuthSession } from '@tankos/auth';
+import { createLocalFirebaseAuthSession } from '@tankos/authn-firebase';
 
 const FIRESTORE_EMULATOR_PORT = 8080;
 
@@ -20,7 +20,9 @@ const firebaseApp =
   });
 
 export const tankosAuth = getAuth(firebaseApp);
-export const tankosAuthSession = createLocalFirebaseAuthSession(tankosAuth);
+export const tankosAuthSession = createLocalFirebaseAuthSession(tankosAuth, {
+  autoSignIn: false,
+});
 // WebKit can keep Firestore's WebChannel request open against the local
 // emulator. Long polling keeps the same emulator integration reliable in all
 // supported E2E browsers.

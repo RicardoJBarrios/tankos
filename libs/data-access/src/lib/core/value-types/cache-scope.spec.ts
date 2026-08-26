@@ -11,9 +11,9 @@ describe('createCacheNamespace', () => {
         domain: 'measurements',
         entity: 'list',
         principalId: 'user-1',
-        aquariumId: 'aquarium-1',
+        resourceScope: 'resource-1',
       }),
-    ).toBe('tankos:v1:measurements:list:user-1:aquarium-1');
+    ).toBe('tankos:v1:measurements:list:user-1:resource-1');
   });
 
   it('Given an empty or colon-containing segment, When converted, Then rejects it', () => {
