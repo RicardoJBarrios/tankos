@@ -209,6 +209,12 @@ describe('unitDefinitionCapabilities', () => {
         { ownerId: 'keeper-1' } as UnitDefinition,
       ).canEdit,
     ).toBe(true);
+    expect(
+      unitDefinitionCapabilities(
+        { principalId: createEntityId('keeper-1'), roles: ['keeper'] },
+        { visibility: 'private' } as UnitDefinition,
+      ).canEdit,
+    ).toBe(false);
   });
 });
 
