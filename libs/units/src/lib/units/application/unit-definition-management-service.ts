@@ -4,13 +4,14 @@ import type {
   EntityId,
 } from '@tankos/data-access';
 import {
-  createDimensionSignature,
-  createQuantityKind,
   createUnitCode,
   createUnitDefinition,
   createUnitRepresentation,
+  UnitError,
   type UnitDefinition,
   type UnitDefinitionFilter,
+  type UnitSymbolPosition,
+  type UnitSymbolSpacing,
 } from '../core';
 import {
   createUnitDefinitionCrudService,
@@ -23,8 +24,8 @@ export interface CustomUnitDefinitionDraft {
   readonly code: string;
   readonly symbol: string;
   readonly asciiFallback: string;
-  readonly quantityKind: string;
-  readonly conversionFamily: string;
+  readonly position?: UnitSymbolPosition;
+  readonly spacing?: UnitSymbolSpacing;
 }
 
 /** Request for creating a custom unit from its application input. */
@@ -37,6 +38,17 @@ export interface CreateCustomUnitRequest {
 export interface ReplaceCustomUnitRequest extends CreateCustomUnitRequest {
   readonly id: EntityId;
   readonly expectedRevision: number;
+  /** Current version used to preserve public/private ownership on replacement. */
+  readonly current?: UnitDefinition;
+}
+
+/** Request for promoting a private unit definition to the public catalogue. */
+export interface PublishUnitDefinitionRequest {
+  readonly access: AccessContext;
+  readonly id: EntityId;
+  readonly expectedRevision: number;
+  readonly current: UnitDefinition;
+  readonly currentLifecycle: UnitDefinitionRecord['lifecycle']['status'];
 }
 
 /**
@@ -49,6 +61,7 @@ export interface UnitDefinitionManagementService extends UnitDefinitionCrudServi
   save(
     request: CreateCustomUnitRequest | ReplaceCustomUnitRequest,
   ): Promise<UnitDefinitionRecord>;
+  publish(request: PublishUnitDefinitionRequest): Promise<UnitDefinitionRecord>;
 }
 
 /**
@@ -67,47 +80,100 @@ export function createUnitDefinitionManagementService(
   const crud = createUnitDefinitionCrudService(repository);
   return {
     ...crud,
-    save: (request) => {
-      const definition = createCustomUnitDefinition(
-        request.draft,
-        request.access.principalId,
-      );
-      if ('id' in request) {
-        return crud.replace(
-          {
-            access: request.access,
-            id: request.id,
-            expectedRevision: request.expectedRevision,
-          },
-          definition,
-        );
-      }
-      return crud.create({ access: request.access, input: definition });
-    },
+    save: (request) => saveUnitDefinition(crud, request),
+    publish: (request) => publishUnitDefinition(crud, request),
   };
+}
+
+function saveUnitDefinition(
+  crud: UnitDefinitionCrudService,
+  request: CreateCustomUnitRequest | ReplaceCustomUnitRequest,
+): Promise<UnitDefinitionRecord> {
+  const definition =
+    'current' in request && request.current
+      ? replaceUnitDefinition(request.current, request.draft)
+      : createCustomUnitDefinition(
+          request.draft,
+          request.access.principalId,
+          request.access.principalName,
+        );
+  if ('id' in request) {
+    return crud.replace(
+      {
+        access: request.access,
+        id: request.id,
+        expectedRevision: request.expectedRevision,
+      },
+      definition,
+    );
+  }
+  return crud.create({ access: request.access, input: definition });
+}
+
+function publishUnitDefinition(
+  crud: UnitDefinitionCrudService,
+  request: PublishUnitDefinitionRequest,
+): Promise<UnitDefinitionRecord> {
+  if (request.currentLifecycle !== 'active') {
+    return Promise.reject(
+      new UnitError(
+        'UNIT_PUBLISH_INVALID_STATE',
+        'Only an active unit definition can be published',
+      ),
+    );
+  }
+  const { code, system, representation, catalogueVersion } = request.current;
+  return crud.replace(
+    {
+      access: request.access,
+      id: request.id,
+      expectedRevision: request.expectedRevision,
+    },
+    createUnitDefinition({
+      code,
+      system,
+      representation,
+      catalogueVersion,
+      visibility: 'public',
+    }),
+  );
+}
+
+function replaceUnitDefinition(
+  current: UnitDefinition,
+  draft: CustomUnitDefinitionDraft,
+): UnitDefinition {
+  return createUnitDefinition({
+    ...current,
+    code: current.code,
+    representation: createUnitRepresentation({
+      ...current.representation,
+      symbol: draft.symbol,
+      asciiFallback: draft.asciiFallback,
+      position: draft.position ?? current.representation.position,
+      spacing: draft.spacing ?? current.representation.spacing,
+    }),
+  });
 }
 
 /** Maps the custom-unit application input into the validated domain value. */
 export function createCustomUnitDefinition(
   draft: CustomUnitDefinitionDraft,
   ownerId?: string,
+  ownerName?: string,
 ): UnitDefinition {
   return createUnitDefinition({
     code: createUnitCode(draft.code),
-    ...(ownerId === undefined
-      ? {}
-      : { ownerId, visibility: 'private' as const }),
+    ...(ownerId === undefined ? {} : { ownerId }),
+    visibility: ownerId === undefined ? 'public' : 'private',
+    ...(ownerName === undefined ? {} : { ownerName }),
     system: 'custom',
-    dimension: createDimensionSignature(),
-    quantityKind: createQuantityKind(draft.quantityKind),
     representation: createUnitRepresentation({
       symbol: draft.symbol,
       asciiFallback: draft.asciiFallback,
-      position: 'suffix',
-      spacing: 'narrow',
+      position: draft.position ?? 'suffix',
+      spacing: draft.spacing ?? 'narrow',
     }),
-    conversionFamily: draft.conversionFamily,
     catalogueVersion: 'TANKOS-CUSTOM-1',
-    status: 'active',
   });
 }

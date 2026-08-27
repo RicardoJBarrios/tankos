@@ -5,12 +5,12 @@ import {
   type CrudService,
 } from '@tankos/data-access';
 import type { UnitDefinition, UnitDefinitionFilter } from '../core';
-import { UnitError } from '../core';
+import { unitDefinitionCrudPolicy } from './unit-definition-authorization';
 
-/** Input accepted when creating or replacing a custom unit definition. */
+/** Input accepted when creating or replacing any unit definition. */
 export type CustomUnitDefinitionInput = UnitDefinition;
 
-/** CRUD application boundary for the global custom unit catalogue. */
+/** CRUD application boundary for the public and private unit catalogue. */
 export type UnitDefinitionCrudService = CrudService<
   UnitDefinition,
   CustomUnitDefinitionInput,
@@ -19,11 +19,10 @@ export type UnitDefinitionCrudService = CrudService<
 >;
 
 /**
- * Creates the custom-unit CRUD service.
+ * Creates the unit-definition CRUD service.
  *
- * The repository supplied here must be scoped to the global custom-unit
- * catalogue. Standard catalogue entries are immutable and are not accepted by
- * this service.
+ * The repository supplied here must be scoped to the unit catalogue. Public
+ * and private definitions use the same versioned workflow.
  */
 export function createUnitDefinitionCrudService(
   repository: CrudRepositoryPort<
@@ -33,32 +32,23 @@ export function createUnitDefinitionCrudService(
     UnitDefinitionFilter
   >,
 ): UnitDefinitionCrudService {
-  const crud = createCrudService(repository);
+  const crud = createCrudService(repository, {
+    policy: unitDefinitionCrudPolicy,
+  });
   const custom: Omit<UnitDefinitionCrudService, 'replace'> = {
     list: (request) => crud.list(request),
     get: (request) => crud.get(request),
     markForDeletion: (request) => crud.markForDeletion(request),
     restore: (request) => crud.restore(request),
     delete: (request) => crud.delete(request),
-    create: (request) =>
-      Promise.resolve().then(() =>
-        crud.create({ ...request, input: requireCustom(request.input) }),
-      ),
+    create: (request) => crud.create(request),
   };
   return createVersionedCrudService(custom, {
-    toCreateInput: (input) => requireCustom(input),
+    toCreateInput: (input) => input,
+    ...(repository.replaceVersioned
+      ? { replaceAtomically: repository.replaceVersioned.bind(repository) }
+      : {}),
+    validateReplace: (access, current, input) =>
+      unitDefinitionCrudPolicy.validateUpdate?.(access, current, input),
   });
-}
-
-function requireCustom(
-  input: CustomUnitDefinitionInput,
-): CustomUnitDefinitionInput {
-  if (input.system !== 'custom') {
-    throw new UnitError(
-      'UNIT_CUSTOM_REQUIRED',
-      'Custom unit management accepts only definitions with system custom',
-    );
-  }
-
-  return input;
 }

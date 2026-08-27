@@ -43,13 +43,6 @@ function convert(
     );
   }
 
-  if (!areCompatible(source, target)) {
-    throw new UnitConversionError(
-      'UNIT_CONVERSION_INCOMPATIBLE',
-      'Source and target units have incompatible dimensions',
-    );
-  }
-
   const definition = dependencies.definitions.find(
     (candidate) =>
       candidate.sourceUnit === request.sourceUnit &&
@@ -135,13 +128,4 @@ function applyFactor(
 
     throw error;
   }
-}
-
-function areCompatible(
-  source: { readonly dimension: Record<string, number> },
-  target: { readonly dimension: Record<string, number> },
-): boolean {
-  return Object.keys(source.dimension).every(
-    (dimension) => source.dimension[dimension] === target.dimension[dimension],
-  );
 }

@@ -31,6 +31,7 @@ import {
   timestamp,
   validateDocumentId,
 } from './firestore-crud-repository';
+import { replaceVersionedFirestoreRecord } from './firestore-versioned-replacement';
 
 /** Stateful Firestore CRUD implementation behind the public factory. */
 export class FirestoreCrudRepositoryImplementation<
@@ -204,6 +205,20 @@ export class FirestoreCrudRepositoryImplementation<
         data: this.#options.updateData(record.data, input),
         lifecycle: record.lifecycle,
       }),
+    );
+  }
+
+  public async replaceVersioned(request: RecordCommand, input: TUpdate) {
+    const access = createAccessContext(request.access);
+    await authorizeFirestoreAccess(this.#options, access, 'replace');
+    return replaceVersionedFirestoreRecord(
+      this.#options,
+      this.#timestampNow,
+      this.#schemaVersion,
+      this.#recordReference.bind(this),
+      request,
+      input,
+      access,
     );
   }
 

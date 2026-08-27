@@ -1,8 +1,6 @@
 import { createEntityId, type CrudRepositoryPort } from '@tankos/data-access';
 import { describe, expect, it, vi } from 'vitest';
 import {
-  createDimensionSignature,
-  createQuantityKind,
   createUnitCode,
   createUnitDefinition,
   createUnitRepresentation,
@@ -14,18 +12,16 @@ import { createUnitDefinitionCrudService } from './unit-definition-crud-service'
 describe('createUnitDefinitionCrudService', () => {
   const definition = createUnitDefinition({
     code: createUnitCode('TANKOS:CUSTOM-ALK'),
+    ownerId: 'keeper-1',
+    visibility: 'private',
     system: 'custom',
-    dimension: createDimensionSignature({ mass: 1, length: -3 }),
-    quantityKind: createQuantityKind('alkalinity'),
     representation: createUnitRepresentation({
       symbol: 'dKH',
       asciiFallback: 'dKH',
       position: 'suffix',
       spacing: 'normal',
     }),
-    conversionFamily: 'alkalinity',
     catalogueVersion: 'TankOS-custom-v1',
-    status: 'active',
   });
 
   it('Given a custom repository, When CRUD commands are used, Then delegates every operation', async () => {
@@ -65,7 +61,7 @@ describe('createUnitDefinitionCrudService', () => {
     expect(repository.delete).toHaveBeenCalledWith(command);
   });
 
-  it('Given a standard definition, When creation is requested, Then rejects it before reaching the repository', async () => {
+  it('Given a public definition, When creation is requested, Then delegates it to the repository', async () => {
     const repository = createRepository();
     const service = createUnitDefinitionCrudService(repository);
 
@@ -74,11 +70,11 @@ describe('createUnitDefinitionCrudService', () => {
         access: { principalId: createEntityId('admin-1'), roles: ['admin'] },
         input: { ...definition, system: 'si' },
       }),
-    ).rejects.toMatchObject({ code: 'UNIT_CUSTOM_REQUIRED' });
-    expect(repository.create).not.toHaveBeenCalled();
+    ).resolves.toBeDefined();
+    expect(repository.create).toHaveBeenCalled();
   });
 
-  it('Given a standard definition, When replacement is requested, Then rejects it before reaching the repository', async () => {
+  it('Given a public definition, When replacement is requested, Then delegates it to the repository', async () => {
     const repository = createRepository();
     const service = createUnitDefinitionCrudService(repository);
 
@@ -91,8 +87,35 @@ describe('createUnitDefinitionCrudService', () => {
         },
         { ...definition, system: 'metric' },
       ),
-    ).rejects.toMatchObject({ code: 'UNIT_CUSTOM_REQUIRED' });
-    expect(repository.replace).not.toHaveBeenCalled();
+    ).resolves.toBeDefined();
+    expect(repository.create).toHaveBeenCalled();
+  });
+
+  it('validates a replacement against the current private definition', async () => {
+    const repository = createRepository();
+    repository.get = vi.fn(async () => ({
+      id: createEntityId('unit-1'),
+      data: definition,
+      lifecycle: { status: 'active' as const },
+      revision: 1,
+      metadata: {},
+    }));
+    const service = createUnitDefinitionCrudService(repository);
+
+    await expect(
+      service.replace(
+        {
+          access: {
+            principalId: createEntityId('keeper-1'),
+            roles: ['keeper'],
+          },
+          id: createEntityId('unit-1'),
+          expectedRevision: 1,
+        },
+        { ...definition, visibility: 'public' },
+      ),
+    ).rejects.toThrow();
+    expect(repository.create).not.toHaveBeenCalled();
   });
 
   function createRepository(): CrudRepositoryPort<

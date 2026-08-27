@@ -37,7 +37,7 @@ export function createLocalFirebaseAuthSession(
   return {
     ...session,
     access: async () => {
-      await ensureLocalKeeperClaim(auth);
+      await ensureLocalRoleClaim(auth);
       return session.access();
     },
     signIn: async (credentials) => {
@@ -45,23 +45,32 @@ export function createLocalFirebaseAuthSession(
       try {
         await session.signIn(credentials);
       } catch (error) {
-        if (!isMissingUser(error)) throw error;
-        await createUserWithEmailAndPassword(
-          auth,
-          passwordCredentials.email,
-          passwordCredentials.password,
-        );
+        if (!isMissingLocalUser(error)) throw error;
+        try {
+          await createUserWithEmailAndPassword(
+            auth,
+            passwordCredentials.email,
+            passwordCredentials.password,
+          );
+        } catch (creationError) {
+          // Newer Firebase SDKs use auth/invalid-credential for both an
+          // unknown user and an invalid password. If the account already
+          // exists, preserve the original sign-in error instead of exposing
+          // the account-creation error or masking a bad password.
+          if (isEmailAlreadyInUse(creationError)) throw error;
+          throw creationError;
+        }
       }
     },
     refresh: async () => {
-      await ensureLocalKeeperClaim(auth);
+      await ensureLocalRoleClaim(auth);
       return session.refresh();
     },
   };
 }
 
 /** Synchronizes the local-only role claim with the Auth emulator. */
-async function ensureLocalKeeperClaim(auth: Auth): Promise<void> {
+async function ensureLocalRoleClaim(auth: Auth): Promise<void> {
   // Unit tests and server-side consumers do not have the emulator endpoint.
   if (typeof window === 'undefined' || !auth.currentUser) return;
   const response = await fetch(
@@ -74,7 +83,9 @@ async function ensureLocalKeeperClaim(auth: Auth): Promise<void> {
       },
       body: JSON.stringify({
         localId: auth.currentUser.uid,
-        customAttributes: JSON.stringify({ roles: ['keeper'] }),
+        customAttributes: JSON.stringify({
+          roles: [localRoleForEmail(auth.currentUser.email)],
+        }),
       }),
     },
   );
@@ -87,6 +98,12 @@ async function ensureLocalKeeperClaim(auth: Auth): Promise<void> {
     }
   ).getIdToken;
   if (getIdToken) await getIdToken.call(auth.currentUser, true);
+}
+
+function localRoleForEmail(email: string | null): 'keeper' | 'admin' | 'guest' {
+  if (email === 'admin@tankos.local') return 'admin';
+  if (email === 'guest@tankos.local') return 'guest';
+  return 'keeper';
 }
 
 export function createFirebaseAuthSession(
@@ -128,6 +145,7 @@ async function createAccessContextForUser(
   options: FirebaseAuthSessionOptions,
 ): Promise<{
   readonly principalId: ReturnType<typeof createEntityId>;
+  readonly principalName: string;
   readonly roles: readonly string[];
 }> {
   const getIdTokenResult = (
@@ -142,6 +160,7 @@ async function createAccessContextForUser(
     : undefined;
   return {
     principalId: createEntityId(user.uid),
+    principalName: user.displayName?.trim() || user.email || user.uid,
     roles: rolesFromClaims(claims, options.roles),
   };
 }
@@ -200,22 +219,50 @@ async function ensureFirebaseUser(
       )
     ).user;
   } catch (error) {
-    if (!isMissingUser(error)) throw error;
-    return (
-      await createUserWithEmailAndPassword(
-        options.auth,
-        options.email,
-        options.password,
-      )
-    ).user;
+    if (!isMissingLocalUser(error)) throw error;
+    try {
+      return (
+        await createUserWithEmailAndPassword(
+          options.auth,
+          options.email,
+          options.password,
+        )
+      ).user;
+    } catch (creationError) {
+      if (isEmailAlreadyInUse(creationError)) {
+        // A concurrent sign-in or another local tab may have created the
+        // account between the two calls. Retry sign-in once in that case.
+        return (
+          await signInWithEmailAndPassword(
+            options.auth,
+            options.email,
+            options.password,
+          )
+        ).user;
+      }
+      throw creationError;
+    }
   }
 }
 
-function isMissingUser(error: unknown): boolean {
+function isMissingLocalUser(error: unknown): boolean {
+  const code = firebaseErrorCode(error);
+  return (
+    code === 'auth/user-not-found' ||
+    code === 'auth/invalid-credential' ||
+    code === 'auth/invalid-login-credentials'
+  );
+}
+
+function isEmailAlreadyInUse(error: unknown): boolean {
+  return firebaseErrorCode(error) === 'auth/email-already-in-use';
+}
+
+function firebaseErrorCode(error: unknown): unknown {
   return (
     typeof error === 'object' &&
     error !== null &&
     'code' in error &&
-    (error as { code?: unknown }).code === 'auth/user-not-found'
+    (error as { code?: unknown }).code
   );
 }

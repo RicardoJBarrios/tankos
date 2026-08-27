@@ -39,14 +39,29 @@ export class CrudListComponent<TData> {
   );
   /** Columns rendered by the table view. */
   public readonly columns = input<readonly CrudListColumn<TData>[]>([]);
+  public readonly canEdit = input<(item: CrudRecord<TData>) => boolean>(
+    () => true,
+  );
+  public readonly canMarkForDeletion = input<
+    (item: CrudRecord<TData>) => boolean
+  >(() => true);
+  public readonly canPublish = input<(item: CrudRecord<TData>) => boolean>(
+    () => false,
+  );
+  public readonly canPhysicallyDelete = input<
+    (item: CrudRecord<TData>) => boolean
+  >(() => false);
   /** Emitted when the host should start creation. */
   public readonly createRequested = output();
   /** Emitted when the host should start editing. */
   public readonly editRequested = output<CrudRecord<TData>>();
+  public readonly detailRequested = output<CrudRecord<TData>>();
   /** Emitted when a record should be logically deleted. */
   public readonly markForDeletionRequested = output<CrudRecord<TData>>();
   /** Emitted when a record should be restored. */
   public readonly restoreRequested = output<CrudRecord<TData>>();
+  public readonly publishRequested = output<CrudRecord<TData>>();
+  public readonly physicalDeleteRequested = output<CrudRecord<TData>>();
   /** Emitted when selection changes. */
   public readonly selectionToggled = output<EntityId>();
   /** Emitted when another page is requested. */

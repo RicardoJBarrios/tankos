@@ -44,7 +44,9 @@ export interface CrudListStoreOptions<
   readonly page: PageRequest;
   readonly schema: string;
   /** Lifecycle states that the feature wants to show in the list. */
-  readonly lifecycle?: readonly LifecycleStatus[];
+  readonly lifecycle?:
+    | readonly LifecycleStatus[]
+    | ((filter: TFilter | undefined) => readonly LifecycleStatus[]);
   readonly batch?: BatchService<TPayload, TFilter>;
   /** Optional host logger; absent means no logging. */
   readonly logger?: Logger;

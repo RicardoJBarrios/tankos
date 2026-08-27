@@ -3,10 +3,12 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createConversionDefinition,
   createUnitCode,
+  createUnitDefinition,
+  createUnitRepresentation,
   type ConversionDefinition,
   type ConversionDefinitionFilter,
+  type UnitCataloguePort,
 } from '../core';
-import { createStandardUnitCatalogue } from '../adapters/standard';
 import { createConversionDefinitionCrudService } from './conversion-definition-crud-service';
 
 describe('createConversionDefinitionCrudService', () => {
@@ -26,7 +28,7 @@ describe('createConversionDefinitionCrudService', () => {
   it('Given a custom repository, When CRUD commands are used, Then delegates every operation', async () => {
     const repository = createRepository();
     const service = createConversionDefinitionCrudService(repository, {
-      catalogue: createStandardUnitCatalogue(),
+      catalogue: createTestCatalogue(),
     });
     const access = { principalId: createEntityId('admin-1'), roles: ['admin'] };
     const listRequest = {
@@ -64,7 +66,7 @@ describe('createConversionDefinitionCrudService', () => {
   it('Given a standard definition, When creation is requested, Then rejects it before reaching the repository', async () => {
     const repository = createRepository();
     const service = createConversionDefinitionCrudService(repository, {
-      catalogue: createStandardUnitCatalogue(),
+      catalogue: createTestCatalogue(),
     });
 
     await expect(
@@ -79,7 +81,7 @@ describe('createConversionDefinitionCrudService', () => {
   it('Given a standard definition, When replacement is requested, Then rejects it before reaching the repository', async () => {
     const repository = createRepository();
     const service = createConversionDefinitionCrudService(repository, {
-      catalogue: createStandardUnitCatalogue(),
+      catalogue: createTestCatalogue(),
     });
 
     await expect(
@@ -94,6 +96,28 @@ describe('createConversionDefinitionCrudService', () => {
     ).rejects.toMatchObject({ code: 'CONVERSION_CUSTOM_REQUIRED' });
     expect(repository.create).not.toHaveBeenCalled();
   });
+
+  function createTestCatalogue(): UnitCataloguePort {
+    const definitions = ['UN/CEFACT:LTR', 'UN/CEFACT:MLT'].map((code) =>
+      createUnitDefinition({
+        code: createUnitCode(code),
+        system: 'metric',
+        representation: createUnitRepresentation({
+          symbol: 'u',
+          asciiFallback: 'u',
+          position: 'suffix',
+          spacing: 'normal',
+        }),
+        catalogueVersion: 'test',
+      }),
+    );
+
+    return {
+      list: () => definitions,
+      find: (code) =>
+        definitions.find((definition) => definition.code === code),
+    };
+  }
 
   function createRepository(): CrudRepositoryPort<
     ConversionDefinition,

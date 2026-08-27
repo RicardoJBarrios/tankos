@@ -20,18 +20,6 @@ export class UnitCodeError extends UnitError {
   }
 }
 
-/** Indicates that a dimensional exponent is invalid. */
-export class DimensionSignatureError extends UnitError {
-  /** Creates an invalid-dimension error. */
-  public constructor(dimension: string, value: unknown) {
-    super(
-      'DIMENSION_SIGNATURE_INVALID',
-      `Invalid exponent for ${dimension}: ${String(value)}`,
-    );
-    this.name = 'DimensionSignatureError';
-  }
-}
-
 /** Indicates that a requested unit conversion cannot be executed. */
 export class UnitConversionError extends UnitError {
   /** Creates a structured conversion failure. */

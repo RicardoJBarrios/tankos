@@ -143,7 +143,7 @@ const architecturalPolicies = [
     from: { element: { type: 'application' } },
     allow: {
       to: {
-        element: { types: { anyOf: ['core', 'application', 'adapters'] } },
+        element: { types: { anyOf: ['core', 'application'] } },
       },
     },
   },

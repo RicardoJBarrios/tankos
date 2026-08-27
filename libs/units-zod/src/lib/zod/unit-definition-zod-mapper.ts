@@ -7,18 +7,30 @@ export function unitDefinitionToDto(
 ): UnitDefinitionDto {
   return {
     code: definition.code,
+    codeSearchTokens: searchTokens(definition.code),
+    ...(definition.ownerName === undefined
+      ? {}
+      : { ownerSearchTokens: searchTokens(definition.ownerName) }),
     ...(definition.ownerId === undefined
       ? {}
       : { ownerId: definition.ownerId }),
-    ...(definition.visibility === undefined
+    ...(definition.ownerName === undefined
       ? {}
-      : { visibility: definition.visibility }),
+      : { ownerName: definition.ownerName }),
+    visibility: definition.visibility,
     system: definition.system,
-    dimension: { ...definition.dimension },
-    quantityKind: definition.quantityKind,
     representation: { ...definition.representation },
-    conversionFamily: definition.conversionFamily,
     catalogueVersion: definition.catalogueVersion,
-    status: definition.status,
   };
+}
+
+function searchTokens(value: string): string[] {
+  const normalized = value.trim().toLocaleLowerCase();
+  const tokens = new Set<string>();
+  for (let start = 0; start < normalized.length; start += 1) {
+    for (let end = start + 1; end <= normalized.length; end += 1) {
+      tokens.add(normalized.slice(start, end));
+    }
+  }
+  return [...tokens];
 }

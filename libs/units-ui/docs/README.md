@@ -40,6 +40,22 @@ signals such as status and error. Components should render those signals and
 must not coordinate repository promises directly. The feature service is an
 orchestrator, not a second domain model.
 
+## Route contract
+
+`unitsRoutes` is the self-contained mounting contract for the feature. The host
+loads it at `/units` and does not own the feature pages:
+
+- `/units` lists definitions;
+- `/units/new` creates a definition;
+- `/units/:id` shows a read-only version;
+- `/units/:id/edit` edits through the versioned application service.
+
+The route tree owns the list, editor and detail pages and provides the feature
+facade in its route injector. The management application service is supplied
+through the neutral `UNIT_DEFINITION_MANAGEMENT_SERVICE` token from
+`@tankos/units-ui`, so the UI does not depend on Firestore or another provider.
+The host maps its observability implementation to `UNITS_LOGGER`.
+
 ## Decisions and limits
 
 - Angular Signals are the UI state mechanism; persistence is not.
@@ -58,8 +74,21 @@ Add UI orchestration here when it is specific to unit management. Keep generic
 CRUD list behavior in `@tankos/data-access-ui`, domain rules in `@tankos/units`
 and provider composition in the application.
 
+`@tankos/data-access-ui` exposes `CrudListQueryState`, which owns the
+filter/page invariant: changing a filter resets the page. URL serialization
+remains a router concern of the feature host, so the same state works with
+different navigation systems.
+
+The list uses the Material table by default. It exposes the persisted
+`visibility` attribute as a column and sends the public/private selection as a
+`UnitDefinitionFilter` to the feature store; the Firestore adapter applies the
+same filter server-side. Administrators can also filter by owner and inspect
+deleted versions; deleted-version records expose restore and permanent-delete
+actions. The latter is never exposed to keepers.
+
 ## Current status
 
-The custom-unit feature facade, reactive store, lifecycle commands and tests are
-implemented. The feature currently targets the existing unit-definition
-application contract and does not yet provide domain-specific ABAC controls.
+The custom-unit feature facade, route tree, list/editor/detail pages, lifecycle
+commands and tests are implemented. The feature currently targets the existing
+unit-definition application contract and does not yet provide domain-specific
+ABAC controls.

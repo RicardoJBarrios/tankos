@@ -1,6 +1,6 @@
 # Units Firestore adapter
 
-`@tankos/units-firestore` is the Firestore adapter for the global units and
+`@tankos/units-firestore` is the Firestore adapter for the public and private units and
 conversion catalogues. It contains no unit or conversion business rules and
 does not know about Aquarium or Measurement records.
 

@@ -1,0 +1,79 @@
+<main>
+  <a routerLink="/units" queryParamsHandling="preserve">Back to units</a>
+  <h2>Unit detail</h2>
+  @if (status() === 'pending') {
+    <p role="status">Loading unit…</p>
+  } @else if (record(); as current) {
+    <dl data-testid="unit-detail">
+      <dt>Code</dt>
+      <dd>{{ current.data.code }}</dd>
+      <dt>Symbol</dt>
+      <dd>{{ current.data.representation.symbol }}</dd>
+      <dt>ASCII fallback</dt>
+      <dd>{{ current.data.representation.asciiFallback }}</dd>
+      <dt>Display example</dt>
+      <dd data-testid="unit-display-preview">
+        {{ formatValue(12, current.data.representation) }}
+      </dd>
+      <dt>Version</dt>
+      <dd>{{ current.revision }}</dd>
+      <dt>Visibility</dt>
+      <dd>{{ current.data.visibility }}</dd>
+      <dt>Lifecycle</dt>
+      <dd>{{ current.lifecycle.status }}</dd>
+      @if (current.data.ownerName) {
+        <dt>Owner</dt>
+        <dd>{{ current.data.ownerName }}</dd>
+      }
+    </dl>
+    @if (canEdit()) {
+      <a
+        [routerLink]="['edit']"
+        queryParamsHandling="preserve"
+        data-testid="detail-edit"
+        >Edit</a
+      >
+    }
+    @if (canPublish()) {
+      <button
+        type="button"
+        data-testid="detail-publish"
+        [disabled]="lifecycleStatus() === 'pending'"
+        (click)="publish()"
+      >
+        Make public
+      </button>
+    }
+    @if (canRestore()) {
+      <button
+        type="button"
+        data-testid="detail-restore"
+        [disabled]="lifecycleStatus() === 'pending'"
+        (click)="restore()"
+      >
+        Restore
+      </button>
+    } @else if (canDelete()) {
+      <button
+        type="button"
+        data-testid="detail-delete"
+        [disabled]="lifecycleStatus() === 'pending'"
+        (click)="markForDeletion()"
+      >
+        Delete
+      </button>
+    }
+    @if (canPhysicallyDelete()) {
+      <button
+        type="button"
+        data-testid="detail-physical-delete"
+        [disabled]="lifecycleStatus() === 'pending'"
+        (click)="physicallyDelete()"
+      >
+        Delete permanently
+      </button>
+    }
+  } @else {
+    <p role="alert">Unable to load the unit.</p>
+  }
+</main>

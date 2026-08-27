@@ -1,4 +1,9 @@
-import type { CreateRequest, CrudRecord, RecordCommand } from '../core';
+import type {
+  AccessContext,
+  CreateRequest,
+  CrudRecord,
+  RecordCommand,
+} from '../core';
 import type { CrudService } from './crud-service';
 
 /** CRUD service whose replacement creates a new record before retiring the old one. */
@@ -15,8 +20,19 @@ type VersionedCrudSource<TData, TCreate, TUpdate, TFilter> = Omit<
 >;
 
 /** Converts replacement input into the payload of the new version. */
-export interface VersionedCrudServiceOptions<TCreate, TUpdate> {
+export interface VersionedCrudServiceOptions<TData, TCreate, TUpdate> {
   readonly toCreateInput: (input: TUpdate) => TCreate;
+  /** Provider transaction used when the persistence adapter can guarantee atomicity. */
+  readonly replaceAtomically?: (
+    request: RecordCommand,
+    input: TUpdate,
+  ) => Promise<CrudRecord<TData>>;
+  /** Domain validation that must run before the replacement is created. */
+  readonly validateReplace?: (
+    access: AccessContext,
+    current: CrudRecord<TData>,
+    input: TUpdate,
+  ) => void | Promise<void>;
 }
 
 /**
@@ -33,7 +49,7 @@ export function createVersionedCrudService<
   TFilter = unknown,
 >(
   service: VersionedCrudSource<TData, TCreate, TUpdate, TFilter>,
-  options: VersionedCrudServiceOptions<TCreate, TUpdate>,
+  options: VersionedCrudServiceOptions<TData, TCreate, TUpdate>,
 ): VersionedCrudService<TData, TCreate, TUpdate, TFilter> {
   return {
     ...service,
@@ -41,6 +57,10 @@ export function createVersionedCrudService<
       request: RecordCommand,
       input: TUpdate,
     ): Promise<CrudRecord<TData>> => {
+      await validateReplacement(service, options, request, input);
+      if (options.replaceAtomically) {
+        return options.replaceAtomically(request, input);
+      }
       const created = await service.create({
         access: {
           ...request.access,
@@ -52,4 +72,15 @@ export function createVersionedCrudService<
       return created;
     },
   };
+}
+
+async function validateReplacement<TData, TCreate, TUpdate, TFilter>(
+  service: VersionedCrudSource<TData, TCreate, TUpdate, TFilter>,
+  options: VersionedCrudServiceOptions<TData, TCreate, TUpdate>,
+  request: RecordCommand,
+  input: TUpdate,
+): Promise<void> {
+  if (!options.validateReplace) return;
+  const current = await service.get({ access: request.access, id: request.id });
+  if (current) await options.validateReplace(request.access, current, input);
 }

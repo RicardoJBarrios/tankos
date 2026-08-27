@@ -1,4 +1,3 @@
-/* eslint-disable max-lines -- repository implementation and lifecycle helpers stay cohesive. */
 import { DataAccessError } from '../../core/errors';
 import type {
   CrudRecord,
@@ -140,7 +139,6 @@ export class MemoryCrudRepository<
     TFilter
   >;
   readonly #visibleByDefault = new Set(['active', 'inactive']);
-  readonly #elevatedRoles: Set<string>;
 
   public constructor(
     options: InMemoryCrudRepositoryOptions<TData, TCreate, TUpdate, TFilter>,
@@ -149,9 +147,6 @@ export class MemoryCrudRepository<
     this.#records = new Map(
       (this.#options.initialRecords ?? []).map((record) => [record.id, record]),
     );
-    this.#elevatedRoles = new Set(
-      this.#options.elevatedRoles ?? ['moderator', 'administrator', 'worker'],
-    );
   }
 
   public async list(
@@ -159,7 +154,7 @@ export class MemoryCrudRepository<
   ): Promise<Page<CrudRecord<TData>>> {
     validateAccess(request.access);
     createPageRequest(request.page);
-    this.#validateLifecycleSelection(request.access, request.lifecycle);
+    validateAccess(request.access);
     const lifecycle = new Set(request.lifecycle ?? [...this.#visibleByDefault]);
     const filtered = this.#filterRecords(request, lifecycle);
     sortRecords(filtered, request.page.orderBy);
@@ -181,7 +176,6 @@ export class MemoryCrudRepository<
     request: GetRequest,
   ): Promise<CrudRecord<TData> | undefined> {
     validateAccess(request.access);
-    this.#validateLifecycleSelection(request.access, request.lifecycle);
     const record = this.#records.get(request.id);
     if (!record) return undefined;
     const lifecycle = new Set(request.lifecycle ?? [...this.#visibleByDefault]);
@@ -221,7 +215,6 @@ export class MemoryCrudRepository<
   public async markForDeletion(
     request: RecordCommand,
   ): Promise<CrudRecord<TData>> {
-    this.#requireLifecycleRole(request.access);
     const record = this.#requireRecord(request);
     requireRevision(record, request);
     requireNotDeleted(record);
@@ -233,7 +226,6 @@ export class MemoryCrudRepository<
   }
 
   public async restore(request: RecordCommand): Promise<CrudRecord<TData>> {
-    this.#requireLifecycleRole(request.access);
     const record = this.#requireRecord(request);
     requireRevision(record, request);
     if (record.lifecycle.status === 'marked-for-deletion') {
@@ -251,7 +243,6 @@ export class MemoryCrudRepository<
   }
 
   public async delete(request: RecordCommand): Promise<void> {
-    this.#requireLifecycleRole(request.access);
     const record = this.#requireRecord(request);
     requireRevision(record, request);
     if (record.lifecycle.status === 'marked-for-deletion') {
@@ -264,31 +255,12 @@ export class MemoryCrudRepository<
     }
   }
 
-  #requireLifecycleRole(
-    access: Parameters<typeof createAccessContext>[0],
-  ): void {
-    validateAccess(access);
-    if (!access.roles.some((role) => this.#elevatedRoles.has(role)))
-      throw failure(
-        'forbidden',
-        'Lifecycle operations require an elevated role',
-      );
-  }
-
   #requireRecord(request: RecordCommand): CrudRecord<TData> {
     validateAccess(request.access);
     const record = this.#records.get(request.id);
     if (!record)
       throw failure('not-found', `Record ${request.id} was not found`);
     return record;
-  }
-
-  #validateLifecycleSelection(
-    access: Parameters<typeof createAccessContext>[0],
-    lifecycle: readonly string[] | undefined,
-  ): void {
-    if (lifecycle?.some((status) => !this.#visibleByDefault.has(status)))
-      this.#requireLifecycleRole(access);
   }
 
   #withUpdatedMetadata(

@@ -8,8 +8,8 @@ shapes do not enter the core package.
 
 - DTO schemas are strict: unknown fields are rejected rather than silently
   persisted.
-- `unitDefinitionSchema` validates qualified standard codes, complete base
-  dimensions and scientific representation metadata, then calls the core
+- `unitDefinitionSchema` validates qualified standard codes and scientific
+  representation metadata, then calls the core
   constructors.
 - `conversionDefinitionSchema` accepts decimal strings and numbers at input,
   canonicalizes them through `@tankos/decimal`, validates rational factors,

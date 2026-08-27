@@ -51,14 +51,34 @@
             }
             <td>{{ label()(item) }}</td>
             <td>
+              @if (canEdit()(item)) {
+                <button
+                  class="mat-mdc-button"
+                  type="button"
+                  data-testid="edit-unit"
+                  (click)="editRequested.emit(item)"
+                >
+                  {{ labels.edit() }}
+                </button>
+              }
               <button
                 class="mat-mdc-button"
                 type="button"
-                data-testid="edit-unit"
-                (click)="editRequested.emit(item)"
+                data-testid="detail-unit"
+                (click)="detailRequested.emit(item)"
               >
-                {{ labels.edit() }}
+                {{ labels.detail() }}
               </button>
+              @if (canPublish()(item)) {
+                <button
+                  class="mat-mdc-button"
+                  type="button"
+                  data-testid="publish"
+                  (click)="publishRequested.emit(item)"
+                >
+                  {{ labels.publish() }}
+                </button>
+              }
               @if (item.lifecycle.status === 'marked-for-deletion') {
                 <button
                   class="mat-mdc-button"
@@ -68,7 +88,17 @@
                 >
                   {{ labels.restore() }}
                 </button>
-              } @else {
+                @if (canPhysicallyDelete()(item)) {
+                  <button
+                    class="mat-mdc-button"
+                    type="button"
+                    data-testid="physical-delete"
+                    (click)="physicalDeleteRequested.emit(item)"
+                  >
+                    {{ labels.physicalDelete() }}
+                  </button>
+                }
+              } @else if (canMarkForDeletion()(item)) {
                 <button
                   class="mat-mdc-button"
                   type="button"
@@ -94,14 +124,34 @@
         >
           <div>{{ label()(item) }}</div>
           <div>
+            @if (canEdit()(item)) {
+              <button
+                class="mat-mdc-button"
+                type="button"
+                data-testid="edit-unit"
+                (click)="editRequested.emit(item)"
+              >
+                {{ labels.edit() }}
+              </button>
+            }
             <button
               class="mat-mdc-button"
               type="button"
-              data-testid="edit-unit"
-              (click)="editRequested.emit(item)"
+              data-testid="detail-unit"
+              (click)="detailRequested.emit(item)"
             >
-              {{ labels.edit() }}
+              {{ labels.detail() }}
             </button>
+            @if (canPublish()(item)) {
+              <button
+                class="mat-mdc-button"
+                type="button"
+                data-testid="publish"
+                (click)="publishRequested.emit(item)"
+              >
+                {{ labels.publish() }}
+              </button>
+            }
             @if (item.lifecycle.status === 'marked-for-deletion') {
               <button
                 class="mat-mdc-button"
@@ -110,7 +160,17 @@
               >
                 {{ labels.restore() }}
               </button>
-            } @else {
+              @if (canPhysicallyDelete()(item)) {
+                <button
+                  class="mat-mdc-button"
+                  type="button"
+                  data-testid="physical-delete"
+                  (click)="physicalDeleteRequested.emit(item)"
+                >
+                  {{ labels.physicalDelete() }}
+                </button>
+              }
+            } @else if (canMarkForDeletion()(item)) {
               <button
                 class="mat-mdc-button"
                 type="button"

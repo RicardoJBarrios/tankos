@@ -114,6 +114,22 @@ describe('createCrudListStore', () => {
     );
   });
 
+  it('resolves lifecycle visibility from the current filter', async () => {
+    const store = new (createCrudListStore({
+      service,
+      schema: 'units',
+      page: { pageSize: 10, orderBy: [{ field: 'id', direction: 'asc' }] },
+      lifecycle: (filter) =>
+        filter?.query === 'deleted' ? ['marked-for-deletion'] : ['active'],
+    }))();
+
+    await store.load(access, { query: 'deleted' });
+
+    expect(service.list).toHaveBeenLastCalledWith(
+      expect.objectContaining({ lifecycle: ['marked-for-deletion'] }),
+    );
+  });
+
   it('Given selected records, When toggled twice, Then selection is reversible', async () => {
     const store = createStore();
     store.toggleSelection(record.id);

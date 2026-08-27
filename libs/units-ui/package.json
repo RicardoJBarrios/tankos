@@ -5,10 +5,15 @@
   "sideEffects": false,
   "peerDependencies": {
     "@tankos/authn": "^0.0.0",
+    "@tankos/authz-ui": "^0.0.0",
     "@angular/core": "^22.1.3",
     "@tankos/data-access": "^0.0.0",
     "@tankos/data-access-ui": "^0.0.0",
+    "@tankos/data-access-material-ui": "^0.0.0",
     "@tankos/units": "^0.0.0",
-    "@tankos/observability": "^0.0.0"
+    "@tankos/units-composition": "^0.0.0",
+    "@tankos/observability": "^0.0.0",
+    "@tankos/observability-ui": "^0.0.0",
+    "@tankos/formatting": "^0.0.0"
   }
 }

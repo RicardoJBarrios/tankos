@@ -1,5 +1,5 @@
 import type { ConversionDefinition, UnitCataloguePort } from '../core';
-import { areDimensionsCompatible, UnitError } from '../core';
+import { UnitError } from '../core';
 
 /** Dependencies needed to validate conversion endpoints. */
 export interface ConversionDefinitionValidatorDependencies {
@@ -18,13 +18,6 @@ export function validateConversionDefinition(
     throw new UnitError(
       'CONVERSION_UNIT_UNKNOWN',
       'Conversion source or target unit is not active in the catalogue',
-    );
-  }
-
-  if (!areDimensionsCompatible(source.dimension, target.dimension)) {
-    throw new UnitError(
-      'CONVERSION_DIMENSION_INCOMPATIBLE',
-      'Conversion source and target dimensions are incompatible',
     );
   }
 

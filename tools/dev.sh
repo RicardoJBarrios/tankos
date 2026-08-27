@@ -5,6 +5,8 @@ set -euo pipefail
 workspace_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$workspace_root"
 
+bash "$workspace_root/tools/stop-dev.sh"
+
 if [[ -z "${JAVA_HOME:-}" ]]; then
   if [[ -x "/opt/homebrew/opt/openjdk@21/bin/java" ]]; then
     export JAVA_HOME="/opt/homebrew/opt/openjdk@21"
@@ -20,19 +22,6 @@ fi
 
 export PATH="$JAVA_HOME/bin:$PATH"
 
-require_available_port() {
-  local port="$1"
-
-  if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then
-    echo "Port $port is already in use. Stop the process using it before running pnpm dev." >&2
-    exit 1
-  fi
-}
-
-for port in 4200 8080 9099; do
-  require_available_port "$port"
-done
-
 firebase_pid=""
 
 cleanup() {
@@ -43,6 +32,8 @@ cleanup() {
     kill -INT "$firebase_pid" 2>/dev/null || true
     wait "$firebase_pid" 2>/dev/null || true
   fi
+
+  bash "$workspace_root/tools/stop-dev.sh"
 
   exit "$exit_code"
 }
@@ -76,4 +67,5 @@ if [[ "$emulators_ready" != true ]]; then
 fi
 
 echo "Firebase Auth and Firestore emulators are ready."
+node "$workspace_root/tools/seed-units.mjs"
 pnpm nx serve tankos

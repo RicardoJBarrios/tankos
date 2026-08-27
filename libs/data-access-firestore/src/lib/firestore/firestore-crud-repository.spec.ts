@@ -349,6 +349,89 @@ describe('createFirestoreCrudRepository', () => {
     expect(firestoreMocks.getDoc).not.toHaveBeenCalled();
   });
 
+  it('replaces a record and marks its previous version atomically', async () => {
+    const transaction = {
+      get: vi
+        .fn()
+        .mockResolvedValueOnce(snapshot(true))
+        .mockResolvedValueOnce(snapshot(false)),
+      set: vi.fn(),
+      update: vi.fn(),
+    };
+    firestoreMocks.Timestamp.now.mockReturnValue(instant);
+    firestoreMocks.runTransaction.mockImplementation(
+      async (_firestore, callback) => callback(transaction),
+    );
+
+    await expect(
+      repository().replaceVersioned?.(
+        { access, id: createEntityId('unit-1'), expectedRevision: 1 },
+        { name: 'gallon' },
+      ),
+    ).resolves.toMatchObject({ id: 'gallon' });
+    expect(transaction.set).toHaveBeenCalled();
+    expect(transaction.update).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ revision: 2 }),
+    );
+  });
+
+  it.each([
+    ['missing', snapshot(false)],
+    ['stale', snapshot(true, 'unit-1', { ...dto, revision: 2 })],
+  ])(
+    'rejects an atomic replacement when the current record is %s',
+    async (_case, current) => {
+      const transaction = {
+        get: vi.fn().mockResolvedValue(current),
+        set: vi.fn(),
+        update: vi.fn(),
+      };
+      firestoreMocks.runTransaction.mockImplementation(
+        async (_firestore, callback) => callback(transaction),
+      );
+
+      await expect(
+        repository().replaceVersioned?.(
+          { access, id: createEntityId('unit-1'), expectedRevision: 1 },
+          { name: 'gallon' },
+        ),
+      ).rejects.toBeInstanceOf(Error);
+    },
+  );
+
+  it('rejects an atomic replacement when its target already exists', async () => {
+    const transaction = {
+      get: vi
+        .fn()
+        .mockResolvedValueOnce(snapshot(true))
+        .mockResolvedValueOnce(snapshot(true)),
+      set: vi.fn(),
+      update: vi.fn(),
+    };
+    firestoreMocks.runTransaction.mockImplementation(
+      async (_firestore, callback) => callback(transaction),
+    );
+
+    await expect(
+      repository().replaceVersioned?.(
+        { access, id: createEntityId('unit-1'), expectedRevision: 1 },
+        { name: 'gallon' },
+      ),
+    ).rejects.toBeInstanceOf(Error);
+  });
+
+  it('maps a provider failure during atomic replacement', async () => {
+    firestoreMocks.runTransaction.mockRejectedValueOnce(new Error('offline'));
+
+    await expect(
+      repository().replaceVersioned?.(
+        { access, id: createEntityId('unit-1'), expectedRevision: 1 },
+        { name: 'gallon' },
+      ),
+    ).rejects.toMatchObject({ name: 'DataAccessError' });
+  });
+
   it('Given an active record, When marked for deletion, Then updates its lifecycle in a transaction', async () => {
     const { repository: current, transaction } = transactionalRepository();
 

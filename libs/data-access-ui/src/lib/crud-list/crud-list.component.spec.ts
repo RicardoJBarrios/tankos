@@ -32,7 +32,10 @@ describe('CrudListComponent', () => {
     const labels = createCrudUiLabels({
       create: 'Crear',
       edit: signal('Editar'),
+      detail: signal('Ver detalle'),
       delete: 'Eliminar',
+      publish: 'Hacer pública',
+      physicalDelete: 'Borrar definitivamente',
       restore: 'Restaurar',
       loading: 'Cargando',
       error: 'No se pudieron cargar los registros',

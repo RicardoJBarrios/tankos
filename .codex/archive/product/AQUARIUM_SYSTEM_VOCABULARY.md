@@ -10,7 +10,7 @@ is widespread.
 
 ### W3C SOSA/SSN
 
-| Standard term               | Role in TankOS                                        |
+| Standard term               | Role in TankOS                                       |
 | --------------------------- | ---------------------------------------------------- |
 | `ssn:System`                | an infrastructure system that may contain subsystems |
 | `ssn:hasSubSystem`          | system-to-subsystem relation                         |
@@ -35,7 +35,7 @@ Reference: [W3C SSN/SOSA](https://www.w3.org/TR/vocab-ssn-2023/).
 
 ### FIWARE and Smart Data Models
 
-| FIWARE structure       | Proposed TankOS use                                                     |
+| FIWARE structure       | Proposed TankOS use                                                    |
 | ---------------------- | ---------------------------------------------------------------------- |
 | `FishContainment`      | display tank or water-containment component when its semantics fit     |
 | `Sump`                 | sump or water-treatment/recirculation component when its semantics fit |
@@ -53,7 +53,7 @@ References: [WaterQualityObserved](https://fiware-datamodels.readthedocs.io/en/s
 
 The following terms are common aquarist language, not formal system classes.
 
-| English term                                  | Meaning in the hobby                                                 | Proposed TankOS role                                         |
+| English term                                  | Meaning in the hobby                                                 | Proposed TankOS role                                        |
 | --------------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------- |
 | `aquarium`                                    | the whole managed aquatic setup, or sometimes only the tank          | product-facing name for `AquariumSystem`                    |
 | `aquarium system` / `system`                  | the complete connected setup and its water/equipment context         | root system concept                                         |

@@ -6,6 +6,8 @@ export type AccessRole = string;
 /** Authenticated scope carried by every data-access command and query. */
 export interface AccessContext {
   readonly principalId: EntityId;
+  /** Optional presentation name; never used as an authorization key. */
+  readonly principalName?: string;
   readonly roles: readonly AccessRole[];
   /** Stable idempotency key for one mutating command, when available. */
   readonly requestId?: string;
@@ -41,6 +43,10 @@ export function createAccessContext(context: AccessContext): AccessContext {
   validateOptionalString(
     context.requestId,
     'Request id must be a non-empty string',
+  );
+  validateOptionalString(
+    context.principalName,
+    'Access principal name must be a non-empty string',
   );
   return {
     ...context,

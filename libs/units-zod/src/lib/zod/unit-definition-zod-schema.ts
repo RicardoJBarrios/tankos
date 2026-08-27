@@ -1,22 +1,10 @@
 import {
-  createDimensionSignature,
-  createQuantityKind,
   createUnitCode,
   createUnitDefinition,
   createUnitRepresentation,
   type UnitDefinition,
 } from '@tankos/units';
 import { z } from 'zod';
-
-const baseDimensionSchema = z.strictObject({
-  length: z.number().int(),
-  mass: z.number().int(),
-  time: z.number().int(),
-  temperature: z.number().int(),
-  amountOfSubstance: z.number().int(),
-  electricCurrent: z.number().int(),
-  luminousIntensity: z.number().int(),
-});
 
 const representationSchema = z.strictObject({
   symbol: z.string().min(1),
@@ -29,7 +17,10 @@ const representationSchema = z.strictObject({
 export const unitDefinitionDtoSchema = z.strictObject({
   code: z.string(),
   ownerId: z.string().min(1).optional(),
-  visibility: z.enum(['private', 'global']).optional(),
+  ownerName: z.string().min(1).optional(),
+  codeSearchTokens: z.array(z.string().min(1)).optional(),
+  ownerSearchTokens: z.array(z.string().min(1)).optional(),
+  visibility: z.enum(['private', 'public']).default('public'),
   system: z.enum([
     'si',
     'metric',
@@ -37,12 +28,8 @@ export const unitDefinitionDtoSchema = z.strictObject({
     'us-customary',
     'custom',
   ]),
-  dimension: baseDimensionSchema,
-  quantityKind: z.string().min(1),
   representation: representationSchema,
-  conversionFamily: z.string().min(1),
   catalogueVersion: z.string().min(1),
-  status: z.enum(['active', 'deprecated', 'retired']),
 });
 
 /** External JSON shape returned for a unit definition. */
@@ -55,16 +42,13 @@ export const unitDefinitionSchema = unitDefinitionDtoSchema.transform(
       return createUnitDefinition({
         code: createUnitCode(value.code),
         ...(value.ownerId === undefined ? {} : { ownerId: value.ownerId }),
-        ...(value.visibility === undefined
+        ...(value.ownerName === undefined
           ? {}
-          : { visibility: value.visibility }),
+          : { ownerName: value.ownerName }),
+        visibility: value.visibility,
         system: value.system,
-        dimension: createDimensionSignature(value.dimension),
-        quantityKind: createQuantityKind(value.quantityKind),
         representation: createUnitRepresentation(value.representation),
-        conversionFamily: value.conversionFamily,
         catalogueVersion: value.catalogueVersion,
-        status: value.status,
       });
     } catch (error) {
       context.addIssue({ code: 'custom', message: String(error) });

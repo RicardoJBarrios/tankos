@@ -171,7 +171,7 @@ disabled or physically deleted.
 The model uses the closest structure for each semantic role rather than
 pretending that every TankOS object has a direct Smart Data Model equivalent:
 
-| TankOS role                   | Closest standard structure               | Use                                       |
+| TankOS role                  | Closest standard structure               | Use                                       |
 | ---------------------------- | ---------------------------------------- | ----------------------------------------- |
 | managed water containment    | `FishContainment` when its semantics fit | tank/display/pond-like containment        |
 | recirculation/treatment unit | `Sump` when its semantics fit            | sump and treatment component              |
@@ -179,7 +179,7 @@ pretending that every TankOS object has a direct Smart Data Model equivalent:
 | measured value               | NGSI-LD `Property`                       | value, `unitCode`, `observedAt`           |
 | component/system relation    | NGSI-LD `Relationship`                   | `object` points to a stable URI           |
 | measurement target           | Feature of Interest relationship         | system, component or zone                 |
-| TankOS system catalogue       | TankOS extension                          | lifecycle and Aquarium-specific semantics |
+| TankOS system catalogue      | TankOS extension                         | lifecycle and Aquarium-specific semantics |
 
 The AquariumSystem and component IDs need a stable standard-facing URI when
 exported to NGSI-LD. Firestore IDs remain internal storage identifiers.

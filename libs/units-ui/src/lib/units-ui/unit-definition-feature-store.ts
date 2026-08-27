@@ -1,12 +1,12 @@
 /* eslint-disable max-lines -- feature orchestration keeps the complete unit workflow cohesive. */
 import {
-  InjectionToken,
   computed,
   signal,
   type Signal,
   type WritableSignal,
 } from '@angular/core';
 import type { AuthSessionPort } from '@tankos/authn';
+import { createFeedbackService, type FeedbackService } from '@tankos/feedback';
 import { createNoopLogger, type Logger } from '@tankos/observability';
 import {
   createCrudListStore,
@@ -35,25 +35,23 @@ export interface UnitDefinitionFeatureStore {
   readonly startEdit: (record: UnitDefinitionRecord) => void;
   readonly cancelEdit: () => void;
   readonly save: (draft: CustomUnitDefinitionDraft) => void;
-  readonly markForDeletion: (record: UnitDefinitionRecord) => void;
-  readonly restore: (record: UnitDefinitionRecord) => void;
+  readonly markForDeletion: (record: UnitDefinitionRecord) => Promise<void>;
+  readonly restore: (record: UnitDefinitionRecord) => Promise<void>;
+  readonly publish: (record: UnitDefinitionRecord) => Promise<void>;
+  readonly delete: (record: UnitDefinitionRecord) => Promise<void>;
 }
 
 /** State of an asynchronous feature command, independent of its adapter. */
 export type FeatureOperationStatus = 'idle' | 'pending' | 'error';
 
-export const UNIT_DEFINITION_MANAGEMENT_SERVICE =
-  new InjectionToken<UnitDefinitionManagementService>(
-    'UNIT_DEFINITION_MANAGEMENT_SERVICE',
-  );
-
 export function createUnitDefinitionFeatureStore(
   service: UnitDefinitionManagementService,
   authSession: AuthSessionPort,
   logger: Logger = createNoopLogger(),
+  feedback: FeedbackService = createFeedbackService(),
 ): UnitDefinitionFeatureStore {
   const rawList = createUnitDefinitionListStore(service, logger);
-  const list = createUnitDefinitionListView(rawList, authSession);
+  const list = createUnitDefinitionListView(rawList, authSession, feedback);
   const editingRecord = signal<UnitDefinitionRecord | undefined>(undefined);
   const saveError = signal<unknown>(undefined);
   const saveStatus = signal<FeatureOperationStatus>('idle');
@@ -78,6 +76,7 @@ export function createUnitDefinitionFeatureStore(
       lifecycleError,
       lifecycleStatus,
       logger,
+      feedback,
     ),
   };
 }
@@ -94,6 +93,7 @@ function createUnitDefinitionActions(
   lifecycleError: WritableSignal<unknown>,
   lifecycleStatus: WritableSignal<FeatureOperationStatus>,
   logger: Logger,
+  feedback: FeedbackService,
 ): Pick<
   UnitDefinitionFeatureStore,
   | 'startCreate'
@@ -102,6 +102,8 @@ function createUnitDefinitionActions(
   | 'save'
   | 'markForDeletion'
   | 'restore'
+  | 'publish'
+  | 'delete'
 > {
   return {
     ...createUnitDefinitionEditingActions(editingRecord),
@@ -120,9 +122,10 @@ function createUnitDefinitionActions(
         saveStatus,
         draft,
         logger,
+        feedback,
       );
     },
-    markForDeletion: (record) => {
+    markForDeletion: (record) =>
       runLifecycle(
         rawList,
         authSession,
@@ -131,9 +134,9 @@ function createUnitDefinitionActions(
         lifecycleError,
         lifecycleStatus,
         logger,
-      );
-    },
-    restore: (record) => {
+        feedback,
+      ),
+    restore: (record) =>
       runLifecycle(
         rawList,
         authSession,
@@ -142,7 +145,55 @@ function createUnitDefinitionActions(
         lifecycleError,
         lifecycleStatus,
         logger,
-      );
+        feedback,
+      ),
+    publish: (record) => {
+      lifecycleError.set(undefined);
+      lifecycleStatus.set('pending');
+      return authSession
+        .access()
+        .then((access) =>
+          service.publish({
+            access,
+            id: record.id,
+            expectedRevision: record.revision,
+            current: record.data,
+            currentLifecycle: record.lifecycle.status,
+          }),
+        )
+        .then(() => list.load(list.filter()))
+        .then(() => {
+          lifecycleStatus.set('idle');
+          feedback.success('Unit published successfully.');
+        })
+        .catch((error: unknown) => {
+          lifecycleStatus.set('error');
+          lifecycleError.set(error);
+          feedback.error('Unable to publish the unit.');
+        });
+    },
+    delete: (record) => {
+      lifecycleError.set(undefined);
+      lifecycleStatus.set('pending');
+      return authSession
+        .access()
+        .then((access) =>
+          service.delete({
+            access,
+            id: record.id,
+            expectedRevision: record.revision,
+          }),
+        )
+        .then(() => list.load(list.filter()))
+        .then(() => {
+          lifecycleStatus.set('idle');
+          feedback.success('Unit permanently deleted.');
+        })
+        .catch((error: unknown) => {
+          lifecycleStatus.set('error');
+          lifecycleError.set(error);
+          feedback.error('Unable to delete the unit permanently.');
+        });
     },
   };
 }
@@ -176,6 +227,7 @@ async function saveUnitDefinition(
   saveStatus: WritableSignal<FeatureOperationStatus>,
   draft: CustomUnitDefinitionDraft,
   logger: Logger,
+  feedback: FeedbackService,
 ): Promise<void> {
   try {
     const access = await authSession.access();
@@ -185,6 +237,7 @@ async function saveUnitDefinition(
         access,
         id: record.id,
         expectedRevision: record.revision,
+        current: record.data,
         draft,
       });
     } else {
@@ -193,11 +246,13 @@ async function saveUnitDefinition(
     editingRecord.set(undefined);
     await list.load();
     saveStatus.set('idle');
+    feedback.success('Unit saved successfully.');
     logger.debug('Unit definition save completed');
   } catch (error) {
     logger.debug('Unit definition save failed', { error });
     saveStatus.set('error');
     saveError.set(error);
+    feedback.error('Unable to save the unit.');
   }
 }
 
@@ -209,14 +264,15 @@ function runLifecycle(
   lifecycleError: WritableSignal<unknown>,
   lifecycleStatus: WritableSignal<FeatureOperationStatus>,
   logger: Logger,
-): void {
+  feedback: FeedbackService,
+): Promise<void> {
   logger.debug('Unit definition lifecycle operation started', {
     operation,
     id: record.id,
   });
   lifecycleError.set(undefined);
   lifecycleStatus.set('pending');
-  void (async () => {
+  return (async () => {
     try {
       const access = await authSession.access();
       const request = {
@@ -230,6 +286,11 @@ function runLifecycle(
           : await list.restore(request);
       if (!result.ok) throw result.error;
       lifecycleStatus.set('idle');
+      feedback.success(
+        operation === 'delete'
+          ? 'Unit moved to the recycle bin.'
+          : 'Unit restored successfully.',
+      );
       logger.debug('Unit definition lifecycle operation completed', {
         operation,
         id: record.id,
@@ -242,6 +303,11 @@ function runLifecycle(
       });
       lifecycleStatus.set('error');
       lifecycleError.set(error);
+      feedback.error(
+        operation === 'delete'
+          ? 'Unable to delete the unit.'
+          : 'Unable to restore the unit.',
+      );
     }
   })();
 }
@@ -249,6 +315,7 @@ function runLifecycle(
 function createUnitDefinitionListView(
   rawList: CrudListStoreInstance<UnitDefinition, unknown, unknown>,
   authSession: AuthSessionPort,
+  feedback: FeedbackService,
 ): UnitDefinitionListStore {
   const accessError = signal<unknown>(undefined);
   let loadQueue = Promise.resolve();
@@ -276,17 +343,22 @@ function createUnitDefinitionListView(
           .then((access) => rawList.load(access, filter))
           .catch((error: unknown) => {
             accessError.set(error);
+            feedback.error('Unable to load the units.');
           });
       });
       return loadQueue;
     },
     loadMore: () => {
       accessError.set(undefined);
-      void authSession
+      return authSession
         .access()
         .then((access) => rawList.loadMore(access))
+        .then((result) => {
+          if (!result.ok) throw result.error;
+        })
         .catch((error: unknown) => {
           accessError.set(error);
+          feedback.error('Unable to load more units.');
         });
     },
   };
@@ -302,7 +374,7 @@ export type UnitDefinitionListStore = Omit<
   | 'updateBatch'
 > & {
   readonly load: (filter?: unknown) => Promise<void>;
-  readonly loadMore: () => void;
+  readonly loadMore: () => Promise<void>;
 };
 
 function enqueueListLoad(
@@ -326,8 +398,20 @@ function createUnitDefinitionListStore(
     logger,
     page: UNIT_DEFINITION_PAGE,
     schema: 'unit-definition',
-    lifecycle: ['active', 'inactive', 'marked-for-deletion'],
+    lifecycle: (filter) =>
+      isDeletedUnitFilter(filter)
+        ? ['marked-for-deletion']
+        : ['active', 'inactive'],
   }))();
+}
+
+function isDeletedUnitFilter(filter: unknown): boolean {
+  return (
+    typeof filter === 'object' &&
+    filter !== null &&
+    'lifecycle' in filter &&
+    filter.lifecycle === 'marked-for-deletion'
+  );
 }
 
 export function formatUnitDefinitionLabel(

@@ -31,7 +31,6 @@
       "@tankos/decimal-zod": ["./libs/decimal-zod/src/index.ts"],
       "@tankos/units-zod": ["./libs/units-zod/src/index.ts"],
       "@tankos/units-firestore": ["./libs/units-firestore/src/index.ts"],
-      "@tankos/units-json-http": ["./libs/units-json-http/src/index.ts"],
       "@tankos/data-access-ui": ["./libs/data-access-ui/src/index.ts"],
       "@tankos/formatting": ["./libs/formatting/src/index.ts"],
       "@tankos/units-ui": ["./libs/units-ui/src/index.ts"],
@@ -40,7 +39,16 @@
       "@tankos/observability": ["./libs/observability/src/index.ts"],
       "@tankos/authn-firebase": ["./libs/authn-firebase/src/index.ts"],
       "@tankos/authz": ["./libs/authz/src/index.ts"],
-      "@tankos/authz-firestore": ["./libs/authz-firestore/src/index.ts"]
+      "@tankos/authz-firestore": ["./libs/authz-firestore/src/index.ts"],
+      "@tankos/authz-ui": ["./libs/authz-ui/src/index.ts"],
+      "@tankos/authn-firebase-ui": ["./libs/authn-firebase-ui/src/index.ts"],
+      "@tankos/feedback": ["./libs/feedback/src/index.ts"],
+      "@tankos/feedback-ui": ["./libs/feedback-ui/src/index.ts"],
+      "@tankos/observability-ui": ["./libs/observability-ui/src/index.ts"],
+      "@tankos/data-access-material-ui": [
+        "./libs/data-access-material-ui/src/index.ts"
+      ],
+      "@tankos/units-composition": ["./libs/units-composition/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

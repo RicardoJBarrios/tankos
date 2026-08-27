@@ -1,6 +1,4 @@
 import {
-  createDimensionSignature,
-  createQuantityKind,
   createUnitCode,
   createUnitDefinition,
   createUnitRepresentation,
@@ -13,19 +11,16 @@ describe('unitDefinitionToDto', () => {
     const definition = createUnitDefinition({
       code: createUnitCode('UN/CEFACT:LTR'),
       ownerId: 'keeper-1',
+      ownerName: 'Keeper One',
       visibility: 'private',
       system: 'metric',
-      dimension: createDimensionSignature({ length: 3 }),
-      quantityKind: createQuantityKind('volume'),
       representation: createUnitRepresentation({
         symbol: 'L',
         asciiFallback: 'L',
         position: 'suffix',
         spacing: 'narrow',
       }),
-      conversionFamily: 'volume',
       catalogueVersion: 'v1',
-      status: 'active',
     });
 
     const dto = unitDefinitionToDto(definition);
@@ -34,24 +29,21 @@ describe('unitDefinitionToDto', () => {
     expect(unitDefinitionSchema.parse(dto)).toEqual(definition);
   });
 
-  it('omits authorization attributes for legacy or standard definitions', () => {
+  it('serializes standard definitions as public without an owner', () => {
     const definition = createUnitDefinition({
       code: createUnitCode('UN/CEFACT:LTR'),
       system: 'metric',
-      dimension: createDimensionSignature({ length: 3 }),
-      quantityKind: createQuantityKind('volume'),
       representation: createUnitRepresentation({
         symbol: 'L',
         asciiFallback: 'L',
         position: 'suffix',
         spacing: 'narrow',
       }),
-      conversionFamily: 'volume',
       catalogueVersion: 'v1',
-      status: 'active',
+      visibility: 'public',
     });
 
     expect(unitDefinitionToDto(definition)).not.toHaveProperty('ownerId');
-    expect(unitDefinitionToDto(definition)).not.toHaveProperty('visibility');
+    expect(unitDefinitionToDto(definition).visibility).toBe('public');
   });
 });

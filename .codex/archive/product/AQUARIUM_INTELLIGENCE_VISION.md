@@ -79,7 +79,7 @@ The agent previously replaced several external terms. Both the original and the
 alternative are preserved here so the user can choose the product language and
 required fidelity:
 
-| External term       | TankOS term                             | Reason                                                                                  |
+| External term       | TankOS term                            | Reason                                                                                  |
 | ------------------- | -------------------------------------- | --------------------------------------------------------------------------------------- |
 | Digital Twin        | Aquarium Digital Model                 | `Digital Twin` overstates fidelity until sensor-backed calibration and validation exist |
 | Causal graph        | Evidence Relationship Graph            | Relationships and temporal order do not prove causality                                 |
@@ -87,7 +87,7 @@ required fidelity:
 | Simulator           | Scenario Analysis                      | Outputs depend on explicit assumptions and uncertainty                                  |
 | Predictive alert    | Forecast or deviation candidate        | Prediction quality and delivery are separate concerns                                   |
 | Automatic diagnosis | Guided evidence review                 | Animal-health claims require strong evaluation and cautious output                      |
-| Smart dosing        | Keeper-confirmed dosing calculation    | TankOS must not silently prescribe or actuate dosing                                     |
+| Smart dosing        | Keeper-confirmed dosing calculation    | TankOS must not silently prescribe or actuate dosing                                    |
 | Aquarium health     | Multidimensional evidence summary      | Avoid opaque combined scores                                                            |
 | AI recommendation   | Attributable hypothesis or explanation | Source, uncertainty and user purpose must remain visible                                |
 

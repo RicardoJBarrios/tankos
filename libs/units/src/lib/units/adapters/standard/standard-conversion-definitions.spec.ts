@@ -1,7 +1,7 @@
 import { createStandardConversionDefinitions } from './standard-conversion-definitions';
 
 describe('createStandardConversionDefinitions', () => {
-  it('Given the standard catalogue, When definitions are requested, Then returns the declared aquarium-first conversion set', () => {
+  it('Given the standard conversion adapter, When definitions are requested, Then returns the declared aquarium-first conversion set', () => {
     const definitions = createStandardConversionDefinitions();
 
     expect(definitions.map((definition) => definition.code)).toEqual([

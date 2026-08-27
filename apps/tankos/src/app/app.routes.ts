@@ -1,12 +1,11 @@
-import { Route } from '@angular/router';
-import { authGuard } from '@tankos/authn';
+import type { Route } from '@angular/router';
 
 export const appRoutes: Route[] = [
   {
     path: 'login',
     loadComponent: () =>
-      import('./login/login-page.component').then(
-        ({ LoginPageComponent }) => LoginPageComponent,
+      import('@tankos/authn-firebase-ui').then(
+        ({ FirebaseLoginPageComponent }) => FirebaseLoginPageComponent,
       ),
   },
   {
@@ -17,11 +16,24 @@ export const appRoutes: Route[] = [
       ),
   },
   {
-    path: 'units',
-    canActivate: [authGuard],
+    path: 'forbidden',
     loadComponent: () =>
-      import('./units/units-page.component').then(
-        ({ UnitsPageComponent }) => UnitsPageComponent,
+      import('./forbidden/forbidden-page.component').then(
+        ({ ForbiddenPageComponent }) => ForbiddenPageComponent,
       ),
+  },
+  {
+    path: 'units',
+    loadChildren: () =>
+      Promise.all([
+        import('@tankos/units-ui'),
+        import('./units.providers'),
+      ]).then(([ui, composition]) => [
+        {
+          path: '',
+          providers: [composition.provideTankosUnits()],
+          children: ui.unitsRoutes,
+        },
+      ]),
   },
 ];

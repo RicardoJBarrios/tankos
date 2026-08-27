@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { createStandardUnitCatalogue } from '../adapters/standard';
-import { createConversionDefinition, createUnitCode } from '../core';
+import {
+  createConversionDefinition,
+  createUnitCode,
+  createUnitDefinition,
+  createUnitRepresentation,
+  type UnitCataloguePort,
+} from '../core';
 import { validateConversionDefinition } from './conversion-definition-validator';
 
 const NOT_ACTIVE_PATTERN = /not active/iu;
-const INCOMPATIBLE_PATTERN = /incompatible/iu;
 
 describe('validateConversionDefinition', () => {
-  const catalogue = createStandardUnitCatalogue();
+  const catalogue = createTestCatalogue();
   const base = {
     code: 'TANKOS:CUSTOM-LTR-MLT',
     version: '1',
@@ -40,14 +44,36 @@ describe('validateConversionDefinition', () => {
     ).toThrow(NOT_ACTIVE_PATTERN);
   });
 
-  it('Given incompatible endpoints, When validated, Then rejects the conversion', () => {
+  it('Given endpoints with different physical semantics, When validated, Then accepts the explicitly declared conversion', () => {
     const definition = createConversionDefinition({
       ...base,
       targetUnit: createUnitCode('UN/CEFACT:KGM'),
     });
 
-    expect(() =>
-      validateConversionDefinition(definition, { catalogue }),
-    ).toThrow(INCOMPATIBLE_PATTERN);
+    expect(validateConversionDefinition(definition, { catalogue })).toBe(
+      definition,
+    );
   });
+  function createTestCatalogue(): UnitCataloguePort {
+    const definitions = ['UN/CEFACT:LTR', 'UN/CEFACT:MLT', 'UN/CEFACT:KGM'].map(
+      (code) =>
+        createUnitDefinition({
+          code: createUnitCode(code),
+          system: 'metric',
+          representation: createUnitRepresentation({
+            symbol: 'u',
+            asciiFallback: 'u',
+            position: 'suffix',
+            spacing: 'normal',
+          }),
+          catalogueVersion: 'test',
+        }),
+    );
+
+    return {
+      list: () => definitions,
+      find: (code) =>
+        definitions.find((definition) => definition.code === code),
+    };
+  }
 });

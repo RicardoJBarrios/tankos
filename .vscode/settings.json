@@ -1,6 +1,6 @@
 {
-    "sonarlint.connectedMode.project": {
-        "connectionId": "ricardojbarrios",
-        "projectKey": "tankos"
-    }
+  "sonarlint.connectedMode.project": {
+    "connectionId": "ricardojbarrios",
+    "projectKey": "tankos"
+  }
 }

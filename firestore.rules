@@ -22,9 +22,63 @@ service cloud.firestore {
 
     function isValidUnitDefinition(data) {
       return data is map
-        && data.keys().hasAll(['ownerId', 'visibility'])
-        && data.visibility in ['private', 'global']
-        && isBoundedText(data.ownerId, 128);
+        && data.keys().hasAll(['visibility'])
+        && data.keys().hasOnly([
+          'code', 'ownerId', 'ownerName', 'codeSearchTokens',
+          'ownerSearchTokens', 'visibility', 'system', 'representation',
+          'catalogueVersion'
+        ])
+        && data.visibility in ['private', 'public']
+        && data.code is string
+        && data.code.size() > 0
+        && data.system is string
+        && isValidUnitRepresentation(data.representation)
+        && data.catalogueVersion is string
+        && data.catalogueVersion.size() > 0
+        && (
+          data.visibility == 'public'
+          || (
+            data.keys().hasAll(['ownerId'])
+            && isBoundedText(data.ownerId, 128)
+          )
+        )
+        && (
+          !data.keys().hasAll(['ownerName'])
+          || data.ownerName == null
+          || isBoundedText(data.ownerName, 256)
+        );
+    }
+
+    function isValidUnitRepresentation(data) {
+      return data is map
+        && data.keys().hasOnly(['symbol', 'asciiFallback', 'position', 'spacing'])
+        && data.keys().hasAll(['symbol', 'asciiFallback', 'position', 'spacing'])
+        && isBoundedText(data.symbol, 64)
+        && isBoundedText(data.asciiFallback, 64)
+        && data.position in ['prefix', 'suffix']
+        && data.spacing in ['none', 'narrow', 'normal'];
+    }
+
+    function isValidUnitRecord(data) {
+      return data is map
+        && data.keys().hasOnly(['data', 'lifecycle', 'revision', 'metadata'])
+        && data.keys().hasAll(['data', 'lifecycle', 'revision', 'metadata'])
+        && isValidUnitDefinition(data.data)
+        && data.lifecycle is map
+        && data.lifecycle.keys().hasOnly(['status'])
+        && data.lifecycle.status in [
+          'active', 'inactive', 'marked-for-deletion', 'deleted'
+        ]
+        && data.revision is int
+        && data.revision > 0
+        && data.metadata is map
+        && data.metadata.keys().hasAll([
+          'schemaVersion', 'createdAt', 'updatedAt'
+        ])
+        && data.metadata.schemaVersion is int
+        && data.metadata.schemaVersion > 0
+        && data.metadata.createdAt is timestamp
+        && data.metadata.updatedAt is timestamp;
     }
 
     function isPrivateUnitOwner(data) {
@@ -37,10 +91,10 @@ service cloud.firestore {
     function isGlobalUnit(data) {
       return isKeeper()
         && isValidUnitDefinition(data)
-        && data.visibility == 'global';
+        && data.visibility == 'public';
     }
 
-    // Unit definitions are private to their keeper until an admin globalizes
+    // Unit definitions are private to their keeper until an admin publishes
     // them. Firebase Rules remains the authoritative resource boundary.
     match /units/{unitId} {
       // The create transaction reads a non-existent generated id first to
@@ -50,19 +104,42 @@ service cloud.firestore {
           !exists(/databases/$(database)/documents/units/$(unitId))
           && isKeeper()
         )
+        || isAdmin()
         || isPrivateUnitOwner(resource.data.data)
         || isGlobalUnit(resource.data.data);
-      allow list: if isKeeper()
+      allow list: if hasBoundedListQuery() && (isAdmin()
+        || (isKeeper()
         && (
-          resource.data.data.visibility == 'global'
+          resource.data.data.visibility == 'public'
           || (
             resource.data.data.visibility == 'private'
             && resource.data.data.ownerId == request.auth.uid
           )
+        )));
+      allow create: if (
+          isAdmin()
+          && isValidUnitRecord(request.resource.data)
+        )
+        || (
+          isValidUnitRecord(request.resource.data)
+          &&
+          isPrivateUnitOwner(request.resource.data.data)
+          && request.resource.data.data.visibility == 'private'
         );
-      allow create: if isPrivateUnitOwner(request.resource.data.data)
-        && request.resource.data.data.visibility == 'private';
-      allow update: if isAdmin()
+      allow update: if (
+          isValidUnitRepresentation(request.resource.data.data.representation)
+          && request.resource.data.data.visibility in ['private', 'public']
+          && (
+            request.resource.data.data.visibility == 'public'
+            || (
+              request.resource.data.data.ownerId is string
+              && request.resource.data.data.ownerId.size() > 0
+            )
+          )
+          &&
+          isAdmin()
+          && request.resource.data.data.code == resource.data.data.code
+        )
         || (
           isPrivateUnitOwner(resource.data.data)
           && isPrivateUnitOwner(request.resource.data.data)

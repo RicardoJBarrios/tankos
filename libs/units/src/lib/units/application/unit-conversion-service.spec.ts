@@ -4,13 +4,18 @@ import {
   DecimalDivisionByZeroError,
   normalizeDecimalInput,
 } from '@tankos/decimal';
-import { createStandardUnitCatalogue } from '../adapters/standard';
-import { createConversionDefinition, createUnitCode } from '../core';
+import {
+  createConversionDefinition,
+  createUnitCode,
+  createUnitDefinition,
+  createUnitRepresentation,
+  type UnitCataloguePort,
+} from '../core';
 import { createUnitConversionService } from './unit-conversion-service';
 
 describe('createUnitConversionService', () => {
   const arithmetic = createBigJsDecimalAdapter();
-  const catalogue = createStandardUnitCatalogue();
+  const catalogue = createTestCatalogue();
   const units = (source: string, target: string) => ({
     sourceUnit: createUnitCode(source),
     targetUnit: createUnitCode(target),
@@ -126,7 +131,7 @@ describe('createUnitConversionService', () => {
     ).toThrow('Conversion offset denominator must not be zero');
   });
 
-  it('Given incompatible units, When conversion is requested, Then throws a structured incompatibility error', () => {
+  it('Given units without a declared conversion, When conversion is requested, Then reports that the conversion is unavailable', () => {
     const service = createService([]);
 
     expectCode(
@@ -135,7 +140,7 @@ describe('createUnitConversionService', () => {
           value: '1',
           ...units('UN/CEFACT:LTR', 'UN/CEFACT:KGM'),
         }),
-      'UNIT_CONVERSION_INCOMPATIBLE',
+      'UNIT_CONVERSION_UNAVAILABLE',
     );
   });
 
@@ -290,5 +295,34 @@ describe('createUnitConversionService', () => {
     }
 
     expect(error).toMatchObject({ code });
+  }
+
+  function createTestCatalogue(): UnitCataloguePort {
+    const definitions = [
+      'UN/CEFACT:LTR',
+      'UN/CEFACT:MLT',
+      'UN/CEFACT:KGM',
+      'UN/CEFACT:CEL',
+      'UN/CEFACT:KEL',
+      'UN/CEFACT:FAH',
+    ].map((code) =>
+      createUnitDefinition({
+        code: createUnitCode(code),
+        system: 'metric',
+        representation: createUnitRepresentation({
+          symbol: code.slice(-3),
+          asciiFallback: code.slice(-3),
+          position: 'suffix',
+          spacing: 'normal',
+        }),
+        catalogueVersion: 'test',
+      }),
+    );
+
+    return {
+      list: () => definitions,
+      find: (code) =>
+        definitions.find((definition) => definition.code === code),
+    };
   }
 });

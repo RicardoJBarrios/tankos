@@ -11,6 +11,7 @@ import type {
   AccessContext,
   CrudRecord,
   EntityId,
+  LifecycleStatus,
   PageCursor,
 } from '@tankos/data-access';
 import type { BatchProgress } from '@tankos/data-access';
@@ -75,6 +76,16 @@ function pageRequest<TData, TCreate, TUpdate, TFilter, TPayload>(
   return { ...options.page, ...(after ? { after } : {}) };
 }
 
+function resolveLifecycle<TFilter>(
+  lifecycle:
+    | readonly LifecycleStatus[]
+    | ((filter: TFilter | undefined) => readonly LifecycleStatus[]),
+  filter: TFilter | undefined,
+) {
+  if (typeof lifecycle === 'function') return lifecycle(filter);
+  return lifecycle;
+}
+
 async function loadCrudList<TData, TCreate, TUpdate, TFilter, TPayload>(
   store: CrudListStoreSource<TData, TFilter>,
   options: CrudListStoreOptions<TData, TCreate, TUpdate, TFilter, TPayload>,
@@ -90,7 +101,11 @@ async function loadCrudList<TData, TCreate, TUpdate, TFilter, TPayload>(
       access,
       filter,
       page: pageRequest(options, append ? store.nextCursor() : undefined),
-      ...(options.lifecycle ? { lifecycle: options.lifecycle } : {}),
+      ...(options.lifecycle
+        ? {
+            lifecycle: resolveLifecycle(options.lifecycle, filter),
+          }
+        : {}),
     });
     patchState(store, {
       status: 'ready',

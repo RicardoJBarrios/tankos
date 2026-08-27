@@ -17,8 +17,6 @@ export interface InMemoryCrudRepositoryOptions<
   readonly update: (data: TData, input: TUpdate) => TData;
   readonly matches?: (record: CrudRecord<TData>, filter: TFilter) => boolean;
   readonly clock: ClockPort;
-  /** Roles allowed to perform lifecycle operations in this test adapter. */
-  readonly elevatedRoles?: readonly string[];
 }
 
 /** In-memory CRUD adapter for deterministic tests and local prototypes. */

@@ -78,6 +78,7 @@
     "@vitest/coverage-v8": "4.1.11",
     "@vitest/ui": "4.1.11",
     "angular-eslint": "22.1.0",
+    "autoprefixer": "^10.4.0",
     "esbuild": "^0.27.0",
     "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.0.0",

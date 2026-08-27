@@ -1,0 +1,13 @@
+{
+  "name": "units-composition",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/units-composition/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:composition"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

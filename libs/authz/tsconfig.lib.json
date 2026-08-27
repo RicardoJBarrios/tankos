@@ -4,13 +4,9 @@
     "outDir": "../../dist/out-tsc",
     "declaration": true,
     "target": "es2018",
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   },
-  "include": [
-    "src/**/*.ts"
-  ],
+  "include": ["src/**/*.ts"],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",

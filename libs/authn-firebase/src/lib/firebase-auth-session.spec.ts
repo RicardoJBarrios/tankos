@@ -56,6 +56,7 @@ describe('Firebase auth session', () => {
       auth: {
         currentUser: {
           uid: 'claims-user',
+          displayName: 'Claims User',
           getIdTokenResult: vi.fn().mockResolvedValue({
             claims: { roles: ['admin', 'keeper'] },
           }),
@@ -68,6 +69,7 @@ describe('Firebase auth session', () => {
 
     await expect(session.access()).resolves.toMatchObject({
       principalId: 'claims-user',
+      principalName: 'Claims User',
       roles: ['admin', 'keeper'],
     });
   });
@@ -158,6 +160,94 @@ describe('Firebase auth session', () => {
     );
   });
 
+  it.each(['auth/invalid-credential', 'auth/invalid-login-credentials'])(
+    'creates the local user for the current emulator missing-user code %s',
+    async (code) => {
+      signInWithEmailAndPassword.mockRejectedValueOnce({ code });
+      createUserWithEmailAndPassword.mockResolvedValueOnce({
+        user: { uid: 'created-user-with-new-code' },
+      });
+      const session = createLocalFirebaseAuthSession({
+        currentUser: null,
+      } as Auth);
+
+      await expect(session.access()).resolves.toMatchObject({
+        principalId: 'created-user-with-new-code',
+      });
+    },
+  );
+
+  it('preserves an invalid credential error when the local account already exists', async () => {
+    const signInError = { code: 'auth/invalid-credential' };
+    signInWithEmailAndPassword.mockRejectedValueOnce(signInError);
+    createUserWithEmailAndPassword.mockRejectedValueOnce({
+      code: 'auth/email-already-in-use',
+    });
+    const session = createLocalFirebaseAuthSession({
+      currentUser: null,
+    } as Auth);
+
+    await expect(
+      session.signIn({
+        email: 'developer@tankos.local',
+        password: 'wrong-password',
+      }),
+    ).rejects.toBe(signInError);
+  });
+
+  it('propagates an unexpected local account creation error', async () => {
+    const creationError = { code: 'auth/operation-not-allowed' };
+    signInWithEmailAndPassword.mockRejectedValueOnce({
+      code: 'auth/invalid-credential',
+    });
+    createUserWithEmailAndPassword.mockRejectedValueOnce(creationError);
+    const session = createLocalFirebaseAuthSession({
+      currentUser: null,
+    } as Auth);
+
+    await expect(
+      session.signIn({
+        email: 'developer@tankos.local',
+        password: 'tankos-local-dev',
+      }),
+    ).rejects.toBe(creationError);
+  });
+
+  it('retries automatic local sign-in after a concurrent account creation', async () => {
+    signInWithEmailAndPassword
+      .mockRejectedValueOnce({ code: 'auth/invalid-credential' })
+      .mockResolvedValueOnce({ user: { uid: 'concurrent-user' } });
+    createUserWithEmailAndPassword.mockRejectedValueOnce({
+      code: 'auth/email-already-in-use',
+    });
+    const session = createFirebaseAuthSession({
+      auth: { currentUser: null } as Auth,
+      email: 'developer@tankos.local',
+      password: 'tankos-local-dev',
+      roles: ['keeper'],
+    });
+
+    await expect(session.access()).resolves.toMatchObject({
+      principalId: 'concurrent-user',
+    });
+  });
+
+  it('propagates an unexpected automatic local account creation error', async () => {
+    const creationError = { code: 'auth/operation-not-allowed' };
+    signInWithEmailAndPassword.mockRejectedValueOnce({
+      code: 'auth/invalid-credential',
+    });
+    createUserWithEmailAndPassword.mockRejectedValueOnce(creationError);
+    const session = createFirebaseAuthSession({
+      auth: { currentUser: null } as Auth,
+      email: 'developer@tankos.local',
+      password: 'tankos-local-dev',
+      roles: ['keeper'],
+    });
+
+    await expect(session.access()).rejects.toBe(creationError);
+  });
+
   it('synchronizes the local keeper claim before reading access', async () => {
     vi.stubGlobal('window', {});
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
@@ -166,6 +256,7 @@ describe('Firebase auth session', () => {
     const auth = {
       currentUser: {
         uid: 'local-keeper',
+        email: 'developer@tankos.local',
         getIdToken,
         getIdTokenResult: vi.fn().mockResolvedValue({ claims: {} }),
       },
@@ -206,6 +297,61 @@ describe('Firebase auth session', () => {
         headers: expect.objectContaining({ Authorization: 'Bearer owner' }),
       }),
     );
+    vi.unstubAllGlobals();
+  });
+
+  it('synchronizes the local admin claim for the emulator admin account', async () => {
+    vi.stubGlobal('window', {});
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+    const auth = {
+      currentUser: {
+        uid: 'local-admin',
+        email: 'admin@tankos.local',
+        getIdTokenResult: vi
+          .fn()
+          .mockResolvedValue({ claims: { roles: ['admin'] } }),
+      },
+    } as Auth;
+    const session = createLocalFirebaseAuthSession(auth, {
+      autoSignIn: false,
+    });
+
+    await expect(session.access()).resolves.toMatchObject({
+      principalId: 'local-admin',
+      roles: ['admin'],
+    });
+    expect(fetch).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        body: JSON.stringify({
+          localId: 'local-admin',
+          customAttributes: JSON.stringify({ roles: ['admin'] }),
+        }),
+      }),
+    );
+    vi.unstubAllGlobals();
+  });
+
+  it('synchronizes the local guest claim for the emulator guest account', async () => {
+    vi.stubGlobal('window', {});
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
+    const auth = {
+      currentUser: {
+        uid: 'local-guest',
+        email: 'guest@tankos.local',
+        getIdTokenResult: vi
+          .fn()
+          .mockResolvedValue({ claims: { roles: ['guest'] } }),
+      },
+    } as Auth;
+    const session = createLocalFirebaseAuthSession(auth, {
+      autoSignIn: false,
+    });
+
+    await expect(session.access()).resolves.toMatchObject({
+      principalId: 'local-guest',
+      roles: ['guest'],
+    });
     vi.unstubAllGlobals();
   });
 

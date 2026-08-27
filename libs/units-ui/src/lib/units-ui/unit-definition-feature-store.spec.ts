@@ -1,5 +1,6 @@
 import {
   createEntityId,
+  createPageCursor,
   type AccessContext,
   type CrudRecord,
 } from '@tankos/data-access';
@@ -22,8 +23,6 @@ const draft = {
   code: 'TANKOS:CUSTOM-ALK',
   symbol: 'dKH',
   asciiFallback: 'dKH',
-  quantityKind: 'alkalinity',
-  conversionFamily: 'alkalinity',
 };
 
 const authSession = {
@@ -60,9 +59,23 @@ describe('unit definition feature store', () => {
         access,
         id: record.id,
         expectedRevision: record.revision,
+        current: record.data,
         draft,
       });
     });
+  });
+
+  it('requests deleted records with the restricted lifecycle filter', async () => {
+    const service = createService();
+    const feature = createUnitDefinitionFeatureStore(service, authSession);
+
+    await feature.list.load({ lifecycle: 'marked-for-deletion' });
+
+    expect(service.listSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lifecycle: ['marked-for-deletion'],
+      }),
+    );
   });
 
   it('starts and cancels creation mode', () => {
@@ -85,15 +98,19 @@ describe('unit definition feature store', () => {
     const feature = createUnitDefinitionFeatureStore(service, authSession);
     const record = createRecord();
 
-    feature.markForDeletion(record);
+    void feature.markForDeletion(record);
     await vi.waitFor(() => {
       expect(service.markForDeletionSpy).toHaveBeenCalled();
     });
-    feature.restore(record);
+    void feature.restore(record);
+    void feature.publish(record);
+    void feature.delete(record);
     await vi.waitFor(() => {
       expect(service.restoreSpy).toHaveBeenCalled();
+      expect(service.publishSpy).toHaveBeenCalled();
+      expect(service.deleteSpy).toHaveBeenCalled();
     });
-    feature.list.loadMore();
+    void feature.list.loadMore();
 
     expect(service.markForDeletionSpy).toHaveBeenCalledWith({
       access,
@@ -101,6 +118,18 @@ describe('unit definition feature store', () => {
       expectedRevision: record.revision,
     });
     expect(service.restoreSpy).toHaveBeenCalledWith({
+      access,
+      id: record.id,
+      expectedRevision: record.revision,
+    });
+    expect(service.publishSpy).toHaveBeenCalledWith({
+      access,
+      id: record.id,
+      expectedRevision: record.revision,
+      current: record.data,
+      currentLifecycle: record.lifecycle.status,
+    });
+    expect(service.deleteSpy).toHaveBeenCalledWith({
       access,
       id: record.id,
       expectedRevision: record.revision,
@@ -127,12 +156,33 @@ describe('unit definition feature store', () => {
     service.markForDeletionSpy.mockRejectedValueOnce(failure);
     const feature = createUnitDefinitionFeatureStore(service, authSession);
 
-    feature.markForDeletion(createRecord());
+    void feature.markForDeletion(createRecord());
 
     await vi.waitFor(() => {
       expect(feature.lifecycleError()).toBe(failure);
     });
     expect(feature.lifecycleStatus()).toBe('error');
+
+    const restoreFailure = new Error('restore-offline');
+    service.restoreSpy.mockRejectedValueOnce(restoreFailure);
+    void feature.restore(createRecord());
+    await vi.waitFor(() => {
+      expect(feature.lifecycleError()).toBe(restoreFailure);
+    });
+
+    const publishFailure = new Error('publish-offline');
+    service.publishSpy.mockRejectedValueOnce(publishFailure);
+    void feature.publish(createRecord());
+    await vi.waitFor(() => {
+      expect(feature.lifecycleError()).toBe(publishFailure);
+    });
+
+    const deleteFailure = new Error('delete-offline');
+    service.deleteSpy.mockRejectedValueOnce(deleteFailure);
+    void feature.delete(createRecord());
+    await vi.waitFor(() => {
+      expect(feature.lifecycleError()).toBe(deleteFailure);
+    });
   });
 
   it('exposes session failures through the list signals', async () => {
@@ -155,11 +205,29 @@ describe('unit definition feature store', () => {
       expect(feature.list.status()).toBe('error');
       expect(feature.list.error()).toBe(failure);
     });
-    feature.list.loadMore();
+    void feature.list.loadMore();
     expect(feature.list.error()).toBeUndefined();
     await vi.waitFor(() => {
       expect(feature.list.error()).toBe(failure);
     });
+  });
+
+  it('exposes failures while loading another page', async () => {
+    const service = createService();
+    service.listSpy.mockResolvedValueOnce({
+      items: [],
+      hasMore: true,
+      nextCursor: createPageCursor('next'),
+    });
+    const feature = createUnitDefinitionFeatureStore(service, authSession);
+    await feature.list.load();
+
+    const failure = new Error('next page unavailable');
+    service.listSpy.mockRejectedValueOnce(failure);
+    await feature.list.loadMore();
+
+    expect(feature.list.status()).toBe('error');
+    expect(feature.list.error()).toBe(failure);
   });
 
   function createService(): UnitDefinitionManagementService & {
@@ -167,11 +235,15 @@ describe('unit definition feature store', () => {
     listSpy: ReturnType<typeof vi.fn>;
     markForDeletionSpy: ReturnType<typeof vi.fn>;
     restoreSpy: ReturnType<typeof vi.fn>;
+    publishSpy: ReturnType<typeof vi.fn>;
+    deleteSpy: ReturnType<typeof vi.fn>;
   } {
     const listSpy = vi.fn(() => Promise.resolve({ items: [], hasMore: false }));
     const saveSpy = vi.fn(() => Promise.resolve(createRecord()));
     const markForDeletionSpy = vi.fn(() => Promise.resolve(createRecord()));
     const restoreSpy = vi.fn(() => Promise.resolve(createRecord()));
+    const publishSpy = vi.fn(() => Promise.resolve(createRecord()));
+    const deleteSpy = vi.fn(() => Promise.resolve());
     return {
       list: listSpy,
       get: vi.fn(() => Promise.resolve(undefined)),
@@ -185,6 +257,10 @@ describe('unit definition feature store', () => {
       listSpy,
       markForDeletionSpy,
       restoreSpy,
+      publish: publishSpy,
+      publishSpy,
+      delete: deleteSpy,
+      deleteSpy,
     };
   }
 

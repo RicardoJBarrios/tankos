@@ -1,14 +1,16 @@
 # TankOS Units
 
-**Status:** the provider-independent unit model, standard catalogue,
-deterministic conversion slice and custom-unit CRUD application contract are
-implemented. Persistence and transport adapters are separate packages; the
-standard CRUD UI is not part of this library's current public API.
+**Status:** the provider-independent unit model, deterministic conversion
+slice and custom-unit CRUD application contract are implemented. Unit
+definitions are persisted records; local development seeds the public records
+into the Firestore emulator. Persistence and transport adapters are separate
+packages; the standard CRUD UI is not part of this library's current public API.
 
-`@tankos/units` is an Angular-centric capability library for unit identity,
-dimensional compatibility, scientific representation and declared conversion.
+`@tankos/units` is a provider-independent domain and application library for
+unit identity and scientific representation. Angular forms and components live
+in `@tankos/units-ui`.
 It models units only; it does not model measurements or observations.
-Unit definitions are global technical catalogue entries and have no relationship
+Unit definitions are public or private technical catalogue entries and have no relationship
 to an Aquarium, keeper or Aquarium configuration. A Measurement or another
 domain record may reference a unit code, but the reference belongs to that
 record and never creates an ownership or configuration relationship from the
@@ -19,16 +21,15 @@ unit back to an Aquarium.
 Units owns:
 
 - qualified standard unit codes;
-- unit systems, quantity kinds and dimensional signatures;
+- unit systems;
 - symbols, Unicode notation, ASCII fallbacks and symbol placement;
-- immutable conversion definitions and conversion execution;
+- immutable conversion primitives and conversion execution;
 - read-only catalogue and conversion ports;
-- the standard catalogue composition;
-- the global custom-unit CRUD application boundary.
+- the public/private unit-definition CRUD application boundary.
 
 The first authorization slice is provider-neutral and lives in the application
 layer. A `keeper` can create, use and manage a private unit they own, and can
-use global units. An `admin` can manage global units and globalize a private
+use public units. An `admin` can manage public units and publish a private
 unit. The policy evaluates `ownerId` and `visibility` attributes; persistence
 records must expose those attributes before the policy is wired into every CRUD
 operation and Firestore rule.
@@ -56,24 +57,28 @@ replace that code in APIs or persisted domain references.
 
 - `code` and `catalogueVersion`;
 - `system` (`si`, `metric`, `british-imperial`, `us-customary` or `custom`);
-- a complete SI-base `DimensionSignature`;
-- a semantic `QuantityKind`;
+- visibility (`private` or `public`) and optional owner projection;
 - scientific `UnitRepresentation` metadata;
-- a conversion family and lifecycle status.
 
-Dimensional compatibility is structural. Units with the same dimension can be
-compatible even when their semantic quantity kinds or display systems differ;
-similar names do not make units compatible.
+Built-in definitions without an explicit visibility are normalized as public.
+Private definitions must have an owner. Technical lifecycle (`active`,
+`marked-for-deletion` or `deleted`) belongs to `@tankos/data-access`, not to
+the unit value itself. A future business state such as deprecation must be
+introduced separately only when its workflow exists.
+
+Measurement semantics, allowed units, the primary unit and the conversion set
+for a measurement type do not belong to this catalogue. They are owned by the
+future measurements domain.
 
 Representation metadata records the standard symbol, an ASCII fallback, its
 prefix/suffix position and spacing rule. Formatting is presentation work; the
 unit model does not turn a measurement into a formatted string.
 
-## Standard catalogue
+## Unit catalogue data
 
-The current catalogue is an immutable aquarium-first subset of
-UN/CEFACT Recommendation 20, pinned as `UN/CEFACT-Rev17-aquarium-core`.
-It contains 13 definitions:
+The initial public dataset is an aquarium-first subset of UN/CEFACT
+Recommendation 20, pinned as `UN/CEFACT-Rev17-aquarium-core`. It contains 13
+definitions and is seeded into Firestore for local development:
 
 | Family      | Codes                      |
 | ----------- | -------------------------- |
@@ -88,18 +93,19 @@ The catalogue never collapses them into an ambiguous `gallon`.
 
 The operational catalogue is intentionally smaller than a complete standards
 snapshot. A code is not enabled in TankOS merely because it exists in the
-external standard. Any catalogue expansion must record its source release and
-provenance without silently changing an existing code's meaning.
+external standard. Any catalogue expansion must be added as a persisted record
+with its source release and provenance without silently changing an existing
+code's meaning.
 
-`createEffectiveUnitCatalogue()` combines the fixed standard catalogue with
-active custom definitions, orders codes deterministically and rejects custom
-entries with invalid systems or code collisions. Deprecated and retired custom
-units are not available for new conversions.
+There is no runtime in-memory standard or effective catalogue. Consumers use a
+`UnitCataloguePort` backed by their persistence adapter (Firestore in TankOS),
+so filtering, pagination and authorization operate on the same records as CRUD.
+Deprecated and retired units are not available for new conversions.
 
 ## Conversion contract
 
-`UnitConversionPort` executes a declared conversion between two known,
-dimensionally compatible codes. A `ConversionDefinition` declares:
+`UnitConversionPort` executes a conversion explicitly declared by its caller
+between two known unit codes. A `ConversionDefinition` declares:
 
 - source and target codes;
 - a stable code and version;
@@ -113,8 +119,7 @@ dimensionally compatible codes. A `ConversionDefinition` declares:
 The first deterministic definitions cover both directions for litre/millilitre,
 metre/centimetre, kilogram/gram, Celsius/Kelvin, Celsius/Fahrenheit and
 bar/pascal. Conversion does not infer formulas from names or symbols, and it
-does not silently accept an unknown code, incompatible dimension or missing
-declared definition.
+does not silently accept an unknown code or missing declared definition.
 
 Decimal normalization and arithmetic are delegated to the injected
 `DecimalArithmeticPort`. Exact factors and offsets are preserved; repeating
@@ -137,38 +142,37 @@ core ports and value types
           |
 application conversion service
           |
-standard catalogue adapter
-          |
-standard composition
+catalogue persistence adapter
 ```
 
-The core is framework- and provider-neutral. The standard adapter owns the
-catalogue and conversion definitions. `createStandardUnitConversionService()`
-composes the standard catalogue with the injected decimal arithmetic adapter.
-`createUnitDefinitionCrudService()` composes the generic CRUD port for the
-global custom catalogue and rejects standard definitions at the application
-boundary. Replacement uses the shared versioned workflow: it creates the new
-custom definition and then marks the previous record for deletion. No Angular
-component or template contains conversion logic.
+The core is framework- and provider-neutral. A hosting application supplies the
+catalogue port from its persistence adapter and supplies conversion definitions
+through the same provider boundary. `createUnitDefinitionCrudService()` composes
+the generic CRUD port for the public/private catalogue and accepts system and
+custom definitions at the application boundary. Replacement uses the shared
+versioned workflow: it creates the new definition and then marks the previous
+record for deletion. No Angular component or template contains conversion logic.
 
-Custom-unit persistence and transport are published behind separate adapter
-packages (`units-firestore` and `units-json-http`). They validate DTOs at their
-boundary and keep provider types out of the core contracts. Authorization,
+Custom-unit persistence is published behind the `units-firestore` adapter. It
+validates DTOs at its boundary and keeps provider types out of the core
+contracts. A future transport can implement the same repository port without
+belonging to this domain package. Authorization,
 Firestore configuration, indexes, cache policy and batch execution belong to
 the hosting application and shared data-access capabilities.
 
 Custom conversion definitions follow the same boundary: standard conversions
-are immutable catalogue entries, while custom conversions are managed through
+are provider-supplied records, while custom conversions are managed through
 `createConversionDefinitionCrudService()` and the shared versioned CRUD
 workflow. Before persistence, `validateConversionDefinition()` requires both
-endpoints to be active in the effective catalogue and dimensionally compatible.
+endpoints to be active in the provider-backed catalogue. The owning measurement type
+is responsible for declaring whether that conversion is meaningful.
 
 ## Testing and publication
 
 Tests are paired with the implementation responsibility and use Given/When/
 Then descriptions as executable documentation. They cover public value
-constructors, invalid inputs, dimensional compatibility, catalogue lookup,
-conversion definitions and the standard conversion composition.
+constructors, invalid inputs, provider-backed catalogue ports, conversion
+definitions and CRUD behavior.
 
 The library is packaged with Nx `ng-packagr-lite` and exposes its public API
 through `@tankos/units`. Run:

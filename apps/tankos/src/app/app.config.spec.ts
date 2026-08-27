@@ -4,22 +4,11 @@ import { DecimalError } from '@tankos/decimal';
 import { UnitError } from '@tankos/units';
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it, vi } from 'vitest';
-import {
-  UNIT_DEFINITION_MANAGEMENT_SERVICE,
-  UnitDefinitionFeatureService,
-} from '@tankos/units-ui';
 import { appConfig } from './app.config';
 
 describe('appConfig', () => {
   it('Given the application configuration, When its providers are inspected, Then the TankOS platform providers are registered', () => {
     expect(appConfig.providers).toHaveLength(13);
-  });
-
-  it('provides the units service through the application composition', () => {
-    TestBed.configureTestingModule({ providers: appConfig.providers });
-
-    expect(TestBed.inject(UNIT_DEFINITION_MANAGEMENT_SERVICE)).toBeDefined();
-    expect(TestBed.inject(UnitDefinitionFeatureService)).toBeDefined();
   });
 
   it('reports unexpected errors at the application boundary', () => {

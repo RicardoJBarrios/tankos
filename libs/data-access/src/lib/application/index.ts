@@ -9,6 +9,11 @@ export type {
 } from './batch-worker';
 export { createCrudService } from './crud-service';
 export type { CrudService } from './crud-service';
+export type {
+  CrudOperation,
+  CrudPolicy,
+  CrudPolicyRequest,
+} from './crud-policy';
 export { createVersionedCrudService } from './versioned-crud-service';
 export type {
   VersionedCrudService,

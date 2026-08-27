@@ -65,9 +65,9 @@ concurrency metadata; `versionId` and `versionNumber` identify immutable
 business versions. A domain decides whether a versioned contract is needed.
 `createVersionedCrudService()` provides the common replacement workflow for
 those contracts: create the new record first, then mark the previous record for
-deletion. A failure in the second step is exposed and leaves the new record for
-explicit reconciliation; it is never silently rolled back by the generic
-service.
+deletion. Domain validation hooks run before the new version is created. The
+fallback workflow is deliberately explicit about partial failure and must be
+replaced by a provider transaction when an adapter supports atomic replacement.
 
 ## Batches
 

@@ -11,6 +11,7 @@ describe('createMappedFirestoreCrudRepository', () => {
       get: vi.fn().mockResolvedValue({ data: '2', revision: 2 }),
       create: vi.fn().mockResolvedValue({ data: '3', revision: 3 }),
       replace: vi.fn().mockResolvedValue({ data: '4', revision: 4 }),
+      replaceVersioned: vi.fn().mockResolvedValue({ data: '4', revision: 4 }),
       markForDeletion: vi.fn().mockResolvedValue({ data: '5', revision: 5 }),
       restore: vi.fn().mockResolvedValue({ data: '6', revision: 6 }),
       delete: vi.fn().mockResolvedValue(undefined),
@@ -29,6 +30,9 @@ describe('createMappedFirestoreCrudRepository', () => {
     );
     await expect(
       repository.replace({ id: 'id' } as never, '4'),
+    ).resolves.toEqual(expect.objectContaining({ data: 4 }));
+    await expect(
+      repository.replaceVersioned?.({ id: 'id' } as never, '4'),
     ).resolves.toEqual(expect.objectContaining({ data: 4 }));
     await expect(
       repository.markForDeletion({ id: 'id' } as never),

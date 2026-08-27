@@ -1,6 +1,7 @@
 import { createEntityId, type CrudRepositoryPort } from '../core';
 import type { CrudRecord, ListRequest, Page } from '../core';
 import { createCrudService } from './crud-service';
+import { vi } from 'vitest';
 
 describe('createCrudService', () => {
   interface Data {
@@ -113,12 +114,41 @@ describe('createCrudService', () => {
     await service.delete(command);
 
     expect(dependency.calls).toEqual({
-      get: [command],
+      get: [
+        {
+          access: command.access,
+          id: command.id,
+          lifecycle: ['active', 'inactive', 'marked-for-deletion', 'deleted'],
+        },
+      ],
       create: [{ access: command.access, input: create }],
       replace: [command, update],
       markForDeletion: [command],
       restore: [command],
       delete: [command],
     });
+  });
+
+  it('Given a missing record, When reading, Then returns the repository result without authorizing it', async () => {
+    const dependency = repository();
+    dependency.port.get = async () => undefined;
+
+    await expect(createCrudService(dependency.port).get(request)).resolves.toBe(
+      undefined,
+    );
+  });
+
+  it('skips update validation when a replacement target is missing', async () => {
+    const dependency = repository();
+    dependency.port.get = async () => undefined;
+    const validateUpdate = async () => undefined;
+    const service = createCrudService(dependency.port, {
+      policy: { authorize: vi.fn(), validateUpdate },
+    });
+    await service.replace(
+      { access: request.access, id, expectedRevision: 1 },
+      { name: 'updated' },
+    );
+    expect(dependency.calls.replace).toBeDefined();
   });
 });

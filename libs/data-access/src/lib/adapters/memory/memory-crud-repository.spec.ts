@@ -397,14 +397,14 @@ describe('createInMemoryCrudRepository', () => {
     });
   });
 
-  it('Given a keeper, When a lifecycle operation is requested, Then returns forbidden', async () => {
+  it('Given a keeper, When a lifecycle operation is requested, Then delegates authorization to the domain policy', async () => {
     await expect(
       repository().markForDeletion({
         access,
         id: createEntityId('one'),
         expectedRevision: 1,
       }),
-    ).rejects.toMatchObject({ code: 'forbidden' });
+    ).resolves.toMatchObject({ lifecycle: { status: 'marked-for-deletion' } });
   });
 
   it('Given no initial records or filter matcher, When created, Then starts with an empty catalogue', async () => {

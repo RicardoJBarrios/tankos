@@ -1,0 +1,19 @@
+<main>
+  <a routerLink="/units" queryParamsHandling="preserve">Back to units</a>
+  <h2>{{ isEdit ? 'Edit unit' : 'Create unit' }}</h2>
+  @if (!isEdit || recordStatus() === 'ready') {
+    <lib-unit-definition-form
+      [record]="record()"
+      (submitted)="save($event)"
+      (cancelled)="cancel()"
+    />
+  } @else if (recordStatus() === 'pending') {
+    <p role="status">Loading unit…</p>
+  } @else {
+    <p role="alert">Unable to load the unit.</p>
+  }
+  @if (saveError()) {
+    <p role="alert">Unable to save the unit.</p>
+  }
+  <span data-testid="save-status" aria-live="polite">{{ saveStatus() }}</span>
+</main>

@@ -46,6 +46,7 @@ export function createMappedFirestoreCrudRepository<
   repository: CrudRepositoryPort<TDto, TCreate, TUpdate, TFilter>,
   parse: (value: TDto) => TData,
 ): CrudRepositoryPort<TData, TCreate, TUpdate, TFilter> {
+  const replaceVersioned = repository.replaceVersioned;
   return {
     list: async (request: ListRequest<TFilter>) =>
       mapPage(await repository.list(request), parse),
@@ -55,6 +56,15 @@ export function createMappedFirestoreCrudRepository<
       mapRequiredRecord(await repository.create(request), parse),
     replace: async (request: RecordCommand, input: TUpdate) =>
       mapRequiredRecord(await repository.replace(request, input), parse),
+    ...(replaceVersioned
+      ? {
+          replaceVersioned: async (request: RecordCommand, input: TUpdate) =>
+            mapRequiredRecord(
+              await replaceVersioned(request, input),
+              parse,
+            ),
+        }
+      : {}),
     markForDeletion: async (request: RecordCommand) =>
       mapRequiredRecord(await repository.markForDeletion(request), parse),
     restore: async (request: RecordCommand) =>

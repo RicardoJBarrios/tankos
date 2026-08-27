@@ -4,7 +4,10 @@ import { InjectionToken, signal, type Signal } from '@angular/core';
 export interface CrudUiLabels {
   readonly create: Signal<string>;
   readonly edit: Signal<string>;
+  readonly detail: Signal<string>;
   readonly delete: Signal<string>;
+  readonly publish: Signal<string>;
+  readonly physicalDelete: Signal<string>;
   readonly restore: Signal<string>;
   readonly loading: Signal<string>;
   readonly error: Signal<string>;
@@ -20,7 +23,10 @@ export function createDefaultCrudUiLabels(): CrudUiLabels {
   return createCrudUiLabels({
     create: 'Create',
     edit: 'Edit',
+    detail: 'View details',
     delete: 'Delete',
+    publish: 'Make public',
+    physicalDelete: 'Delete permanently',
     restore: 'Restore',
     loading: 'Loading',
     error: 'Unable to load records',

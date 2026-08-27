@@ -13,7 +13,7 @@ import {
 } from '@tankos/units-zod';
 import { createMappedFirestoreCrudRepository } from './mapped-firestore-crud-repository';
 
-/** Firestore repository options for the global unit-definition catalogue. */
+/** Firestore repository options for the public and private unit catalogue. */
 export type UnitDefinitionFirestoreRepositoryOptions = Omit<
   FirestoreCrudRepositoryOptions<
     UnitDefinitionDto,

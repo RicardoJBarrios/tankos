@@ -1,5 +1,5 @@
 {
-    "sonarCloudOrganization": "ricardojbarrios",
-    "projectKey": "tankos",
-    "region": "EU"
+  "sonarCloudOrganization": "ricardojbarrios",
+  "projectKey": "tankos",
+  "region": "EU"
 }

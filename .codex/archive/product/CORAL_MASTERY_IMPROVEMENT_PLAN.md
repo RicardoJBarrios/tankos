@@ -265,7 +265,7 @@ and commercial priority must not become part of care advice through this plan.
 
 ## 4. Defects and product risks observed
 
-| Finding                                                              | Evidence                                                                                                              | Risk if copied into TankOS                           |
+| Finding                                                              | Evidence                                                                                                              | Risk if copied into TankOS                          |
 | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
 | Onboarding remains at 4/5 after a stored CoralBot conversation       | The conversation persisted and consumed one free use, but the checklist still showed `Hablar con CoralBot` incomplete | A progress indicator can become false product state |
 | Historical values and complete records can be overwritten or deleted | Edit and permanent-delete actions are present in history                                                              | Loss of evidence and correction provenance          |
@@ -307,14 +307,14 @@ pending user decision in the Product Idea Register.
 
 ## 6. Comparative gap
 
-| Capability             | Coral Mastery                                       | TankOS                                                        | Prior agent assessment; not a decision                                      |
+| Capability             | Coral Mastery                                       | TankOS                                                       | Prior agent assessment; not a decision                                      |
 | ---------------------- | --------------------------------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------- |
 | Parameter selection    | Broad form with primary and advanced sections       | The same five compile-time Parameters for every Aquarium     | Centralize definitions and let each Aquarium enable and order its subset    |
 | Custom Parameters      | No user-defined semantic definition was observed    | Closed product-defined catalogue                             | Discover separately; a free name and Unit are not sufficient                |
 | Parameter breadth      | Broad primary and laboratory catalogue              | Five closed Parameters                                       | Adopt incrementally, starting with calcium, magnesium and pH                |
-| Entry validation       | Broad form, unclear value bounds                    | Finite, non-negative domain validation and canonical units   | Preserve TankOS validation; add plausibility only after evidence             |
-| Parameter targets      | Product-defined ranges                              | Keeper-owned optional intervals                              | Keep TankOS's model; do not copy defaults                                    |
-| Historical correction  | Replace and delete                                  | Append-only correction Fact                                  | Keep TankOS's model                                                          |
+| Entry validation       | Broad form, unclear value bounds                    | Finite, non-negative domain validation and canonical units   | Preserve TankOS validation; add plausibility only after evidence            |
+| Parameter targets      | Product-defined ranges                              | Keeper-owned optional intervals                              | Keep TankOS's model; do not copy defaults                                   |
+| Historical correction  | Replace and delete                                  | Append-only correction Fact                                  | Keep TankOS's model                                                         |
 | Charts                 | Rich time-series and comparison charts              | Filtered tabular history                                     | Add descriptive charts without causal or health claims                      |
 | Biological observation | Checklists for algae, pests, water and corals       | Free-text Observation                                        | Add optional structured facets without losing narrative text                |
 | Photos                 | Log photos and AI photo intents                     | No attachments                                               | Add evidence attachments before AI analysis                                 |
@@ -323,7 +323,7 @@ pending user decision in the Product Idea Register.
 | Reminders              | Advance notice and push                             | In-app due/upcoming awareness only                           | Add only after consent and delivery semantics are specified                 |
 | Equipment maintenance  | Category and routine text                           | Equipment has identity/lifecycle but no service relationship | Relate accepted Care to Equipment without merging aggregates                |
 | AI                     | Contextual chat, photo analysis and products        | Future optional capability                                   | Defer until evidence, privacy, evaluation and commercial independence exist |
-| Sharing                | Shares app URL                                      | Scoped Aquarium read grants                                  | Keep TankOS's stronger capability                                            |
+| Sharing                | Shares app URL                                      | Scoped Aquarium read grants                                  | Keep TankOS's stronger capability                                           |
 | Loyalty and shop       | Integrated                                          | Absent                                                       | Do not add through this plan                                                |
 
 ## 7. Agent-drafted priority order pending user decision

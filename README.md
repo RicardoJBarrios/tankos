@@ -24,6 +24,19 @@ does not import or connect to any emulator. Its Firebase Web SDK configuration
 is public project metadata kept in `firebase.production.config.ts`; private
 service-account credentials must never be added to the frontend.
 
+### Local emulator accounts
+
+These accounts are only for the local Firebase Auth emulator:
+
+| Role   | Email                    | Password             |
+| ------ | ------------------------ | -------------------- |
+| Keeper | `developer@tankos.local` | `tankos-local-dev`   |
+| Admin  | `admin@tankos.local`     | `tankos-local-admin` |
+
+The local auth adapter assigns the matching Firebase role claim before the app
+accesses Firestore. Never use these credentials in a real Firebase project or
+in production.
+
 ## Useful commands
 
 ```bash

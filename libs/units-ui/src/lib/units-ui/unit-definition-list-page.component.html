@@ -1,0 +1,81 @@
+<main class="units-page">
+  <a routerLink="/">Back to TankOS</a>
+  <h2>Units</h2>
+  <p>Manage the public and private unit catalogue.</p>
+  <span data-testid="lifecycle-status" aria-live="polite">{{
+    lifecycleStatus()
+  }}</span>
+  <span data-testid="unit-list-status" aria-live="polite">{{
+    list.status()
+  }}</span>
+
+  <h3>Units</h3>
+  <form class="unit-filters" (submit)="$event.preventDefault(); applyFilters()">
+    <label for="unit-visibility-filter">Visibility</label>
+    <select
+      id="unit-visibility-filter"
+      data-testid="unit-visibility-filter"
+      [value]="visibilityFilter()"
+      (change)="filterByVisibility($event)"
+    >
+      <option value="all">All</option>
+      <option value="public">Public</option>
+      <option value="private">Private</option>
+      @if (admin()) {
+        <option value="deleted">Deleted</option>
+      }
+    </select>
+    <label for="unit-record-filter">Record</label>
+    <input
+      id="unit-record-filter"
+      data-testid="unit-record-filter"
+      type="search"
+      [value]="recordFilter()"
+      (input)="filterByRecord($event)"
+    />
+    @if (admin()) {
+      <label for="unit-owner-filter">Owner (keeper)</label>
+      <input
+        id="unit-owner-filter"
+        data-testid="unit-owner-filter"
+        type="search"
+        [value]="ownerFilter()"
+        (input)="filterByOwner($event)"
+      />
+    }
+    <button type="submit" data-testid="apply-unit-filters">Search</button>
+  </form>
+  @if (list.isEmpty() && hasFilters()) {
+    <p data-testid="unit-empty-filtered">No units match these filters.</p>
+    <button
+      type="button"
+      data-testid="clear-unit-filters"
+      (click)="clearFilters()"
+    >
+      Clear filters
+    </button>
+  }
+  <tankos-crud-material-table
+    [items]="list.items()"
+    [loading]="list.status() === 'loading'"
+    [error]="list.error()"
+    [disabled]="lifecycleStatus() === 'pending'"
+    [label]="label"
+    [columns]="columns()"
+    [selectable]="false"
+    [canEdit]="canEdit"
+    [pageIndex]="pageIndex()"
+    [pageSize]="pageSize"
+    (pageRequested)="pageRequested($event)"
+    [canMarkForDeletion]="canMarkForDeletion"
+    [canPublish]="canPublish"
+    [canPhysicallyDelete]="canPhysicallyDelete"
+    (createRequested)="create()"
+    (editRequested)="edit($event)"
+    (detailRequested)="detail($event)"
+    (markForDeletionRequested)="markForDeletion($event)"
+    (restoreRequested)="restore($event)"
+    (publishRequested)="publish($event)"
+    (physicalDeleteRequested)="physicallyDelete($event)"
+  />
+</main>

@@ -24,6 +24,7 @@ const baseURL = process.env.BASE_URL || 'http://localhost:4200';
  */
 export default defineConfig({
   ...nxE2EPreset(import.meta.dirname, { testDir: './e2e' }),
+  globalTeardown: './e2e/global-teardown.ts',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     baseURL,
@@ -37,7 +38,7 @@ export default defineConfig({
   webServer: {
     command: 'bash ./tools/dev.sh',
     url: 'http://localhost:4200',
-    reuseExistingServer: true,
+    reuseExistingServer: false,
     cwd: workspaceRoot,
   },
   projects: [
