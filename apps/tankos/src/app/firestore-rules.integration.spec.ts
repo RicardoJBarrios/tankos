@@ -16,7 +16,7 @@ import {
 } from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 const emulatorTest = (name: string, test: () => Promise<void>) => {
   it(name, async () => {
@@ -44,6 +44,11 @@ describe('units Firestore Rules', () => {
         ),
       },
     });
+  });
+
+  beforeEach(async () => {
+    if (process.env['FIRESTORE_EMULATOR_HOST'])
+      await rulesEnvironment?.clearFirestore();
   });
 
   afterAll(async () => rulesEnvironment?.cleanup());

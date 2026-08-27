@@ -2,15 +2,15 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": [
     "apps/**/src/main.ts",
-    "apps/**/src/main.server.ts",
-    "apps/**/src/app/app.config.server.ts",
     "apps/**/src/test-setup.ts",
     "apps/**/src/**/*.spec.ts",
     "apps/**/e2e/**/*.spec.ts",
+    "apps/**/e2e/global-teardown.ts",
     "libs/**/src/index.ts",
     "libs/**/src/test-setup.ts",
     "libs/**/src/**/*.spec.ts",
-    "tools/firebase/*.mjs"
+    "tools/eslint/*-profiles.mjs",
+    "tools/seed-units.mjs"
   ],
   "project": [
     "apps/**/src/**/*.{ts,tsx,html,css}",
@@ -32,17 +32,17 @@
     "@tankos/*",
     "@angular/cli",
     "@angular/language-service",
-    "@eslint/js",
-    "@nx/devkit",
     "@nx/js",
     "@nx/workspace",
     "@oxc-project/runtime",
     "@swc/helpers",
     "angular-eslint",
-    "eslint-plugin-playwright",
     "jsonc-eslint-parser",
     "ts-node",
-    "typescript-eslint"
+    "@angular/platform-browser-dynamic",
+    "@axe-core/playwright",
+    "@typescript-eslint/utils",
+    "autoprefixer"
   ],
   "ignoreUnresolved": ["src/test-setup.ts"],
   "ignoreBinaries": ["gitleaks"]

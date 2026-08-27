@@ -5,6 +5,12 @@ const mocks = vi.hoisted(() => ({
   initializeApp: vi.fn((config: unknown, name: string) => ({ config, name })),
   getAuth: vi.fn(() => ({ currentUser: null })),
   getFirestore: vi.fn(() => ({})),
+  initializeAppCheck: vi.fn(() => ({ appCheck: true })),
+  reCaptchaEnterpriseProvider: vi.fn(function ReCaptchaEnterpriseProvider(
+    siteKey: string,
+  ) {
+    return { siteKey };
+  }),
   createFirebaseAuthSession: vi.fn(() => ({
     access: vi.fn(),
     refresh: vi.fn(),
@@ -19,6 +25,10 @@ vi.mock('firebase/app', () => ({
 }));
 vi.mock('firebase/auth', () => ({ getAuth: mocks.getAuth }));
 vi.mock('firebase/firestore', () => ({ getFirestore: mocks.getFirestore }));
+vi.mock('firebase/app-check', () => ({
+  initializeAppCheck: mocks.initializeAppCheck,
+  ReCaptchaEnterpriseProvider: mocks.reCaptchaEnterpriseProvider,
+}));
 vi.mock('@tankos/authn-firebase', () => ({
   createFirebaseAuthSession: mocks.createFirebaseAuthSession,
 }));
@@ -30,6 +40,8 @@ describe('firebase.production', () => {
     mocks.initializeApp.mockClear();
     mocks.getAuth.mockClear();
     mocks.getFirestore.mockClear();
+    mocks.initializeAppCheck.mockClear();
+    mocks.reCaptchaEnterpriseProvider.mockClear();
     mocks.createFirebaseAuthSession.mockClear();
   });
 
@@ -60,6 +72,26 @@ describe('firebase.production', () => {
 
     expect(firebase.TANKOS_FIREBASE_CONFIG.authDomain).toBe(
       'tankos.firebaseapp.com',
+    );
+  });
+
+  it('initializes App Check only when a site key is configured', async () => {
+    vi.doMock('./firebase.production.config', async () => ({
+      ...(await vi.importActual<typeof import('./firebase.production.config')>(
+        './firebase.production.config',
+      )),
+      TANKOS_FIREBASE_APP_CHECK_SITE_KEY: 'test-site-key',
+    }));
+
+    const firebase = await import('./firebase.production');
+
+    await expect(firebase.tankosAppCheck).resolves.toEqual({ appCheck: true });
+    expect(mocks.reCaptchaEnterpriseProvider).toHaveBeenCalledWith(
+      'test-site-key',
+    );
+    expect(mocks.initializeAppCheck).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ isTokenAutoRefreshEnabled: true }),
     );
   });
 });

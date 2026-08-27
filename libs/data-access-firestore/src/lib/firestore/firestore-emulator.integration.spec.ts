@@ -4,6 +4,7 @@ import {
 } from '@firebase/rules-unit-testing';
 import { orderBy, query, type Timestamp } from 'firebase/firestore';
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { z } from 'zod';
 import { afterAll, beforeAll, expect } from 'vitest';
 import { createEntityId, createPageCursor } from '@tankos/data-access';
@@ -49,7 +50,7 @@ describe('Firestore CRUD adapter against Firebase Emulator Suite', () => {
       projectId: 'demo-tankos',
       firestore: {
         rules: readFileSync(
-          'libs/data-access-firestore/emulator/emulator.rules',
+          resolve(__dirname, '../../../emulator/emulator.rules'),
           'utf8',
         ),
       },
