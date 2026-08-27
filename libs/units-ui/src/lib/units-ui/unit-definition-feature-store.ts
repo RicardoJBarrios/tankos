@@ -1,28 +1,22 @@
-/* eslint-disable max-lines -- feature orchestration keeps the complete unit workflow cohesive. */
-import {
-  computed,
-  signal,
-  type Signal,
-  type WritableSignal,
-} from '@angular/core';
+import { signal, type Signal, type WritableSignal } from '@angular/core';
 import type { AuthSessionPort } from '@tankos/authn';
 import { createFeedbackService, type FeedbackService } from '@tankos/feedback';
 import { createNoopLogger, type Logger } from '@tankos/observability';
-import {
-  createCrudListStore,
-  type CrudListStoreInstance,
-} from '@tankos/data-access-ui';
+import type { CrudListStoreInstance } from '@tankos/data-access-ui';
 import type {
   CustomUnitDefinitionDraft,
   UnitDefinition,
   UnitDefinitionManagementService,
   UnitDefinitionRecord,
 } from '@tankos/units';
+import { createUnitDefinitionListStore } from './unit-definition-list-store';
+import type { UnitDefinitionListStore } from './unit-definition-list-store';
+import { runUnitDefinitionLifecycle } from './unit-definition-lifecycle-actions';
 
-const UNIT_DEFINITION_PAGE = {
-  pageSize: 50,
-  orderBy: [{ field: 'data.code', direction: 'asc' as const }],
-};
+export {
+  formatUnitDefinitionLabel,
+  type UnitDefinitionListStore,
+} from './unit-definition-list-store';
 
 export interface UnitDefinitionFeatureStore {
   readonly list: UnitDefinitionListStore;
@@ -50,8 +44,13 @@ export function createUnitDefinitionFeatureStore(
   logger: Logger = createNoopLogger(),
   feedback: FeedbackService = createFeedbackService(),
 ): UnitDefinitionFeatureStore {
-  const rawList = createUnitDefinitionListStore(service, logger);
-  const list = createUnitDefinitionListView(rawList, authSession, feedback);
+  const listParts = createUnitDefinitionListStore(
+    service,
+    authSession,
+    logger,
+    feedback,
+  );
+  const list = listParts.list;
   const editingRecord = signal<UnitDefinitionRecord | undefined>(undefined);
   const saveError = signal<unknown>(undefined);
   const saveStatus = signal<FeatureOperationStatus>('idle');
@@ -69,7 +68,7 @@ export function createUnitDefinitionFeatureStore(
       service,
       authSession,
       list,
-      rawList,
+      listParts.lifecycle,
       editingRecord,
       saveError,
       saveStatus,
@@ -86,7 +85,10 @@ function createUnitDefinitionActions(
   service: UnitDefinitionManagementService,
   authSession: AuthSessionPort,
   list: UnitDefinitionListStore,
-  rawList: CrudListStoreInstance<UnitDefinition, unknown, unknown>,
+  lifecycle: Pick<
+    CrudListStoreInstance<UnitDefinition, unknown, unknown>,
+    'markForDeletion' | 'restore'
+  >,
   editingRecord: WritableSignal<UnitDefinitionRecord | undefined>,
   saveError: WritableSignal<unknown>,
   saveStatus: WritableSignal<FeatureOperationStatus>,
@@ -126,8 +128,8 @@ function createUnitDefinitionActions(
       );
     },
     markForDeletion: (record) =>
-      runLifecycle(
-        rawList,
+      runUnitDefinitionLifecycle(
+        lifecycle,
         authSession,
         record,
         'delete',
@@ -137,8 +139,8 @@ function createUnitDefinitionActions(
         feedback,
       ),
     restore: (record) =>
-      runLifecycle(
-        rawList,
+      runUnitDefinitionLifecycle(
+        lifecycle,
         authSession,
         record,
         'restore',
@@ -254,168 +256,4 @@ async function saveUnitDefinition(
     saveError.set(error);
     feedback.error('Unable to save the unit.');
   }
-}
-
-function runLifecycle(
-  list: CrudListStoreInstance<UnitDefinition, unknown, unknown>,
-  authSession: AuthSessionPort,
-  record: UnitDefinitionRecord,
-  operation: 'delete' | 'restore',
-  lifecycleError: WritableSignal<unknown>,
-  lifecycleStatus: WritableSignal<FeatureOperationStatus>,
-  logger: Logger,
-  feedback: FeedbackService,
-): Promise<void> {
-  logger.debug('Unit definition lifecycle operation started', {
-    operation,
-    id: record.id,
-  });
-  lifecycleError.set(undefined);
-  lifecycleStatus.set('pending');
-  return (async () => {
-    try {
-      const access = await authSession.access();
-      const request = {
-        access,
-        id: record.id,
-        expectedRevision: record.revision,
-      };
-      const result =
-        operation === 'delete'
-          ? await list.markForDeletion(request)
-          : await list.restore(request);
-      if (!result.ok) throw result.error;
-      lifecycleStatus.set('idle');
-      feedback.success(
-        operation === 'delete'
-          ? 'Unit moved to the recycle bin.'
-          : 'Unit restored successfully.',
-      );
-      logger.debug('Unit definition lifecycle operation completed', {
-        operation,
-        id: record.id,
-      });
-    } catch (error) {
-      logger.debug('Unit definition lifecycle operation failed', {
-        operation,
-        id: record.id,
-        error,
-      });
-      lifecycleStatus.set('error');
-      lifecycleError.set(error);
-      feedback.error(
-        operation === 'delete'
-          ? 'Unable to delete the unit.'
-          : 'Unable to restore the unit.',
-      );
-    }
-  })();
-}
-
-function createUnitDefinitionListView(
-  rawList: CrudListStoreInstance<UnitDefinition, unknown, unknown>,
-  authSession: AuthSessionPort,
-  feedback: FeedbackService,
-): UnitDefinitionListStore {
-  const accessError = signal<unknown>(undefined);
-  let loadQueue = Promise.resolve();
-
-  return {
-    status: computed(() => (accessError() ? 'error' : rawList.status())),
-    items: rawList.items,
-    filter: rawList.filter,
-    nextCursor: rawList.nextCursor,
-    hasMore: rawList.hasMore,
-    selectedIds: rawList.selectedIds,
-    batch: rawList.batch,
-    error: computed(() => accessError() ?? rawList.error()),
-    isEmpty: rawList.isEmpty,
-    canLoadMore: rawList.canLoadMore,
-    hasRunningBatch: rawList.hasRunningBatch,
-    setFilter: rawList.setFilter,
-    toggleSelection: rawList.toggleSelection,
-    clearSelection: rawList.clearSelection,
-    load: (filter) => {
-      loadQueue = enqueueListLoad(loadQueue, async () => {
-        accessError.set(undefined);
-        await authSession
-          .access()
-          .then((access) => rawList.load(access, filter))
-          .catch((error: unknown) => {
-            accessError.set(error);
-            feedback.error('Unable to load the units.');
-          });
-      });
-      return loadQueue;
-    },
-    loadMore: () => {
-      accessError.set(undefined);
-      return authSession
-        .access()
-        .then((access) => rawList.loadMore(access))
-        .then((result) => {
-          if (!result.ok) throw result.error;
-        })
-        .catch((error: unknown) => {
-          accessError.set(error);
-          feedback.error('Unable to load more units.');
-        });
-    },
-  };
-}
-
-export type UnitDefinitionListStore = Omit<
-  CrudListStoreInstance<UnitDefinition, unknown, unknown>,
-  | 'load'
-  | 'loadMore'
-  | 'markForDeletion'
-  | 'restore'
-  | 'submitBatch'
-  | 'updateBatch'
-> & {
-  readonly load: (filter?: unknown) => Promise<void>;
-  readonly loadMore: () => Promise<void>;
-};
-
-function enqueueListLoad(
-  queue: Promise<void>,
-  load: () => Promise<void>,
-): Promise<void> {
-  return queue.then(load, load);
-}
-
-function createUnitDefinitionListStore(
-  service: UnitDefinitionManagementService,
-  logger: Logger,
-): CrudListStoreInstance<UnitDefinition, unknown, unknown> {
-  return new (createCrudListStore<
-    UnitDefinition,
-    UnitDefinition,
-    UnitDefinition,
-    unknown
-  >({
-    service,
-    logger,
-    page: UNIT_DEFINITION_PAGE,
-    schema: 'unit-definition',
-    lifecycle: (filter) =>
-      isDeletedUnitFilter(filter)
-        ? ['marked-for-deletion']
-        : ['active', 'inactive'],
-  }))();
-}
-
-function isDeletedUnitFilter(filter: unknown): boolean {
-  return (
-    typeof filter === 'object' &&
-    filter !== null &&
-    'lifecycle' in filter &&
-    filter.lifecycle === 'marked-for-deletion'
-  );
-}
-
-export function formatUnitDefinitionLabel(
-  record: UnitDefinitionRecord,
-): string {
-  return `${record.data.code} (${record.data.representation.symbol})`;
 }

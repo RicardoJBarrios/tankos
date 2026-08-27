@@ -1,4 +1,3 @@
-/* eslint-disable max-lines -- the page owns the complete list query workflow. */
 import {
   Component,
   computed,
@@ -14,16 +13,27 @@ import { CONFIRMATION_SERVICE } from '@tankos/feedback';
 import type { AccessContext } from '@tankos/data-access';
 import { createCrudListQueryState } from '@tankos/data-access-ui';
 import { CrudMaterialTableComponent } from '@tankos/data-access-material-ui';
-import type {
-  UnitDefinitionFilter,
-  UnitDefinitionRecord,
-  UnitDefinitionVisibility,
-} from '@tankos/units';
+import type { UnitDefinitionRecord } from '@tankos/units';
 import {
   unitDefinitionCapabilities,
   type UnitDefinitionCapabilities,
 } from '@tankos/units';
 import { UnitDefinitionFeatureService } from './unit-definition-feature-service';
+import {
+  parseUnitDefinitionListQuery,
+  unitDefinitionFilterFromQuery,
+  unitDefinitionListQueryKey,
+  unitDefinitionListQueryParams,
+  isUnitDefinitionVisibilityFilter,
+  type UnitDefinitionListQuery,
+  type UnitDefinitionVisibilityFilter,
+} from './unit-definition-list-query';
+import {
+  cannotNavigateToUnitDefinitionPage,
+  noUnitDefinitionCapabilities,
+  parseUnitDefinitionPageIndex,
+  unitVisibilityLabel,
+} from './unit-definition-list-view-helpers';
 
 /** List page owned by the units UI boundary. */
 @Component({
@@ -45,7 +55,8 @@ export class UnitDefinitionListPageComponent implements OnInit {
   protected readonly list = this.#service.list;
   protected readonly lifecycleStatus = this.#service.lifecycleStatus;
   protected readonly label = this.#service.label;
-  protected readonly visibilityFilter = signal<VisibilityFilter>('all');
+  protected readonly visibilityFilter =
+    signal<UnitDefinitionVisibilityFilter>('all');
   protected readonly admin = computed(
     () => this.capabilities()?.canFilterByOwner ?? false,
   );
@@ -94,7 +105,14 @@ export class UnitDefinitionListPageComponent implements OnInit {
     this.#route.queryParamMap
       .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe((params) => {
-        this.setFiltersFromQuery(params);
+        const query = parseUnitDefinitionListQuery(params);
+        this.visibilityFilter.set(query.visibility);
+        this.recordFilter.set(query.record);
+        this.ownerFilter.set(query.owner);
+        this.#queryState.hydrate(
+          query,
+          parseUnitDefinitionPageIndex(params.get('page')),
+        );
         if (!this.#ready) return;
         if (
           this.#forceFilterReload ||
@@ -124,7 +142,7 @@ export class UnitDefinitionListPageComponent implements OnInit {
 
   protected filterByVisibility(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
-    const visibility = isVisibilityFilter(value) ? value : 'all';
+    const visibility = isUnitDefinitionVisibilityFilter(value) ? value : 'all';
     this.visibilityFilter.set(visibility);
   }
 
@@ -141,7 +159,11 @@ export class UnitDefinitionListPageComponent implements OnInit {
     this.#forceFilterReload = true;
     void this.#router.navigate([], {
       relativeTo: this.#route,
-      queryParams: this.queryParams(),
+      queryParams: unitDefinitionListQueryParams(
+        this.draftQuery(),
+        this.pageIndex(),
+        this.admin(),
+      ),
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
@@ -221,7 +243,7 @@ export class UnitDefinitionListPageComponent implements OnInit {
   protected pageRequested(index: number): void {
     const currentIndex = this.pageIndex();
     if (
-      cannotNavigateToPage(
+      cannotNavigateToUnitDefinitionPage(
         index,
         currentIndex,
         this.list.hasMore(),
@@ -256,7 +278,7 @@ export class UnitDefinitionListPageComponent implements OnInit {
   private loadFilteredList(): void {
     this.#appliedFilterKey = this.filterKey();
     void this.#service.list.load(
-      this.unitDefinitionFilter(this.#queryState.filter()),
+      unitDefinitionFilterFromQuery(this.#queryState.filter(), this.admin()),
     );
   }
 
@@ -268,53 +290,12 @@ export class UnitDefinitionListPageComponent implements OnInit {
     };
   }
 
-  private unitDefinitionFilter(
-    query: UnitDefinitionListQuery,
-  ): UnitDefinitionFilter {
-    const visibility = query.visibility;
-    return {
-      ...(visibility === 'public' || visibility === 'private'
-        ? { visibility }
-        : {}),
-      ...(visibility === 'deleted' ? { lifecycle: 'marked-for-deletion' } : {}),
-      ...(query.record ? { record: query.record } : {}),
-      ...(this.admin() && query.owner ? { ownerName: query.owner } : {}),
-    };
-  }
-
   private filterKey(): string {
-    return JSON.stringify({
+    return unitDefinitionListQueryKey({
       visibility: this.visibilityFilter(),
-      record: this.recordFilter().trim(),
-      owner: this.admin() ? this.ownerFilter().trim() : '',
+      record: this.recordFilter(),
+      owner: this.admin() ? this.ownerFilter() : '',
     });
-  }
-
-  private setFiltersFromQuery(
-    params: import('@angular/router').ParamMap,
-  ): void {
-    const visibility = parseVisibility(params.get('visibility'));
-    this.visibilityFilter.set(visibility);
-    this.recordFilter.set(params.get('record') ?? '');
-    this.ownerFilter.set(params.get('owner') ?? '');
-    this.#queryState.hydrate(
-      {
-        visibility,
-        record: (params.get('record') ?? '').trim(),
-        owner: (params.get('owner') ?? '').trim(),
-      },
-      parsePageIndex(params.get('page')),
-    );
-  }
-
-  private queryParams(): Record<string, string | null> {
-    return {
-      visibility:
-        this.visibilityFilter() === 'all' ? null : this.visibilityFilter(),
-      record: this.recordFilter().trim() || null,
-      owner: this.admin() ? this.ownerFilter().trim() || null : null,
-      page: this.pageIndex() > 0 ? String(this.pageIndex()) : null,
-    };
   }
 
   private recordCapabilities(
@@ -323,62 +304,6 @@ export class UnitDefinitionListPageComponent implements OnInit {
     const access = this.#access();
     return access
       ? unitDefinitionCapabilities(access, record.data)
-      : {
-          canCreate: false,
-          canRead: false,
-          canUse: false,
-          canEdit: false,
-          canDelete: false,
-          canRestore: false,
-          canPublish: false,
-          canInspectDeleted: false,
-          canFilterByOwner: false,
-        };
+      : noUnitDefinitionCapabilities;
   }
-}
-
-function cannotNavigateToPage(
-  requested: number,
-  current: number,
-  hasMore: boolean,
-  itemCount: number,
-  pageSize: number,
-): boolean {
-  const localPageAvailable = requested * pageSize < itemCount;
-  return (
-    requested > current + 1 ||
-    (requested === current + 1 && !hasMore && !localPageAvailable)
-  );
-}
-
-type VisibilityFilter = UnitDefinitionVisibility | 'deleted' | 'all';
-interface UnitDefinitionListQuery {
-  readonly visibility: VisibilityFilter;
-  readonly record: string;
-  readonly owner: string;
-}
-
-function parseVisibility(value: string | null): VisibilityFilter {
-  return value && isVisibilityFilter(value) ? value : 'all';
-}
-
-function parsePageIndex(value: string | null): number {
-  const page = Number.parseInt(value ?? '0', 10);
-  return Number.isSafeInteger(page) && page > 0 ? page : 0;
-}
-
-function isVisibilityFilter(
-  value: string,
-): value is UnitDefinitionVisibility | 'deleted' {
-  return value === 'public' || value === 'private' || value === 'deleted';
-}
-
-function unitVisibilityLabel(record: UnitDefinitionRecord): string {
-  if (
-    record.lifecycle.status === 'marked-for-deletion' ||
-    record.lifecycle.status === 'deleted'
-  ) {
-    return 'Deleted';
-  }
-  return record.data.visibility === 'public' ? 'Public' : 'Private';
 }

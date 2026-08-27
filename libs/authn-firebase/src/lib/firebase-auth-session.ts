@@ -10,6 +10,11 @@ import {
   type AuthCredentials,
   type AuthSessionPort,
 } from '@tankos/authn';
+import { requireFirebasePasswordCredentials } from './firebase-auth-credentials';
+import {
+  isFirebaseEmailAlreadyInUse,
+  isMissingFirebaseUser,
+} from './firebase-auth-errors';
 
 export interface FirebaseAuthSessionOptions {
   readonly auth: Auth;
@@ -41,11 +46,12 @@ export function createLocalFirebaseAuthSession(
       return session.access();
     },
     signIn: async (credentials) => {
-      const passwordCredentials = requirePasswordCredentials(credentials);
+      const passwordCredentials =
+        requireFirebasePasswordCredentials(credentials);
       try {
         await session.signIn(credentials);
       } catch (error) {
-        if (!isMissingLocalUser(error)) throw error;
+        if (!isMissingFirebaseUser(error)) throw error;
         try {
           await createUserWithEmailAndPassword(
             auth,
@@ -57,7 +63,7 @@ export function createLocalFirebaseAuthSession(
           // unknown user and an invalid password. If the account already
           // exists, preserve the original sign-in error instead of exposing
           // the account-creation error or masking a bad password.
-          if (isEmailAlreadyInUse(creationError)) throw error;
+          if (isFirebaseEmailAlreadyInUse(creationError)) throw error;
           throw creationError;
         }
       }
@@ -117,7 +123,8 @@ export function createFirebaseAuthSession(
       );
     },
     signIn: async (credentials: AuthCredentials) => {
-      const passwordCredentials = requirePasswordCredentials(credentials);
+      const passwordCredentials =
+        requireFirebasePasswordCredentials(credentials);
       await signInWithEmailAndPassword(
         options.auth,
         passwordCredentials.email,
@@ -185,20 +192,6 @@ function isNonEmptyStringArray(value: unknown): value is readonly string[] {
   );
 }
 
-function requirePasswordCredentials(credentials: AuthCredentials): {
-  readonly email: string;
-  readonly password: string;
-} {
-  const email = credentials['email'];
-  const password = credentials['password'];
-  if (typeof email !== 'string' || typeof password !== 'string') {
-    throw new TypeError(
-      'Firebase password authentication requires email and password',
-    );
-  }
-  return { email, password };
-}
-
 async function ensureFirebaseUser(
   options: FirebaseAuthSessionOptions,
 ): Promise<User> {
@@ -219,7 +212,7 @@ async function ensureFirebaseUser(
       )
     ).user;
   } catch (error) {
-    if (!isMissingLocalUser(error)) throw error;
+    if (!isMissingFirebaseUser(error)) throw error;
     try {
       return (
         await createUserWithEmailAndPassword(
@@ -229,7 +222,7 @@ async function ensureFirebaseUser(
         )
       ).user;
     } catch (creationError) {
-      if (isEmailAlreadyInUse(creationError)) {
+      if (isFirebaseEmailAlreadyInUse(creationError)) {
         // A concurrent sign-in or another local tab may have created the
         // account between the two calls. Retry sign-in once in that case.
         return (
@@ -243,26 +236,4 @@ async function ensureFirebaseUser(
       throw creationError;
     }
   }
-}
-
-function isMissingLocalUser(error: unknown): boolean {
-  const code = firebaseErrorCode(error);
-  return (
-    code === 'auth/user-not-found' ||
-    code === 'auth/invalid-credential' ||
-    code === 'auth/invalid-login-credentials'
-  );
-}
-
-function isEmailAlreadyInUse(error: unknown): boolean {
-  return firebaseErrorCode(error) === 'auth/email-already-in-use';
-}
-
-function firebaseErrorCode(error: unknown): unknown {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code?: unknown }).code
-  );
 }
