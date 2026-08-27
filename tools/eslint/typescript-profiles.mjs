@@ -14,6 +14,7 @@ const typedParserOptions = {
       '*.config.mts',
       'apps/*/playwright.config.mts',
       'apps/*/e2e/*.ts',
+      'apps/*/e2e/*/*.ts',
       'apps/*/vitest.integration.config.ts',
       'tools/testing/vitest-reporting.ts',
     ],

@@ -1,7 +1,11 @@
-import { expect, test, type Page } from '@playwright/test';
-
-const uniqueCode = () =>
-  `TANKOS:E2E-000-${String(Date.now())}-${Math.random().toString(36).slice(2, 8)}`;
+import { expect, test } from '@playwright/test';
+import {
+  confirmMaterial,
+  loginAs,
+  openUnitCreateForm,
+  saveUnit,
+  uniqueUnitCode,
+} from './support/unit-fixtures';
 const unitsUrl = /\/units$/u;
 const unitsPageOneUrl = /\/units\?page=1$/u;
 const unitEditUrl = /\/units\/[^/]+\/edit$/u;
@@ -13,55 +17,14 @@ const ownerQueryUrl = /\/units\?owner=/u;
 const publicQueryUrl = /\/units\?visibility=public$/u;
 const publicRecordQueryUrl = /\/units\?visibility=public&record=LTR$/u;
 
-async function login(
-  page: Page,
-  email = 'developer@tankos.local',
-  password = 'tankos-local-dev',
-): Promise<void> {
-  await page.goto('/login?returnUrl=%2Funits');
-  await page.getByTestId('login-email').fill(email);
-  await page.getByTestId('login-password').fill(password);
-  await page.getByTestId('login-submit').click();
-  await expect(page).toHaveURL(unitsUrl);
-}
-
-async function openCreateForm(page: Page) {
-  await page.getByTestId('create').click();
-  await expect(page.getByTestId('unit-definition-form')).toBeVisible();
-}
-
-async function fillUnit(
-  page: Page,
-  code: string,
-  symbol = 'e2e',
-  expectSuccess = true,
-) {
-  await page.getByTestId('unit-code').fill(code);
-  await page.getByTestId('unit-symbol').fill(symbol);
-  await page.getByTestId('unit-ascii-fallback').fill(symbol);
-  await page.getByTestId('save-unit').click();
-  if (expectSuccess) {
-    await expect(page).toHaveURL(unitsUrl);
-  } else {
-    await expect(page.getByTestId('save-status')).toHaveText('error');
-  }
-}
-
-async function confirmMaterial(page: Page, label: string): Promise<void> {
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByTestId('confirmation-confirm')).toHaveText(label);
-  await dialog.getByTestId('confirmation-confirm').click();
-}
-
 test.describe('custom units', () => {
   test.describe.configure({ mode: 'serial' });
 
   test('creates and edits a custom unit with deleted versions hidden', async ({
     page,
   }) => {
-    const code = uniqueCode();
-    await login(page);
+    const code = uniqueUnitCode();
+    await loginAs(page);
     await expect(page.getByTestId('unit-list-status')).toHaveText('ready');
     const publicRow = page
       .getByTestId('crud-row')
@@ -88,8 +51,8 @@ test.describe('custom units', () => {
     await page.getByTestId('apply-unit-filters').click();
     await expect(page).toHaveURL(unitsUrl);
 
-    await openCreateForm(page);
-    await fillUnit(page, code, 'u1');
+    await openUnitCreateForm(page);
+    await saveUnit(page, code, 'u1');
     const row = page.getByTestId('crud-row').filter({ hasText: code });
     await expect(row).toContainText('(u1)');
 
@@ -135,7 +98,7 @@ test.describe('custom units', () => {
   test('paginates loaded units and resets pagination when searching', async ({
     page,
   }) => {
-    await login(page);
+    await loginAs(page);
     await expect(page.getByTestId('unit-list-status')).toHaveText('ready');
     await expect(page.getByTestId('crud-row')).toHaveCount(10);
     await expect(page.getByTestId('crud-row').first()).toHaveAttribute(
@@ -187,17 +150,17 @@ test.describe('custom units', () => {
   test('shows an error when creating a duplicate custom-unit code', async ({
     page,
   }) => {
-    const code = uniqueCode();
-    await login(page);
+    const code = uniqueUnitCode();
+    await loginAs(page);
     await expect(page.getByTestId('unit-list-status')).toHaveText('ready');
-    await openCreateForm(page);
-    await fillUnit(page, code);
+    await openUnitCreateForm(page);
+    await saveUnit(page, code);
     await expect(
       page.getByTestId('crud-row').filter({ hasText: code }),
     ).toBeVisible();
 
-    await openCreateForm(page);
-    await fillUnit(page, code, 'e2e', false);
+    await openUnitCreateForm(page);
+    await saveUnit(page, code, 'e2e', false);
     await expect(page.locator('.tankos-feedback-error')).toContainText(
       'Unable to save the unit.',
     );
@@ -207,17 +170,17 @@ test.describe('custom units', () => {
     browser,
     page,
   }) => {
-    const code = uniqueCode();
-    await login(page);
-    await openCreateForm(page);
-    await fillUnit(page, code, 'private');
+    const code = uniqueUnitCode();
+    await loginAs(page);
+    await openUnitCreateForm(page);
+    await saveUnit(page, code, 'private');
     await expect(
       page.getByTestId('crud-row').filter({ hasText: code }),
     ).toBeVisible();
 
     const otherContext = await browser.newContext();
     const otherPage = await otherContext.newPage();
-    await login(
+    await loginAs(
       otherPage,
       `other-${String(Date.now())}@tankos.local`,
       'tankos-local-dev',
@@ -232,15 +195,15 @@ test.describe('custom units', () => {
   test('allows an admin to see all private units and create one', async ({
     page,
   }) => {
-    const privateCode = uniqueCode();
-    const adminCode = uniqueCode();
-    await login(page);
-    await openCreateForm(page);
-    await fillUnit(page, privateCode, 'keeper-private');
+    const privateCode = uniqueUnitCode();
+    const adminCode = uniqueUnitCode();
+    await loginAs(page);
+    await openUnitCreateForm(page);
+    await saveUnit(page, privateCode, 'keeper-private');
     await page.getByTestId('logout').click();
     await expect(page).toHaveURL(loginPageUrl);
 
-    await login(page, 'admin@tankos.local', 'tankos-local-admin');
+    await loginAs(page, 'admin@tankos.local', 'tankos-local-admin');
     await expect(
       page.getByTestId('crud-row').filter({ hasText: privateCode }),
     ).toBeVisible();
@@ -298,8 +261,8 @@ test.describe('custom units', () => {
     await expect(page.getByTestId('lifecycle-status')).toHaveText('idle');
     await page.getByTestId('unit-visibility-filter').selectOption('all');
     await page.getByTestId('apply-unit-filters').click();
-    await openCreateForm(page);
-    await fillUnit(page, adminCode, 'admin-private');
+    await openUnitCreateForm(page);
+    await saveUnit(page, adminCode, 'admin-private');
     await expect(
       page.getByTestId('crud-row').filter({ hasText: adminCode }),
     ).toBeVisible();
