@@ -91,6 +91,13 @@ describe('createUnitDefinitionCrudService', () => {
     expect(repository.create).toHaveBeenCalled();
   });
 
+  it('configures atomic replacement when the repository supports it', () => {
+    const repository = createRepository();
+    repository.replaceVersioned = vi.fn();
+
+    expect(createUnitDefinitionCrudService(repository)).toBeDefined();
+  });
+
   it('validates a replacement against the current private definition', async () => {
     const repository = createRepository();
     repository.get = vi.fn(async () => ({

@@ -59,10 +59,7 @@ export function createMappedFirestoreCrudRepository<
     ...(replaceVersioned
       ? {
           replaceVersioned: async (request: RecordCommand, input: TUpdate) =>
-            mapRequiredRecord(
-              await replaceVersioned(request, input),
-              parse,
-            ),
+            mapRequiredRecord(await replaceVersioned(request, input), parse),
         }
       : {}),
     markForDeletion: async (request: RecordCommand) =>

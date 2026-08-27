@@ -9,7 +9,8 @@ export function formatUnitValue(
   representation: UnitValueRepresentation,
 ): string {
   const spacing = representation.spacing === 'none' ? '' : ' ';
+  const textValue = String(value);
   return representation.position === 'prefix'
-    ? `${representation.symbol}${spacing}${value}`
-    : `${value}${spacing}${representation.symbol}`;
+    ? `${representation.symbol}${spacing}${textValue}`
+    : `${textValue}${spacing}${representation.symbol}`;
 }

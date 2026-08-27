@@ -6,7 +6,7 @@ import {
   Router,
 } from '@angular/router';
 import { AUTH_SESSION, type AuthSessionPort } from '@tankos/authn';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FirebaseLoginPageComponent } from './firebase-login-page.component';
 
 describe('FirebaseLoginPageComponent', () => {
@@ -79,6 +79,11 @@ describe('FirebaseLoginPageComponent', () => {
       signIn: vi.fn().mockResolvedValue(undefined),
       signOut: vi.fn().mockResolvedValue(undefined),
     };
+  });
+
+  afterEach(() => {
+    fixture.destroy();
+    TestBed.resetTestingModule();
   });
 
   it('rejects an incomplete form without attempting authentication', async () => {
