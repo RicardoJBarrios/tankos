@@ -35,11 +35,14 @@ function arrayValue(values) {
 function searchTokens(input) {
   const normalized = input.toLocaleLowerCase();
   const tokens = new Set();
-  for (let start = 0; start < normalized.length; start += 1) {
-    for (let end = start + 2; end <= normalized.length; end += 1) {
-      tokens.add(normalized.slice(start, end));
+  if (!normalized) return [];
+  if (normalized.length < 2) return [normalized];
+  for (const length of [2, 3]) {
+    for (let start = 0; start <= normalized.length - length; start += 1) {
+      tokens.add(normalized.slice(start, start + length));
     }
   }
+  tokens.add(normalized);
   return [...tokens];
 }
 

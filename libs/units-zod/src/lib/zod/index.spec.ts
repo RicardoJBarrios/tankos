@@ -8,6 +8,7 @@ describe('Units Zod adapter barrel', () => {
       'conversionDefinitionToDto',
       'unitDefinitionDtoSchema',
       'unitDefinitionSchema',
+      'unitDefinitionSearchToken',
       'unitDefinitionToDto',
     ]);
   });

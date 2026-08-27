@@ -56,7 +56,9 @@ describe('createFirestoreCrudRepository', () => {
   };
   const schema = z.any() as z.ZodType<FirestoreRecordDto<{ name: string }>>;
 
-  function repository() {
+  function repository(
+    applyCursor?: (query: never, cursor: never, request: never) => never,
+  ) {
     return createFirestoreCrudRepository({
       firestore: {} as never,
       collectionPath: 'units',
@@ -66,6 +68,7 @@ describe('createFirestoreCrudRepository', () => {
       updateData: (_data, input: { name: string }) => input,
       buildQuery: () => ({}) as never,
       encodeCursor: () => 'cursor' as never,
+      ...(applyCursor ? { applyCursor } : {}),
       authorize: () => undefined,
     });
   }
@@ -152,6 +155,44 @@ describe('createFirestoreCrudRepository', () => {
       data: { name: 'litre' },
     });
     expect(result.nextCursor).toBe('cursor');
+  });
+
+  it('requires and applies a provider cursor for subsequent pages', async () => {
+    firestoreMocks.getDocs.mockResolvedValue({ docs: [] });
+    const applyCursor = vi.fn((query: never) => query);
+
+    await repository(applyCursor).list({
+      access,
+      page: {
+        pageSize: 1,
+        after: 'opaque-cursor' as never,
+        orderBy: [{ field: 'id', direction: 'asc' }],
+      },
+    });
+
+    expect(applyCursor).toHaveBeenCalledWith(
+      expect.anything(),
+      'opaque-cursor',
+      expect.objectContaining({
+        page: expect.objectContaining({ after: expect.anything() }),
+      }),
+    );
+  });
+
+  it('rejects a cursor when the adapter has no provider cursor implementation', async () => {
+    await expect(
+      repository().list({
+        access,
+        page: {
+          pageSize: 1,
+          after: 'opaque-cursor' as never,
+          orderBy: [{ field: 'id', direction: 'asc' }],
+        },
+      }),
+    ).rejects.toMatchObject({
+      code: 'transient',
+      message: 'Firestore list failed',
+    });
   });
 
   it('Given fewer documents than requested, When listed, Then reports no next page', async () => {

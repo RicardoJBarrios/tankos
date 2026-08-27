@@ -52,6 +52,7 @@ describe('firebase.production', () => {
     });
     expect(mocks.getFirestore).toHaveBeenCalledWith(expect.anything());
     expect(firebase.tankosAuthSession).toBeDefined();
+    expect(firebase.tankosAppCheck).toBeUndefined();
   });
 
   it('uses a checked-in public web configuration instead of runtime emulator settings', async () => {

@@ -5,17 +5,24 @@ import {
   query,
   where,
   type CollectionReference,
+  type QueryFieldFilterConstraint,
   type QueryConstraint,
 } from 'firebase/firestore';
 import { type ListRequest } from '@tankos/data-access';
 import type { UnitDefinitionFilter } from '@tankos/units';
+import { unitDefinitionSearchToken } from '@tankos/units-zod';
 
 /** Builds the unit-specific Firestore query without composing the repository. */
 export function buildUnitDefinitionQuery(
   reference: CollectionReference,
   request: ListRequest<UnitDefinitionFilter>,
 ) {
-  const ordering = orderBy('data.code', 'asc');
+  // The document id is a deterministic tie-breaker for deleted revisions and
+  // makes the cursor `(code, id)` stable across pages.
+  const ordering = [
+    orderBy('data.code', 'asc'),
+    orderBy('__name__', 'asc'),
+  ] as const;
   const visibility = request.filter?.visibility;
   const record = request.filter?.record;
   const lifecycle = request.lifecycle ?? ['active', 'inactive'];
@@ -34,28 +41,43 @@ export function buildUnitDefinitionQuery(
     );
   }
 
-  if (visibility === 'public') {
+  return buildKeeperUnitsQuery(
+    reference,
+    request.access.principalId,
+    visibility,
+    lifecycleConstraint,
+    recordConstraints,
+    ordering,
+  );
+}
+
+function buildKeeperUnitsQuery(
+  reference: CollectionReference,
+  principalId: string,
+  visibility: UnitDefinitionFilter['visibility'],
+  lifecycleConstraint: QueryFieldFilterConstraint,
+  recordConstraints: QueryFieldFilterConstraint[],
+  ordering: readonly [ReturnType<typeof orderBy>, ReturnType<typeof orderBy>],
+) {
+  if (visibility === 'public')
     return query(
       reference,
       where('data.visibility', '==', 'public'),
       lifecycleConstraint,
       ...recordConstraints,
-      ordering,
+      ...ordering,
     );
-  }
-
-  if (visibility === 'private') {
+  if (visibility === 'private')
     return query(
       reference,
       where('data.visibility', '==', 'private'),
-      where('data.ownerId', '==', request.access.principalId),
+      where('data.ownerId', '==', principalId),
       lifecycleConstraint,
       ...recordConstraints,
-      ordering,
+      ...ordering,
     );
-  }
-
-  const constraints: QueryConstraint[] = [
+  return query(
+    reference,
     or(
       and(
         where('data.visibility', '==', 'public'),
@@ -64,14 +86,13 @@ export function buildUnitDefinitionQuery(
       ),
       and(
         where('data.visibility', '==', 'private'),
-        where('data.ownerId', '==', request.access.principalId),
+        where('data.ownerId', '==', principalId),
         lifecycleConstraint,
         ...recordConstraints,
       ),
     ) as unknown as QueryConstraint,
-    ordering,
-  ];
-  return query(reference, ...constraints);
+    ...ordering,
+  );
 }
 
 function buildAdminUnitsQuery(
@@ -81,38 +102,31 @@ function buildAdminUnitsQuery(
   ownerName: UnitDefinitionFilter['ownerName'],
   record: UnitDefinitionFilter['record'],
   lifecycleConstraint: QueryConstraint,
-  ordering: ReturnType<typeof orderBy>,
+  ordering: readonly [ReturnType<typeof orderBy>, ReturnType<typeof orderBy>],
 ) {
   const constraints: QueryConstraint[] = [
     ...(visibility ? [where('data.visibility', '==', visibility)] : []),
     ...(ownerId ? [where('data.ownerId', '==', ownerId)] : []),
     ...ownerNameConstraint(ownerName),
     lifecycleConstraint,
-    ...recordConstraint(record),
+    // Firestore composite indexes support only one array field. When both
+    // searches are present, ownerName is the remote candidate filter and the
+    // record substring is verified by the UI after the page is read.
+    ...(ownerName ? [] : recordConstraint(record)),
   ];
-  return query(reference, ...constraints, ordering);
+  return query(reference, ...constraints, ...ordering);
 }
 
 function recordConstraint(record: string | undefined) {
-  return record
-    ? [
-        where(
-          'data.codeSearchTokens',
-          'array-contains',
-          record.toLocaleLowerCase(),
-        ),
-      ]
-    : [];
+  const token =
+    record === undefined ? undefined : unitDefinitionSearchToken(record);
+  return token ? [where('data.codeSearchTokens', 'array-contains', token)] : [];
 }
 
 function ownerNameConstraint(ownerName: string | undefined) {
-  return ownerName
-    ? [
-        where(
-          'data.ownerSearchTokens',
-          'array-contains',
-          ownerName.toLocaleLowerCase(),
-        ),
-      ]
+  const token =
+    ownerName === undefined ? undefined : unitDefinitionSearchToken(ownerName);
+  return token
+    ? [where('data.ownerSearchTokens', 'array-contains', token)]
     : [];
 }

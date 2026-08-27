@@ -20,6 +20,7 @@ import type {
   UnitDefinitionManagementService,
   UnitDefinitionRecord,
 } from '@tankos/units';
+import { filterUnitDefinitionItems } from './unit-definition-list-filter';
 
 const UNIT_DEFINITION_PAGE = {
   pageSize: 50,
@@ -156,7 +157,9 @@ function createUnitDefinitionListSignals(
 ): Omit<UnitDefinitionListStore, 'load' | 'loadMore'> {
   return {
     status: computed(() => (accessError() ? 'error' : rawList.status())),
-    items: rawList.items,
+    items: computed(() =>
+      filterUnitDefinitionItems(rawList.items(), rawList.filter()),
+    ),
     filter: rawList.filter,
     nextCursor: rawList.nextCursor,
     hasMore: rawList.hasMore,

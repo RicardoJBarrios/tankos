@@ -3,6 +3,7 @@ import {
   confirmMaterial,
   loginAs,
   openUnitCreateForm,
+  resetUnitsEmulator,
   saveUnit,
   uniqueUnitCode,
 } from './support/unit-fixtures';
@@ -19,6 +20,7 @@ const publicRecordQueryUrl = /\/units\?visibility=public&record=LTR$/u;
 
 test.describe('custom units', () => {
   test.describe.configure({ mode: 'serial' });
+  test.beforeEach(async () => resetUnitsEmulator());
 
   test('creates and edits a custom unit with deleted versions hidden', async ({
     page,

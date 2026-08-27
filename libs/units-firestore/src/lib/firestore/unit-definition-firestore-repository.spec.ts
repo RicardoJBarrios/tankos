@@ -36,7 +36,7 @@ describe('createUnitDefinitionFirestoreRepository', () => {
   });
   const record = {
     id: createEntityId('unit-1'),
-    data: unitDefinitionToDto(definition),
+    data: { ...unitDefinitionToDto(definition), storageId: 'unit-1' },
     lifecycle: { status: 'active' as const },
     revision: 1,
     metadata: {
@@ -100,7 +100,7 @@ describe('createUnitDefinitionFirestoreRepository', () => {
       unitDefinitionToDto(definition),
     );
     expect(firestoreOptions.updateData(record.data, definition)).toEqual(
-      unitDefinitionToDto(definition),
+      expect.objectContaining(unitDefinitionToDto(definition)),
     );
     expect(raw.create).toHaveBeenCalledWith({ access, input: definition });
   });
@@ -111,7 +111,7 @@ describe('createUnitDefinitionFirestoreRepository', () => {
     );
 
     expect(unitDefinitionRecordSchema.parse(envelope).data).toEqual(
-      unitDefinitionToDto(definition),
+      expect.objectContaining(unitDefinitionToDto(definition)),
     );
   });
 

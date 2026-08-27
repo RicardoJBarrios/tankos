@@ -87,6 +87,18 @@ describe('units Firestore Rules', () => {
     },
   );
 
+  emulatorTest('permite al keeper crear su unidad privada', async () => {
+    const keeper = testEnvironment()
+      .authenticatedContext('keeper-create', { roles: ['keeper'] })
+      .firestore();
+    await expect(
+      setDoc(
+        doc(keeper, path, 'keeper-created'),
+        unitRecord('keeper-create', 'private', 'keeper-created'),
+      ),
+    ).resolves.toBeUndefined();
+  });
+
   emulatorTest(
     'no permite cambiar el código ni borrar una unidad activa',
     async () => {
@@ -219,7 +231,10 @@ function unitRecord(
     data: {
       storageId,
       code: `TANKOS:RULE-${visibility}-${ownerId ?? 'public'}`,
+      codeSearchTokens: ['ta', 'tankos:rule'],
+      ...(ownerId ? { ownerSearchTokens: ['ke', ownerId] } : {}),
       ...(ownerId ? { ownerId } : {}),
+      ...(ownerId ? { ownerName: 'keeper@example.test' } : {}),
       visibility,
       system: 'custom',
       representation: {

@@ -57,11 +57,17 @@ export interface FirestoreCrudRepositoryOptions<
     access: AccessContext,
   ) => string;
   readonly createData: (input: TCreate, id: string) => TData;
-  readonly updateData: (data: TData, input: TUpdate) => TData;
+  readonly updateData: (data: TData, input: TUpdate, id: string) => TData;
   readonly buildQuery: (
     reference: ReturnType<typeof firestoreSdk.collection>,
     request: ListRequest<TFilter>,
   ) => Query;
+  /** Applies the provider-specific cursor to an already built query. */
+  readonly applyCursor?: (
+    builtQuery: Query,
+    cursor: PageCursor,
+    request: ListRequest<TFilter>,
+  ) => firestoreSdk.QueryConstraint;
   readonly encodeCursor: (
     snapshot: QueryDocumentSnapshot,
     request: ListRequest<TFilter>,

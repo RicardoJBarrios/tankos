@@ -5,25 +5,9 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "data.visibility", "order": "ASCENDING" },
-        { "fieldPath": "data.code", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "units",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "data.visibility", "order": "ASCENDING" },
         { "fieldPath": "lifecycle.status", "order": "ASCENDING" },
-        { "fieldPath": "data.code", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "units",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "data.visibility", "order": "ASCENDING" },
-        { "fieldPath": "data.ownerId", "order": "ASCENDING" },
-        { "fieldPath": "data.code", "order": "ASCENDING" }
+        { "fieldPath": "data.code", "order": "ASCENDING" },
+        { "fieldPath": "__name__", "order": "ASCENDING" }
       ]
     },
     {
@@ -33,7 +17,17 @@
         { "fieldPath": "data.visibility", "order": "ASCENDING" },
         { "fieldPath": "data.ownerId", "order": "ASCENDING" },
         { "fieldPath": "lifecycle.status", "order": "ASCENDING" },
-        { "fieldPath": "data.code", "order": "ASCENDING" }
+        { "fieldPath": "data.code", "order": "ASCENDING" },
+        { "fieldPath": "__name__", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "units",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "lifecycle.status", "order": "ASCENDING" },
+        { "fieldPath": "data.code", "order": "ASCENDING" },
+        { "fieldPath": "__name__", "order": "ASCENDING" }
       ]
     },
     {
@@ -42,25 +36,8 @@
       "fields": [
         { "fieldPath": "data.ownerId", "order": "ASCENDING" },
         { "fieldPath": "lifecycle.status", "order": "ASCENDING" },
-        { "fieldPath": "data.code", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "units",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "data.ownerName", "order": "ASCENDING" },
-        { "fieldPath": "lifecycle.status", "order": "ASCENDING" },
-        { "fieldPath": "data.code", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "units",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "data.codeSearchTokens", "arrayConfig": "CONTAINS" },
-        { "fieldPath": "lifecycle.status", "order": "ASCENDING" },
-        { "fieldPath": "data.code", "order": "ASCENDING" }
+        { "fieldPath": "data.code", "order": "ASCENDING" },
+        { "fieldPath": "__name__", "order": "ASCENDING" }
       ]
     },
     {
@@ -69,69 +46,17 @@
       "fields": [
         { "fieldPath": "data.ownerSearchTokens", "arrayConfig": "CONTAINS" },
         { "fieldPath": "lifecycle.status", "order": "ASCENDING" },
-        { "fieldPath": "data.code", "order": "ASCENDING" }
+        { "fieldPath": "data.code", "order": "ASCENDING" },
+        { "fieldPath": "__name__", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "units",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "data.codeSearchTokens", "arrayConfig": "CONTAINS" },
         { "fieldPath": "lifecycle.status", "order": "ASCENDING" },
-        { "fieldPath": "data.code", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "waterChanges",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "ownerId", "order": "ASCENDING" },
-        { "fieldPath": "aquariumId", "order": "ASCENDING" },
-        { "fieldPath": "performedAt", "order": "DESCENDING" },
-        { "fieldPath": "recordedAt", "order": "DESCENDING" },
-        { "fieldPath": "__name__", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "equipment",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "ownerId", "order": "ASCENDING" },
-        { "fieldPath": "aquariumId", "order": "ASCENDING" },
-        { "fieldPath": "lifecycle", "order": "ASCENDING" },
-        { "fieldPath": "name", "order": "ASCENDING" },
-        { "fieldPath": "__name__", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "equipment",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "ownerId", "order": "ASCENDING" },
-        { "fieldPath": "aquariumId", "order": "ASCENDING" },
-        { "fieldPath": "name", "order": "ASCENDING" },
-        { "fieldPath": "__name__", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "plannedCareWorks",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "ownerId", "order": "ASCENDING" },
-        { "fieldPath": "aquariumId", "order": "ASCENDING" },
-        { "fieldPath": "plannedFor", "order": "ASCENDING" },
-        { "fieldPath": "recordedAt", "order": "ASCENDING" },
-        { "fieldPath": "__name__", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "measurements",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "ownerId", "order": "ASCENDING" },
-        { "fieldPath": "aquariumId", "order": "ASCENDING" },
-        { "fieldPath": "parameterId", "order": "ASCENDING" },
-        { "fieldPath": "measuredAt", "order": "DESCENDING" },
-        { "fieldPath": "recordedAt", "order": "DESCENDING" },
+        { "fieldPath": "data.code", "order": "ASCENDING" },
         { "fieldPath": "__name__", "order": "ASCENDING" }
       ]
     }

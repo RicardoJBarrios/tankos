@@ -34,7 +34,7 @@ async function replaceInTransaction<TData, TCreate, TUpdate, TFilter>(
     throw createDataAccessError('conflict', 'Replacement already exists');
 
   const replacement: FirestoreRecordDto<TData> = {
-    data: options.updateData(current.data, input),
+    data: options.updateData(current.data, input, replacementReference.id),
     lifecycle: { status: 'active' },
     revision: 1,
     metadata: {

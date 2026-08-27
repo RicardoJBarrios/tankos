@@ -11,3 +11,10 @@ export const TANKOS_FIREBASE_CONFIG: FirebaseOptions = {
   messagingSenderId: '769994254528',
   appId: '1:769994254528:web:b5d309091934dcffca2525',
 };
+
+/**
+ * Public reCAPTCHA Enterprise site key configured in Firebase App Check.
+ * Keep empty in source control until the key is registered for this web app.
+ * Production enforcement is enabled in the Firebase console after monitoring.
+ */
+export const TANKOS_FIREBASE_APP_CHECK_SITE_KEY = '' as string;

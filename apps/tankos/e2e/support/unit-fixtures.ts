@@ -1,7 +1,23 @@
 import { expect, type Page } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
+import { execPath } from 'node:process';
+import { workspaceRoot } from '@nx/devkit';
 
 const unitsUrl = /\/units$/u;
 let unitSequence = 0;
+
+export async function resetUnitsEmulator(): Promise<void> {
+  const response = await fetch(
+    'http://127.0.0.1:8080/emulator/v1/projects/demo-tankos/databases/(default)/documents/units',
+    { method: 'DELETE' },
+  );
+  if (!response.ok) throw new Error('Unable to reset the units emulator');
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- Node's child-process typings are unavailable in the browser test tsconfig.
+  execFileSync(execPath, ['tools/seed-units.mjs'], {
+    cwd: workspaceRoot,
+    stdio: 'ignore',
+  });
+}
 
 export function uniqueUnitCode(): string {
   const sequence = unitSequence++;

@@ -4,14 +4,17 @@ import {
   createUnitRepresentation,
 } from '@tankos/units';
 import { unitDefinitionSchema } from './unit-definition-zod-schema';
-import { unitDefinitionToDto } from './unit-definition-zod-mapper';
+import {
+  unitDefinitionSearchToken,
+  unitDefinitionToDto,
+} from './unit-definition-zod-mapper';
 
 describe('unitDefinitionToDto', () => {
   it('Given a domain unit definition, When serialized, Then produces a DTO accepted by the schema', () => {
     const definition = createUnitDefinition({
       code: createUnitCode('UN/CEFACT:LTR'),
       ownerId: 'keeper-1',
-      ownerName: 'Keeper One',
+      ownerName: 'x',
       visibility: 'private',
       system: 'metric',
       representation: createUnitRepresentation({
@@ -45,5 +48,30 @@ describe('unitDefinitionToDto', () => {
 
     expect(unitDefinitionToDto(definition)).not.toHaveProperty('ownerId');
     expect(unitDefinitionToDto(definition).visibility).toBe('public');
+  });
+
+  it('uses bounded partial-search tokens instead of every substring', () => {
+    const definition = createUnitDefinition({
+      code: createUnitCode('TANKOS:ABCDEFGHIJKL'),
+      system: 'custom',
+      representation: createUnitRepresentation({
+        symbol: 'u',
+        asciiFallback: 'u',
+        position: 'suffix',
+        spacing: 'normal',
+      }),
+      catalogueVersion: 'v1',
+      visibility: 'public',
+    });
+
+    expect(unitDefinitionToDto(definition).codeSearchTokens).toEqual(
+      expect.arrayContaining(['ta', 'tan', 'kl']),
+    );
+    expect(unitDefinitionToDto(definition).codeSearchTokens).toHaveLength(36);
+    expect(unitDefinitionSearchToken(' Custom ')).toBe('cu');
+    expect(unitDefinitionSearchToken('x')).toBeUndefined();
+    expect(
+      unitDefinitionToDto({ ...definition, ownerName: '' }).ownerSearchTokens,
+    ).toEqual([]);
   });
 });

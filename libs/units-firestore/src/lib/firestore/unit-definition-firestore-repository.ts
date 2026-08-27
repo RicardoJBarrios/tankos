@@ -45,9 +45,9 @@ export function createUnitDefinitionFirestoreRepository(
       ...unitDefinitionToDto(input),
       storageId: id,
     }),
-    updateData: (data, input) => ({
+    updateData: (_data, input, id) => ({
       ...unitDefinitionToDto(input),
-      storageId: String(data.storageId),
+      storageId: id,
     }),
   });
 

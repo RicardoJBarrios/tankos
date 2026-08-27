@@ -25,6 +25,10 @@ boundary.
 - Provider causes are retained only as non-enumerable diagnostics; public
   error messages remain provider-neutral.
 - Production builds exclude local Firebase emulator setup and credentials.
+- Production is prepared for Firebase App Check through a lazy reCAPTCHA
+  Enterprise provider. The site key must be configured and enforcement enabled
+  in the Firebase console after monitoring; App Check is additional abuse
+  protection, never a replacement for Rules.
 
 ## Threat model and limits
 
@@ -76,6 +80,8 @@ roles grant capabilities, and Firestore Rules repeat the resource boundary.
   tampering.
 - Production builds are scanned to ensure local emulator markers and the local
   owner token are absent.
+- Firestore queries use bounded limits and provider cursors. Search token
+  arrays are bounded to limit index fan-out and write amplification.
 - Semgrep, Gitleaks and production dependency audit are required quality
   checks.
 

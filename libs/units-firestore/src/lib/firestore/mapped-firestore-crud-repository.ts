@@ -46,7 +46,7 @@ export function createMappedFirestoreCrudRepository<
   repository: CrudRepositoryPort<TDto, TCreate, TUpdate, TFilter>,
   parse: (value: TDto) => TData,
 ): CrudRepositoryPort<TData, TCreate, TUpdate, TFilter> {
-  const replaceVersioned = repository.replaceVersioned;
+  const replaceVersioned = repository.replaceVersioned?.bind(repository);
   return {
     list: async (request: ListRequest<TFilter>) =>
       mapPage(await repository.list(request), parse),

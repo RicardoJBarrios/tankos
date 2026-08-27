@@ -27,10 +27,23 @@ export function unitDefinitionToDto(
 function searchTokens(value: string): string[] {
   const normalized = value.trim().toLocaleLowerCase();
   const tokens = new Set<string>();
-  for (let start = 0; start < normalized.length; start += 1) {
-    for (let end = start + 1; end <= normalized.length; end += 1) {
-      tokens.add(normalized.slice(start, end));
+  if (!normalized) return [];
+  if (normalized.length < 2) return [normalized];
+
+  // Firestore array indexes have a per-document entry limit. Two- and
+  // three-grams preserve partial candidate search with linear fan-out; the
+  // UI performs the final substring check against the returned candidates.
+  for (let length = 2; length <= 3; length += 1) {
+    for (let start = 0; start <= normalized.length - length; start += 1) {
+      tokens.add(normalized.slice(start, start + length));
     }
   }
+  tokens.add(normalized);
   return [...tokens];
+}
+
+/** Returns the bounded token used to find partial-search candidates. */
+export function unitDefinitionSearchToken(value: string): string | undefined {
+  const normalized = value.trim().toLocaleLowerCase();
+  return normalized.length >= 2 ? normalized.slice(0, 2) : undefined;
 }

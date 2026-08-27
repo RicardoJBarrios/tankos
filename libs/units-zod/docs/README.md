@@ -21,6 +21,14 @@ shapes do not enter the core package.
 The package contains no Firestore, HTTP, Angular component or Aquarium
 dependency. It does not create a relationship between units and aquariums.
 
+## Search and Firestore limits
+
+Unit search fields use bounded two- and three-character n-grams plus the full
+normalized value. This keeps index fan-out linear instead of storing every
+substring. Firestore returns candidates and the UI performs the final
+case-insensitive partial match. Search arrays are capped at 1024 entries;
+larger search strategies belong in a dedicated search system.
+
 ## Architecture
 
 ```text

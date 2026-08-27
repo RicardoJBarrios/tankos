@@ -57,7 +57,7 @@ service cloud.firestore {
       // Rules cannot iterate list values; the schema boundary validates the
       // individual token strings. The size bound still prevents unbounded
       // index payloads from being accepted here.
-      return data is list && data.size() <= 40000;
+      return data is list && data.size() > 0 && data.size() <= 1024;
     }
 
     function isValidUnitDefinition(data) {
@@ -78,6 +78,7 @@ service cloud.firestore {
         && isValidUnitRepresentation(data.representation)
         && data.catalogueVersion is string
         && data.catalogueVersion.size() > 0
+        && data.catalogueVersion.size() <= 64
         && (
           data.visibility == 'public'
           || (
@@ -136,7 +137,6 @@ service cloud.firestore {
 
     function isPrivateUnitOwner(data) {
       return isKeeper()
-        && isValidUnitDefinition(data)
         && data.visibility == 'private'
         && data.ownerId == request.auth.uid;
     }
@@ -216,8 +216,11 @@ service cloud.firestore {
         && (
           isAdmin()
           || (
-            isPrivateUnitOwner(resource.data.data)
-            && isPrivateUnitOwner(request.resource.data.data)
+            isKeeper()
+            && resource.data.data.visibility == 'private'
+            && resource.data.data.ownerId == request.auth.uid
+            && request.resource.data.data.visibility == 'private'
+            && request.resource.data.data.ownerId == request.auth.uid
             && request.resource.data.data.ownerId == resource.data.data.ownerId
             && request.resource.data.data.visibility == resource.data.data.visibility
           )

@@ -4,11 +4,12 @@ import { createDefaultUnitDefinitionFirestoreRepository } from './unit-definitio
 
 const mocks = vi.hoisted(() => ({
   createRepository: vi.fn(),
-  orderBy: vi.fn(() => ({ field: 'data.code', direction: 'asc' })),
+  orderBy: vi.fn((field, direction) => ({ field, direction })),
   where: vi.fn((field, operator, value) => ({ field, operator, value })),
   and: vi.fn((...filters) => ({ and: filters })),
   or: vi.fn((...filters) => ({ or: filters })),
   query: vi.fn((reference, ...constraints) => ({ reference, constraints })),
+  startAfter: vi.fn((queryValue, ...values) => ({ queryValue, values })),
 }));
 
 vi.mock('./unit-definition-firestore-repository', () => ({
@@ -20,6 +21,7 @@ vi.mock('firebase/firestore', () => ({
   and: mocks.and,
   or: mocks.or,
   query: mocks.query,
+  startAfter: mocks.startAfter,
 }));
 
 describe('createDefaultUnitDefinitionFirestoreRepository', () => {
@@ -96,6 +98,7 @@ describe('createDefaultUnitDefinitionFirestoreRepository', () => {
           ],
         },
         { field: 'data.code', direction: 'asc' },
+        { field: '__name__', direction: 'asc' },
       ],
     });
     options.buildQuery(
@@ -124,19 +127,15 @@ describe('createDefaultUnitDefinitionFirestoreRepository', () => {
         {
           field: 'data.ownerSearchTokens',
           operator: 'array-contains',
-          value: 'keeper one',
+          value: 'ke',
         },
         {
           field: 'lifecycle.status',
           operator: 'in',
           value: ['active', 'inactive'],
         },
-        {
-          field: 'data.codeSearchTokens',
-          operator: 'array-contains',
-          value: 'tankos:custom',
-        },
         { field: 'data.code', direction: 'asc' },
+        { field: '__name__', direction: 'asc' },
       ],
     });
     expect(
@@ -157,6 +156,7 @@ describe('createDefaultUnitDefinitionFirestoreRepository', () => {
           value: ['active', 'inactive'],
         },
         { field: 'data.code', direction: 'asc' },
+        { field: '__name__', direction: 'asc' },
       ],
     });
     expect(
@@ -177,6 +177,7 @@ describe('createDefaultUnitDefinitionFirestoreRepository', () => {
           value: ['active', 'inactive'],
         },
         { field: 'data.code', direction: 'asc' },
+        { field: '__name__', direction: 'asc' },
       ],
     });
     expect(
@@ -198,6 +199,7 @@ describe('createDefaultUnitDefinitionFirestoreRepository', () => {
           value: ['active', 'inactive'],
         },
         { field: 'data.code', direction: 'asc' },
+        { field: '__name__', direction: 'asc' },
       ],
     });
     expect(
@@ -216,9 +218,34 @@ describe('createDefaultUnitDefinitionFirestoreRepository', () => {
           value: ['active', 'inactive'],
         },
         { field: 'data.code', direction: 'asc' },
+        { field: '__name__', direction: 'asc' },
       ],
     });
-    expect(options.encodeCursor({ id: 'unit-1' })).toContain('unit-1');
+    expect(
+      options.encodeCursor({
+        id: 'unit-1',
+        data: () => ({ data: { code: 'TANKOS:UNIT' } }),
+      }),
+    ).toContain('unit-1');
+    expect(
+      options.applyCursor(
+        { query: true },
+        JSON.stringify({ code: 'TANKOS:UNIT', id: 'unit-1' }),
+        {},
+      ),
+    ).toEqual({
+      queryValue: 'TANKOS:UNIT',
+      values: ['unit-1'],
+    });
+    expect(() => options.applyCursor({}, 'not-json', {})).toThrow(
+      'Invalid unit-definition page cursor',
+    );
+    expect(() => options.applyCursor({}, JSON.stringify(null), {})).toThrow(
+      'Invalid unit-definition page cursor',
+    );
+    expect(() =>
+      options.applyCursor({}, JSON.stringify({ code: 'only' }), {}),
+    ).toThrow('Invalid unit-definition page cursor');
     expect(options.authorize({ roles: ['keeper'] }, 'mark')).toBeUndefined();
     expect(options.authorize({ roles: ['admin'] }, 'mark')).toBeUndefined();
     expect(() => options.authorize({ roles: ['viewer'] }, 'mark')).toThrow(

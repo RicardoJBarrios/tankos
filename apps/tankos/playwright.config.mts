@@ -24,6 +24,9 @@ const baseURL = process.env.BASE_URL || 'http://localhost:4200';
  */
 export default defineConfig({
   ...nxE2EPreset(import.meta.dirname, { testDir: './e2e' }),
+  // The local Auth emulator is shared by browser projects; serial execution
+  // prevents concurrent role-claim bootstrap and account mutations.
+  workers: 1,
   globalTeardown: './e2e/global-teardown.ts',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {

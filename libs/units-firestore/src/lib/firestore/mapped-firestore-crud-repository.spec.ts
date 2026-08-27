@@ -61,4 +61,27 @@ describe('createMappedFirestoreCrudRepository', () => {
       repository.get({ id: 'missing' } as never),
     ).resolves.toBeUndefined();
   });
+
+  it('Given a repository with a stateful atomic replacement, When mapped, Then its receiver is preserved', async () => {
+    const source = {
+      list: vi.fn(),
+      get: vi.fn(),
+      create: vi.fn(),
+      replace: vi.fn(),
+      replaceVersioned(this: { calls: number }) {
+        this.calls += 1;
+        return Promise.resolve({ data: '1', revision: 1 });
+      },
+      markForDeletion: vi.fn(),
+      restore: vi.fn(),
+      delete: vi.fn(),
+      calls: 0,
+    };
+    const repository = createMappedFirestoreCrudRepository(source, Number);
+
+    await expect(
+      repository.replaceVersioned?.({ id: 'id' } as never, '1'),
+    ).resolves.toEqual(expect.objectContaining({ data: 1 }));
+    expect(source.calls).toBe(1);
+  });
 });

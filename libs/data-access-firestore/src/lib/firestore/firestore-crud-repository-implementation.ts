@@ -32,6 +32,7 @@ import {
   validateDocumentId,
 } from './firestore-crud-repository';
 import { replaceVersionedFirestoreRecord } from './firestore-versioned-replacement';
+import { createFirestoreCursorConstraint } from './firestore-cursor';
 
 /** Stateful Firestore CRUD implementation behind the public factory. */
 export class FirestoreCrudRepositoryImplementation<
@@ -78,9 +79,16 @@ export class FirestoreCrudRepositoryImplementation<
       'list',
     );
     try {
+      const builtQuery = this.#options.buildQuery(this.#reference, request);
+      const cursorConstraint = createFirestoreCursorConstraint(
+        builtQuery,
+        request,
+        this.#options.applyCursor,
+      );
       const result = await firestoreSdk.getDocs(
         firestoreSdk.query(
-          this.#options.buildQuery(this.#reference, request),
+          builtQuery,
+          ...(cursorConstraint ? [cursorConstraint] : []),
           firestoreSdk.limit(request.page.pageSize + 1),
         ),
       );
@@ -202,7 +210,7 @@ export class FirestoreCrudRepositoryImplementation<
       request,
       'replace',
       (record) => ({
-        data: this.#options.updateData(record.data, input),
+        data: this.#options.updateData(record.data, input, request.id),
         lifecycle: record.lifecycle,
       }),
     );

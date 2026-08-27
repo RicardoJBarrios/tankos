@@ -13,3 +13,13 @@ owned by the shared Firestore/data-access boundaries.
 The application supplies collection paths, query builders, cursors and
 authorization. This adapter supplies only the entity-specific DTO schemas and
 domain mapping for `UnitDefinition` and `ConversionDefinition`.
+
+Unit-definition pages use a stable `(data.code, __name__)` ordering. The
+adapter encodes both values and applies them with `startAfter`; a cursor is
+never treated as an offset. Queries with owner and record searches use only
+one array field remotely because Firestore composite indexes cannot combine
+two array fields; the remaining partial match is verified in the UI.
+
+Old versioned records remain until the explicit physical-delete operation.
+The application must provide a retention policy before the catalogue becomes
+large, since Firestore does not automatically remove those records here.

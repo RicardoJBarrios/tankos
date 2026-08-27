@@ -6,6 +6,11 @@ import {
 } from '@tankos/units';
 import { z } from 'zod';
 
+const MAX_CODE_LENGTH = 128;
+const MAX_SEARCH_TOKENS = 1024;
+const MAX_OWNER_NAME_LENGTH = 256;
+const MAX_CATALOGUE_VERSION_LENGTH = 64;
+
 const representationSchema = z.strictObject({
   symbol: z.string().min(1),
   asciiFallback: z.string().min(1),
@@ -17,11 +22,17 @@ const representationSchema = z.strictObject({
 export const unitDefinitionDtoSchema = z.strictObject({
   /** Internal storage binding; omitted from the domain projection. */
   storageId: z.string().min(1).optional(),
-  code: z.string(),
+  code: z.string().max(MAX_CODE_LENGTH),
   ownerId: z.string().min(1).optional(),
-  ownerName: z.string().min(1).optional(),
-  codeSearchTokens: z.array(z.string().min(1)).optional(),
-  ownerSearchTokens: z.array(z.string().min(1)).optional(),
+  ownerName: z.string().min(1).max(MAX_OWNER_NAME_LENGTH).optional(),
+  codeSearchTokens: z
+    .array(z.string().min(1).max(MAX_CODE_LENGTH))
+    .max(MAX_SEARCH_TOKENS)
+    .optional(),
+  ownerSearchTokens: z
+    .array(z.string().min(1).max(MAX_OWNER_NAME_LENGTH))
+    .max(MAX_SEARCH_TOKENS)
+    .optional(),
   visibility: z.enum(['private', 'public']).default('public'),
   system: z.enum([
     'si',
@@ -31,7 +42,7 @@ export const unitDefinitionDtoSchema = z.strictObject({
     'custom',
   ]),
   representation: representationSchema,
-  catalogueVersion: z.string().min(1),
+  catalogueVersion: z.string().min(1).max(MAX_CATALOGUE_VERSION_LENGTH),
 });
 
 /** External JSON shape returned for a unit definition. */
