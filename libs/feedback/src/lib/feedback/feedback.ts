@@ -31,6 +31,17 @@ export interface ConfirmationService {
   confirm(request: ConfirmationRequest): Promise<boolean>;
 }
 
+/** Runs a destructive or otherwise sensitive command only after confirmation. */
+export async function confirmAndRun(
+  confirmation: ConfirmationService,
+  request: ConfirmationRequest,
+  operation: () => void | Promise<void>,
+): Promise<boolean> {
+  if (!(await confirmation.confirm(request))) return false;
+  await operation();
+  return true;
+}
+
 export interface FeedbackService {
   readonly messages: ReturnType<typeof signal<readonly FeedbackMessage[]>>;
   show(kind: FeedbackKind, text: string, options?: FeedbackOptions): number;

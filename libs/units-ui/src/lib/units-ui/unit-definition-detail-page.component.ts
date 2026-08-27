@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AUTH_SESSION } from '@tankos/authn';
-import { CONFIRMATION_SERVICE } from '@tankos/feedback';
+import { CONFIRMATION_SERVICE, confirmAndRun } from '@tankos/feedback';
 import type { AccessContext } from '@tankos/data-access';
 import { formatUnitValue } from '@tankos/formatting';
 import {
@@ -74,16 +74,17 @@ export class UnitDefinitionDetailPageComponent implements OnInit {
 
   protected async markForDeletion(): Promise<void> {
     const record = this.record();
-    if (
-      !record ||
-      !(await this.#confirmation.confirm({
+    if (!record) return;
+    const confirmed = await confirmAndRun(
+      this.#confirmation,
+      {
         title: 'Move unit to recycle bin',
         message: 'The unit will no longer be available in active listings.',
         confirmLabel: 'Move to recycle bin',
-      }))
-    )
-      return;
-    await this.#service.markForDeletion(record);
+      },
+      () => this.#service.markForDeletion(record),
+    );
+    if (!confirmed) return;
     if (this.lifecycleStatus() === 'idle') await this.backToList();
   }
 
@@ -97,32 +98,33 @@ export class UnitDefinitionDetailPageComponent implements OnInit {
 
   protected async publish(): Promise<void> {
     const record = this.record();
-    if (
-      record &&
-      (await this.#confirmation.confirm({
+    if (!record) return;
+    const confirmed = await confirmAndRun(
+      this.#confirmation,
+      {
         title: 'Make unit public',
         message:
           'Public units can be used by all users and cannot be edited by a keeper.',
         confirmLabel: 'Make public',
-      }))
-    ) {
-      await this.#service.publish(record);
-      this.refresh(record);
-    }
+      },
+      () => this.#service.publish(record),
+    );
+    if (confirmed) this.refresh(record);
   }
 
   protected async physicallyDelete(): Promise<void> {
     const record = this.record();
-    if (
-      !record ||
-      !(await this.#confirmation.confirm({
+    if (!record) return;
+    const confirmed = await confirmAndRun(
+      this.#confirmation,
+      {
         title: 'Delete unit permanently',
         message: 'This action cannot be undone.',
         confirmLabel: 'Delete permanently',
-      }))
-    )
-      return;
-    await this.#service.delete(record);
+      },
+      () => this.#service.delete(record),
+    );
+    if (!confirmed) return;
     if (this.lifecycleStatus() === 'idle') await this.backToList();
   }
 

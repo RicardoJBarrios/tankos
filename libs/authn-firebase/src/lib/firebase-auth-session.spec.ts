@@ -1,10 +1,8 @@
 import type { Auth } from 'firebase/auth';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthRequiredError } from '@tankos/authn';
-import {
-  createFirebaseAuthSession,
-  createLocalFirebaseAuthSession,
-} from './firebase-auth-session';
+import { createFirebaseAuthSession } from './firebase-auth-session';
+import { createLocalFirebaseAuthSession } from './firebase-local-auth-session';
 
 const firebaseAuthMocks = vi.hoisted(() => ({
   signInWithEmailAndPassword: vi.fn(),

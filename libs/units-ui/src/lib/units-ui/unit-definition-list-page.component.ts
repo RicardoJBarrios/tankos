@@ -9,7 +9,7 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AUTH_SESSION } from '@tankos/authn';
-import { CONFIRMATION_SERVICE } from '@tankos/feedback';
+import { CONFIRMATION_SERVICE, confirmAndRun } from '@tankos/feedback';
 import type { AccessContext } from '@tankos/data-access';
 import { createCrudListQueryState } from '@tankos/data-access-ui';
 import { CrudMaterialTableComponent } from '@tankos/data-access-material-ui';
@@ -198,15 +198,15 @@ export class UnitDefinitionListPageComponent implements OnInit {
   }
 
   protected async markForDeletion(record: UnitDefinitionRecord): Promise<void> {
-    if (
-      !(await this.#confirmation.confirm({
+    await confirmAndRun(
+      this.#confirmation,
+      {
         title: 'Move unit to recycle bin',
         message: 'The unit will no longer be available in active listings.',
         confirmLabel: 'Move to recycle bin',
-      }))
-    )
-      return;
-    void this.#service.markForDeletion(record);
+      },
+      () => this.#service.markForDeletion(record),
+    );
   }
 
   protected restore(record: UnitDefinitionRecord): void {
@@ -214,30 +214,30 @@ export class UnitDefinitionListPageComponent implements OnInit {
   }
 
   protected async publish(record: UnitDefinitionRecord): Promise<void> {
-    if (
-      !(await this.#confirmation.confirm({
+    await confirmAndRun(
+      this.#confirmation,
+      {
         title: 'Make unit public',
         message:
           'Public units can be used by all users and cannot be edited by a keeper.',
         confirmLabel: 'Make public',
-      }))
-    )
-      return;
-    void this.#service.publish(record);
+      },
+      () => this.#service.publish(record),
+    );
   }
 
   protected async physicallyDelete(
     record: UnitDefinitionRecord,
   ): Promise<void> {
-    if (
-      !(await this.#confirmation.confirm({
+    await confirmAndRun(
+      this.#confirmation,
+      {
         title: 'Delete unit permanently',
         message: 'This action cannot be undone.',
         confirmLabel: 'Delete permanently',
-      }))
-    )
-      return;
-    void this.#service.delete(record);
+      },
+      () => this.#service.delete(record),
+    );
   }
 
   protected pageRequested(index: number): void {

@@ -1,4 +1,4 @@
-import { createFeedbackService } from './feedback';
+import { confirmAndRun, createFeedbackService } from './feedback';
 
 describe('feedback service', () => {
   it('stores and dismisses messages through one neutral contract', () => {
@@ -28,5 +28,33 @@ describe('feedback service', () => {
       label: 'Undo',
       run,
     });
+  });
+
+  it('runs a command only after confirmation', async () => {
+    const operation = vi.fn();
+    const confirmation = { confirm: vi.fn(() => Promise.resolve(true)) };
+
+    await expect(
+      confirmAndRun(
+        confirmation,
+        { title: 'Delete', message: 'Confirm' },
+        operation,
+      ),
+    ).resolves.toBe(true);
+    expect(operation).toHaveBeenCalledOnce();
+  });
+
+  it('does not run a rejected command', async () => {
+    const operation = vi.fn();
+    const confirmation = { confirm: vi.fn(() => Promise.resolve(false)) };
+
+    await expect(
+      confirmAndRun(
+        confirmation,
+        { title: 'Delete', message: 'Confirm' },
+        operation,
+      ),
+    ).resolves.toBe(false);
+    expect(operation).not.toHaveBeenCalled();
   });
 });
