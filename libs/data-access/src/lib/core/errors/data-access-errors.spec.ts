@@ -18,32 +18,30 @@ describe('DataAccessError', () => {
     expect(new DataAccessError('validation', 'invalid').retryable).toBe(false);
   });
 
-  it('Given a transient provider cause, When normalized, Then retains retryability and the cause message', () => {
-    expect(
-      createDataAccessError('transient', 'failed', new Error('offline')),
-    ).toMatchObject({
+  it('Given a transient provider cause, When normalized, Then keeps a safe message and a private cause', () => {
+    const result = createDataAccessError(
+      'transient',
+      'failed',
+      new Error('offline'),
+    );
+    expect(result).toMatchObject({
       code: 'transient',
       retryable: true,
-      message: 'failed: offline',
+      message: 'failed',
     });
+    expect(result.cause).toBeInstanceOf(Error);
   });
 
-  it('Given a non-error cause, When normalized, Then stringifies the cause', () => {
-    expect(
-      createDataAccessError('permanent', 'failed', 'bad-config').message,
-    ).toBe('failed: bad-config');
+  it('Given a provider cause, When normalized, Then does not expose it through enumerable fields', () => {
+    const result = createDataAccessError('permanent', 'failed', 'bad-config');
+    expect(result.message).toBe('failed');
+    expect(Object.keys(result)).not.toContain('cause');
   });
 
-  it('Given a structured cause, When normalized, Then retains its JSON representation', () => {
-    expect(
-      createDataAccessError('permanent', 'failed', { reason: 'bad-config' })
-        .message,
-    ).toBe('failed: {"reason":"bad-config"}');
-  });
-
-  it('Given a cause that cannot be JSON serialized, When normalized, Then uses a safe fallback', () => {
-    expect(
-      createDataAccessError('permanent', 'failed', Symbol('cause')).message,
-    ).toBe('failed: <unserializable cause>');
+  it('Given a structured cause, When normalized, Then retains it only for diagnostics', () => {
+    const cause = { reason: 'bad-config' };
+    const result = createDataAccessError('permanent', 'failed', cause);
+    expect(result.message).toBe('failed');
+    expect(result.cause).toBe(cause);
   });
 });

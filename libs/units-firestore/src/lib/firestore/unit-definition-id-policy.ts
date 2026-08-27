@@ -1,15 +1,16 @@
 import type { UnitDefinition } from '@tankos/units';
 import type { AccessContext } from '@tankos/data-access';
 
-export function createUnitDefinitionId(
+export function createUnitDefinitionId(input: UnitDefinition): string {
+  return normalizeIdPart(input.code);
+}
+
+/** Version ids are distinct while the canonical code id remains reserved. */
+export function createUnitDefinitionReplacementId(
   input: UnitDefinition,
-  access: AccessContext | undefined,
+  access: AccessContext,
 ): string {
-  const code = normalizeIdPart(input.code);
-  const requestId = access?.requestId
-    ? normalizeIdPart(access.requestId)
-    : undefined;
-  return requestId ? `${code}-${requestId}` : code;
+  return `${normalizeIdPart(input.code)}-revision-${normalizeIdPart(access.requestId ?? 'unknown')}`;
 }
 
 function normalizeIdPart(value: string): string {

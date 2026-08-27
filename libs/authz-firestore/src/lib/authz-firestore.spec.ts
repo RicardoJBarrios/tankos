@@ -1,6 +1,7 @@
 import {
   collection,
   getDocs,
+  limit,
   query,
   setDoc,
   updateDoc,
@@ -26,6 +27,7 @@ vi.mock('firebase/firestore', () => ({
     operator,
     value,
   })),
+  limit: vi.fn((value: number) => ({ type: 'limit', value })),
 }));
 
 describe('createFirestoreAuthorizationGrantStore', () => {
@@ -59,6 +61,7 @@ describe('createFirestoreAuthorizationGrantStore', () => {
 
     expect(where).toHaveBeenCalledTimes(4);
     expect(query).toHaveBeenCalledOnce();
+    expect(limit).toHaveBeenCalledWith(100);
   });
 
   it('finds all active resources of a type when no resource id is supplied', async () => {
@@ -86,6 +89,8 @@ describe('createFirestoreAuthorizationGrantStore', () => {
       { path: 'authorizationGrants/grant-1' },
       grant,
     );
+
+    await store.save({ ...grant, attributes: { nullable: null } });
   });
 
   it('revokes a grant and removes its optional attributes', async () => {
@@ -97,6 +102,18 @@ describe('createFirestoreAuthorizationGrantStore', () => {
       { path: 'authorizationGrants/grant-1' },
       { status: 'revoked' },
     );
+  });
+
+  it('rejects unsafe grant ids and malformed grants before writing', async () => {
+    const store = createFirestoreAuthorizationGrantStore({ firestore });
+
+    await expect(store.revoke('../grant' as never)).rejects.toThrow(
+      'Invalid authorization grant id',
+    );
+    await expect(store.save({ ...grant, actions: [] })).rejects.toThrow(
+      'Invalid authorization grant',
+    );
+    expect(setDoc).not.toHaveBeenCalled();
   });
 
   it('rejects malformed persisted grant data', async () => {
@@ -135,23 +152,18 @@ describe('createFirestoreAuthorizationGrantStore', () => {
     ).rejects.toThrow('Invalid authorization grant: broken');
   });
 
-  it('omits an optional attribute with an invalid shape', async () => {
+  it('rejects an optional attribute with an invalid shape', async () => {
     vi.mocked(getDocs).mockResolvedValue({
       docs: [{ id: 'grant-3', data: () => ({ ...grant, attributes: [] }) }],
     } as never);
     const store = createFirestoreAuthorizationGrantStore({ firestore });
 
-    const [result] = await store.find({
-      subjectId: 'user-1' as never,
-      resourceType: 'unit-definition',
-    });
-
-    expect(result).toMatchObject({
-      id: 'grant-3',
-      subjectId: 'user-1',
-      resourceType: 'unit-definition',
-    });
-    expect(result).not.toHaveProperty('attributes');
+    await expect(
+      store.find({
+        subjectId: 'user-1' as never,
+        resourceType: 'unit-definition',
+      }),
+    ).rejects.toThrow('Invalid authorization grant: grant-3');
   });
 
   it('accepts revoked grants without attributes', async () => {
@@ -175,6 +187,28 @@ describe('createFirestoreAuthorizationGrantStore', () => {
         subjectId: 'user-1' as never,
         resourceType: 'unit-definition',
         status: 'revoked',
+      }),
+    ).resolves.toHaveLength(1);
+  });
+
+  it('accepts null-valued grant attributes', async () => {
+    vi.mocked(getDocs).mockResolvedValue({
+      docs: [
+        {
+          id: 'grant-null-attribute',
+          data: () => ({
+            ...grant,
+            attributes: { optional: null, count: 1, enabled: true },
+          }),
+        },
+      ],
+    } as never);
+    const store = createFirestoreAuthorizationGrantStore({ firestore });
+
+    await expect(
+      store.find({
+        subjectId: 'user-1' as never,
+        resourceType: 'unit-definition',
       }),
     ).resolves.toHaveLength(1);
   });

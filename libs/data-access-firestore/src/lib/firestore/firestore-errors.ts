@@ -9,17 +9,12 @@ export function createDataAccessError(
   const error = new DataAccessError(code, message, {
     retryable: code === 'transient',
   });
-  if (cause !== undefined) {
-    error.message = `${error.message}: ${getCauseMessage(cause)}`;
-  }
+  if (cause !== undefined)
+    Object.defineProperty(error, 'cause', {
+      configurable: true,
+      enumerable: false,
+      value: cause,
+      writable: false,
+    });
   return error;
-}
-
-function getCauseMessage(cause: unknown): string {
-  if (cause instanceof Error) return cause.message;
-  if (typeof cause === 'string') return cause;
-  const serializedCause = JSON.stringify(cause);
-  return typeof serializedCause === 'string'
-    ? serializedCause
-    : '<unserializable cause>';
 }

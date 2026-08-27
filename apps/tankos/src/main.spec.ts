@@ -37,7 +37,7 @@ describe('main', () => {
     await import('./main');
     await Promise.resolve();
 
-    expect(consoleError).toHaveBeenCalledWith(error);
+    expect(consoleError).toHaveBeenCalledWith('[TankOS bootstrap failure]');
     consoleError.mockRestore();
   });
 });

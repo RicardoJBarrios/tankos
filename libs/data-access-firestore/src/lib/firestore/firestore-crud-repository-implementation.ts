@@ -143,7 +143,7 @@ export class FirestoreCrudRepositoryImplementation<
     );
     const createdAt = this.#timestampNow();
     const dto: FirestoreRecordDto<TData> = {
-      data: this.#options.createData(request.input),
+      data: this.#options.createData(request.input, target.id),
       lifecycle: { status: 'active' },
       revision: 1,
       metadata: {

@@ -6,7 +6,10 @@ import {
   type UnitDefinitionFirestoreRepositoryOptions,
 } from './unit-definition-firestore-repository';
 import { authorizeUnitDefinitionOperation } from './unit-definition-firestore-authorization';
-import { createUnitDefinitionId } from './unit-definition-id-policy';
+import {
+  createUnitDefinitionId,
+  createUnitDefinitionReplacementId,
+} from './unit-definition-id-policy';
 import { buildUnitDefinitionQuery } from './unit-definition-query-builder';
 
 export interface UnitDefinitionFirestoreFactoryOptions {
@@ -23,6 +26,7 @@ export function createDefaultUnitDefinitionFirestoreRepository(
     collectionPath: 'units',
     clock: options.clock,
     createId: createUnitDefinitionId,
+    createReplacementId: createUnitDefinitionReplacementId,
     buildQuery: buildUnitDefinitionQuery,
     encodeCursor: (snapshot) => createPageCursor(snapshot.id),
     authorize: authorizeUnitDefinitionOperation,

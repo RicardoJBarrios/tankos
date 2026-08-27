@@ -41,8 +41,14 @@ export function createUnitDefinitionFirestoreRepository(
   >({
     ...options,
     recordSchema: unitDefinitionRecordSchema,
-    createData: unitDefinitionToDto,
-    updateData: (_data, input) => unitDefinitionToDto(input),
+    createData: (input, id) => ({
+      ...unitDefinitionToDto(input),
+      storageId: id,
+    }),
+    updateData: (data, input) => ({
+      ...unitDefinitionToDto(input),
+      storageId: String(data.storageId),
+    }),
   });
 
   return createMappedFirestoreCrudRepository(repository, (value) =>

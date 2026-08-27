@@ -20,18 +20,61 @@ service cloud.firestore {
         );
     }
 
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isPersistentUser() {
+      return isAuthenticated()
+        && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    function hasBoundedListQuery() {
+      return request.query.limit != null
+        && request.query.limit > 0
+        && request.query.limit <= 51;
+    }
+
+    function isKeeper() {
+      return isPersistentUser() && (hasRole('keeper') || isAdmin());
+    }
+
+    function isBoundedText(value, maximum) {
+      return value is string && value.size() > 0 && value.size() <= maximum;
+    }
+
+    function isValidUnitRepresentation(data) {
+      return data is map
+        && data.keys().hasOnly(['symbol', 'asciiFallback', 'position', 'spacing'])
+        && data.keys().hasAll(['symbol', 'asciiFallback', 'position', 'spacing'])
+        && isBoundedText(data.symbol, 64)
+        && isBoundedText(data.asciiFallback, 64)
+        && data.position in ['prefix', 'suffix']
+        && data.spacing in ['none', 'narrow', 'normal'];
+    }
+
+    function isValidSearchTokens(data) {
+      // Rules cannot iterate list values; the schema boundary validates the
+      // individual token strings. The size bound still prevents unbounded
+      // index payloads from being accepted here.
+      return data is list && data.size() <= 40000;
+    }
+
     function isValidUnitDefinition(data) {
       return data is map
         && data.keys().hasAll(['visibility'])
         && data.keys().hasOnly([
-          'code', 'ownerId', 'ownerName', 'codeSearchTokens',
+          'storageId', 'code', 'ownerId', 'ownerName', 'codeSearchTokens',
           'ownerSearchTokens', 'visibility', 'system', 'representation',
           'catalogueVersion'
         ])
         && data.visibility in ['private', 'public']
-        && data.code is string
-        && data.code.size() > 0
-        && data.system is string
+        && isBoundedText(data.code, 128)
+        && (
+          !data.keys().hasAll(['storageId'])
+          || isBoundedText(data.storageId, 256)
+        )
+        && isBoundedText(data.system, 64)
         && isValidUnitRepresentation(data.representation)
         && data.catalogueVersion is string
         && data.catalogueVersion.size() > 0
@@ -46,17 +89,15 @@ service cloud.firestore {
           !data.keys().hasAll(['ownerName'])
           || data.ownerName == null
           || isBoundedText(data.ownerName, 256)
+        )
+        && (
+          !data.keys().hasAll(['codeSearchTokens'])
+          || isValidSearchTokens(data.codeSearchTokens)
+        )
+        && (
+          !data.keys().hasAll(['ownerSearchTokens'])
+          || isValidSearchTokens(data.ownerSearchTokens)
         );
-    }
-
-    function isValidUnitRepresentation(data) {
-      return data is map
-        && data.keys().hasOnly(['symbol', 'asciiFallback', 'position', 'spacing'])
-        && data.keys().hasAll(['symbol', 'asciiFallback', 'position', 'spacing'])
-        && isBoundedText(data.symbol, 64)
-        && isBoundedText(data.asciiFallback, 64)
-        && data.position in ['prefix', 'suffix']
-        && data.spacing in ['none', 'narrow', 'normal'];
     }
 
     function isValidUnitRecord(data) {
@@ -72,13 +113,25 @@ service cloud.firestore {
         && data.revision is int
         && data.revision > 0
         && data.metadata is map
+        && data.metadata.keys().hasOnly([
+          'schemaVersion', 'createdAt', 'updatedAt', 'createdBy',
+          'updatedBy', 'lifecycleChangedAt', 'lifecycleChangedBy'
+        ])
         && data.metadata.keys().hasAll([
           'schemaVersion', 'createdAt', 'updatedAt'
         ])
         && data.metadata.schemaVersion is int
         && data.metadata.schemaVersion > 0
         && data.metadata.createdAt is timestamp
-        && data.metadata.updatedAt is timestamp;
+        && data.metadata.updatedAt is timestamp
+        && (!data.metadata.keys().hasAll(['createdBy'])
+          || isBoundedText(data.metadata.createdBy, 128))
+        && (!data.metadata.keys().hasAll(['updatedBy'])
+          || isBoundedText(data.metadata.updatedBy, 128))
+        && (!data.metadata.keys().hasAll(['lifecycleChangedAt'])
+          || data.metadata.lifecycleChangedAt is timestamp)
+        && (!data.metadata.keys().hasAll(['lifecycleChangedBy'])
+          || isBoundedText(data.metadata.lifecycleChangedBy, 128));
     }
 
     function isPrivateUnitOwner(data) {
@@ -92,6 +145,37 @@ service cloud.firestore {
       return isKeeper()
         && isValidUnitDefinition(data)
         && data.visibility == 'public';
+    }
+
+    function isValidUnitLifecycleTransition(current, next) {
+      return next == current
+        || (current in ['active', 'inactive'] && next == 'marked-for-deletion')
+        || (current == 'marked-for-deletion' && next == 'active');
+    }
+
+    function isStorageBoundUnit(unitId, data) {
+      return data.keys().hasAll(['storageId']) && data.storageId == unitId;
+    }
+
+    function hasValidUnitUpdateAudit(current, next) {
+      return next.revision == current.revision + 1
+        && next.metadata.schemaVersion == current.metadata.schemaVersion
+        && next.metadata.createdAt == current.metadata.createdAt
+        && next.metadata.keys().hasAll(['updatedAt', 'updatedBy'])
+        && next.metadata.updatedAt is timestamp
+        && next.metadata.updatedBy == request.auth.uid
+        && isValidUnitLifecycleTransition(
+          current.lifecycle.status,
+          next.lifecycle.status,
+        )
+        && (
+          current.lifecycle.status == next.lifecycle.status
+          || (
+            next.metadata.keys().hasAll(['lifecycleChangedAt', 'lifecycleChangedBy'])
+            && next.metadata.lifecycleChangedAt is timestamp
+            && next.metadata.lifecycleChangedBy == request.auth.uid
+          )
+        );
     }
 
     // Unit definitions are private to their keeper until an admin publishes
@@ -116,884 +200,32 @@ service cloud.firestore {
             && resource.data.data.ownerId == request.auth.uid
           )
         )));
-      allow create: if (
+      allow create: if isValidUnitRecord(request.resource.data)
+        && isStorageBoundUnit(unitId, request.resource.data.data)
+        && (
           isAdmin()
-          && isValidUnitRecord(request.resource.data)
-        )
-        || (
-          isValidUnitRecord(request.resource.data)
-          &&
-          isPrivateUnitOwner(request.resource.data.data)
-          && request.resource.data.data.visibility == 'private'
-        );
-      allow update: if (
-          isValidUnitRepresentation(request.resource.data.data.representation)
-          && request.resource.data.data.visibility in ['private', 'public']
-          && (
-            request.resource.data.data.visibility == 'public'
-            || (
-              request.resource.data.data.ownerId is string
-              && request.resource.data.data.ownerId.size() > 0
-            )
+          || (
+            isPrivateUnitOwner(request.resource.data.data)
+            && request.resource.data.data.visibility == 'private'
           )
-          &&
-          isAdmin()
-          && request.resource.data.data.code == resource.data.data.code
-        )
-        || (
-          isPrivateUnitOwner(resource.data.data)
-          && isPrivateUnitOwner(request.resource.data.data)
-          && request.resource.data.data.ownerId == resource.data.data.ownerId
-          && request.resource.data.data.visibility == resource.data.data.visibility
         );
-      allow delete: if isAdmin() || isPrivateUnitOwner(resource.data.data);
-    }
-
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    function isPersistentUser() {
-      return isAuthenticated()
-        && request.auth.token.firebase.sign_in_provider != 'anonymous';
-    }
-
-    function keeperAccessIsNotRevoked() {
-      return !exists(/databases/$(database)/documents/userAccess/$(request.auth.uid))
-        || !get(/databases/$(database)/documents/userAccess/$(request.auth.uid)).data.keys().hasAll(['keeperRevoked'])
-        || get(/databases/$(database)/documents/userAccess/$(request.auth.uid)).data.keeperRevoked != true;
-    }
-
-    function editorialAccessIsNotRevoked() {
-      return !exists(/databases/$(database)/documents/userAccess/$(request.auth.uid))
-        || !get(/databases/$(database)/documents/userAccess/$(request.auth.uid)).data.keys().hasAll(['editorialRevoked'])
-        || get(/databases/$(database)/documents/userAccess/$(request.auth.uid)).data.editorialRevoked != true;
-    }
-
-    function hasBoundedListQuery() {
-      return request.query.limit != null
-        && request.query.limit > 0
-        && request.query.limit <= 51;
-    }
-
-    function isKeeper() {
-      return isPersistentUser()
-        && (hasRole('keeper') || isAdmin())
-        && keeperAccessIsNotRevoked();
-    }
-
-    function isEditorialKeeper() {
-      return isPersistentUser()
-        && exists(
-          /databases/$(database)/documents/userAccess/$(request.auth.uid)
-        )
-        && get(
-          /databases/$(database)/documents/userAccess/$(request.auth.uid)
-        ).data.keys().hasAll(['editorialAdmin'])
-        && get(
-          /databases/$(database)/documents/userAccess/$(request.auth.uid)
-        ).data.editorialAdmin == true
-        && editorialAccessIsNotRevoked();
-    }
-
-    function isOwner(data) {
-      return isKeeper() && data.ownerId == request.auth.uid;
-    }
-
-    function grantId(aquariumId, userId) {
-      return aquariumId + '_' + userId;
-    }
-
-    function hasReadGrant(aquariumId, permission) {
-      return isAuthenticated()
-        && isPersistentUser()
-        && exists(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid)))
-        && get(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid))).data.status == 'active'
-        && get(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid))).data.permissions.keys().hasAll([permission])
-        && get(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(aquariumId, request.auth.uid))).data.permissions[permission] == true;
-    }
-
-    match /userAccess/{userId} {
-      allow get: if isAuthenticated() && request.auth.uid == userId;
-      allow list, create, update, delete: if false;
-    }
-
-    function canReadAquarium(aquariumId, permission) {
-      return isOwner(resource.data) || hasReadGrant(aquariumId, permission);
-    }
-
-    function isValidGrantPermissions(permissions) {
-      return permissions is map
-        && permissions.keys().hasOnly([
-          'aquarium',
-          'measurements',
-          'observations',
-          'careWorks',
-          'plannedCareWorks',
-          'recurringCarePlans',
-          'livestock',
-          'equipment',
-          'waterChanges'
-        ])
-        && (!permissions.keys().hasAll(['aquarium']) || permissions.aquarium is bool)
-        && (!permissions.keys().hasAll(['measurements']) || permissions.measurements is bool)
-        && (!permissions.keys().hasAll(['observations']) || permissions.observations is bool)
-        && (!permissions.keys().hasAll(['careWorks']) || permissions.careWorks is bool)
-        && (!permissions.keys().hasAll(['plannedCareWorks']) || permissions.plannedCareWorks is bool)
-        && (!permissions.keys().hasAll(['recurringCarePlans']) || permissions.recurringCarePlans is bool)
-        && (!permissions.keys().hasAll(['livestock']) || permissions.livestock is bool)
-        && (!permissions.keys().hasAll(['equipment']) || permissions.equipment is bool)
-        && (!permissions.keys().hasAll(['waterChanges']) || permissions.waterChanges is bool);
-    }
-
-    match /aquariumAccessGrants/{grantDocumentId} {
-      allow create: if (
-        isKeeper()
-        && request.resource.data.keys().hasOnly([
-          'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
-          'status', 'createdAt', 'revokedAt', 'invitationCode'
-        ])
-        && request.resource.data.keys().hasAll([
-          'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
-          'status', 'createdAt'
-        ])
-        && grantDocumentId == grantId(request.resource.data.aquariumId, request.resource.data.granteeUserId)
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.granteeUserId != request.auth.uid
-        && request.resource.data.granteeUserId is string
-        && request.resource.data.granteeUserId.size() <= 128
-        && request.resource.data.status == 'active'
-        && isValidGrantPermissions(request.resource.data.permissions)
-        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
-        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
-        && request.resource.data.createdAt is timestamp
-      ) || (
-        isAuthenticated()
-        && isPersistentUser()
-        && request.resource.data.keys().hasOnly([
-          'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
-          'status', 'createdAt', 'revokedAt', 'invitationCode'
-        ])
-        && request.resource.data.keys().hasAll([
-          'aquariumId', 'ownerId', 'granteeUserId', 'permissions',
-          'status', 'createdAt'
-        ])
-        && grantDocumentId == grantId(request.resource.data.aquariumId, request.auth.uid)
-        && request.resource.data.granteeUserId == request.auth.uid
-        && request.resource.data.invitationCode is string
-        && request.resource.data.invitationCode.size() <= 128
-        && request.resource.data.ownerId != request.auth.uid
-        && request.resource.data.status == 'active'
-        && isValidGrantPermissions(request.resource.data.permissions)
-        && exists(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode))
-        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.status == 'active'
-        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.expiresAt > request.time
-        && getAfter(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.status == 'consumed'
-        && getAfter(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.redeemedBy == request.auth.uid
-        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.aquariumId == request.resource.data.aquariumId
-        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.ownerId == request.resource.data.ownerId
-        && get(/databases/$(database)/documents/aquariumAccessInvitations/$(request.resource.data.invitationCode)).data.permissions == request.resource.data.permissions
-        && request.resource.data.createdAt is timestamp
+      allow update: if isValidUnitRecord(request.resource.data)
+        && isStorageBoundUnit(unitId, request.resource.data.data)
+        && request.resource.data.data.code == resource.data.data.code
+        && hasValidUnitUpdateAudit(resource.data, request.resource.data)
+        && (
+          isAdmin()
+          || (
+            isPrivateUnitOwner(resource.data.data)
+            && isPrivateUnitOwner(request.resource.data.data)
+            && request.resource.data.data.ownerId == resource.data.data.ownerId
+            && request.resource.data.data.visibility == resource.data.data.visibility
+          )
+        );
+      allow delete: if (
+        resource.data.lifecycle.status in ['marked-for-deletion', 'deleted']
+        && (isAdmin() || isPrivateUnitOwner(resource.data.data))
       );
-
-      allow get: if isOwner(resource.data)
-        || (isPersistentUser() && resource.data.granteeUserId == request.auth.uid);
-      allow list: if hasBoundedListQuery() && isOwner(resource.data);
-      allow update: if isOwner(resource.data)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'revokedAt'])
-        && request.resource.data.status == 'revoked'
-        && request.resource.data.revokedAt is timestamp;
-      allow delete: if false;
-    }
-
-    match /aquariumAccessInvitations/{invitationCode} {
-      allow create: if isKeeper()
-        && request.resource.data.keys().hasOnly([
-          'aquariumId', 'ownerId', 'permissions', 'status', 'createdAt',
-          'expiresAt'
-        ])
-        && request.resource.data.keys().hasAll([
-          'aquariumId', 'ownerId', 'permissions', 'status', 'createdAt',
-          'expiresAt'
-        ])
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.aquariumId is string
-        && request.resource.data.aquariumId.size() <= 128
-        && request.resource.data.status == 'active'
-        && isValidGrantPermissions(request.resource.data.permissions)
-        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
-        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
-        && request.resource.data.createdAt is timestamp
-        && request.resource.data.expiresAt is timestamp
-        && request.resource.data.expiresAt > request.time;
-      allow get: if isAuthenticated()
-        && isPersistentUser()
-        && (
-          resource.data.ownerId == request.auth.uid
-          || (resource.data.status == 'active' && resource.data.expiresAt > request.time)
-        );
-      allow list: if hasBoundedListQuery() && isOwner(resource.data);
-      allow update: if (
-          isOwner(resource.data)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-          && request.resource.data.status == 'revoked'
-        ) || (
-          isAuthenticated()
-          && isPersistentUser()
-          && resource.data.status == 'active'
-          && resource.data.expiresAt > request.time
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'status', 'redeemedBy', 'redeemedAt'
-          ])
-          && request.resource.data.status == 'consumed'
-          && request.resource.data.redeemedBy == request.auth.uid
-          && request.resource.data.redeemedAt is timestamp
-          && getAfter(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(resource.data.aquariumId, request.auth.uid))).data.status == 'active'
-          && getAfter(/databases/$(database)/documents/aquariumAccessGrants/$(grantId(resource.data.aquariumId, request.auth.uid))).data.invitationCode == invitationCode
-        );
-      allow delete: if false;
-    }
-
-    function isValidLocation(location) {
-      return location is map
-        && location.keys().hasOnly(['latitude', 'longitude', 'displayName'])
-        && location.keys().hasAll(['latitude', 'longitude', 'displayName'])
-        && location.latitude is number
-        && location.latitude >= -90
-        && location.latitude <= 90
-        && location.longitude is number
-        && location.longitude >= -180
-        && location.longitude <= 180
-        && location.displayName is string
-        && location.displayName.size() > 0;
-    }
-
-    function isValidParameterTarget(target) {
-      return target is map
-        && target.keys().hasOnly(['minimum', 'maximum'])
-        && target.keys().hasAll(['minimum', 'maximum'])
-        && target.minimum is number
-        && target.maximum is number
-        && target.minimum >= 0
-        && target.maximum >= 0
-        && target.minimum <= target.maximum;
-    }
-
-    function isValidParameterTargets(targets) {
-      return targets is map
-        && targets.keys().hasOnly([
-          'temperature',
-          'salinity',
-          'alkalinity',
-          'nitrate',
-          'phosphate'
-        ])
-        && (
-          !targets.keys().hasAll(['temperature'])
-          || isValidParameterTarget(targets.temperature)
-        )
-        && (
-          !targets.keys().hasAll(['salinity'])
-          || isValidParameterTarget(targets.salinity)
-        )
-        && (
-          !targets.keys().hasAll(['alkalinity'])
-          || isValidParameterTarget(targets.alkalinity)
-        )
-        && (
-          !targets.keys().hasAll(['nitrate'])
-          || isValidParameterTarget(targets.nitrate)
-        )
-        && (
-          !targets.keys().hasAll(['phosphate'])
-          || isValidParameterTarget(targets.phosphate)
-        );
-    }
-
-    function isValidEquipmentAssociation(item) {
-      return item is map
-        && item.keys().hasOnly(['aquariumId', 'associatedAt', 'endedAt'])
-        && item.keys().hasAll(['aquariumId', 'associatedAt'])
-        && isBoundedText(item.aquariumId, 128)
-        && item.associatedAt is timestamp
-        && (!item.keys().hasAll(['endedAt']) || item.endedAt is timestamp);
-    }
-
-    function isValidEquipment(data) {
-      return data is map
-        && data.keys().hasOnly([
-          'aquariumId', 'ownerId', 'category', 'name', 'manufacturer', 'model',
-          'serialNumber', 'lifecycle', 'associatedAt', 'updatedAt',
-          'associationHistory'
-        ])
-        && data.keys().hasAll([
-          'aquariumId', 'ownerId', 'category', 'name', 'lifecycle',
-          'associatedAt', 'updatedAt', 'associationHistory'
-        ])
-        && isBoundedText(data.aquariumId, 128)
-        && isBoundedText(data.ownerId, 128)
-        && data.category in ['lighting', 'filtration', 'flow', 'heating', 'monitoring', 'dosing', 'other']
-        && isBoundedText(data.name, 200)
-        && (!data.keys().hasAll(['manufacturer']) || isBoundedText(data.manufacturer, 200))
-        && (!data.keys().hasAll(['model']) || isBoundedText(data.model, 200))
-        && (!data.keys().hasAll(['serialNumber']) || isBoundedText(data.serialNumber, 200))
-        && data.lifecycle in ['active', 'retired']
-        && data.associatedAt is timestamp
-        && data.updatedAt is timestamp
-        && data.associationHistory is list
-        && data.associationHistory.size() > 0
-        && data.associationHistory.size() <= 50
-        && isValidEquipmentAssociation(data.associationHistory[0])
-        && data.associationHistory[data.associationHistory.size() - 1].aquariumId == data.aquariumId
-        && !data.associationHistory[data.associationHistory.size() - 1].keys().hasAll(['endedAt']);
-    }
-
-    function isBoundedText(value, maximum) {
-      return value is string && value.size() > 0 && value.size() <= maximum;
-    }
-
-    function isValidSpeciesProfile(data) {
-      return data is map
-        && data.keys().hasOnly([
-          'displayName', 'scientificName', 'description', 'sections',
-          'sources', 'revision', 'status', 'speciesProfileId'
-        ])
-        && data.keys().hasAll([
-          'displayName', 'description', 'sections', 'sources', 'revision', 'status'
-        ])
-        && isBoundedText(data.displayName, 200)
-        && (!data.keys().hasAll(['speciesProfileId']) || isBoundedText(data.speciesProfileId, 100))
-        && (!data.keys().hasAll(['scientificName']) || isBoundedText(data.scientificName, 200))
-        && isBoundedText(data.description, 100000)
-        && data.sections is list
-        && data.sections.size() > 0
-        && data.sections.size() <= 100
-        && data.sources is list
-        && data.sources.size() > 0
-        && data.sources.size() <= 100
-        && data.revision is map
-        && data.revision.keys().hasOnly(['id', 'publishedAt'])
-        && data.revision.keys().hasAll(['id', 'publishedAt'])
-        && isBoundedText(data.revision.id, 200)
-        && data.revision.publishedAt is timestamp
-        && data.status in ['published', 'retired'];
-    }
-
-    function isValidSpeciesDraft(data) {
-      return data is map
-        && data.keys().hasOnly([
-          'speciesProfileId', 'status', 'displayName', 'scientificName',
-          'description', 'sections', 'sources', 'updatedAt', 'publishedAt'
-        ])
-        && data.keys().hasAll([
-          'speciesProfileId', 'status', 'displayName', 'description',
-          'sections', 'sources'
-        ])
-        && isBoundedText(data.speciesProfileId, 100)
-        && data.status in ['draft', 'reviewed', 'published']
-        && isBoundedText(data.displayName, 200)
-        && (!data.keys().hasAll(['scientificName']) || isBoundedText(data.scientificName, 200))
-        && isBoundedText(data.description, 100000)
-        && data.sections is list
-        && data.sections.size() > 0
-        && data.sections.size() <= 100
-        && data.sources is list
-        && data.sources.size() > 0
-        && data.sources.size() <= 100
-        && (!data.keys().hasAll(['updatedAt']) || data.updatedAt is timestamp)
-        && (!data.keys().hasAll(['publishedAt']) || data.publishedAt is timestamp);
-    }
-
-    match /aquariums/{aquariumId} {
-      allow create: if isKeeper()
-        && request.resource.data.keys().hasOnly([
-          'ownerId',
-          'name',
-          'establishedBy',
-          'establishedAt',
-          'timeZone',
-          'location'
-        ])
-        && request.resource.data.keys().hasAll([
-          'ownerId',
-          'name',
-          'establishedBy',
-          'establishedAt'
-        ])
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.establishedBy == request.auth.uid
-        && isBoundedText(request.resource.data.name, 200)
-        && request.resource.data.establishedAt is timestamp
-        && (
-          !request.resource.data.keys().hasAll(['location'])
-          || isValidLocation(request.resource.data.location)
-        );
-
-      allow get: if isOwner(resource.data) || hasReadGrant(aquariumId, 'aquarium');
-      allow list: if hasBoundedListQuery() && (isOwner(resource.data) || hasReadGrant(aquariumId, 'aquarium'));
-      allow update: if isOwner(resource.data)
-        && request.resource.data.keys().hasAll([
-          'ownerId',
-          'name',
-          'establishedBy',
-          'establishedAt'
-        ])
-        && (
-          (
-            !resource.data.keys().hasAll(['timeZone'])
-            && request.resource.data.keys().hasAll(['timeZone'])
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['timeZone'])
-            && request.resource.data.timeZone is string
-            && request.resource.data.timeZone.size() > 0
-          )
-          || (
-            !resource.data.keys().hasAll(['location'])
-            && request.resource.data.keys().hasAll(['location'])
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['location'])
-            && isValidLocation(request.resource.data.location)
-          )
-          || (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['parameterTargets'])
-            && (
-              !request.resource.data.keys().hasAll(['parameterTargets'])
-              || isValidParameterTargets(request.resource.data.parameterTargets)
-            )
-          )
-        );
-      allow delete: if false;
-    }
-
-    match /equipment/{equipmentId} {
-      allow create: if isKeeper()
-        && isValidEquipment(request.resource.data)
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.lifecycle == 'active'
-        && request.resource.data.associationHistory.size() == 1
-        && request.resource.data.associationHistory[0].aquariumId == request.resource.data.aquariumId
-        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
-        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid;
-      allow get: if canReadAquarium(resource.data.aquariumId, 'equipment');
-      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'equipment');
-      allow update: if isOwner(resource.data)
-        && isValidEquipment(request.resource.data)
-        && request.resource.data.ownerId == resource.data.ownerId
-        && (
-          (
-            resource.data.lifecycle == 'active'
-            && request.resource.data.lifecycle == 'active'
-            && request.resource.data.aquariumId == resource.data.aquariumId
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-              'name', 'category', 'manufacturer', 'model', 'serialNumber', 'updatedAt'
-            ])
-          )
-          || (
-            resource.data.lifecycle == 'active'
-            && request.resource.data.lifecycle == 'active'
-            && request.resource.data.aquariumId != resource.data.aquariumId
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-              'aquariumId', 'associationHistory', 'updatedAt'
-            ])
-            && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
-            && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
-          )
-          || (
-            resource.data.lifecycle == 'active'
-            && request.resource.data.lifecycle == 'retired'
-            && request.resource.data.aquariumId == resource.data.aquariumId
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lifecycle', 'updatedAt'])
-          )
-        );
-      allow delete: if false;
-    }
-
-    match /observations/{observationId} {
-      allow create: if isKeeper()
-        && request.resource.data.keys().hasOnly([
-          'aquariumId',
-          'ownerId',
-          'content',
-          'recordedAt'
-        ])
-        && request.resource.data.keys().hasAll([
-          'aquariumId',
-          'ownerId',
-          'content',
-          'recordedAt'
-        ])
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.aquariumId is string
-        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
-        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
-        && isBoundedText(request.resource.data.content, 10000)
-        && request.resource.data.recordedAt is timestamp;
-
-      allow get: if canReadAquarium(resource.data.aquariumId, 'observations');
-      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'observations');
-      allow update: if false;
-      allow delete: if false;
-    }
-
-    match /measurements/{measurementId} {
-      allow create: if isKeeper()
-        && request.resource.data.keys().hasOnly([
-          'aquariumId',
-          'ownerId',
-          'parameterId',
-          'enteredValue',
-          'enteredUnit',
-          'canonicalValue',
-          'canonicalUnit',
-          'measuredAt',
-          'recordedAt',
-          'provenance',
-          'correctsMeasurementId'
-        ])
-        && request.resource.data.keys().hasAll([
-          'aquariumId',
-          'ownerId',
-          'parameterId',
-          'enteredValue',
-          'enteredUnit',
-          'canonicalValue',
-          'canonicalUnit',
-          'measuredAt',
-          'recordedAt',
-          'provenance'
-        ])
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.aquariumId is string
-        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
-        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
-        && request.resource.data.parameterId in [
-          'temperature',
-          'salinity',
-          'alkalinity',
-          'nitrate',
-          'phosphate'
-        ]
-        && request.resource.data.enteredValue is number
-        && request.resource.data.enteredValue >= 0
-        && request.resource.data.canonicalValue is number
-        && request.resource.data.canonicalValue >= 0
-        && request.resource.data.enteredValue == request.resource.data.canonicalValue
-        && request.resource.data.enteredUnit == request.resource.data.canonicalUnit
-        && (
-          (request.resource.data.parameterId == 'temperature'
-            && request.resource.data.canonicalUnit == 'celsius')
-          || (request.resource.data.parameterId == 'salinity'
-            && request.resource.data.canonicalUnit == 'parts-per-thousand')
-          || (request.resource.data.parameterId == 'alkalinity'
-            && request.resource.data.canonicalUnit == 'degrees-kh')
-          || (request.resource.data.parameterId == 'nitrate'
-            && request.resource.data.canonicalUnit == 'milligrams-per-litre-as-no3')
-          || (request.resource.data.parameterId == 'phosphate'
-            && request.resource.data.canonicalUnit == 'milligrams-per-litre-as-po4')
-        )
-        && request.resource.data.measuredAt is timestamp
-        && request.resource.data.recordedAt is timestamp
-        && request.resource.data.provenance == 'manual'
-        && (
-          !request.resource.data.keys().hasAny(['correctsMeasurementId'])
-          || (
-            request.resource.data.correctsMeasurementId is string
-            && request.resource.data.correctsMeasurementId != measurementId
-            && exists(/databases/$(database)/documents/measurements/$(request.resource.data.correctsMeasurementId))
-            && get(/databases/$(database)/documents/measurements/$(request.resource.data.correctsMeasurementId)).data.ownerId == request.auth.uid
-            && get(/databases/$(database)/documents/measurements/$(request.resource.data.correctsMeasurementId)).data.aquariumId == request.resource.data.aquariumId
-            && getAfter(/databases/$(database)/documents/measurementCorrections/$(request.resource.data.correctsMeasurementId)).data.replacementMeasurementId == measurementId
-          )
-        );
-
-      allow get: if canReadAquarium(resource.data.aquariumId, 'measurements');
-      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'measurements');
-      allow update, delete: if false;
-    }
-
-    match /measurementCorrections/{measurementId} {
-      allow create: if isKeeper()
-        && request.resource.data.keys().hasOnly([
-          'aquariumId',
-          'ownerId',
-          'replacementMeasurementId',
-          'createdAt'
-        ])
-        && request.resource.data.keys().hasAll([
-          'aquariumId',
-          'ownerId',
-          'replacementMeasurementId',
-          'createdAt'
-        ])
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.aquariumId is string
-        && request.resource.data.replacementMeasurementId is string
-        && request.resource.data.createdAt is timestamp
-        && exists(/databases/$(database)/documents/measurements/$(measurementId))
-        && get(/databases/$(database)/documents/measurements/$(measurementId)).data.ownerId == request.auth.uid
-        && get(/databases/$(database)/documents/measurements/$(measurementId)).data.aquariumId == request.resource.data.aquariumId
-        && getAfter(/databases/$(database)/documents/measurements/$(request.resource.data.replacementMeasurementId)).data.correctsMeasurementId == measurementId;
-      allow get: if isKeeper()
-        && exists(/databases/$(database)/documents/measurements/$(measurementId))
-        && get(/databases/$(database)/documents/measurements/$(measurementId)).data.ownerId == request.auth.uid;
-      allow list, update, delete: if false;
-    }
-
-    match /careWorks/{careWorkId} {
-      allow create: if isKeeper()
-        && request.resource.data.keys().hasOnly([
-          'aquariumId',
-          'ownerId',
-          'description',
-          'performedAt',
-          'recordedAt',
-          'provenance'
-        ])
-        && request.resource.data.keys().hasAll([
-          'aquariumId',
-          'ownerId',
-          'description',
-          'performedAt',
-          'recordedAt',
-          'provenance'
-        ])
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.aquariumId is string
-        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
-        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
-        && isBoundedText(request.resource.data.description, 10000)
-        && request.resource.data.performedAt is timestamp
-        && request.resource.data.recordedAt is timestamp
-        && request.resource.data.provenance == 'manual';
-
-      allow get: if canReadAquarium(resource.data.aquariumId, 'careWorks');
-      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'careWorks');
-      allow update, delete: if false;
-    }
-
-    match /waterChanges/{waterChangeId} {
-      allow create: if isKeeper()
-        && request.resource.data.keys().hasOnly([
-          'aquariumId',
-          'ownerId',
-          'volumeLitres',
-          'performedAt',
-          'recordedAt',
-          'notes',
-          'provenance'
-        ])
-        && request.resource.data.keys().hasAll([
-          'aquariumId',
-          'ownerId',
-          'volumeLitres',
-          'performedAt',
-          'recordedAt',
-          'provenance'
-        ])
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.aquariumId is string
-        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
-        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
-        && request.resource.data.volumeLitres is number
-        && request.resource.data.volumeLitres > 0
-        && request.resource.data.performedAt is timestamp
-        && request.resource.data.recordedAt is timestamp
-        && (!request.resource.data.keys().hasAll(['notes']) || isBoundedText(request.resource.data.notes, 1000))
-        && request.resource.data.provenance == 'manual';
-
-      allow get: if canReadAquarium(resource.data.aquariumId, 'waterChanges');
-      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'waterChanges');
-      allow update, delete: if false;
-    }
-
-    match /plannedCareWorks/{plannedCareWorkId} {
-      allow create: if isKeeper()
-        && request.resource.data.keys().hasOnly([
-          'aquariumId',
-          'ownerId',
-          'description',
-          'plannedFor',
-          'recordedAt',
-          'provenance',
-          'recurringCarePlanId'
-        ])
-        && request.resource.data.keys().hasAll([
-          'aquariumId',
-          'ownerId',
-          'description',
-          'plannedFor',
-          'recordedAt',
-          'provenance'
-        ])
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.aquariumId is string
-        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
-        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
-        && isBoundedText(request.resource.data.description, 10000)
-        && request.resource.data.plannedFor is timestamp
-        && request.resource.data.recordedAt is timestamp
-        && (
-          request.resource.data.provenance == 'manual'
-          && !request.resource.data.keys().hasAll(['recurringCarePlanId'])
-          || (
-            request.resource.data.provenance == 'recurring-plan'
-            && request.resource.data.recurringCarePlanId is string
-            && existsAfter(/databases/$(database)/documents/recurringCarePlans/$(request.resource.data.recurringCarePlanId))
-            && getAfter(/databases/$(database)/documents/recurringCarePlans/$(request.resource.data.recurringCarePlanId)).data.ownerId == request.resource.data.ownerId
-            && getAfter(/databases/$(database)/documents/recurringCarePlans/$(request.resource.data.recurringCarePlanId)).data.aquariumId == request.resource.data.aquariumId
-            && getAfter(/databases/$(database)/documents/recurringCarePlans/$(request.resource.data.recurringCarePlanId)).data.outstandingPlannedCareWorkId == plannedCareWorkId
-          )
-        );
-
-      allow get: if !exists(/databases/$(database)/documents/plannedCareWorks/$(plannedCareWorkId))
-        || canReadAquarium(resource.data.aquariumId, 'plannedCareWorks');
-      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'plannedCareWorks');
-      allow update: if false;
-      allow delete: if isOwner(resource.data)
-        && (
-          (
-            resource.data.provenance == 'manual'
-            && (
-              !existsAfter(/databases/$(database)/documents/careWorks/$(plannedCareWorkId))
-              || (
-                !exists(/databases/$(database)/documents/careWorks/$(plannedCareWorkId))
-                && getAfter(/databases/$(database)/documents/careWorks/$(plannedCareWorkId)).data.ownerId == resource.data.ownerId
-                && getAfter(/databases/$(database)/documents/careWorks/$(plannedCareWorkId)).data.aquariumId == resource.data.aquariumId
-                && getAfter(/databases/$(database)/documents/careWorks/$(plannedCareWorkId)).data.description == resource.data.description
-              )
-            )
-          )
-          || (
-            resource.data.provenance == 'recurring-plan'
-            && resource.data.recurringCarePlanId is string
-            && (
-              !existsAfter(/databases/$(database)/documents/recurringCarePlans/$(resource.data.recurringCarePlanId))
-              || getAfter(/databases/$(database)/documents/recurringCarePlans/$(resource.data.recurringCarePlanId)).data.outstandingPlannedCareWorkId != plannedCareWorkId
-            )
-          )
-        );
-    }
-
-    match /recurringCarePlans/{recurringCarePlanId} {
-      allow create: if isKeeper()
-        && request.resource.data.keys().hasOnly([
-          'aquariumId',
-          'ownerId',
-          'description',
-          'firstOccurrenceAt',
-          'recordedAt',
-          'outstandingPlannedCareWorkId'
-        ])
-        && request.resource.data.keys().hasAll([
-          'aquariumId',
-          'ownerId',
-          'description',
-          'firstOccurrenceAt',
-          'recordedAt',
-          'outstandingPlannedCareWorkId'
-        ])
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.aquariumId is string
-        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
-        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
-        && isBoundedText(request.resource.data.description, 10000)
-        && request.resource.data.firstOccurrenceAt is timestamp
-        && request.resource.data.recordedAt is timestamp
-        && request.resource.data.outstandingPlannedCareWorkId is string
-        && existsAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId))
-        && getAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId)).data.recurringCarePlanId == recurringCarePlanId;
-
-      allow get: if !exists(/databases/$(database)/documents/recurringCarePlans/$(recurringCarePlanId))
-        || canReadAquarium(resource.data.aquariumId, 'recurringCarePlans');
-      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'recurringCarePlans');
-      allow update: if isOwner(resource.data)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['outstandingPlannedCareWorkId'])
-        && request.resource.data.outstandingPlannedCareWorkId is string
-        && existsAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId))
-        && getAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId)).data.recurringCarePlanId == recurringCarePlanId
-        && getAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId)).data.ownerId == resource.data.ownerId
-        && getAfter(/databases/$(database)/documents/plannedCareWorks/$(request.resource.data.outstandingPlannedCareWorkId)).data.aquariumId == resource.data.aquariumId;
-      allow delete: if isOwner(resource.data)
-        && !existsAfter(/databases/$(database)/documents/plannedCareWorks/$(resource.data.outstandingPlannedCareWorkId));
-    }
-
-    match /speciesProfiles/{speciesProfileId} {
-      allow get: if resource.data.status == 'published'
-        || isEditorialKeeper();
-      allow list: if hasBoundedListQuery() && (resource.data.status == 'published' || isEditorialKeeper());
-      allow create: if isEditorialKeeper() && isValidSpeciesProfile(request.resource.data);
-      allow update: if isEditorialKeeper()
-        && isValidSpeciesProfile(request.resource.data)
-        && (
-          request.resource.data.status == resource.data.status
-          || (
-            resource.data.status == 'published'
-            && request.resource.data.status == 'retired'
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-          )
-        );
-      allow delete: if false;
-    }
-
-    match /speciesProfileDrafts/{speciesProfileId} {
-      allow read: if isEditorialKeeper();
-      allow create: if isEditorialKeeper()
-        && request.resource.data.speciesProfileId == speciesProfileId
-        && isValidSpeciesDraft(request.resource.data);
-      allow update: if isEditorialKeeper()
-        && request.resource.data.speciesProfileId == speciesProfileId
-        && isValidSpeciesDraft(request.resource.data)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'status', 'displayName', 'scientificName', 'description', 'sections',
-          'sources', 'updatedAt', 'publishedAt'
-        ]);
-      allow delete: if false;
-    }
-
-    match /speciesProfileRevisions/{revisionId} {
-      allow get: if resource.data.status == 'published'
-        || isEditorialKeeper();
-      allow list: if hasBoundedListQuery() && (resource.data.status == 'published' || isEditorialKeeper());
-      allow create: if isEditorialKeeper()
-        && isValidSpeciesProfile(request.resource.data)
-        && request.resource.data.keys().hasAll(['speciesProfileId']);
-      allow update: if false;
-      allow delete: if false;
-    }
-
-    match /livestock/{livestockId} {
-      allow create: if isKeeper()
-        && request.resource.data.keys().hasOnly([
-          'aquariumId', 'ownerId', 'speciesProfileId', 'category',
-          'representation', 'displayName', 'lifecycle', 'associatedAt',
-          'updatedAt', 'associationHistory'
-        ])
-        && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.lifecycle == 'active'
-        && request.resource.data.aquariumId is string
-        && request.resource.data.speciesProfileId is string
-        && request.resource.data.category in ['fish', 'coral', 'other']
-        && request.resource.data.representation in ['individual', 'group']
-        && isBoundedText(request.resource.data.displayName, 200)
-        && request.resource.data.associatedAt is timestamp
-        && request.resource.data.updatedAt is timestamp
-        && request.resource.data.associationHistory is list
-        && request.resource.data.associationHistory.size() > 0
-        && request.resource.data.associationHistory.size() <= 100
-        && exists(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId))
-        && get(/databases/$(database)/documents/aquariums/$(request.resource.data.aquariumId)).data.ownerId == request.auth.uid
-        && exists(/databases/$(database)/documents/speciesProfiles/$(request.resource.data.speciesProfileId))
-        && get(/databases/$(database)/documents/speciesProfiles/$(request.resource.data.speciesProfileId)).data.status == 'published';
-      allow get: if canReadAquarium(resource.data.aquariumId, 'livestock');
-      allow list: if hasBoundedListQuery() && canReadAquarium(resource.data.aquariumId, 'livestock');
-      allow update: if isOwner(resource.data)
-        && request.resource.data.ownerId == resource.data.ownerId
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'aquariumId', 'lifecycle', 'updatedAt', 'associationHistory'
-        ])
-        && request.resource.data.associationHistory is list
-        && request.resource.data.associationHistory.size() > 0
-        && request.resource.data.associationHistory.size() <= 100
-        && (request.resource.data.lifecycle == 'active' || request.resource.data.lifecycle == 'removed');
-      allow delete: if false;
     }
 
     match /{document=**} {

@@ -16,6 +16,9 @@ export class DataAccessError extends Error {
   /** Whether retrying the same operation may succeed. */
   public readonly retryable: boolean;
 
+  /** Provider detail retained for diagnostics, never included in the public message. */
+  public readonly cause?: unknown;
+
   /** Creates a structured data-access error. */
   public constructor(
     code: DataAccessErrorCode,
@@ -29,7 +32,7 @@ export class DataAccessError extends Error {
   }
 }
 
-/** Creates a stable provider-neutral error while retaining a useful cause message. */
+/** Creates a stable provider-neutral error while retaining a non-public cause. */
 export function createDataAccessError(
   code: DataAccessErrorCode,
   message: string,
@@ -38,17 +41,12 @@ export function createDataAccessError(
   const error = new DataAccessError(code, message, {
     retryable: code === 'transient',
   });
-  if (cause !== undefined) {
-    error.message = `${error.message}: ${causeMessage(cause)}`;
-  }
+  if (cause !== undefined)
+    Object.defineProperty(error, 'cause', {
+      configurable: true,
+      enumerable: false,
+      value: cause,
+      writable: false,
+    });
   return error;
-}
-
-function causeMessage(cause: unknown): string {
-  if (cause instanceof Error) return cause.message;
-  if (typeof cause === 'string') return cause;
-  const serializedCause = JSON.stringify(cause);
-  return typeof serializedCause === 'string'
-    ? serializedCause
-    : '<unserializable cause>';
 }

@@ -26,6 +26,7 @@ import {
   type ErrorNormalizer,
   type ErrorReporter,
 } from '@tankos/error-handling';
+import { sanitizeObservabilityValue } from '@tankos/observability';
 import { FEEDBACK_SERVICE, type FeedbackService } from '@tankos/feedback';
 import { provideMaterialFeedback } from '@tankos/feedback-ui';
 import { LOGGER } from '@tankos/observability-ui';
@@ -52,7 +53,7 @@ function createTankosErrorReporter(feedback: FeedbackService): ErrorReporter {
     report: (error) => {
       // Keep the global boundary observable until a production telemetry adapter is configured.
       // eslint-disable-next-line no-console
-      console.error('[TankOS error]', error);
+      console.error('[TankOS error]', sanitizeObservabilityValue(error));
       feedback.error('An unexpected error occurred.');
     },
   };

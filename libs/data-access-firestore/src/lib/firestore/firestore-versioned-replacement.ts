@@ -84,7 +84,11 @@ export async function replaceVersionedFirestoreRecord<
   access: AccessContext,
 ): Promise<CrudRecord<TData>> {
   const currentReference = recordReference(request.id);
-  const replacementId = options.createId(input as unknown as TCreate, {
+  const replacementId = (
+    options.createReplacementId ??
+    ((value: TUpdate, replacementAccess: AccessContext) =>
+      options.createId(value as unknown as TCreate, replacementAccess))
+  )(input, {
     ...access,
     requestId: `${request.id}:replacement:${String(request.expectedRevision)}`,
   });

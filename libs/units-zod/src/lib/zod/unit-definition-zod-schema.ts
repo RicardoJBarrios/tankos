@@ -15,6 +15,8 @@ const representationSchema = z.strictObject({
 
 /** External JSON shape accepted for a unit definition. */
 export const unitDefinitionDtoSchema = z.strictObject({
+  /** Internal storage binding; omitted from the domain projection. */
+  storageId: z.string().min(1).optional(),
   code: z.string(),
   ownerId: z.string().min(1).optional(),
   ownerName: z.string().min(1).optional(),

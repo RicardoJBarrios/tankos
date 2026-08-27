@@ -2,6 +2,7 @@ import {
   collection,
   doc,
   getDocs,
+  limit,
   query,
   setDoc,
   updateDoc,
@@ -14,6 +15,10 @@ import type {
   AuthorizationGrantStore,
 } from '@tankos/authz';
 import type { EntityId } from '@tankos/data-access';
+
+const MAX_ID_LENGTH = 128;
+const MAX_RESOURCE_TYPE_LENGTH = 128;
+const MAX_ACTION_LENGTH = 64;
 
 export interface FirestoreAuthorizationGrantStoreOptions {
   readonly firestore: Firestore;
@@ -37,13 +42,17 @@ export function createFirestoreAuthorizationGrantStore(
           : []),
         where('status', '==', request.status ?? 'active'),
       ];
-      const snapshot = await getDocs(query(grants, ...constraints));
+      const snapshot = await getDocs(query(grants, ...constraints, limit(100)));
       return snapshot.docs.map((item) => parseGrant(item.id, item.data()));
     },
     save: async (grant) => {
       await setDoc(doc(grants, grant.id), serializeGrant(grant));
     },
     revoke: async (grantId) => {
+      if (!isBoundedId(grantId))
+        throw new TypeError(
+          `Invalid authorization grant id: ${String(grantId)}`,
+        );
       await updateDoc(doc(grants, grantId), {
         status: 'revoked',
       });
@@ -52,6 +61,7 @@ export function createFirestoreAuthorizationGrantStore(
 }
 
 function serializeGrant(grant: AuthorizationGrant): AuthorizationGrant {
+  validateGrant(grant);
   return grant;
 }
 
@@ -77,13 +87,71 @@ function parseGrant(
 
 function isValidGrant(value: Record<string, unknown>): boolean {
   return [
-    typeof value['subjectId'] === 'string',
-    typeof value['resourceType'] === 'string',
-    typeof value['resourceId'] === 'string',
-    isStringArray(value['actions']),
+    hasOnlyGrantFields(value),
+    isBoundedId(value['subjectId']),
+    isBoundedText(value['resourceType'], MAX_RESOURCE_TYPE_LENGTH),
+    isBoundedId(value['resourceId']),
+    isSafeStringArray(value['actions']),
     isEffect(value['effect']),
     isStatus(value['status']),
+    !('attributes' in value) ||
+      value['attributes'] === null ||
+      isSafeAttributes(value['attributes']),
   ].every(Boolean);
+}
+
+function hasOnlyGrantFields(value: Record<string, unknown>): boolean {
+  return Object.keys(value).every((key) =>
+    [
+      'id',
+      'subjectId',
+      'resourceType',
+      'resourceId',
+      'actions',
+      'effect',
+      'status',
+      'attributes',
+    ].includes(key),
+  );
+}
+
+function validateGrant(grant: AuthorizationGrant): void {
+  if (
+    !isBoundedId(grant.id) ||
+    !isValidGrant(grant as unknown as Record<string, unknown>)
+  )
+    throw new TypeError(`Invalid authorization grant: ${String(grant.id)}`);
+}
+
+function isBoundedId(value: unknown): value is string {
+  return isBoundedText(value, MAX_ID_LENGTH) && !value.includes('/');
+}
+
+function isBoundedText(value: unknown, max: number): value is string {
+  return typeof value === 'string' && value.length > 0 && value.length <= max;
+}
+
+function isSafeStringArray(value: unknown): value is readonly string[] {
+  return (
+    isStringArray(value) &&
+    value.length > 0 &&
+    value.length <= 32 &&
+    value.every((item) => isBoundedText(item, MAX_ACTION_LENGTH))
+  );
+}
+
+function isSafeAttributes(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  return (
+    Object.keys(value).length <= 32 &&
+    Object.values(value).every(
+      (item) =>
+        item === null ||
+        typeof item === 'string' ||
+        typeof item === 'number' ||
+        typeof item === 'boolean',
+    )
+  );
 }
 
 function isStringArray(value: unknown): value is readonly string[] {

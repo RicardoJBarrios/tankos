@@ -89,7 +89,12 @@ function cursorStart<TData, TFilter>(
   orderBy: ListRequest<TFilter>['page']['orderBy'],
 ): number {
   if (!after) return 0;
-  const cursor = JSON.parse(after) as { id?: string; orderBy?: unknown } | null;
+  let cursor: { id?: string; orderBy?: unknown } | null;
+  try {
+    cursor = JSON.parse(after) as { id?: string; orderBy?: unknown } | null;
+  } catch {
+    throw failure('validation', 'Invalid in-memory page cursor');
+  }
   if (!isValidCursor(cursor, orderBy))
     throw failure('validation', 'Invalid in-memory page cursor');
   const index = records.findIndex((record) => record.id === cursor.id);

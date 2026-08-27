@@ -41,9 +41,25 @@ describe('createDefaultUnitDefinitionFirestoreRepository', () => {
     expect(
       options.createId(
         { code: 'TANKOS:CUSTOM dKH' },
-        { requestId: 'units-1:replacement:1' },
+        { requestId: 'untrusted' },
       ),
-    ).toBe('tankos-custom-dkh-units-1-replacement-1');
+    ).toBe('tankos-custom-dkh');
+    expect(
+      options.createReplacementId(
+        { code: 'TANKOS:CUSTOM dKH' },
+        { principalId: 'keeper-1', roles: ['keeper'] },
+      ),
+    ).toBe('tankos-custom-dkh-revision-unknown');
+    expect(
+      options.createReplacementId(
+        { code: 'TANKOS:CUSTOM dKH' },
+        {
+          principalId: 'keeper-1',
+          roles: ['keeper'],
+          requestId: 'units-1:replacement:1',
+        },
+      ),
+    ).toBe('tankos-custom-dkh-revision-units-1-replacement-1');
     expect(
       options.buildQuery(
         {},

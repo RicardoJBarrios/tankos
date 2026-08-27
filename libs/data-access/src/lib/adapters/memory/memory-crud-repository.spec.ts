@@ -116,7 +116,7 @@ describe('createInMemoryCrudRepository', () => {
           orderBy: [{ field: 'id', direction: 'asc' }],
         },
       }),
-    ).rejects.toBeInstanceOf(SyntaxError);
+    ).rejects.toMatchObject({ code: 'validation' });
     await expect(
       service.list({
         access,

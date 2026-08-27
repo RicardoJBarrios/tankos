@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createDataAccessError } from './firestore-errors';
 
 describe('createDataAccessError', () => {
-  it('Given a transient provider failure, When mapped, Then preserves retryability and the original message', () => {
+  it('Given a transient provider failure, When mapped, Then preserves retryability without exposing the provider message', () => {
     const result = createDataAccessError(
       'transient',
       'Firestore failed',
@@ -13,11 +13,12 @@ describe('createDataAccessError', () => {
       name: 'DataAccessError',
       code: 'transient',
       retryable: true,
-      message: 'Firestore failed: network down',
+      message: 'Firestore failed',
     });
+    expect(result.cause).toBeInstanceOf(Error);
   });
 
-  it('Given a non-error provider value, When mapped, Then stringifies the cause without marking it retryable', () => {
+  it('Given a non-error provider value, When mapped, Then keeps a stable message without marking it retryable', () => {
     const result = createDataAccessError(
       'validation',
       'Invalid document',
@@ -27,8 +28,9 @@ describe('createDataAccessError', () => {
     expect(result).toMatchObject({
       code: 'validation',
       retryable: false,
-      message: 'Invalid document: bad payload',
+      message: 'Invalid document',
     });
+    expect(result.cause).toBe('bad payload');
   });
 
   it('Given no provider cause, When mapped, Then keeps the stable message unchanged', () => {
@@ -37,17 +39,25 @@ describe('createDataAccessError', () => {
     );
   });
 
-  it('Given a structured provider value, When mapped, Then retains its JSON cause', () => {
-    expect(
-      createDataAccessError('validation', 'Invalid document', {
-        reason: 'bad',
-      }),
-    ).toMatchObject({ message: 'Invalid document: {"reason":"bad"}' });
+  it('Given a structured provider value, When mapped, Then retains it only as a diagnostic cause', () => {
+    const cause = { reason: 'bad' };
+    const result = createDataAccessError(
+      'validation',
+      'Invalid document',
+      cause,
+    );
+    expect(result).toMatchObject({ message: 'Invalid document' });
+    expect(result.cause).toBe(cause);
   });
 
-  it('Given an unserializable provider value, When mapped, Then uses a safe cause fallback', () => {
-    expect(
-      createDataAccessError('validation', 'Invalid document', Symbol('bad')),
-    ).toMatchObject({ message: 'Invalid document: <unserializable cause>' });
+  it('Given an unserializable provider value, When mapped, Then retains the diagnostic value without changing the public message', () => {
+    const cause = Symbol('bad');
+    const result = createDataAccessError(
+      'validation',
+      'Invalid document',
+      cause,
+    );
+    expect(result).toMatchObject({ message: 'Invalid document' });
+    expect(result.cause).toBe(cause);
   });
 });
