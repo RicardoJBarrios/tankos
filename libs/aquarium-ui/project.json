@@ -1,0 +1,13 @@
+{
+  "name": "aquarium-ui",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/aquarium-ui/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["scope:tankos", "type:ui"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

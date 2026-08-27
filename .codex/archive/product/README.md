@@ -14,11 +14,11 @@ implementation.
 - Aquarium system: [`AQUARIUM_SYSTEM_MODEL.md`](AQUARIUM_SYSTEM_MODEL.md) and
   [`AQUARIUM_SYSTEM_VOCABULARY.md`](AQUARIUM_SYSTEM_VOCABULARY.md).
 - Measurements and units: [`MEASUREMENT_LANGUAGE.md`](MEASUREMENT_LANGUAGE.md)
-  and [`UNITS.md`](UNITS.md).
+  and [`@tankos/units`](../../../libs/units/docs/README.md).
 - Accepted ParameterDefinition contract:
   [`PARAMETER_DEFINITION_FINAL_SPEC.md`](PARAMETER_DEFINITION_FINAL_SPEC.md).
 - Accepted batch contract:
-  [`BATCH_OPERATIONS_FINAL_SPEC.md`](BATCH_OPERATIONS_FINAL_SPEC.md).
+  [`@tankos/data-access`](../../../libs/data-access/docs/README.md).
 - Current UX delivery sequence:
   [`UX_IMPLEMENTATION_PATH.md`](UX_IMPLEMENTATION_PATH.md).
 
@@ -29,7 +29,7 @@ implementation.
 - [`PARAMETER_DEFINITION_ARCHITECTURE_REVIEW.md`](PARAMETER_DEFINITION_ARCHITECTURE_REVIEW.md)
   and [`PARAMETER_DEFINITION_FIRESTORE_FIWARE_AUDIT.md`](PARAMETER_DEFINITION_FIRESTORE_FIWARE_AUDIT.md)
   preserve rationale and technical risks; they do not replace the final spec.
-- [`BATCH_OPERATIONS_POLICY_REVIEW.md`](BATCH_OPERATIONS_POLICY_REVIEW.md)
+- Batch policy is maintained in [`@tankos/data-access`](../../../libs/data-access/docs/README.md).
   preserves the technical review behind the final batch spec.
 - [`PRODUCT_IDEA_REGISTER.md`](PRODUCT_IDEA_REGISTER.md),
   [`AQUARIUM_INTELLIGENCE_VISION.md`](AQUARIUM_INTELLIGENCE_VISION.md) and

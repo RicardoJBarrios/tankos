@@ -31,7 +31,7 @@ making the domain depend on browser APIs.
   until the Aquarium timezone is established, but must not present that value
   as Aquarium-local.
 - The accepted presentation scope is specified in
-  [`aquarium-local-time-presentation.md`](../specifications/aquarium-local-time-presentation.md).
+  [`@tankos/aquarium`](../../../libs/aquarium/docs/README.md).
 - For calendar commitments such as recurring Care, calculate from the
   Aquarium's authoritative IANA time zone. UI may localize language and show a
   user-local equivalent, but must keep the Aquarium schedule and its zone
@@ -66,7 +66,7 @@ Every cache entry has an explicit TTL, schema/version and invalidation policy;
 cache is never the source of truth. User, permission or Aquarium-context changes
 invalidate incompatible entries before rendering the new context. The complete
 Firestore access, cache and FinOps policy is maintained in
-[`firestore-data-access-and-finops.md`](firestore-data-access-and-finops.md).
+[`@tankos/data-access-firestore`](../../../libs/data-access-firestore/docs/README.md).
 
 ## Performance goals pending validation
 

@@ -1,0 +1,28 @@
+{
+  "name": "aquarium-firebase",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/aquarium-firebase/src",
+  "prefix": "tankos",
+  "projectType": "library",
+  "tags": ["scope:tankos", "type:adapter"],
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:ng-packagr-lite",
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "project": "libs/aquarium-firebase/ng-package.json",
+        "tsConfig": "libs/aquarium-firebase/tsconfig.lib.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/aquarium-firebase/tsconfig.lib.prod.json"
+        },
+        "development": {}
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

@@ -48,7 +48,12 @@
       "@tankos/data-access-material-ui": [
         "./libs/data-access-material-ui/src/index.ts"
       ],
-      "@tankos/units-composition": ["./libs/units-composition/src/index.ts"]
+      "@tankos/units-composition": ["./libs/units-composition/src/index.ts"],
+      "@tankos/aquarium": ["./libs/aquarium/src/index.ts"],
+      "@tankos/aquarium-firebase": [
+        "./libs/aquarium-firebase/src/index.ts"
+      ],
+      "@tankos/aquarium-ui": ["./libs/aquarium-ui/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

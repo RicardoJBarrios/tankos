@@ -4,8 +4,11 @@ Firestore is an infrastructure adapter. This document does not define
 collections, document nesting, indexes, Security Rules or a final schema. Those
 are consequences of accepted use cases, aggregate boundaries and query needs.
 
+The Aquarium-specific persistence direction is owned by
+[`libs/aquarium/docs/decisions.md`](../../../libs/aquarium/docs/decisions.md).
+
 The global access, security, consistency and FinOps rules are defined in
-[`firestore-data-access-and-finops.md`](firestore-data-access-and-finops.md).
+[`@tankos/data-access-firestore`](../../../libs/data-access-firestore/docs/README.md).
 This document records persistence conventions and accepted use-case-specific
 contracts; it must not introduce a weaker or contradictory access pattern.
 
@@ -55,21 +58,22 @@ contracts; it must not introduce a weaker or contradictory access pattern.
 ## Establish an Aquarium: minimum persistence contract
 
 This accepted slice requires only the durable reconstruction of a private
-Aquarium: its `AquariumId`, `AquariumName`, owning keeper identity, and the
+Aquarium: its `AquariumId`, `AquariumName`, initial keeper membership, and the
 attribution and time of its establishment. Each successful establishment gets a
 new independent identity. `AquariumEstablished` is represented by that
 immutable establishment evidence; no generic event store, Timeline projection
 or future-domain collection is needed.
 
 The implementation must create the new Aquarium with an opaque UUID v4 and
-associate it with the authenticated keeper. No keeper-level uniqueness claim,
+associate the authenticated keeper as its initial member/manager. No
+keeper-level uniqueness claim,
 global name uniqueness or count-based reservation is required. The exact
 collection and document paths may be chosen during implementation, but they
-must support reconstruction and owner-scoped access.
+must support reconstruction and membership-scoped access.
 
 Security Rules must make the root private by default, allow an authenticated
-keeper to create and read each root they own, reject unauthenticated access and
-prevent arbitrary ownership changes. A persistence schema version is not required for this first DTO
+member with the required capability to read it, reject unauthenticated and
+non-member access, and prevent arbitrary membership changes. A persistence schema version is not required for this first DTO
 because there is no prior persisted shape to migrate; add one only with the
 first compatibility need.
 

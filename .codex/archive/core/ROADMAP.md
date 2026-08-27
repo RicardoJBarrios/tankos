@@ -85,7 +85,7 @@ Parameter Status.
 
 `Configure Parameter Targets` is implemented as optional Aquarium-owned
 operating intervals without product-wide biological defaults; see
-[`configure-parameter-targets.md`](../specifications/configure-parameter-targets.md).
+the future Aquarium/parameter vertical specification.
 `Review Parameter Status` is implemented in
 [`review-parameter-status.md`](../specifications/review-parameter-status.md). It
 compares latest evidence with keeper-owned targets without freshness thresholds

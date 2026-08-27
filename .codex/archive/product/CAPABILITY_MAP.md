@@ -50,7 +50,8 @@ catalogue of system-defined Parameters and public configurable
   parameter/time filtering, cursor pagination and correction traceability;
   see [its specification](../specifications/parameter-history.md).
 - Configure Parameter Targets — implemented as optional Aquarium-owned keeper
-  intervals; see [its specification](../specifications/configure-parameter-targets.md).
+  intervals; see the archived parameter-target specification when that vertical
+  is implemented.
 - Review Parameter Status — implemented as a derived comparison of latest
   evidence with keeper-owned targets; see
   [its specification](../specifications/review-parameter-status.md).

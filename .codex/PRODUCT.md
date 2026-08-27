@@ -2,7 +2,7 @@
 
 ## Current product model
 
-TankOS helps an authenticated keeper operate one or more private Aquariums.
+TankOS helps authenticated keepers operate one or more private Aquariums.
 The first useful loop is: establish/select an Aquarium, record evidence, review
 history and plan or complete care. Public presentation, collaboration,
 automation, AI, advanced analytics and device input require explicit scope.
@@ -15,6 +15,9 @@ default UI foundation.
 
 - Aquarium is a managed system, not a mutually exclusive freshwater/marine
   type. Internal connected components share its system boundary.
+- An Aquarium may have multiple keeper members. The creator, membership roles
+  and capability permissions must be modelled explicitly when that use case is
+  implemented; a single-owner assumption is not valid.
 - Properties/ParameterDefinitions are global, versioned and administrator
   managed; keepers select which definitions their Aquariums use.
 - Units are independent global contracts. Measurement transformations may need

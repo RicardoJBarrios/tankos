@@ -11,7 +11,7 @@ import {
   readUnitDefinitionDraft,
 } from './unit-definition-form';
 @Component({
-  selector: 'lib-unit-definition-form',
+  selector: 'tankos-unit-definition-form',
   imports: [ReactiveFormsModule],
   templateUrl: './unit-definition-form.component.html',
 })

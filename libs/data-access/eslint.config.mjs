@@ -1,9 +1,7 @@
-import baseConfig from '../../eslint.config.mjs';
-import { createVitestEslintConfig } from '../../tools/eslint/vitest-profiles.mjs';
+import { createLibraryEslintConfig } from '../../tools/eslint/library-profiles.mjs';
 
 export default [
-  ...baseConfig,
-  ...createVitestEslintConfig(),
+  ...createLibraryEslintConfig(),
   {
     files: [
       'src/lib/adapters/memory/**/*.ts',

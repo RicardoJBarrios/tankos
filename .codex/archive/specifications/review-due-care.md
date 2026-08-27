@@ -61,7 +61,7 @@ into `plannedFor`; review does not repeat recurrence resolution.
 
 This increment did not change the date/time display contract or add a timezone
 query. The accepted follow-up policy is defined in
-[aquarium-local-time-presentation.md](aquarium-local-time-presentation.md): configured Aquariums must use their
+the future Aquarium local-time decision: configured Aquariums must use their
 authoritative IANA timezone for user-visible timestamps; legacy Aquariums
 without one remain an explicit browser-timezone compatibility case until their
 timezone is established.

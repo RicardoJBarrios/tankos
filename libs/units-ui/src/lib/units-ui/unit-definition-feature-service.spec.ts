@@ -60,7 +60,6 @@ describe('UnitDefinitionFeatureService', () => {
       expect(service.recordStatus()).toBe('ready');
       expect(service.selectedRecord()).toBe(record);
       expect(management.getSpy).toHaveBeenCalledWith({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         access: expect.anything(),
         id: record.id,
       });
@@ -77,7 +76,6 @@ describe('UnitDefinitionFeatureService', () => {
 
     await vi.waitFor(() => {
       expect(management.getSpy).toHaveBeenCalledWith({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         access: expect.anything(),
         id: record.id,
         lifecycle: ['active', 'inactive', 'marked-for-deletion'],

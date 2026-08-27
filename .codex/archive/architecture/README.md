@@ -12,11 +12,11 @@ testing and Nx boundaries.
   and [`bounded-contexts.md`](bounded-contexts.md).
 - Events and cross-cutting rules: [`event-storming.md`](event-storming.md) and
   [`cross-cutting-policies.md`](cross-cutting-policies.md).
-- Firestore: [`firestore-data-access-and-finops.md`](firestore-data-access-and-finops.md)
+- Firestore: [`@tankos/data-access-firestore`](../../../libs/data-access-firestore/docs/README.md)
   is the global access/cost/security policy; [`firestore-model.md`](firestore-model.md)
   contains persistence examples and conventions, not a schema.
 - Operations and future capabilities:
-  [`operations-and-observability.md`](operations-and-observability.md),
+  [`@tankos/observability`](../../../libs/observability/docs/README.md),
   [`image-strategy.md`](image-strategy.md), [`ai-architecture.md`](ai-architecture.md).
 
 Discovery and future documents do not override the target architecture or an

@@ -1,3 +1,3 @@
-import baseConfig from '../../eslint.config.mjs';
+import { createLibraryEslintConfig } from '../../tools/eslint/library-profiles.mjs';
 
-export default [...baseConfig];
+export default createLibraryEslintConfig();

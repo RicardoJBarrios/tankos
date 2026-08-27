@@ -291,7 +291,6 @@ describe('Firebase auth session', () => {
       expect.objectContaining({
         method: 'POST',
         // Vitest's asymmetric matcher is intentionally untyped here.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         headers: expect.objectContaining({ Authorization: 'Bearer owner' }),
       }),
     );

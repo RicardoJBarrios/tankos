@@ -2,7 +2,7 @@
   <a routerLink="/units" queryParamsHandling="preserve">Back to units</a>
   <h2>{{ isEdit ? 'Edit unit' : 'Create unit' }}</h2>
   @if (!isEdit || recordStatus() === 'ready') {
-    <lib-unit-definition-form
+    <tankos-unit-definition-form
       [record]="record()"
       (submitted)="save($event)"
       (cancelled)="cancel()"

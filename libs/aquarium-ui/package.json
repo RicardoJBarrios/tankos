@@ -1,0 +1,9 @@
+{
+  "name": "@tankos/aquarium-ui",
+  "version": "0.0.0",
+  "private": true,
+  "sideEffects": false,
+  "peerDependencies": {
+    "@angular/core": "^22.1.3"
+  }
+}

@@ -19,7 +19,7 @@ contracts. Do not copy the decision into this file.
 - Product and domain: [`VISION.md`](VISION.md), [`GLOSSARY.md`](GLOSSARY.md),
   [`DOMAIN_RULES.md`](DOMAIN_RULES.md).
 - Architecture: [`architecture/target-architecture.md`](../architecture/target-architecture.md).
-- Persistence and cost: [`architecture/firestore-data-access-and-finops.md`](../architecture/firestore-data-access-and-finops.md).
+- Persistence and cost: [`@tankos/data-access-firestore`](../../../libs/data-access-firestore/docs/README.md).
 - Code and tests: [`CODE_GUARDRAILS.md`](CODE_GUARDRAILS.md).
 - Current product delivery: [`ROADMAP.md`](ROADMAP.md) and accepted
   specifications under [`specifications/`](../specifications/).

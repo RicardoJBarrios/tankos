@@ -80,31 +80,7 @@ export class FeedbackMaterialOutletComponent {
 @Component({
   selector: 'tankos-confirm-dialog',
   imports: [MatDialogModule],
-  template: `
-    <h2 mat-dialog-title data-testid="confirmation-dialog-title">
-      {{ data.title }}
-    </h2>
-    <mat-dialog-content>{{ data.message }}</mat-dialog-content>
-    <mat-dialog-actions align="end">
-      <button
-        mat-button
-        type="button"
-        data-testid="confirmation-cancel"
-        [mat-dialog-close]="false"
-      >
-        {{ data.cancelLabel ?? 'Cancel' }}
-      </button>
-      <button
-        mat-flat-button
-        color="warn"
-        type="button"
-        data-testid="confirmation-confirm"
-        [mat-dialog-close]="true"
-      >
-        {{ data.confirmLabel ?? 'Confirm' }}
-      </button>
-    </mat-dialog-actions>
-  `,
+  templateUrl: 'feedback-confirm-dialog.html',
 })
 export class MaterialConfirmDialogComponent {
   protected readonly data = inject<ConfirmationRequest>(MAT_DIALOG_DATA);

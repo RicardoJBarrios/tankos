@@ -84,7 +84,7 @@ not a biological guarantee, a safety limit or a Measurement validity rule.
 TankOS must not ship hidden product defaults as if they were authoritative.
 
 The target configuration is specified in
-[`configure-parameter-targets.md`](configure-parameter-targets.md). It uses an
+the future Aquarium parameter-target specification. It uses an
 optional bounded `parameterTargets` map in the Aquarium document so one
 configuration read exposes the five possible target slots without creating a
 collection for hypothetical scale.
@@ -121,7 +121,7 @@ The next capability is `Configure Parameter Targets`, not `Review Parameter
 Status`. It allows an authenticated owner to define, edit and remove optional
 ranges for the selected Aquarium without claiming biological authority or
 changing Measurements. Its Definition-of-Ready decisions are closed in
-[`configure-parameter-targets.md`](configure-parameter-targets.md).
+the future Aquarium parameter-target specification.
 
 `Review Parameter Status` is accepted in
 [`review-parameter-status.md`](review-parameter-status.md). It keeps stale-data

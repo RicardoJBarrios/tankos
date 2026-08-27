@@ -22,10 +22,17 @@ before interpretation and keep automation advisory until explicitly accepted.
   Aquarium may select; it is not Aquarium-owned.
 - `Unit`: an independent standard/custom unit and conversion contract; Units
   have no Aquarium relationship.
+- An Aquarium may be managed by multiple keepers. Membership, roles and
+  per-capability permissions belong to the Aquarium access boundary, not to
+  authentication alone.
 
 The complete historical glossary, domain rules and accepted product discovery
 remain in [`archive/core/`](archive/core/) and [`archive/product/`](archive/product/).
 Read only the relevant archived page when implementing that concept.
+
+Aquarium-specific decisions are owned by
+[`libs/aquarium/docs/decisions.md`](../libs/aquarium/docs/decisions.md). This
+document keeps only the workspace-level product language.
 
 ## Scope rule
 
